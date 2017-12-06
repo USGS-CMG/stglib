@@ -9,19 +9,6 @@ import datetime as dt
 import xarray as xr
 
 
-# def load_cdf(cdf_filename, varis, squeeze_me=False):
-#     """Load all variables in a cdf file to a dictionary"""
-#
-#     with nc.Dataset(cdf_filename, 'r') as rg:
-#         RAW = {}
-#         for var in varis:
-#             RAW[var] = rg[var][:]
-#             if squeeze_me is True:
-#                 RAW[var] = np.squeeze(RAW[var])
-#
-#         return RAW
-
-
 def add_final_aqd_metadata(ds, waves=False):
 
     # FIXME: might not need these history lines any more
@@ -109,7 +96,7 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
     return u, v, w
 
 
-def set_orientation(VEL, T, metadata):
+def set_orientation(VEL, T):
     """
     Create depth variable depending on instrument orientation
     """
@@ -139,7 +126,7 @@ def set_orientation(VEL, T, metadata):
     return VEL, T
 
 
-def make_bin_depth(VEL, metadata):
+def make_bin_depth(VEL):
     """Create bin_depth variable"""
 
     if 'Pressure_ac' in VEL:
@@ -150,104 +137,104 @@ def make_bin_depth(VEL, metadata):
     return VEL
 
 
-def magvar_correct(VEL, metadata):
+def magvar_correct(ds):
     """Correct for magnetic declination at site"""
 
-    if 'magnetic_variation_at_site' in metadata:
-        magvardeg = metadata['magnetic_variation_at_site']
-    elif 'magnetic_variation' in metadata:
-        magvardeg = metadata['magnetic_variation']
+    if 'magnetic_variation_at_site' in ds.attrs:
+        magvardeg = ds.attrs['magnetic_variation_at_site']
+    elif 'magnetic_variation' in ds.attrs:
+        magvardeg = ds.attrs['magnetic_variation']
     else:
         print('No magnetic variation information provided; using zero for compass correction')
         magvardeg = 0
 
     print('Rotating heading and horizontal velocities by %f degrees' % magvardeg)
 
-    VEL['Heading'] = VEL['Heading'] + magvardeg
-    VEL['Heading'][VEL['Heading'] >= 360] = VEL['Heading'][VEL['Heading'] >= 360] - 360
-    VEL['Heading'][VEL['Heading'] < 0] = VEL['Heading'][VEL['Heading'] < 0] + 360
+    ds['Heading'] = ds['Heading'] + magvardeg
+    ds['Heading'][ds['Heading'] >= 360] = ds['Heading'][ds['Heading'] >= 360] - 360
+    ds['Heading'][ds['Heading'] < 0] = ds['Heading'][ds['Heading'] < 0] + 360
 
-    vel1 = VEL['U'].copy()
-    vel2 = VEL['V'].copy()
+    vel1 = ds['U'].copy()
+    vel2 = ds['V'].copy()
 
     magvar = magvardeg * np.pi / 180
 
-    VEL['U'] =  vel1 * np.cos(magvar) + vel2 * np.sin(magvar)
-    VEL['V'] = -vel1 * np.sin(magvar) + vel2 * np.cos(magvar)
+    ds['U'] =  vel1 * np.cos(magvar) + vel2 * np.sin(magvar)
+    ds['V'] = -vel1 * np.sin(magvar) + vel2 * np.cos(magvar)
 
-    return VEL
+    return ds
 
 
-def create_water_depth(VEL, metadata):
+def create_water_depth(ds):
     """Create water_depth variable"""
 
-    if 'initial_instrument_height' in metadata:
-        if 'Pressure_ac' in VEL:
-            metadata['nominal_instrument_depth'] = np.nanmean(VEL['Pressure_ac'])
-            VEL['Depth'] = metadata['nominal_instrument_depth']
-            wdepth = metadata['nominal_instrument_depth'] + metadata['initial_instrument_height']
-            metadata['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor, atmospherically corrected'
-            metadata['WATER_DEPTH_datum'] = 'MSL'
-        elif 'Pressure' in VEL:
-            metadata['nominal_instrument_depth'] = np.nanmean(VEL['Pressure'])
-            VEL['Depth'] = metadata['nominal_instrument_depth']
-            wdepth = metadata['nominal_instrument_depth'] + metadata['initial_instrument_height']
-            metadata['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor'
-            metadata['WATER_DEPTH_datum'] = 'MSL'
+    if 'initial_instrument_height' in ds.attrs:
+        if 'Pressure_ac' in ds:
+            ds.attrs['nominal_instrument_depth'] = np.nanmean(ds['Pressure_ac'])
+            ds['Depth'] = ds.attrs['nominal_instrument_depth']
+            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
+            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor, atmospherically corrected'
+            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
+        elif 'Pressure' in ds:
+            ds.attrs['nominal_instrument_depth'] = np.nanmean(ds['Pressure'])
+            ds['Depth'] = ds.attrs['nominal_instrument_depth']
+            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
+            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor'
+            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
         else:
-            wdepth = metadata['WATER_DEPTH']
-            metadata['nominal_instrument_depth'] = metadata['WATER_DEPTH'] - metadata['initial_instrument_height']
-            VEL['Depth'] = metadata['nominal_instrument_depth']
-        metadata['WATER_DEPTH'] = wdepth # TODO: why is this being redefined here? Seems redundant
-    elif 'nominal_instrument_depth' in metadata:
-        metadata['initial_instrument_height'] = metadata['WATER_DEPTH'] - metadata['nominal_instrument_depth']
-        VEL['Depth'] = metadata['nominal_instrument_depth']
+            wdepth = ds.attrs['WATER_DEPTH']
+            ds.attrs['nominal_instrument_depth'] = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
+            ds['Depth'] = ds.attrs['nominal_instrument_depth']
+        ds.attrs['WATER_DEPTH'] = wdepth # TODO: why is this being redefined here? Seems redundant
+    elif 'nominal_instrument_depth' in ds.attrs:
+        ds.attrs['initial_instrument_height'] = ds.attrs['WATER_DEPTH'] - ds.attrs['nominal_instrument_depth']
+        ds['Depth'] = ds.attrs['nominal_instrument_depth']
 
-    if 'initial_instrument_height' not in metadata:
-        metadata['initial_instrument_height'] = 0 # TODO: do we really want to set to zero?
+    if 'initial_instrument_height' not in ds.attrs:
+        ds.attrs['initial_instrument_height'] = 0 # TODO: do we really want to set to zero?
 
-    return VEL, metadata
+    return ds
 
 
-def trim_vel(VEL, metadata, waves=False):
+def trim_vel(ds, waves=False):
     """Trim velocity data depending on specified method"""
 
-    if 'Pressure_ac' in VEL:
+    if 'Pressure_ac' in ds:
         print('Using atmospherically corrected pressure to trim')
-        WL = VEL['Pressure_ac'] + VEL.attrs['transducer_offset_from_bottom']
-        P = VEL['Pressure_ac']
+        WL = ds['Pressure_ac'] + ds.attrs['transducer_offset_from_bottom']
+        P = ds['Pressure_ac']
     else:
         # FIXME incorporate press_ ac below
         print('Using NON-atmospherically corrected pressure to trim')
-        WL = VEL['Pressure'] + VEL.attrs['transducer_offset_from_bottom']
-        P = VEL['Pressure']
+        WL = ds['Pressure'] + ds.attrs['transducer_offset_from_bottom']
+        P = ds['Pressure']
 
 
-    if 'trim_method' in metadata:
-        if 'water level' in metadata['trim_method'].lower():
-            if metadata['trim_method'].lower() == 'water level':
+    if 'trim_method' in ds.attrs:
+        if 'water level' in ds.attrs['trim_method'].lower():
+            if ds.attrs['trim_method'].lower() == 'water level':
                 print('Trimming using water level')
                 for var in ['U', 'V', 'W', 'AGC']:
-                    VEL[var] = VEL[var].where(VEL['bindist'] < P)
-                VEL.attrs['history'] = 'Trimmed velocity data using water level. '+ VEL.attrs['history']
-            elif metadata['trim_method'].lower() == 'water level sl':
+                    ds[var] = ds[var].where(ds['bindist'] < P)
+                ds.attrs['history'] = 'Trimmed velocity data using water level. '+ ds.attrs['history']
+            elif ds.attrs['trim_method'].lower() == 'water level sl':
                 print('Trimming using water level and sidelobes')
                 for var in ['U', 'V', 'W', 'AGC']:
-                    VEL[var] = VEL[var].where(VEL['bindist'] < P * np.cos(np.deg2rad(VEL.attrs['AQDBeamAngle'])))
-                VEL.attrs['history'] = 'Trimmed velocity data using water level and sidelobes. '+ VEL.attrs['history']
+                    ds[var] = ds[var].where(ds['bindist'] < P * np.cos(np.deg2rad(ds.attrs['AQDBeamAngle'])))
+                ds.attrs['history'] = 'Trimmed velocity data using water level and sidelobes. '+ ds.attrs['history']
 
             # find first bin that is all bad values
             # there might be a better way to do this using xarray and named dimensions, but this works for now
-            lastbin = np.argmin(np.all(np.isnan(VEL['U']), axis=0) == False)
+            lastbin = np.argmin(np.all(np.isnan(ds['U']), axis=0) == False)
 
             # this trims so there are no all-nan rows in the data
-            VEL = VEL.isel(bindist=slice(0, lastbin))
+            ds = ds.isel(bindist=slice(0, lastbin))
 
             # TODO: need to add histcomment
 
         # TODO: add other trim methods
 
-    return VEL
+    return ds
 
 
 # def time_time2_to_datetime(time, time2):

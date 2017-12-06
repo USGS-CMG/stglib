@@ -24,6 +24,6 @@ for k in config:
     metadata[k] = config[k]
 
 if args.atmpres:
-    VEL = stglib.aqdcdf2nc.cdf_to_nc(args.cdfname, metadata, atmpres=args.atmpres)
+    VEL = stglib.aqdcdf2nc.cdf_to_nc(args.cdfname, atmpres=args.atmpres)
 else:
-    VEL = stglib.aqdcdf2nc.cdf_to_nc(args.cdfname, metadata)
+    VEL = stglib.aqdcdf2nc.cdf_to_nc(args.cdfname)

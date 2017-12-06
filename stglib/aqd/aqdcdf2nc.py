@@ -5,22 +5,22 @@ import netCDF4
 from ..core import utils
 from . import qaqc
 
-def cdf_to_nc(cdf_filename, metadata, atmpres=False):
+def cdf_to_nc(cdf_filename, atmpres=False):
     """
     Load a "raw" .cdf file and generate a processed .nc file
     """
 
     # Load raw .cdf data
-    VEL = load_cdf(cdf_filename, metadata, atmpres=atmpres)
+    VEL = load_cdf(cdf_filename, atmpres=atmpres)
 
     # Clip data to in/out water times or via good_ens
-    VEL = utils.clip_ds(VEL, metadata)
+    VEL = utils.clip_ds(VEL)
 
     # Create water_depth variables
-    VEL, metadata = qaqc.create_water_depth(VEL, metadata)
+    VEL = qaqc.create_water_depth(VEL)
 
     # Create depth variable depending on orientation
-    VEL, T = qaqc.set_orientation(VEL, VEL['TransMatrix'].values, metadata)
+    VEL, T = qaqc.set_orientation(VEL, VEL['TransMatrix'].values)
 
     # Transform coordinates from, most likely, BEAM to ENU
     u, v, w = qaqc.coord_transform(VEL['VEL1'].values, VEL['VEL2'].values, VEL['VEL3'].values,
@@ -30,13 +30,13 @@ def cdf_to_nc(cdf_filename, metadata, atmpres=False):
     VEL['V'] = xr.DataArray(v, dims=('time', 'bindist'))
     VEL['W'] = xr.DataArray(w, dims=('time', 'bindist'))
 
-    VEL = qaqc.magvar_correct(VEL, metadata)
+    VEL = qaqc.magvar_correct(VEL)
 
     VEL['AGC'] = (VEL['AMP1'] + VEL['AMP2'] + VEL['AMP3']) / 3
 
-    VEL = qaqc.trim_vel(VEL, metadata)
+    VEL = qaqc.trim_vel(VEL)
 
-    VEL = qaqc.make_bin_depth(VEL, metadata)
+    VEL = qaqc.make_bin_depth(VEL)
 
     # Reshape and associate dimensions with lat/lon
     for var in ['U', 'V', 'W', 'AGC', 'Pressure', 'Temperature', 'Heading', 'Pitch', 'Roll']:
@@ -49,14 +49,14 @@ def cdf_to_nc(cdf_filename, metadata, atmpres=False):
 
     VEL = ds_drop(VEL)
 
-    VEL = ds_add_attrs(VEL, metadata)
+    VEL = ds_add_attrs(VEL)
 
     # TODO: Need to add all global attributes from CDF to NC file (or similar)
     VEL = qaqc.add_min_max(VEL)
 
     VEL = qaqc.add_final_aqd_metadata(VEL)
 
-    nc_filename = metadata['filename'] + '.nc'
+    nc_filename = VEL.attrs['filename'] + '.nc'
 
     VEL.to_netcdf(nc_filename, unlimited_dims='time')
     print('Done writing netCDF file', nc_filename)
@@ -69,7 +69,7 @@ def cdf_to_nc(cdf_filename, metadata, atmpres=False):
     return VEL
 
 
-def load_cdf(cdf_filename, metadata, atmpres=False):
+def load_cdf(cdf_filename, atmpres=False):
     """
     Load raw .cdf file and, optionally, an atmospheric pressure .cdf file
     """
@@ -195,24 +195,25 @@ def ds_drop(ds):
     return ds
 
 
-def ds_add_attrs(ds, metadata, waves=False):
+def ds_add_attrs(ds, waves=False):
     """
     add EPIC and CMG attributes to xarray Dataset
     """
 
-    def add_vel_attributes(vel, metadata):
+    def add_vel_attributes(vel, dsattrs):
         vel.attrs.update({'units': 'cm/s',
             'data_cmnt': 'Velocity in shallowest bin is often suspect and should be used with caution'})
 
         # TODO: why do we only do trim_method for Water Level SL?
-        if 'trim_method' in metadata and metadata['trim_method'].lower() == 'water level sl':
+        if 'trim_method' in dsattrs and dsattrs['trim_method'].lower() == 'water level sl':
             vel.attrs.update({'note': 'Velocity bins trimmed if out of water or if side lobes intersect sea surface'})
 
-    def add_attributes(var, metadata, INFO):
-        var.attrs.update({'serial_number': INFO['AQDSerial_Number'],
-            'initial_instrument_height': metadata['initial_instrument_height'],
-            'nominal_instrument_depth': metadata['nominal_instrument_depth'],
-            'height_depth_units': 'm', 'sensor_type': INFO['INST_TYPE']})
+    def add_attributes(var, dsattrs):
+        var.attrs.update({'serial_number': dsattrs['AQDSerial_Number'],
+            'initial_instrument_height': dsattrs['initial_instrument_height'],
+            'nominal_instrument_depth': dsattrs['nominal_instrument_depth'],
+            'height_depth_units': 'm',
+            'sensor_type': dsattrs['INST_TYPE']})
         var.encoding['_FillValue'] = 1e35
 
     ds.attrs.update({'COMPOSITE': 0})
@@ -238,8 +239,8 @@ def ds_add_attrs(ds, metadata, waves=False):
 
     ds['depth'].attrs.update({'units': 'm',
         'long_name': 'mean water depth',
-        'initial_instrument_height': metadata['initial_instrument_height'],
-        'nominal_instrument_depth': metadata['nominal_instrument_depth'],
+        'initial_instrument_height': ds.attrs['initial_instrument_height'],
+        'nominal_instrument_depth': ds.attrs['nominal_instrument_depth'],
         'epic_code': 3})
 
     if waves == False:
@@ -305,10 +306,10 @@ def ds_add_attrs(ds, metadata, waves=False):
         ds['P_1ac'].attrs.update({'units': 'dbar',
             'name': 'Pac',
             'long_name': 'Corrected pressure'})
-        if 'P_1ac_note' in metadata:
-            ds['P_1ac'].attrs.update({'note': metadata['P_1ac_note']})
+        if 'P_1ac_note' in ds.attrs:
+            ds['P_1ac'].attrs.update({'note': ds.attrs['P_1ac_note']})
 
-        add_attributes(ds['P_1ac'], metadata, ds.attrs)
+        add_attributes(ds['P_1ac'], ds.attrs)
 
         ds.attrs['history'] = 'Atmospheric pressure compensated. ' + ds.attrs['history']
 
@@ -332,10 +333,10 @@ def ds_add_attrs(ds, metadata, waves=False):
         'generic_name': 'hdg',
         'epic_code': 1215})
 
-    if 'magnetic_variation_at_site' in metadata:
-        ds['Hdg_1215'].attrs.update({'note': 'Heading is degrees true. Converted from magnetic with magnetic variation of ' + str(metadata['magnetic_variation_at_site'])})
-    elif 'magnetic_variation' in metadata:
-        ds['Hdg_1215'].attrs.update({'note': 'Heading is degrees true. Converted from magnetic with magnetic variation of ' + str(metadata['magnetic_variation'])})
+    if 'magnetic_variation_at_site' in ds.attrs:
+        ds['Hdg_1215'].attrs.update({'note': 'Heading is degrees true. Converted from magnetic with magnetic variation of ' + str(ds.attrs['magnetic_variation_at_site'])})
+    elif 'magnetic_variation' in ds.attrs:
+        ds['Hdg_1215'].attrs.update({'note': 'Heading is degrees true. Converted from magnetic with magnetic variation of ' + str(ds.attrs['magnetic_variation'])})
 
     ds['Ptch_1216'].attrs.update({'units': 'degrees',
         'name': 'Ptch',
@@ -356,14 +357,14 @@ def ds_add_attrs(ds, metadata, waves=False):
 
     if waves == False:
         for v in ['AGC_1202', 'u_1205', 'v_1206', 'w_1204']:
-            add_attributes(ds[v], metadata, ds.attrs)
+            add_attributes(ds[v], ds.attrs)
         for v in ['u_1205', 'v_1206', 'w_1204']:
-            add_vel_attributes(ds[v], metadata)
+            add_vel_attributes(ds[v], ds.attrs)
     elif waves == True:
         for v in ['vel1_1277', 'vel2_1278', 'vel3_1279', 'AGC1_1221', 'AGC2_1222', 'AGC3_1223']:
-            add_attributes(ds[v], metadata, ds.attrs)
+            add_attributes(ds[v], ds.attrs)
 
     for v in ['P_1', 'Tx_1211', 'Hdg_1215', 'Ptch_1216', 'Roll_1217', 'bin_depth', 'bindist']:
-        add_attributes(ds[v], metadata, ds.attrs)
+        add_attributes(ds[v], ds.attrs)
 
     return ds

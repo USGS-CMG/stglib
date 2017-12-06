@@ -23,36 +23,39 @@ def prf_to_cdf(metadata):
     print("Loading ASCII files")
 
     # Load sensor data
-    RAW = load_sen(basefile)
+    ds = load_sen(basefile)
 
     # write out metadata first, then deal exclusively with xarray attrs
-    RAW = utils.write_metadata(RAW, metadata)
-    RAW = utils.write_metadata(RAW, metadata['instmeta'])
+    ds = utils.write_metadata(ds, metadata)
+    ds = utils.write_metadata(ds, metadata['instmeta'])
+
+    del metadata
+    del instmeta
 
     # Deal with metadata peculiarities
-    metadata = check_metadata(metadata)
+    ds = check_attrs(ds)
 
-    RAW = check_orientation(RAW, metadata)
+    ds = check_orientation(ds)
 
     # Load amplitude and velocity data
-    RAW = load_amp_vel(RAW, basefile)
+    ds = load_amp_vel(ds, basefile)
 
     # Compute time stamps
-    RAW = compute_time(RAW, metadata)
+    ds = compute_time(ds)
 
     # configure file
-    cdf_filename = metadata['filename'] + '-raw.cdf'
+    cdf_filename = ds.attrs['filename'] + '-raw.cdf'
 
-    update_attrs(cdf_filename, RAW, metadata)
+    update_attrs(cdf_filename, ds)
 
     # need to drop datetime
-    RAW = RAW.drop('datetime')
+    ds = ds.drop('datetime')
 
-    RAW.to_netcdf(cdf_filename, unlimited_dims='time')
+    ds.to_netcdf(cdf_filename, unlimited_dims='time')
 
     print('Finished writing data to %s' % cdf_filename)
 
-    return RAW
+    return ds
 
 
 def load_sen(basefile):
@@ -85,79 +88,79 @@ def load_sen(basefile):
     return RAW
 
 
-def check_orientation(RAW, metadata, waves=False):
+def check_orientation(ds, waves=False):
     """Check instrument orientation and create variables that depend on this"""
 
-    print('Insrument orientation:', metadata['orientation'])
-    print('Center_first_bin = %f' % metadata['center_first_bin'])
-    print('bin_size = %f' % metadata['bin_size'])
-    print('bin_count = %f' % metadata['bin_count'])
+    print('Insrument orientation:', ds.attrs['orientation'])
+    print('Center_first_bin = %f' % ds.attrs['center_first_bin'])
+    print('bin_size = %f' % ds.attrs['bin_size'])
+    print('bin_count = %f' % ds.attrs['bin_count'])
     # TODO: these values are already in the HDR file...
     if not waves:
-        bindist = np.linspace(metadata['center_first_bin'],
-                                     (metadata['center_first_bin'] + ((metadata['bin_count'] - 1) * metadata['bin_size'])),
-                                     num=metadata['bin_count'])
+        bindist = np.linspace(ds.attrs['center_first_bin'],
+                                     (ds.attrs['center_first_bin'] + ((ds.attrs['bin_count'] - 1) * ds.attrs['bin_size'])),
+                                     num=ds.attrs['bin_count'])
     else:
-        bindist = RAW['cellpos'][0]
+        bindist = ds['cellpos'][0]
 
-    if metadata['orientation'] == 'UP':
+    if ds.attrs['orientation'] == 'UP':
         print('User instructed that instrument was pointing UP')
         # depth, or distance below surface, is a positive number below the
         # surface, negative above the surface, for CMG purposes and consistency with ADCP
-        depth = (metadata['WATER_DEPTH'] - metadata['transducer_offset_from_bottom']) - bindist
+        depth = (ds.attrs['WATER_DEPTH'] - ds.attrs['transducer_offset_from_bottom']) - bindist
         Depth_NOTE = 'user reports uplooking bin depths = water_depth - transducer offset from bottom - bindist' # TODO: this is never used
-    elif metadata['orientation'] == 'DOWN':
+    elif ds.attrs['orientation'] == 'DOWN':
         print('User instructed that instrument was pointing DOWN')
-        depth = (metadata['WATER_DEPTH'] - metadata['transducer_offset_from_bottom']) + bindist
+        depth = (ds.attrs['WATER_DEPTH'] - ds.attrs['transducer_offset_from_bottom']) + bindist
         Depth_NOTE = 'user reports downlooking bin depths = water_depth - transducer_offset_from_bottom + bindist' # TODO: this is never used
 
     if not waves:
-        RAW['bindist'] = xr.DataArray(bindist, dims=('bindist'), name='bindist')
-        RAW['depth'] = xr.DataArray(depth, dims=('bindist'), name='depth')
+        ds['bindist'] = xr.DataArray(bindist, dims=('bindist'), name='bindist')
+        ds['depth'] = xr.DataArray(depth, dims=('bindist'), name='depth')
     else:
-        RAW['bindist'] = xr.DataArray([bindist], dims=('bindist'), name='bindist')
-        RAW['depth'] = xr.DataArray([depth], dims=('bindist'), name='depth')
+        ds['bindist'] = xr.DataArray([bindist], dims=('bindist'), name='bindist')
+        ds['depth'] = xr.DataArray([depth], dims=('bindist'), name='depth')
 
-    return RAW
+    return ds
 
 
-def check_metadata(metadata, waves=False):
+def check_attrs(ds, waves=False):
 
     # Add some metadata originally in the run scripts
-    metadata['nominal_sensor_depth_note'] = 'WATER_DEPTH - initial_instrument_height'
-    metadata['nominal_sensor_depth'] = metadata['WATER_DEPTH'] - metadata['initial_instrument_height']
-    metadata['transducer_offset_from_bottom'] = metadata['initial_instrument_height']
+    ds.attrs['nominal_sensor_depth_note'] = 'WATER_DEPTH - initial_instrument_height'
+    ds.attrs['nominal_sensor_depth'] = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
+    ds.attrs['transducer_offset_from_bottom'] = ds.attrs['initial_instrument_height']
 
     # % now verify the global metadata for standard EPIC and cmg stuff
     # % everything in metadata and instmeta get written as global attributes
     # % these also get copied to the .nc file
-    if 'initial_instrument_height' not in metadata or np.isnan(metadata['initial_instrument_height']):
-        metadata['initial_instrument_height'] = 0
+    if 'initial_instrument_height' not in ds.attrs or np.isnan(ds.attrs['initial_instrument_height']):
+        ds.attrs['initial_instrument_height'] = 0
 
-    metadata['serial_number'] = metadata['instmeta']['AQDSerial_Number']
+    ds.attrs['serial_number'] = ds.attrs['AQDSerial_Number']
 
     # update metadata from Aquadopp header to CMG standard so that various
     # profilers have the same attribute wording.  Redundant, but necessary
     if not waves:
-        metadata['bin_count'] = metadata['instmeta']['AQDNumberOfCells']
-        metadata['bin_size'] = metadata['instmeta']['AQDCellSize'] / 100 # from cm to m
-        metadata['blanking_distance'] = metadata['instmeta']['AQDBlankingDistance'] # already in m
+        ds.attrs['bin_count'] = ds.attrs['AQDNumberOfCells']
+        ds.attrs['bin_size'] = ds.attrs['AQDCellSize'] / 100 # from cm to m
+        ds.attrs['blanking_distance'] = ds.attrs['AQDBlankingDistance'] # already in m
         # Nortek lists the distance to the center of the first bin as the blanking
         # distance plus one cell size
-        metadata['center_first_bin'] = metadata['blanking_distance'] + metadata['bin_size'] # in m
+        ds.attrs['center_first_bin'] = ds.attrs['blanking_distance'] + ds.attrs['bin_size'] # in m
     else:
-        metadata['bin_count'] = 1 # only 1 wave bin
-        metadata['bin_size'] = metadata['instmeta']['WaveCellSize'] # already in m
-        metadata['blanking_distance'] = metadata['instmeta']['AQDBlankingDistance'] # already in m
+        ds.attrs['bin_count'] = 1 # only 1 wave bin
+        ds.attrs['bin_size'] = ds.attrs['WaveCellSize'] # already in m
+        ds.attrs['blanking_distance'] = ds.attrs['AQDBlankingDistance'] # already in m
         # need to set center_first_bin after return in main calling function
 
-    metadata['salinity_set_by_user'] = metadata['instmeta']['AQDSalinity']
-    metadata['salinity_set_by_user_units'] = 'ppt'
+    ds.attrs['salinity_set_by_user'] = ds.attrs['AQDSalinity']
+    ds.attrs['salinity_set_by_user_units'] = 'ppt'
 
-    metadata['frequency'] = metadata['instmeta']['AQDFrequency']
-    metadata['beam_width'] = metadata['instmeta']['AQDBeamWidth']
-    metadata['beam_pattern'] = metadata['instmeta']['AQDBeamPattern']
-    metadata['beam_angle'] = metadata['instmeta']['AQDBeamAngle']
+    ds.attrs['frequency'] = ds.attrs['AQDFrequency']
+    ds.attrs['beam_width'] = ds.attrs['AQDBeamWidth']
+    ds.attrs['beam_pattern'] = ds.attrs['AQDBeamPattern']
+    ds.attrs['beam_angle'] = ds.attrs['AQDBeamAngle']
     # instmeta['AQDHeadRotation'] = metadata.pop('head_rotation') # also deletes this key. Not sure why the Matlab file does this, maybe need TODO look into this
 
     # TODO: figure these out
@@ -165,94 +168,94 @@ def check_metadata(metadata, waves=False):
     # metadata['inststat'] = instmeta['status']
     # metadata['instorient'] = instmeta['orient']
 
-    metadata['INST_TYPE'] = 'Nortek Aquadopp Profiler';
+    ds.attrs['INST_TYPE'] = 'Nortek Aquadopp Profiler';
 
-    return metadata
+    return ds
 
 
-def update_attrs(cdf_filename, RAW, metadata, waves=False):
+def update_attrs(cdf_filename, ds, waves=False):
     """Define dimensions and variables in NetCDF file"""
 
-    RAW['lat'] = xr.DataArray([metadata['latitude']], dims=('lat'), name='lat')
-    RAW['lon'] = xr.DataArray([metadata['longitude']], dims=('lon'), name='lon')
+    ds['lat'] = xr.DataArray([ds.attrs['latitude']], dims=('lat'), name='lat')
+    ds['lon'] = xr.DataArray([ds.attrs['longitude']], dims=('lon'), name='lon')
 
-    RAW['TransMatrix'] = xr.DataArray(metadata['instmeta']['AQDTransMatrix'], dims=('Tmatrix', 'Tmatrix'), name='TransMatrix')
+    ds['TransMatrix'] = xr.DataArray(ds.attrs['AQDTransMatrix'], dims=('Tmatrix', 'Tmatrix'), name='TransMatrix')
 
-    RAW['time'].attrs.update({'standard_name': 'time',
+    ds['time'].attrs.update({'standard_name': 'time',
         'axis': 'T'})
 
-    RAW['lat'].attrs.update({'units': 'degree_north',
+    ds['lat'].attrs.update({'units': 'degree_north',
         'long_name': 'Latitude',
         'epic_code': 500})
 
-    RAW['lon'].attrs.update({'units': 'degree_east',
+    ds['lon'].attrs.update({'units': 'degree_east',
         'long_name': 'Longitude',
         'epic_code': 502})
 
-    RAW['bindist'].attrs.update({'units': 'm',
+    ds['bindist'].attrs.update({'units': 'm',
         'long_name': 'distance from transducer head',
-        'bin_size': metadata['bin_size'],
-        'center_first_bin': metadata['center_first_bin'],
-        'bin_count': metadata['bin_count'],
-        'transducer_offset_from_bottom': metadata['transducer_offset_from_bottom']})
+        'bin_size': ds.attrs['bin_size'],
+        'center_first_bin': ds.attrs['center_first_bin'],
+        'bin_count': ds.attrs['bin_count'],
+        'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom']})
 
-    RAW['Temperature'].attrs.update({'units': 'C',
+    ds['Temperature'].attrs.update({'units': 'C',
         'long_name': 'Temperature',
         'generic_name': 'temp'})
 
-    RAW['Pressure'].attrs.update({'units': 'dbar',
+    ds['Pressure'].attrs.update({'units': 'dbar',
         'long_name': 'Pressure',
         'generic_name': 'press',
-        'note': 'raw pressure from instrument, not corrected for changes in atmospheric pressure'})
+        'note': 'Raw pressure from instrument, not corrected for changes in atmospheric pressure'})
 
     for n in [1, 2, 3]:
-        RAW['VEL' + str(n)].attrs.update({'units': 'cm/s',
+        ds['VEL' + str(n)].attrs.update({'units': 'cm/s',
             'Type': 'scalar',
-            'transducer_offset_from_bottom': metadata['transducer_offset_from_bottom']})
-        RAW['AMP' + str(n)].attrs.update({'long_name': 'Beam ' + str(n) + ' Echo Amplitude',
+            'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom']})
+        ds['AMP' + str(n)].attrs.update({'long_name': 'Beam ' + str(n) + ' Echo Amplitude',
             'units': 'counts',
             'Type': 'scalar',
-            'transducer_offset_from_bottom': metadata['transducer_offset_from_bottom'] })
+            'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom'] })
 
     if not waves:
         veltxt = 'current velocity'
     else:
         veltxt = 'wave-burst velocity'
 
-    if metadata['instmeta']['AQDCoordinateSystem'] == 'ENU':
-        RAW['VEL1'].attrs.update({'long_name': 'Eastward ' + veltxt})
-        RAW['VEL2'].attrs.update({'long_name': 'Northward ' + veltxt})
-        RAW['VEL3'].attrs.update({'long_name': 'Vertical ' + veltxt})
-    elif metadata['instmeta']['AQDCoordinateSystem'] == 'XYZ':
-        RAW['VEL1'].attrs.update({'long_name': veltxt.capitalize() + ' in X Direction'})
-        RAW['VEL2'].attrs.update({'long_name': veltxt.capitalize() + ' in Y Direction'})
-        RAW['VEL3'].attrs.update({'long_name': veltxt.capitalize() + ' in Z Direction'})
-    elif metadata['instmeta']['AQDCoordinateSystem'] == 'BEAM':
-        RAW['VEL1'].attrs.update({'long_name': 'Beam 1 ' + veltxt})
-        RAW['VEL2'].attrs.update({'long_name': 'Beam 2 ' + veltxt})
-        RAW['VEL3'].attrs.update({'long_name': 'Beam 3 ' + veltxt})
+    if ds.attrs['AQDCoordinateSystem'] == 'ENU':
+        ds['VEL1'].attrs.update({'long_name': 'Eastward ' + veltxt})
+        ds['VEL2'].attrs.update({'long_name': 'Northward ' + veltxt})
+        ds['VEL3'].attrs.update({'long_name': 'Vertical ' + veltxt})
+    elif ds.attrs['AQDCoordinateSystem'] == 'XYZ':
+        ds['VEL1'].attrs.update({'long_name': veltxt.capitalize() + ' in X Direction'})
+        ds['VEL2'].attrs.update({'long_name': veltxt.capitalize() + ' in Y Direction'})
+        ds['VEL3'].attrs.update({'long_name': veltxt.capitalize() + ' in Z Direction'})
+    elif ds.attrs['AQDCoordinateSystem'] == 'BEAM':
+        ds['VEL1'].attrs.update({'long_name': 'Beam 1 ' + veltxt})
+        ds['VEL2'].attrs.update({'long_name': 'Beam 2 ' + veltxt})
+        ds['VEL3'].attrs.update({'long_name': 'Beam 3 ' + veltxt})
 
-    RAW['Battery'].attrs.update({'units': 'Volts',
+    ds['Battery'].attrs.update({'units': 'Volts',
         'long_name': 'Battery Voltage'})
 
-    RAW['Pitch'].attrs.update({'units': 'degrees',
+    ds['Pitch'].attrs.update({'units': 'degrees',
         'long_name': 'Instrument Pitch'})
 
-    RAW['Roll'].attrs.update({'units': 'degrees',
+    ds['Roll'].attrs.update({'units': 'degrees',
         'long_name': 'Instrument Roll'})
 
-    RAW['Heading'].attrs.update({'units': 'degrees',
+    ds['Heading'].attrs.update({'units': 'degrees',
         'long_name': 'Instrument Heading',
         'datum': 'magnetic north'})
 
-    RAW['depth'].attrs.update({'units': 'm',
+    ds['depth'].attrs.update({'units': 'm',
         'long_name': 'mean water depth',
-        'bin_size': metadata['bin_size'],
-        'center_first_bin': metadata['center_first_bin'],
-        'bin_count': metadata['bin_count'],
-        'transducer_offset_from_bottom': metadata['transducer_offset_from_bottom']})
+        'bin_size': ds.attrs['bin_size'],
+        'center_first_bin': ds.attrs['center_first_bin'],
+        'bin_count': ds.attrs['bin_count'],
+        'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom']})
 
-    RAW['TransMatrix'].attrs.update({'long_name': 'Transformation Matrix for this Aquadopp'})
+    ds['TransMatrix'].attrs.update({'long_name': 'Transformation Matrix for this Aquadopp'})
 
     # RAW['AnalogInput1']
 
@@ -306,35 +309,35 @@ def update_attrs(cdf_filename, RAW, metadata, waves=False):
     #         # end
 
 
-def compute_time(RAW, metadata, waves=False):
+def compute_time(ds, waves=False):
     """Compute Julian date and then time and time2 for use in netCDF file"""
 
     # shift times to center of ensemble
     if not waves:
-        timeshift = metadata['instmeta']['AQDAverageInterval']/2
+        timeshift = ds.attrs['AQDAverageInterval']/2
     else:
-        fs = float(metadata['instmeta']['WaveSampleRate'].split()[0])
-        timeshift = metadata['instmeta']['WaveNumberOfSamples']/fs/2
+        fs = float(ds.attrs['WaveSampleRate'].split()[0])
+        timeshift = ds.attrs['WaveNumberOfSamples']/fs/2
 
     if timeshift.is_integer():
-        RAW['time'] = RAW['time'] + np.timedelta64(int(timeshift), 's')
+        ds['time'] = ds['time'] + np.timedelta64(int(timeshift), 's')
         print('Time shifted by:', int(timeshift), 's')
     else:
         warnings.warn('time NOT shifted because not a whole number of seconds: %f s ***' % timeshift)
 
     # create Julian date
-    RAW['jd'] = RAW['time'].to_dataframe().index.to_julian_date() + 0.5
+    ds['jd'] = ds['time'].to_dataframe().index.to_julian_date() + 0.5
 
-    RAW['epic_time'] = np.floor(RAW['jd'])
-    if np.all(np.mod(RAW['epic_time'], 1) == 0): # make sure they are all integers, and then cast as such
-        RAW['epic_time'] = RAW['epic_time'].astype(np.int32)
+    ds['epic_time'] = np.floor(ds['jd'])
+    if np.all(np.mod(ds['epic_time'], 1) == 0): # make sure they are all integers, and then cast as such
+        ds['epic_time'] = ds['epic_time'].astype(np.int32)
     else:
         warnings.warn('not all EPIC time values are integers; this will cause problems with time and time2')
 
     # TODO: Hopefully this is correct... roundoff errors on big numbers...
-    RAW['epic_time2'] = np.round((RAW['jd'] - np.floor(RAW['jd']))*86400000).astype(np.int32)
+    ds['epic_time2'] = np.round((ds['jd'] - np.floor(ds['jd']))*86400000).astype(np.int32)
 
-    return RAW
+    return ds
 
 
 def load_amp_vel(RAW, basefile):

@@ -7,7 +7,7 @@ import netCDF4
 import xarray as xr
 import numpy as np
 
-def clip_ds(ds, metadata):
+def clip_ds(ds):
     """
     Clip an xarray Dataset from metadata, either via good_ens or
     Deployment_date and Recovery_date
@@ -17,25 +17,25 @@ def clip_ds(ds, metadata):
     print('last burst in full file:', ds['time'].max().values)
 
     # clip either by ensemble indices or by the deployment and recovery date specified in metadata
-    if 'good_ens' in metadata:
+    if 'good_ens' in ds.attrs:
         # we have good ensemble indices in the metadata
         print('Clipping data using good_ens')
 
-        ds = ds.isel(time=slice(metadata['good_ens'][0], metadata['good_ens'][1]))
+        ds = ds.isel(time=slice(ds.attrs['good_ens'][0], ds.attrs['good_ens'][1]))
 
-        histtext = 'Data clipped using good_ens values of ' + metadata['good_ens'][0] + ', ' + metadata['good_ens'][1] + '. '
+        histtext = 'Data clipped using good_ens values of ' + ds.attrs['good_ens'][0] + ', ' + ds.attrs['good_ens'][1] + '. '
         if 'history' in ds.attrs:
             ds.attrs['history'] = histtext + ds.attrs['history']
         else:
             ds.attrs['history'] = histtext
 
-    elif 'Deployment_date' in metadata and 'Recovery_date' in metadata:
+    elif 'Deployment_date' in ds.attrs and 'Recovery_date' in ds.attrs:
         # we clip by the times in/out of water as specified in the metadata
         print('Clipping data using Deployment_date and Recovery_date')
 
-        ds = ds.sel(time=slice(metadata['Deployment_date'], metadata['Recovery_date']))
+        ds = ds.sel(time=slice(ds.attrs['Deployment_date'], ds.attrs['Recovery_date']))
 
-        histtext = 'Data clipped using Deployment_date and Recovery_date of ' + metadata['Deployment_date'] + ', ' + metadata['Recovery_date'] + '. '
+        histtext = 'Data clipped using Deployment_date and Recovery_date of ' + ds.attrs['Deployment_date'] + ', ' + ds.attrs['Recovery_date'] + '. '
         if 'history' in ds.attrs:
             ds.attrs['history'] = histtext + ds.attrs['history']
         else:
