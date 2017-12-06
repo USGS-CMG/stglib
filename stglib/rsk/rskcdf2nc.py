@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python -m
 
 from __future__ import division, print_function
 
@@ -8,11 +8,9 @@ import argparse
 import yaml
 import xarray as xr
 import numpy as np
-sys.path.insert(0, '/Users/dnowacki/Documents/rsklib')
 sys.path.insert(0, '/Users/dnowacki/Documents/aqdlib')
-import rsklib
 import aqdlib
-
+from ..core import utils
 
 
 def cdf_to_nc(metadata, atmpres=None):
@@ -51,7 +49,7 @@ def cdf_to_nc(metadata, atmpres=None):
 
     ds = ds_add_attrs(ds, metadata)
 
-    ds = rsklib.write_metadata(ds, metadata)
+    ds = utils.write_metadata(ds, metadata)
 
     ds = add_final_metadata(ds)
 

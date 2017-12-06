@@ -126,20 +126,7 @@ def xr_to_cdf(RAW, metadata):
     cdf_filename = metadata['filename'] + '-raw.cdf'
 
     RAW.to_netcdf(cdf_filename)
-
-def write_metadata(ds, metadata):
-    """Write metadata to Dataset"""
-
-    for k in metadata:
-        ds.attrs.update({k: metadata[k]})
-
-    f = os.path.basename(inspect.stack()[1][1])
-
-    ds.attrs.update({'history': 'Processed using ' + f + ' with Python ' +
-        platform.python_version() + ', xarray ' + xr.__version__ + ', NumPy ' +
-        np.__version__ + ', netCDF4 ' + netCDF4.__version__})
-
-    return ds
+    
 
         # # TODO: add the following??
         # # {'positive','down';

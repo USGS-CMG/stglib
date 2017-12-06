@@ -7,6 +7,7 @@ import aqdlib
 from aqdhdr2cdf import compute_time, read_aqd_hdr, check_metadata, check_orientation
 import aqdcdf2nc
 import qaqc
+from ..core import utils
 
 def cdf_to_nc(cdf_filename, metadata, atmpres=False):
 
@@ -14,7 +15,7 @@ def cdf_to_nc(cdf_filename, metadata, atmpres=False):
     VEL = aqdcdf2nc.load_cdf(cdf_filename, metadata, atmpres=atmpres)
 
     # Clip data to in/out water times or via good_ens
-    VEL = aqdcdf2nc.clip_ds(VEL, metadata)
+    VEL = utils.clip_ds(VEL, metadata)
 
     # Create water_depth variables
     VEL, metadata = qaqc.create_water_depth(VEL, metadata)

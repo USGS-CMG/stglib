@@ -5,25 +5,24 @@ from dateutil import parser
 import pytz
 import jdcal
 import netCDF4 as nc
-import aqdlib
 import datetime as dt
 import xarray as xr
 
 
-def load_cdf(cdf_filename, varis, squeeze_me=False):
-    """Load all variables in a cdf file to a dictionary"""
+# def load_cdf(cdf_filename, varis, squeeze_me=False):
+#     """Load all variables in a cdf file to a dictionary"""
+#
+#     with nc.Dataset(cdf_filename, 'r') as rg:
+#         RAW = {}
+#         for var in varis:
+#             RAW[var] = rg[var][:]
+#             if squeeze_me is True:
+#                 RAW[var] = np.squeeze(RAW[var])
+#
+#         return RAW
 
-    with nc.Dataset(cdf_filename, 'r') as rg:
-        RAW = {}
-        for var in varis:
-            RAW[var] = rg[var][:]
-            if squeeze_me is True:
-                RAW[var] = np.squeeze(RAW[var])
 
-        return RAW
-
-
-def add_final_metadata(ds, waves=False):
+def add_final_aqd_metadata(ds, waves=False):
 
     # FIXME: might not need these history lines any more
     if not waves:
@@ -53,7 +52,7 @@ def add_min_max(ds):
     exclude = list(ds.dims)
     exclude.extend(('epic_time', 'epic_time2', 'time', 'time2', 'TIM'))
 
-    for k in ds:
+    for k in ds.variables:
         if k not in exclude:
             ds[k].attrs.update({'minimum': ds[k].min().values, 'maximum': ds[k].max().values})
 

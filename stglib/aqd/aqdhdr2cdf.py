@@ -1,19 +1,9 @@
-#!/usr/bin/env python
-
 from __future__ import division, print_function
 import numpy as np
-import sys
-sys.path.insert(0, '/Users/dnowacki/Documents/aqdlib')
-import aqdlib
-import aqdlib.qaqc
 import pandas as pd
 import xarray as xr
 import warnings
-import platform
-import netCDF4
-import inspect
-import os
-
+from ..core import utils
 
 def prf_to_cdf(metadata):
     """Main load file"""
@@ -33,7 +23,11 @@ def prf_to_cdf(metadata):
     print("Loading ASCII files")
 
     # Load sensor data
-    RAW = load_sen(metadata)
+    RAW = load_sen(basefile)
+
+    # write out metadata first, then deal exclusively with xarray attrs
+    RAW = utils.write_metadata(RAW, metadata)
+    RAW = utils.write_metadata(RAW, metadata['instmeta'])
 
     # Deal with metadata peculiarities
     metadata = check_metadata(metadata)
@@ -49,10 +43,6 @@ def prf_to_cdf(metadata):
     # configure file
     cdf_filename = metadata['filename'] + '-raw.cdf'
 
-    # write out metadata
-    RAW = write_metadata(RAW, metadata)
-    RAW = write_metadata(RAW, metadata['instmeta'])
-
     update_attrs(cdf_filename, RAW, metadata)
 
     # need to drop datetime
@@ -65,10 +55,10 @@ def prf_to_cdf(metadata):
     return RAW
 
 
-def load_sen(metadata):
+def load_sen(basefile):
     """Load data from .sen file"""
 
-    senfile = metadata['basefile'] + '.sen'
+    senfile = basefile + '.sen'
 
     # read csv and parse dates
     # https://stackoverflow.com/questions/27112591/parsing-year-month-day-hour-minute-second-in-python
@@ -316,22 +306,6 @@ def update_attrs(cdf_filename, RAW, metadata, waves=False):
     #         # end
 
 
-def write_metadata(ds, metadata):
-    """Write out all metadata to CDF file"""
-
-    for k in metadata:
-        if k != 'instmeta': # don't want to write out instmeta dict, call it separately
-            ds.attrs.update({k: metadata[k]})
-
-    f = os.path.basename(inspect.stack()[1][1])
-
-    ds.attrs.update({'history': 'Processed using ' + f + ' with Python ' +
-        platform.python_version() + ', xarray ' + xr.__version__ + ', NumPy ' +
-        np.__version__ + ', netCDF4 ' + netCDF4.__version__})
-
-    return ds
-
-
 def compute_time(RAW, metadata, waves=False):
     """Compute Julian date and then time and time2 for use in netCDF file"""
 
@@ -547,36 +521,6 @@ def insert_fill_values(RAW):
     for k in RAW:
         if k not in ['instmeta', 'time', 'time2', 'datetime'] and np.max(np.shape(RAW[k])) == np.max(np.shape(RAW['jd'])):
             nanind = np.where(np.isnan(RAW[k]))
-            RAW[k][nanind] = aqdlib.DOUBLE_FILL
+            RAW[k][nanind] = 1e35
 
     return RAW
-
-
-def main():
-    import sys
-    sys.path.insert(0, '/Users/dnowacki/Documents/aqdlib')
-    import aqdlib
-    import argparse
-    import yaml
-
-    parser = argparse.ArgumentParser(description='Convert Aquadopp text files to raw .cdf format. Run this script from the directory containing Aquadopp files')
-    # parser.add_argument('basename', help='base name (without extension) of the Aquadopp text files')
-    parser.add_argument('gatts', help='path to global attributes file (gatts formatted)')
-    parser.add_argument('config', help='path to ancillary config file (YAML formatted)')
-    # parser.add_argument('-v', '--verbose', help='increase output verbosity', action='store_true')
-
-    args = parser.parse_args()
-
-    # initialize metadata from the globalatts file
-    metadata = aqdlib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    config = yaml.safe_load(open(args.config))
-
-    for k in config:
-        metadata[k] = config[k]
-
-    RAW = prf_to_cdf(metadata)
-
-if __name__ == '__main__':
-    main()

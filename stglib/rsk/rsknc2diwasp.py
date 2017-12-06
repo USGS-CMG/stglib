@@ -1,12 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python -m
 
 from __future__ import division, print_function
 import sys
-sys.path.insert(0, '/Users/dnowacki/Documents/rsklib')
-import rsklib
 import netCDF4
 import xarray as xr
-
+from ..core import utils
 
 def nc_to_diwasp(metadata):
 
@@ -39,7 +37,7 @@ def nc_to_diwasp(metadata):
     # Add attrs
     ds = ds_add_attrs(ds, metadata)
 
-    ds = rsklib.write_metadata(ds, metadata)
+    ds = utils.write_metadata(ds, metadata)
 
     write_nc(ds, metadata)
 

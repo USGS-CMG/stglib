@@ -1,12 +1,9 @@
-#!/usr/bin/env python
-
 from __future__ import division, print_function
-import xarray as xr
-import sys
-sys.path.insert(0, '/Users/dnowacki/Documents/aqdlib')
-import aqdlib.qaqc as qaqc
-import netCDF4
 
+import xarray as xr
+import netCDF4
+from ..core import utils
+from . import qaqc
 
 def cdf_to_nc(cdf_filename, metadata, atmpres=False):
     """
@@ -17,7 +14,7 @@ def cdf_to_nc(cdf_filename, metadata, atmpres=False):
     VEL = load_cdf(cdf_filename, metadata, atmpres=atmpres)
 
     # Clip data to in/out water times or via good_ens
-    VEL = clip_ds(VEL, metadata)
+    VEL = utils.clip_ds(VEL, metadata)
 
     # Create water_depth variables
     VEL, metadata = qaqc.create_water_depth(VEL, metadata)
@@ -57,7 +54,7 @@ def cdf_to_nc(cdf_filename, metadata, atmpres=False):
     # TODO: Need to add all global attributes from CDF to NC file (or similar)
     VEL = qaqc.add_min_max(VEL)
 
-    VEL = qaqc.add_final_metadata(VEL)
+    VEL = qaqc.add_final_aqd_metadata(VEL)
 
     nc_filename = metadata['filename'] + '.nc'
 
@@ -84,49 +81,6 @@ def load_cdf(cdf_filename, metadata, atmpres=False):
         # TODO: check to make sure this data looks OK
         # need to call load for waves; it's not in memory and throws error
         ds['Pressure_ac'] = xr.DataArray(ds['Pressure'].load() - (p['atmpres'] - p['atmpres'].offset))
-
-    return ds
-
-
-def clip_ds(ds, metadata):
-    """
-    Clip an xarray Dataset from metadata, either via good_ens or
-    Deployment_date and Recovery_date
-    """
-
-    print('first burst in full file:', ds['time'].min().values)
-    print('last burst in full file:', ds['time'].max().values)
-
-    # clip either by ensemble indices or by the deployment and recovery date specified in metadata
-    if 'good_ens' in metadata:
-        # we have good ensemble indices in the metadata
-        print('Clipping data using good_ens')
-
-        ds = ds.isel(time=slice(metadata['good_ens'][0], metadata['good_ens'][1]))
-
-        histtext = 'Data clipped using good_ens values of ' + metadata['good_ens'][0] + ', ' + metadata['good_ens'][1] + '. '
-        if 'history' in ds.attrs:
-            ds.attrs['history'] = histtext + ds.attrs['history']
-        else:
-            ds.attrs['history'] = histtext
-
-    elif 'Deployment_date' in metadata and 'Recovery_date' in metadata:
-        # we clip by the times in/out of water as specified in the metadata
-        print('Clipping data using Deployment_date and Recovery_date')
-
-        ds = ds.sel(time=slice(metadata['Deployment_date'], metadata['Recovery_date']))
-
-        histtext = 'Data clipped using Deployment_date and Recovery_date of ' + metadata['Deployment_date'] + ', ' + metadata['Recovery_date'] + '. '
-        if 'history' in ds.attrs:
-            ds.attrs['history'] = histtext + ds.attrs['history']
-        else:
-            ds.attrs['history'] = histtext
-    else:
-        # do nothing
-        print('Did not clip data; no values specified in metadata')
-
-    print('first burst in trimmed file:', ds['time'].min().values)
-    print('last burst in trimmed file:', ds['time'].max().values)
 
     return ds
 
@@ -413,36 +367,3 @@ def ds_add_attrs(ds, metadata, waves=False):
         add_attributes(ds[v], metadata, ds.attrs)
 
     return ds
-
-
-def main():
-    import sys
-    sys.path.insert(0, '/Users/dnowacki/Documents/aqdlib')
-    import aqdlib
-    import argparse
-    import yaml
-
-    parser = argparse.ArgumentParser(description='Convert raw Aquadopp .cdf format to processed .nc files')
-    parser.add_argument('cdfname', help='raw .CDF filename')
-    parser.add_argument('gatts', help='path to global attributes file (gatts formatted)')
-    parser.add_argument('config', help='path to ancillary config file (YAML formatted)')
-    parser.add_argument('--atmpres', help='path to cdf file containing atmopsheric pressure data')
-
-    args = parser.parse_args()
-
-    # initialize metadata from the globalatts file
-    metadata = aqdlib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    config = yaml.safe_load(open(args.config))
-
-    for k in config:
-        metadata[k] = config[k]
-
-    if args.atmpres:
-        VEL = cdf_to_nc(args.cdfname, metadata, atmpres=args.atmpres)
-    else:
-        VEL = cdf_to_nc(args.cdfname, metadata)
-
-if __name__ == '__main__':
-    main()
