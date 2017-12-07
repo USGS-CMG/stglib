@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-import numpy as np
+
 import pandas as pd
 import xarray as xr
 import warnings
@@ -46,7 +46,7 @@ def prf_to_cdf(metadata):
     # configure file
     cdf_filename = ds.attrs['filename'] + '-raw.cdf'
 
-    update_attrs(cdf_filename, ds)
+    ds = update_attrs(ds)
 
     # need to drop datetime
     ds = ds.drop('datetime')
@@ -173,7 +173,7 @@ def check_attrs(ds, waves=False):
     return ds
 
 
-def update_attrs(cdf_filename, ds, waves=False):
+def update_attrs(ds, waves=False):
     """Define dimensions and variables in NetCDF file"""
 
     ds['lat'] = xr.DataArray([ds.attrs['latitude']], dims=('lat'), name='lat')
@@ -256,6 +256,8 @@ def update_attrs(cdf_filename, ds, waves=False):
         'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom']})
 
     ds['TransMatrix'].attrs.update({'long_name': 'Transformation Matrix for this Aquadopp'})
+
+    return ds
 
     # RAW['AnalogInput1']
 

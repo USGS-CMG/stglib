@@ -30,22 +30,6 @@ def add_final_aqd_metadata(ds, waves=False):
     return ds
 
 
-def add_min_max(ds):
-    """
-    Add minimum and maximum values to variables in NC or CDF files
-    This function assumes the data are in xarray DataArrays within Datasets
-    """
-
-    exclude = list(ds.dims)
-    exclude.extend(('epic_time', 'epic_time2', 'time', 'time2', 'TIM'))
-
-    for k in ds.variables:
-        if k not in exclude:
-            ds[k].attrs.update({'minimum': ds[k].min().values, 'maximum': ds[k].max().values})
-
-    return ds
-
-
 def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
     """Perform coordinate transformation to ENU"""
 

@@ -51,8 +51,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     VEL = ds_add_attrs(VEL)
 
-    # TODO: Need to add all global attributes from CDF to NC file (or similar)
-    VEL = qaqc.add_min_max(VEL)
+    VEL = utils.add_min_max(VEL)
 
     VEL = qaqc.add_final_aqd_metadata(VEL)
 
@@ -62,7 +61,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     print('Done writing netCDF file', nc_filename)
 
     # rename time variables after the fact to conform with EPIC/CMG standards
-    rename_time(nc_filename)
+    utils.rename_time(nc_filename)
 
     print('Renamed dimensions')
 
@@ -86,26 +85,6 @@ def load_cdf(cdf_filename, atmpres=False):
 
 
 # TODO: add analog input variables (OBS, NTU, etc)
-
-
-def rename_time(nc_filename):
-    """
-    Rename time variables. Need to use netCDF4 module since xarray seems to have
-    issues with the naming of time variables/dimensions
-    """
-
-    nc = netCDF4.Dataset(nc_filename, 'r+')
-    timebak = nc['epic_time'][:]
-    nc.renameVariable('time', 'time_cf')
-    nc.renameVariable('epic_time', 'time')
-    nc.renameVariable('epic_time2', 'time2')
-    nc.close()
-
-    # need to do this in two steps after renaming the variable
-    # not sure why, but it works this way
-    nc = netCDF4.Dataset(nc_filename, 'r+')
-    nc['time'][:] = timebak
-    nc.close()
 
 
 def ds_swap_dims(ds):

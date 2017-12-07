@@ -49,6 +49,22 @@ def clip_ds(ds):
 
     return ds
 
+def add_min_max(ds):
+    """
+    Add minimum and maximum values to variables in NC or CDF files
+    This function assumes the data are in xarray DataArrays within Datasets
+    """
+
+    exclude = list(ds.dims)
+    exclude.extend(('epic_time', 'epic_time2', 'time', 'time2', 'TIM'))
+
+    for k in ds.variables:
+        if k not in exclude:
+            ds[k].attrs.update({'minimum': ds[k].min().values,
+                                'maximum': ds[k].max().values})
+
+    return ds
+
 def write_metadata(ds, metadata):
     """Write out all metadata to CDF file"""
 
@@ -63,6 +79,25 @@ def write_metadata(ds, metadata):
         np.__version__ + ', netCDF4 ' + netCDF4.__version__})
 
     return ds
+
+def rename_time(nc_filename):
+    """
+    Rename time variables. Need to use netCDF4 module since xarray seems to have
+    issues with the naming of time variables/dimensions
+    """
+
+    nc = netCDF4.Dataset(nc_filename, 'r+')
+    timebak = nc['epic_time'][:]
+    nc.renameVariable('time', 'time_cf')
+    nc.renameVariable('epic_time', 'time')
+    nc.renameVariable('epic_time2', 'time2')
+    nc.close()
+
+    # need to do this in two steps after renaming the variable
+    # not sure why, but it works this way
+    nc = netCDF4.Dataset(nc_filename, 'r+')
+    nc['time'][:] = timebak
+    nc.close()
 
 def read_globalatts(fname):
     """

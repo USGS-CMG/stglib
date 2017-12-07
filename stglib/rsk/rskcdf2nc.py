@@ -1,29 +1,21 @@
-#!/usr/bin/env python -m
-
 from __future__ import division, print_function
 
 import warnings
-import sys
-import argparse
-import yaml
 import xarray as xr
 import numpy as np
-sys.path.insert(0, '/Users/dnowacki/Documents/aqdlib')
-import aqdlib
 from ..core import utils
 
 
-def cdf_to_nc(metadata, atmpres=None):
+def cdf_to_nc(cdf_filename, atmpres=None):
     """
     Load raw .cdf file, trim, apply QAQC, and save to .nc
     """
 
-    cdf_filename = metadata['filename'] + '-raw.cdf'
-
+    # Load raw .cdf data
     ds = xr.open_dataset(cdf_filename, autoclose=True)
 
-    # trim data via one of two methods
-    ds = aqdlib.clip_ds(ds, metadata)
+    # Clip data to in/out water times or via good_ens
+    ds = utils.clip_ds(ds)
 
     if atmpres is not None:
         print("Atmospherically correcting data")
@@ -37,25 +29,23 @@ def cdf_to_nc(metadata, atmpres=None):
         ds['P_1ac'].attrs = attrs
 
     # assign min/max:
-    for k in ['P_1', 'P_1ac']:
-        if k in ds:
-            ds[k].attrs.update(minimum=ds[k].min().values, maximum=ds[k].max().values)
-
-            # TODO: published dwave data are not in time, lon, lat, sample format...
-            # shouldn't they be?
-            # reshape and add lon and lat dimensions
+    ds = utils.add_min_max(ds)
 
     ds = compute_time(ds)
 
-    ds = ds_add_attrs(ds, metadata)
+    ds = ds_add_attrs(ds)
 
-    ds = utils.write_metadata(ds, metadata)
-
-    ds = add_final_metadata(ds)
+    ds = add_final_rsk_metadata(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
-    write_nc(ds, metadata)
+    nc_filename = ds.attrs['filename'] + 'b-cal.nc'
+
+    ds.to_netcdf(nc_filename)
+    print('Done writing netCDF file', nc_filename)
+
+    # rename time variables after the fact to conform with EPIC/CMG standards
+    utils.rename_time(nc_filename)
 
     return ds
 
@@ -93,26 +83,17 @@ def create_epic_time(RAW):
 
     return RAW
 
-def write_nc(ds, metadata):
-    """Write cleaned and trimmed Dataset to .nc file"""
-
-    nc_filename = metadata['filename'] + 'b-cal.nc'
-
-    ds.to_netcdf(nc_filename, engine='netcdf4')
-
-    # rename time variables after the fact to conform with EPIC/CMG standards
-    rsklib.rsknc2diwasp.rename_time(nc_filename)
-
-
-def add_final_metadata(ds):
+def add_final_rsk_metadata(ds):
     """Add start_time and stop_time global attributes"""
+
+    ds.attrs['history'] = 'Processed to EPIC using rskcdf2nc.py. ' + ds.attrs['history']
 
     ds.attrs.update({'start_time': ds['time'][0].values.astype(str),
                      'stop_time': ds['time'][-1].values.astype(str)})
 
     return ds
 
-def ds_add_attrs(ds, metadata):
+def ds_add_attrs(ds):
     # Update attributes for EPIC and STG compliance
     ds.lat.encoding['_FillValue'] = False
     ds.lon.encoding['_FillValue'] = False
@@ -138,36 +119,7 @@ def ds_add_attrs(ds, metadata):
                                   'name': 'Pac',
                                   'long_name': 'Corrected pressure',
                                   '_FillValue': 1e35})
-        if 'P_1ac_note' in metadata:
-            ds['P_1ac'].attrs.update({'note': metadata['P_1ac_note']})
+        if 'P_1ac_note' in ds.attrs:
+            ds['P_1ac'].attrs.update({'note': ds.attrs['P_1ac_note']})
 
     return ds
-
-
-def main():
-
-    parser = argparse.ArgumentParser(description='Convert raw RBR d|wave .cdf format to processed .nc files')
-    parser.add_argument('gatts', help='path to global attributes file (gatts formatted)')
-    parser.add_argument('config', help='path to ancillary config file (YAML formatted)')
-    parser.add_argument('--atmpres', help='path to cdf file containing atmopsheric pressure data')
-
-    args = parser.parse_args()
-
-    # initialize metadata from the globalatts file
-    metadata = rsklib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    config = yaml.safe_load(open(args.config))
-
-    for k in config:
-        metadata[k] = config[k]
-
-    if args.atmpres:
-        ds = rsklib.cdf_to_nc(metadata, atmpres=args.atmpres)
-    else:
-        ds = rsklib.cdf_to_nc(metadata)
-
-    return ds
-
-if __name__ == '__main__':
-    main()

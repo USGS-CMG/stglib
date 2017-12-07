@@ -1,30 +1,25 @@
-#!/usr/bin/env python
-
 from __future__ import division, print_function
 
 import sqlite3
-import inspect
-import platform
-import os
 import numpy as np
 import xarray as xr
 import pandas as pd
-import netCDF4
-
+from ..core import utils
 
 def rsk_to_cdf(metadata):
     """
     Main function to load data from RSK file and save to raw .CDF
     """
 
-    RAW, metadata = rsk_to_xr(metadata)
+    ds = rsk_to_xr(metadata)
 
     print("Writing to raw netCDF")
-    xr_to_cdf(RAW, metadata)
+
+    ds.to_netcdf(ds.attrs['filename'] + '-raw.cdf')
 
     print("Done")
 
-    return RAW, metadata
+    return ds
 
 def init_connection(rskfile):
     """Initialize an sqlite3 connection and return a cursor"""
@@ -79,8 +74,10 @@ def rsk_to_xr(metadata):
 
     dwave = {}
 
-    dwave['P_1'] = xr.DataArray(a['pres'], coords=[times, samples],
-        dims=('time', 'sample'), name='Pressure',
+    dwave['P_1'] = xr.DataArray(a['pres'],
+        coords=[times, samples],
+        dims=('time', 'sample'),
+        name='Pressure',
         attrs={'long_name': 'Pressure',
                '_FillValue': 1e35,
                'units': 'dbar',
@@ -93,17 +90,23 @@ def rsk_to_xr(metadata):
 
     dwave['sample'] = xr.DataArray(samples, dims=('sample'), name='sample')
 
-    dwave['lat'] = xr.DataArray([metadata['latitude']], dims=('lat'), name='lat',
+    dwave['lat'] = xr.DataArray([metadata['latitude']],
+        dims=('lat'),
+        name='lat',
         attrs={'units': 'degree_north',
                'long_name': 'Latitude',
                'epic_code': 500})
 
-    dwave['lon'] = xr.DataArray([metadata['longitude']], dims=('lon'), name='lon',
+    dwave['lon'] = xr.DataArray([metadata['longitude']],
+        dims=('lon'),
+        name='lon',
         attrs={'units': 'degree_east',
                'long_name': 'Longitude',
                'epic_code': 502})
 
-    dwave['depth'] = xr.DataArray([metadata['WATER_DEPTH']], dims=('depth'), name='depth',
+    dwave['depth'] = xr.DataArray([metadata['WATER_DEPTH']],
+        dims=('depth'),
+        name='depth',
         attrs={'units': 'm',
                'long_name': 'mean water depth',
                'axis': 'z', # TODO: are these attrs necessary/appropriate?
@@ -116,17 +119,10 @@ def rsk_to_xr(metadata):
     # need to add the time attrs after DataArrays have been combined into Dataset
     RAW['time'].attrs.update({'standard_name': 'time', 'axis': 'T'})
 
-    RAW = write_metadata(RAW, metadata)
+    RAW = utils.write_metadata(RAW, metadata)
 
-    return RAW, metadata
+    return RAW
 
-def xr_to_cdf(RAW, metadata):
-    """Write raw xarray Dataset to .cdf"""
-
-    cdf_filename = metadata['filename'] + '-raw.cdf'
-
-    RAW.to_netcdf(cdf_filename)
-    
 
         # # TODO: add the following??
         # # {'positive','down';
@@ -142,32 +138,3 @@ def xr_to_cdf(RAW, metadata):
         # Pressid.note = 'raw pressure from instrument, not corrected for changes in atmospheric pressure'
         # Pressid.epic_code = 1
         # Pressid.height_depth_units = 'm'
-
-def main():
-    import sys
-    sys.path.insert(0, '/Users/dnowacki/Documents/rsklib')
-    import rsklib
-    import argparse
-    import yaml
-
-    parser = argparse.ArgumentParser(description='Convert raw RBR d|wave files (.rsk) to raw .cdf format. Run this script from the directory containing d|wave files')
-    parser.add_argument('gatts', help='path to global attributes file (gatts formatted)')
-    parser.add_argument('config', help='path to ancillary config file (YAML formatted)')
-
-    args = parser.parse_args()
-
-    # initialize metadata from the globalatts file
-    metadata = rsklib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    config = yaml.safe_load(open(args.config))
-
-    for k in config:
-        metadata[k] = config[k]
-
-    RAW, metadata = rsklib.rsk_to_cdf(metadata)
-
-    return RAW, metadata
-
-if __name__ == '__main__':
-    main()
