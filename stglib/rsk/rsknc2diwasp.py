@@ -6,16 +6,16 @@ import netCDF4
 import xarray as xr
 from ..core import utils
 
-def nc_to_diwasp(metadata):
+def nc_to_diwasp(nc_filename):
 
-    ds = xr.open_dataset(metadata['filename'] + 'b-cal.nc', autoclose=True, decode_times=False)
+    ds = xr.open_dataset(nc_filename, autoclose=True, decode_times=False)
     ds['time'] = ds['time_cf']
     ds = ds.drop(['time_cf', 'time2'])
     ds = xr.decode_cf(ds, decode_times=True)
 
-    ds = rsklib.rskcdf2nc.create_epic_time(ds)
+    ds = utils.create_epic_time(ds)
 
-    mat = xr.open_dataset(metadata['filename'][:-2] + 'diwasp.nc', autoclose=True)
+    mat = xr.open_dataset(ds.attrs['filename'][:-2] + 'diwasp.nc', autoclose=True)
 
     for k in ['wp_peak', 'wh_4061', 'wp_4060']:
         ds[k] = xr.DataArray(mat[k], dims='time')
@@ -24,83 +24,75 @@ def nc_to_diwasp(metadata):
 
     ds['pspec'] = xr.DataArray(mat['pspec'], dims=('time', 'frequency'))
 
-    ds, metadata = create_water_depth(ds, metadata)
+    ds = create_water_depth(ds)
 
     ds = ds.drop(['P_1', 'P_1ac', 'sample'])
 
-    ds = trim_max_wp(ds, metadata)
+    ds = trim_max_wp(ds)
 
-    ds = trim_min_wh(ds, metadata)
+    ds = trim_min_wh(ds)
 
-    ds = trim_wp_ratio(ds, metadata)
+    ds = trim_wp_ratio(ds)
 
     # Add attrs
-    ds = ds_add_attrs(ds, metadata)
+    ds = ds_add_attrs(ds)
 
-    ds = utils.write_metadata(ds, metadata)
-
-    write_nc(ds, metadata)
-
-    return ds
-
-
-def write_nc(ds, metadata):
-    """Write cleaned and trimmed Dataset to .nc file"""
-
-    nc_filename = metadata['filename'] + 's-a.nc'
+    nc_filename = ds.attrs['filename'] + 's-a.nc'
 
     ds.to_netcdf(nc_filename, unlimited_dims='time', engine='netcdf4')
 
     # rename time variables after the fact to conform with EPIC/CMG standards
-    rename_time(nc_filename)
+    utils.rename_time(nc_filename)
+
+    return ds
 
 
-def create_water_depth(VEL, metadata):
+def create_water_depth(ds):
     """Create water_depth variable"""
 
-    if 'initial_instrument_height' in metadata:
-        if 'P_1ac' in VEL:
-            metadata['nominal_instrument_depth'] = VEL['P_1ac'].mean().values
-            VEL['water_depth'] = metadata['nominal_instrument_depth']
-            wdepth = metadata['nominal_instrument_depth'] + metadata['initial_instrument_height']
-            metadata['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor,'\
+    if 'initial_instrument_height' in ds.attrs:
+        if 'P_1ac' in ds:
+            ds.attrs['nominal_instrument_depth'] = ds['P_1ac'].mean().values
+            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
+            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor,'\
                                              ' atmospherically corrected'
-            metadata['WATER_DEPTH_datum'] = 'MSL'
+            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
         elif 'P_1' in VEL:
-            metadata['nominal_instrument_depth'] = VEL['P_1'].mean().values
-            VEL['water_depth'] = metadata['nominal_instrument_depth']
-            wdepth = metadata['nominal_instrument_depth'] + metadata['initial_instrument_height']
-            metadata['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor'
-            metadata['WATER_DEPTH_datum'] = 'MSL'
+            ds.attrs['nominal_instrument_depth'] = ds['P_1'].mean().values
+            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
+            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor'
+            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
         else:
-            wdepth = metadata['WATER_DEPTH']
-            metadata['nominal_instrument_depth'] = metadata['WATER_DEPTH'] - metadata['initial_instrument_height']
-            VEL['water_depth'] = metadata['nominal_instrument_depth']
-        metadata['WATER_DEPTH'] = wdepth # TODO: why is this being redefined here? Seems redundant
-    elif 'nominal_instrument_depth' in metadata:
-        metadata['initial_instrument_height'] = metadata['WATER_DEPTH'] - metadata['nominal_instrument_depth']
-        VEL['water_depth'] = metadata['nominal_instrument_depth']
+            wdepth = ds.attrs['WATER_DEPTH']
+            ds.attrs['nominal_instrument_depth'] = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
+            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+        ds.attrs['WATER_DEPTH'] = wdepth # TODO: why is this being redefined here? Seems redundant
+    elif 'nominal_instrument_depth' in ds.attrs:
+        ds.attrs['initial_instrument_height'] = ds.attrs['WATER_DEPTH'] - ds.attrs['nominal_instrument_depth']
+        ds['water_depth'] = ds.attrs['nominal_instrument_depth']
 
-    if 'initial_instrument_height' not in metadata:
-        metadata['initial_instrument_height'] = 0 # TODO: do we really want to set to zero?
+    if 'initial_instrument_height' not in ds.attrs:
+        ds.attrs['initial_instrument_height'] = 0 # TODO: do we really want to set to zero?
 
-    return VEL, metadata
+    return ds
 
-def trim_max_wp(ds, metadata):
+def trim_max_wp(ds):
     """
     QA/QC
     Trim wave data based on maximum wave period as specified in metadata
     """
 
-    if 'maximum_wp' in metadata:
+    if 'maximum_wp' in ds.attrs:
         print('Trimming using maximum period of %f seconds'
-            % metadata['maximum_wp'])
+            % ds.attrs['maximum_wp'])
         for var in ['wp_peak', 'wp_4060']:
-            ds[var] = ds[var].where((ds['wp_peak'] < metadata['maximum_wp']) &
-                (ds['wp_4060'] < metadata['maximum_wp']))
+            ds[var] = ds[var].where((ds['wp_peak'] < ds.attrs['maximum_wp']) &
+                (ds['wp_4060'] < ds.attrs['maximum_wp']))
 
         for var in ['wp_peak', 'wp_4060']:
-            notetxt = 'Values filled where wp_peak, wp_4060 >= %f' % metadata['maximum_wp'] + '. '
+            notetxt = 'Values filled where wp_peak, wp_4060 >= %f' % ds.attrs['maximum_wp'] + '. '
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
@@ -110,19 +102,19 @@ def trim_max_wp(ds, metadata):
     return ds
 
 
-def trim_min_wh(ds, metadata):
+def trim_min_wh(ds):
     """
     QA/QC
     Trim wave data based on minimum wave height as specified in metadata
     """
 
-    if 'minimum_wh' in metadata:
+    if 'minimum_wh' in ds.attrs:
         print('Trimming using minimum wave height of %f m'
-            % metadata['minimum_wh'])
-        ds = ds.where(ds['wh_4061'] > metadata['minimum_wh'])
+            % ds.attrs['minimum_wh'])
+        ds = ds.where(ds['wh_4061'] > ds.attrs['minimum_wh'])
 
         for var in ['wp_peak', 'wp_4060', 'wh_4061']:
-            notetxt = 'Values filled where wh_4061 <= %f' % metadata['minimum_wh'] + '. '
+            notetxt = 'Values filled where wh_4061 <= %f' % ds.attrs['minimum_wh'] + '. '
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
@@ -132,20 +124,20 @@ def trim_min_wh(ds, metadata):
     return ds
 
 
-def trim_wp_ratio(ds, metadata):
+def trim_wp_ratio(ds):
     """
     QA/QC
     Trim wave data based on maximum ratio of wp_peak to wp_4060
     """
 
-    if 'wp_ratio' in metadata:
+    if 'wp_ratio' in ds.attrs:
         print('Trimming using maximum ratio of wp_peak to wp_4060 of %f'
-            % metadata['wp_ratio'])
+            % ds.attrs['wp_ratio'])
         for var in ['wp_peak', 'wp_4060']:
-            ds[var] = ds[var].where(ds['wp_peak']/ds['wp_4060'] < metadata['wp_ratio'])
+            ds[var] = ds[var].where(ds['wp_peak']/ds['wp_4060'] < ds.attrs['wp_ratio'])
 
         for var in ['wp_peak', 'wp_4060']:
-            notetxt = 'Values filled where wp_peak:wp_4060 >= %f' % metadata['wp_ratio'] + '. '
+            notetxt = 'Values filled where wp_peak:wp_4060 >= %f' % ds.attrs['wp_ratio'] + '. '
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
@@ -155,27 +147,7 @@ def trim_wp_ratio(ds, metadata):
     return ds
 
 
-def rename_time(nc_filename):
-    """
-    Rename time variables. Need to use netCDF4 module since xarray seems to have
-    issues with the naming of time variables/dimensions
-    """
-
-    nc = netCDF4.Dataset(nc_filename, 'r+')
-    timebak = nc['epic_time'][:]
-    nc.renameVariable('time', 'time_cf')
-    nc.renameVariable('epic_time', 'time')
-    nc.renameVariable('epic_time2', 'time2')
-    nc.close()
-
-    # need to do this in two steps after renaming the variable
-    # not sure why, but it works this way
-    nc = netCDF4.Dataset(nc_filename, 'r+')
-    nc['time'][:] = timebak
-    nc.close()
-
-
-def ds_add_attrs(ds, metadata):
+def ds_add_attrs(ds):
     """
     Add EPIC and other attributes to variables
     """
@@ -200,12 +172,12 @@ def ds_add_attrs(ds, metadata):
         'type': 'EVEN',
         'epic_code': 624})
 
-    def add_attributes(var, metadata, INFO):
-        var.attrs.update({'serial_number': INFO['serial_number'],
-            'initial_instrument_height': metadata['initial_instrument_height'],
+    def add_attributes(var, dsattrs):
+        var.attrs.update({'serial_number': dsattrs['serial_number'],
+            'initial_instrument_height': dsattrs['initial_instrument_height'],
             # 'nominal_instrument_depth': metadata['nominal_instrument_depth'], # FIXME
             'height_depth_units': 'm',
-            'sensor_type': INFO['INST_TYPE'],
+            'sensor_type': dsattrs['INST_TYPE'],
             '_FillValue': 1e35})
 
     ds['wp_peak'].attrs.update({'long_name': 'Dominant (peak) wave period',
@@ -228,34 +200,8 @@ def ds_add_attrs(ds, metadata):
         'units': 'Hz'})
 
     for var in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec', 'water_depth']:
-        add_attributes(ds[var], metadata, ds.attrs)
+        add_attributes(ds[var], ds.attrs)
         ds[var].attrs.update({'minimum': ds[var].min().values,
             'maximum': ds[var].max().values})
 
     return ds
-
-def main():
-    import argparse
-    import yaml
-
-    parser = argparse.ArgumentParser(description='Convert processed .nc files using DIWASP')
-    parser.add_argument('gatts', help='path to global attributes file (gatts formatted)')
-    parser.add_argument('config', help='path to ancillary config file (YAML formatted)')
-
-    args = parser.parse_args()
-
-    # initialize metadata from the globalatts file
-    metadata = rsklib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    config = yaml.safe_load(open(args.config))
-
-    for k in config:
-        metadata[k] = config[k]
-
-    ds = nc_to_diwasp(metadata)
-
-    return ds
-
-if __name__ == '__main__':
-    main()

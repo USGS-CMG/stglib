@@ -99,6 +99,53 @@ def rename_time(nc_filename):
     nc['time'][:] = timebak
     nc.close()
 
+def create_epic_time(RAW):
+
+    # create Julian date
+    RAW['jd'] = RAW['time'].to_dataframe().index.to_julian_date() + 0.5
+
+    RAW['epic_time'] = np.floor(RAW['jd'])
+    if np.all(np.mod(RAW['epic_time'], 1) == 0): # make sure they are all integers, and then cast as such
+        RAW['epic_time'] = RAW['epic_time'].astype(np.int32)
+    else:
+        warnings.warn('not all EPIC time values are integers; '\
+                      'this will cause problems with time and time2')
+
+    # TODO: Hopefully this is correct... roundoff errors on big numbers...
+    RAW['epic_time2'] = np.round((RAW['jd'] - np.floor(RAW['jd']))*86400000).astype(np.int32)
+
+    return RAW
+
+def create_water_depth(ds):
+    """Create water_depth variable"""
+
+    if 'initial_instrument_height' in ds.attrs:
+        if 'Pressure_ac' in ds:
+            ds.attrs['nominal_instrument_depth'] = np.nanmean(ds['Pressure_ac'])
+            ds['Depth'] = ds.attrs['nominal_instrument_depth']
+            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
+            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor, atmospherically corrected'
+            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
+        elif 'Pressure' in ds:
+            ds.attrs['nominal_instrument_depth'] = np.nanmean(ds['Pressure'])
+            ds['Depth'] = ds.attrs['nominal_instrument_depth']
+            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
+            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor'
+            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
+        else:
+            wdepth = ds.attrs['WATER_DEPTH']
+            ds.attrs['nominal_instrument_depth'] = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
+            ds['Depth'] = ds.attrs['nominal_instrument_depth']
+        ds.attrs['WATER_DEPTH'] = wdepth # TODO: why is this being redefined here? Seems redundant
+    elif 'nominal_instrument_depth' in ds.attrs:
+        ds.attrs['initial_instrument_height'] = ds.attrs['WATER_DEPTH'] - ds.attrs['nominal_instrument_depth']
+        ds['Depth'] = ds.attrs['nominal_instrument_depth']
+
+    if 'initial_instrument_height' not in ds.attrs:
+        ds.attrs['initial_instrument_height'] = 0 # TODO: do we really want to set to zero?
+
+    return ds
+
 def read_globalatts(fname):
     """
     Read global attributes file (glob_attxxxx.txt) and create metadata structure

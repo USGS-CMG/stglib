@@ -66,23 +66,6 @@ def compute_time(RAW):
 
     return RAW
 
-def create_epic_time(RAW):
-
-    # create Julian date
-    RAW['jd'] = RAW['time'].to_dataframe().index.to_julian_date() + 0.5
-
-    RAW['epic_time'] = np.floor(RAW['jd'])
-    if np.all(np.mod(RAW['epic_time'], 1) == 0): # make sure they are all integers, and then cast as such
-        RAW['epic_time'] = RAW['epic_time'].astype(np.int32)
-    else:
-        warnings.warn('not all EPIC time values are integers; '\
-                      'this will cause problems with time and time2')
-
-    # TODO: Hopefully this is correct... roundoff errors on big numbers...
-    RAW['epic_time2'] = np.round((RAW['jd'] - np.floor(RAW['jd']))*86400000).astype(np.int32)
-
-    return RAW
-
 def add_final_rsk_metadata(ds):
     """Add start_time and stop_time global attributes"""
 
