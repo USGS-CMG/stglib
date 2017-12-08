@@ -46,9 +46,9 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
         print('Data are in BEAM coordinates; transforming to Earth coordinates')
 
         for i in range(N):
-            hh = np.pi * (heading[i] - 90) / 180;
-            pp = np.pi * pitch[i] / 180;
-            rr = np.pi * roll[i] / 180;
+            hh = np.pi * (heading[i] - 90) / 180
+            pp = np.pi * pitch[i] / 180
+            rr = np.pi * roll[i] / 180
 
             H = np.array([[ np.cos(hh), np.sin(hh), 0],
                           [-np.sin(hh), np.cos(hh), 0],

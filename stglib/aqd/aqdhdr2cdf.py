@@ -12,7 +12,6 @@ def prf_to_cdf(metadata):
     # TODO: clock drift code
     # TODO: Move time to center of ensemble??
     # TODO: logmeta code
-    # FIXME: Are fillvalues being inserted properly?
 
     basefile = metadata['basefile']
 
@@ -71,11 +70,21 @@ def load_sen(basefile):
     def parse(year, month, day, hour, minute, second):
         return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second
 
-    SEN = pd.read_csv(senfile, header=None, delim_whitespace=True,
-        parse_dates={'datetime': [2, 0, 1, 3, 4, 5]}, date_parser=parse, usecols=[0, 1, 2, 3, 4, 5, 8, 10, 11, 12, 13, 14, 15, 16])
+    SEN = pd.read_csv(senfile,
+                      header=None,
+                      delim_whitespace=True,
+                      parse_dates={'datetime': [2, 0, 1, 3, 4, 5]},
+                      date_parser=parse,
+                      usecols=[0, 1, 2, 3, 4, 5, 8, 10, 11, 12, 13, 14, 15, 16])
 
     # rename columns from numeric to human-readable
-    SEN.rename(columns={10: 'Heading', 11: 'Pitch', 12: 'Roll', 13:'Pressure', 14:'Temperature', 8: 'Battery'}, inplace=True)
+    SEN.rename(columns={10: 'Heading',
+                        11: 'Pitch',
+                        12: 'Roll',
+                        13:'Pressure',
+                        14:'Temperature',
+                        8: 'Battery'},
+               inplace=True)
 
     # Look for analog data TODO
     SEN.rename(columns={15: 'AnalogInput1'}, inplace=True)
@@ -101,8 +110,8 @@ def check_orientation(ds, waves=False):
     # TODO: these values are already in the HDR file...
     if not waves:
         bindist = np.linspace(ds.attrs['center_first_bin'],
-                                     (ds.attrs['center_first_bin'] + ((ds.attrs['bin_count'] - 1) * ds.attrs['bin_size'])),
-                                     num=ds.attrs['bin_count'])
+                              (ds.attrs['center_first_bin'] + ((ds.attrs['bin_count'] - 1) * ds.attrs['bin_size'])),
+                              num=ds.attrs['bin_count'])
     else:
         bindist = ds['cellpos'][0]
 

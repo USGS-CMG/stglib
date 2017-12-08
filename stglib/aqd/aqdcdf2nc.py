@@ -1,7 +1,6 @@
 from __future__ import division, print_function
 
 import xarray as xr
-import netCDF4
 from ..core import utils
 from . import qaqc
 
@@ -338,12 +337,12 @@ def ds_add_attrs(ds, waves=False):
         'blanking_distance': ds.attrs['AQDBlankingDistance'],
         'note': 'distance is along profile from instrument head to center of bin'})
 
-    if waves == False:
+    if not waves:
         for v in ['AGC_1202', 'u_1205', 'v_1206', 'w_1204']:
             add_attributes(ds[v], ds.attrs)
         for v in ['u_1205', 'v_1206', 'w_1204']:
             add_vel_attributes(ds[v], ds.attrs)
-    elif waves == True:
+    elif waves:
         for v in ['vel1_1277', 'vel2_1278', 'vel3_1279', 'AGC1_1221', 'AGC2_1222', 'AGC3_1223']:
             add_attributes(ds[v], ds.attrs)
 
