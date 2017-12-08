@@ -1,13 +1,7 @@
 from __future__ import division, print_function
-import matplotlib.pyplot as plt
+
 import numpy as np
-from dateutil import parser
-import pytz
-import jdcal
-import netCDF4 as nc
-import datetime as dt
 import xarray as xr
-import os
 
 
 def add_delta_t(ds, waves=False):
