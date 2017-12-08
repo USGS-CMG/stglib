@@ -19,14 +19,14 @@ def wad_to_cdf(metadata):
 
     ds = load_whd(metadata)
 
-    ds = load_wad(ds, metadata)
-
     # write out metadata first, then deal exclusively with xarray attrs
     ds = utils.write_metadata(ds, metadata)
     ds = utils.write_metadata(ds, metadata['instmeta'])
 
     del metadata
     del instmeta
+
+    ds = load_wad(ds)
 
     # Deal with metadata peculiarities
     ds = qaqc.check_attrs(ds, waves=True)
@@ -90,38 +90,39 @@ def load_whd(metadata):
         20: 'avgamp3'},
         inplace=True)
 
-    RAW = xr.Dataset.from_dataframe(WHD)
-    RAW = RAW.rename({'index': 'time'})
-    RAW['time'] = RAW['datetime']
+    ds = xr.Dataset.from_dataframe(WHD)
+    ds = ds.rename({'index': 'time'})
+    ds['time'] = ds['datetime']
 
-    return RAW
+    return ds
 
-def load_wad(RAW, metadata):
+def load_wad(ds):
 
-    wadfile = metadata['basefile'] + '.wad'
+    wadfile = ds.attrs['basefile'] + '.wad'
     print('Loading wave data from ' + wadfile + '; this may take some time')
     # pd.read_csv is ~10x faster than np.loadtxt or np.genfromtxt
     WAD = pd.read_csv(wadfile, header=None, delim_whitespace=True).values
 
     r, c = np.shape(WAD)
     print(wadfile + ' has ' + str(r) + ' rows and ' + str(c) + ' columns')
-    nburst = int(np.floor(r/metadata['instmeta']['WaveNumberOfSamples']))
-    nsamps = int(nburst * metadata['instmeta']['WaveNumberOfSamples'])
-    wavensamps = int(metadata['instmeta']['WaveNumberOfSamples'])
+
+    nburst = int(np.floor(r/ds.attrs['WaveNumberOfSamples']))
+    nsamps = int(nburst * ds.attrs['WaveNumberOfSamples'])
+    wavensamps = int(ds.attrs['WaveNumberOfSamples'])
     print('Metadata reports ' + str(nburst) + ' bursts, ' + str(nsamps) + ' samples, ' + str(wavensamps) + ' samples per burst')
 
     samples = np.arange(wavensamps)
 
-    RAW['sample'] = xr.DataArray(samples, dims=('sample'), name='sample')
+    ds['sample'] = xr.DataArray(samples, dims=('sample'), name='sample')
 
     for var, n in zip(['Pressure', 'VEL1', 'VEL2', 'VEL3', 'AMP1', 'AMP2', 'AMP3'], [2, 5, 6, 7, 9, 10, 11]):
-        RAW[var] = xr.DataArray(np.reshape(WAD[0:nsamps, n], (nburst, wavensamps)),
+        ds[var] = xr.DataArray(np.reshape(WAD[0:nsamps, n], (nburst, wavensamps)),
                                 dims=('time', 'sample'))
 
     # convert to cm/s
     for n in [1, 2, 3]:
-        RAW['VEL' + str(n)] = RAW['VEL' + str(n)] * 100
+        ds['VEL' + str(n)] = ds['VEL' + str(n)] * 100
 
     print('Done loading ' + wadfile)
 
-    return RAW
+    return ds
