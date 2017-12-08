@@ -1,10 +1,11 @@
 from __future__ import division, print_function
-import sys
 
-from aqdlib.aqdhdr2cdf import compute_time, read_aqd_hdr, check_orientation, check_metadata, write_metadata, update_attrs
-import numpy as np
+import sys
 import pandas as pd
 import xarray as xr
+import numpy as np
+from ..core import utils
+from . import qaqc
 
 def wad_to_cdf(metadata):
     """Main waves load file"""
@@ -12,43 +13,48 @@ def wad_to_cdf(metadata):
     basefile = metadata['basefile']
 
     # get instrument metadata from the HDR file
-    instmeta = read_aqd_hdr(basefile)
+    instmeta = qaqc.read_aqd_hdr(basefile)
 
     metadata['instmeta'] = instmeta
 
-    RAW = load_whd(metadata)
+    ds = load_whd(metadata)
 
-    RAW = load_wad(RAW, metadata)
+    ds = load_wad(ds, metadata)
+
+    # write out metadata first, then deal exclusively with xarray attrs
+    ds = utils.write_metadata(ds, metadata)
+    ds = utils.write_metadata(ds, metadata['instmeta'])
+
+    del metadata
+    del instmeta
 
     # Deal with metadata peculiarities
-    metadata = check_metadata(metadata, waves=True)
+    ds = qaqc.check_attrs(ds, waves=True)
 
-    metadata['center_first_bin'] = RAW['cellpos'][0].values
+    ds.attrs['center_first_bin'] = ds['cellpos'][0].values
 
-    print('BIN SIZE:', metadata['bin_size'])
+    print('BIN SIZE:', ds.attrs['bin_size'])
 
-    RAW = check_orientation(RAW, metadata, waves=True)
+    ds = qaqc.check_orientation(ds, waves=True)
 
     # Compute time stamps
-    RAW = compute_time(RAW, metadata, waves=True)
+    ds = qaqc.shift_aqd_time(ds, waves=True)
+
+    ds = utils.create_epic_time(ds)
 
     # configure file
-    cdf_filename = metadata['filename'] + 'wvs-raw.cdf' # TODO: fix the path
+    cdf_filename = ds.attrs['filename'] + 'wvs-raw.cdf'
 
-    # write out metadata
-    RAW = write_metadata(RAW, metadata)
-    RAW = write_metadata(RAW, metadata['instmeta'])
-
-    update_attrs(cdf_filename, RAW, metadata, waves=True)
+    ds = qaqc.update_attrs(ds, waves=True)
 
     # need to drop datetime
-    RAW = RAW.drop('datetime')
+    ds = ds.drop('datetime')
 
-    RAW.to_netcdf(cdf_filename, unlimited_dims='time')
+    ds.to_netcdf(cdf_filename, unlimited_dims='time')
 
     print('Finished writing data to %s' % cdf_filename)
 
-    return RAW, metadata
+    return ds
 
 def load_whd(metadata):
     """Load data from .whd file"""
@@ -98,11 +104,11 @@ def load_wad(RAW, metadata):
     WAD = pd.read_csv(wadfile, header=None, delim_whitespace=True).values
 
     r, c = np.shape(WAD)
-    print(r, c)
+    print(wadfile + ' has ' + str(r) + ' rows and ' + str(c) + ' columns')
     nburst = int(np.floor(r/metadata['instmeta']['WaveNumberOfSamples']))
     nsamps = int(nburst * metadata['instmeta']['WaveNumberOfSamples'])
     wavensamps = int(metadata['instmeta']['WaveNumberOfSamples'])
-    print(nburst, nsamps, wavensamps)
+    print('Metadata reports ' + str(nburst) + ' bursts, ' + str(nsamps) + ' samples, ' + str(wavensamps) + ' samples per burst')
 
     samples = np.arange(wavensamps)
 
@@ -119,32 +125,3 @@ def load_wad(RAW, metadata):
     print('Done loading ' + wadfile)
 
     return RAW
-
-def main():
-    import sys
-    sys.path.insert(0, '/Users/dnowacki/Documents/aqdlib')
-    import aqdlib
-    import argparse
-    import yaml
-
-    parser = argparse.ArgumentParser(description='Convert Aquadopp .wad wave files to raw .cdf format. Run this script from the directory containing Aquadopp files')
-    # parser.add_argument('basename', help='base name (without extension) of the Aquadopp text files')
-    parser.add_argument('gatts', help='path to global attributes file (gatts formatted)')
-    parser.add_argument('config', help='path to ancillary config file (YAML formatted)')
-    # parser.add_argument('-v', '--verbose', help='increase output verbosity', action='store_true')
-
-    args = parser.parse_args()
-
-    # initialize metadata from the globalatts file
-    metadata = aqdlib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    config = yaml.safe_load(open(args.config))
-
-    for k in config:
-        metadata[k] = config[k]
-
-    wad_to_cdf(metadata)
-
-if __name__ == '__main__':
-    main()
