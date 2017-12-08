@@ -7,25 +7,16 @@ import jdcal
 import netCDF4 as nc
 import datetime as dt
 import xarray as xr
+import os
 
 
-def add_final_aqd_metadata(ds, waves=False):
-
-    # FIXME: might not need these history lines any more
+def add_delta_t(ds, waves=False):
     if not waves:
-        ds.attrs['history'] = 'Processed to EPIC using aqdcdf2nc.py. ' + ds.attrs['history']
-
         # set DELTA_T attribute for EPIC compliance.
         ds.attrs.update({'DELTA_T': ds.attrs['AQDProfileInterval']})
     else:
-        ds.attrs['history'] = 'Processed to EPIC using wvscdf2nc.py. ' + ds.attrs['history']
-
         # set DELTA_T attribute for EPIC compliance.
         ds.attrs.update({'DELTA_T': ds.attrs['WaveInterval']})
-
-    # print (ds['time'][0].values.astype(str))
-    ds.attrs.update({'start_time': ds['time'][0].values.astype(str),
-        'stop_time': ds['time'][-1].values.astype(str)})
 
     return ds
 

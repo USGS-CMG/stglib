@@ -53,7 +53,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     VEL = utils.add_min_max(VEL)
 
-    VEL = qaqc.add_final_aqd_metadata(VEL)
+    VEL = qaqc.add_delta_t(VEL)
+
+    VEL = utils.add_start_stop_time(VEL)
+
+    VEL = utils.add_epic_history(VEL)
 
     nc_filename = VEL.attrs['filename'] + '.nc'
 

@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 import csv
 import os
+import sys
 import inspect
 import platform
 import netCDF4
@@ -65,6 +66,15 @@ def add_min_max(ds):
 
     return ds
 
+def add_epic_history(ds):
+
+    ds.attrs['history'] = 'Processed to EPIC using ' + \
+                          os.path.basename(sys.argv[0]) + \
+                          '. ' + ds.attrs['history']
+
+    return ds
+
+
 def write_metadata(ds, metadata):
     """Write out all metadata to CDF file"""
 
@@ -113,6 +123,14 @@ def create_epic_time(ds):
 
     # TODO: Hopefully this is correct... roundoff errors on big numbers...
     ds['epic_time2'] = np.round((ds['jd'] - np.floor(ds['jd']))*86400000).astype(np.int32)
+
+    return ds
+
+def add_start_stop_time(ds):
+    """Add start_time and stop_time attrs"""
+
+    ds.attrs.update({'start_time': ds['time'][0].values.astype(str),
+                     'stop_time': ds['time'][-1].values.astype(str)})
 
     return ds
 

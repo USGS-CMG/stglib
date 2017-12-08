@@ -37,7 +37,11 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     ds = ds_add_attrs(ds)
 
-    ds = add_final_rsk_metadata(ds)
+    ds = utils.add_min_max(ds)
+
+    ds = utils.add_start_stop_time(ds)
+
+    ds = utils.add_epic_history(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
@@ -66,15 +70,6 @@ def shift_rsk_time(ds):
 
     return ds
 
-def add_final_rsk_metadata(ds):
-    """Add start_time and stop_time global attributes"""
-
-    ds.attrs['history'] = 'Processed to EPIC using rskcdf2nc.py. ' + ds.attrs['history']
-
-    ds.attrs.update({'start_time': ds['time'][0].values.astype(str),
-                     'stop_time': ds['time'][-1].values.astype(str)})
-
-    return ds
 
 def ds_add_attrs(ds):
     # Update attributes for EPIC and STG compliance
