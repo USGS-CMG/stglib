@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-
 from __future__ import division, print_function
 import sys
-sys.path.insert(0, '/Users/dnowacki/Documents/aqdlib')
+
 from aqdlib.aqdhdr2cdf import compute_time, read_aqd_hdr, check_orientation, check_metadata, write_metadata, update_attrs
 import numpy as np
 import pandas as pd
@@ -110,13 +108,9 @@ def load_wad(RAW, metadata):
 
     RAW['sample'] = xr.DataArray(samples, dims=('sample'), name='sample')
 
-    RAW['Pressure'] = xr.DataArray(np.reshape(WAD[0:nsamps, 2], (nburst, wavensamps)), dims=('time', 'sample'))
-    RAW['VEL1'] = xr.DataArray(np.reshape(WAD[0:nsamps, 5], (nburst, wavensamps)), dims=('time', 'sample'))
-    RAW['VEL2'] = xr.DataArray(np.reshape(WAD[0:nsamps, 6], (nburst, wavensamps)), dims=('time', 'sample'))
-    RAW['VEL3'] = xr.DataArray(np.reshape(WAD[0:nsamps, 7], (nburst, wavensamps)), dims=('time', 'sample'))
-    RAW['AMP1'] = xr.DataArray(np.reshape(WAD[0:nsamps, 9], (nburst, wavensamps)), dims=('time', 'sample'))
-    RAW['AMP2'] = xr.DataArray(np.reshape(WAD[0:nsamps, 10], (nburst, wavensamps)), dims=('time', 'sample'))
-    RAW['AMP3'] = xr.DataArray(np.reshape(WAD[0:nsamps, 11], (nburst, wavensamps)), dims=('time', 'sample'))
+    for var, n in zip(['Pressure', 'VEL1', 'VEL2', 'VEL3', 'AMP1', 'AMP2', 'AMP3'], [2, 5, 6, 7, 9, 10, 11]):
+        RAW[var] = xr.DataArray(np.reshape(WAD[0:nsamps, n], (nburst, wavensamps)),
+                                dims=('time', 'sample'))
 
     # convert to cm/s
     for n in [1, 2, 3]:
