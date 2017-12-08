@@ -99,22 +99,22 @@ def rename_time(nc_filename):
     nc['time'][:] = timebak
     nc.close()
 
-def create_epic_time(RAW):
+def create_epic_time(ds):
 
     # create Julian date
-    RAW['jd'] = RAW['time'].to_dataframe().index.to_julian_date() + 0.5
+    ds['jd'] = ds['time'].to_dataframe().index.to_julian_date() + 0.5
 
-    RAW['epic_time'] = np.floor(RAW['jd'])
-    if np.all(np.mod(RAW['epic_time'], 1) == 0): # make sure they are all integers, and then cast as such
-        RAW['epic_time'] = RAW['epic_time'].astype(np.int32)
+    ds['epic_time'] = np.floor(ds['jd'])
+    if np.all(np.mod(ds['epic_time'], 1) == 0): # make sure they are all integers, and then cast as such
+        ds['epic_time'] = ds['epic_time'].astype(np.int32)
     else:
         warnings.warn('not all EPIC time values are integers; '\
                       'this will cause problems with time and time2')
 
     # TODO: Hopefully this is correct... roundoff errors on big numbers...
-    RAW['epic_time2'] = np.round((RAW['jd'] - np.floor(RAW['jd']))*86400000).astype(np.int32)
+    ds['epic_time2'] = np.round((ds['jd'] - np.floor(ds['jd']))*86400000).astype(np.int32)
 
-    return RAW
+    return ds
 
 def create_water_depth(ds):
     """Create water_depth variable"""

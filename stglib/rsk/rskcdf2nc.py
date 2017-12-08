@@ -31,7 +31,9 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # assign min/max:
     ds = utils.add_min_max(ds)
 
-    ds = compute_time(ds)
+    ds = shift_rsk_time(ds)
+
+    ds = utils.create_epic_time(ds)
 
     ds = ds_add_attrs(ds)
 
@@ -50,21 +52,19 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     return ds
 
 
-def compute_time(RAW):
-    """Compute Julian date and then time and time2 for use in netCDF file"""
+def shift_rsk_time(ds):
+    """Shift time to middle of burst"""
 
     # shift times to center of ensemble
-    timeshift = RAW.attrs['burst_interval']*RAW.attrs['sample_interval']/2
+    timeshift = ds.attrs['burst_interval']*ds.attrs['sample_interval']/2
 
     if timeshift.is_integer():
-        RAW['time'] = RAW['time'] + np.timedelta64(int(timeshift), 's')
+        ds['time'] = ds['time'] + np.timedelta64(int(timeshift), 's')
         print('Time shifted by:', int(timeshift), 's')
     else:
         warnings.warn('time NOT shifted because not a whole number of seconds: %f s ***' % timeshift)
 
-    RAW = create_epic_time(RAW)
-
-    return RAW
+    return ds
 
 def add_final_rsk_metadata(ds):
     """Add start_time and stop_time global attributes"""

@@ -2,6 +2,7 @@ from __future__ import division, print_function
 
 import pandas as pd
 import xarray as xr
+import numpy as np
 import warnings
 from ..core import utils
 
@@ -41,7 +42,9 @@ def prf_to_cdf(metadata):
     ds = load_amp_vel(ds, basefile)
 
     # Compute time stamps
-    ds = compute_time(ds)
+    ds = shift_aqd_time(ds)
+
+    ds = utils.create_epic_time(ds)
 
     # configure file
     cdf_filename = ds.attrs['filename'] + '-raw.cdf'
@@ -311,8 +314,8 @@ def update_attrs(ds, waves=False):
     #         # end
 
 
-def compute_time(ds, waves=False):
-    """Compute Julian date and then time and time2 for use in netCDF file"""
+def shift_aqd_time(ds, waves=False):
+    """Shift time to middle of burst"""
 
     # shift times to center of ensemble
     if not waves:
@@ -326,18 +329,6 @@ def compute_time(ds, waves=False):
         print('Time shifted by:', int(timeshift), 's')
     else:
         warnings.warn('time NOT shifted because not a whole number of seconds: %f s ***' % timeshift)
-
-    # create Julian date
-    ds['jd'] = ds['time'].to_dataframe().index.to_julian_date() + 0.5
-
-    ds['epic_time'] = np.floor(ds['jd'])
-    if np.all(np.mod(ds['epic_time'], 1) == 0): # make sure they are all integers, and then cast as such
-        ds['epic_time'] = ds['epic_time'].astype(np.int32)
-    else:
-        warnings.warn('not all EPIC time values are integers; this will cause problems with time and time2')
-
-    # TODO: Hopefully this is correct... roundoff errors on big numbers...
-    ds['epic_time2'] = np.round((ds['jd'] - np.floor(ds['jd']))*86400000).astype(np.int32)
 
     return ds
 
