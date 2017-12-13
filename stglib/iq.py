@@ -1,33 +1,58 @@
 from __future__ import division, print_function
 import scipy.io as spio
 import matplotlib.pyplot as plt
+import xarray as xr
+import pandas as pd
+import numpy as np
+from . import core
 
-iqmat = spio.loadmat('/Volumes/Backstaff/field/1097/1097IQ_20170815_124439.mat')
+def read_iq(filnam, start, stop, freq):
+    iqmat = core.utils.loadmat(filnam)
+
+    time = pd.date_range(start, stop, freq=freq)
+    ds = {}
+    ds['time'] = xr.DataArray(time, dims='time')
+    attrs = {}
+    for k in iqmat:
+        if '__' not in k:
+            if len(np.ravel(iqmat[k])) == len(time):
+                ds[k] = xr.DataArray(np.ravel(iqmat[k]), dims='time')
+                if k in iqmat['Data_Units']:
+                    ds[k].attrs['units'] = iqmat['Data_Units'][k]
+            elif '_2_' in k or '_3_' in k:
+                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'bin_beam_2_3'))
+            elif '_0_' in k or '_1_' in k:
+                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'bin_beam_0_1'))
+            elif 'FlowData_Vel' in k or 'FlowData_SNR' in k:
+                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'velbeam'))
+            elif 'FlowData_NoiseLevel' in k:
+                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'beam'))
+
+    ds = xr.Dataset(ds)
+    for k in iqmat['System_IqSetup']['basicSetup']:
+        if 'spare' not in k:
+            ds.attrs[k] = iqmat['System_IqSetup']['basicSetup'][k]
+    for k in iqmat['System_Id']:
+        ds.attrs[k] = iqmat['System_Id'][k]
+    for k in iqmat['System_IqState']:
+        if 'spare' not in k:
+            ds.attrs[k] = iqmat['System_IqState'][k]
+
+    return ds
+
+def make_iq_plots(iq, directory='', savefig=True):
+    plt.figure(figsize=(11,8.5))
+
+    for n, var in enumerate(['FlowData_Depth', 'FlowData_Vel_Mean', 'FlowData_Flow'], start=1):
+        plt.subplot(3,1,n)
+        plt.plot(iq['time'], iq[var])
+        plt.ylabel(var + ' [' + iq[var].attrs['units'] + ']')
+        # if n == 1:
+            # plt.title(iq.attrs[''])
+
+    if savefig:
+        plt.savefig(directory + '/iq_stage_vel_flow.pdf')
+    plt.show()
 
 
-# 1e6
-# sample time is is microseconds since the beginning of the decade.
-# for example, 556122600000000.000000 is 17.63453196347032 years
-print('%f' % iqmat['FlowData_SampleTime'][7])
-
-year = floor(iqmat['FlowData_SampleTime'][7]
-
-print(iqmat['Data_Units'])
-print(iqmat['FlowData_SampleTime'][1] - iqmat['FlowData_SampleTime'][0])
-# %%
-for k in iqmat:
-    # if 'FlowData' in k:
-    print(k)
-for k in iqmat:
-    if 'Profile' in k:
-        print(k)
-# %%
-
-print(iqmat.keys())
-
-# %%
-plt.figure(figsize=(18,8))
-plt.plot(iqmat['FlowData_Flow'])
-# plt.ylim(-200,200)
-
-plt.show()
+    # plt.figure(figsize=(11,8.5))
