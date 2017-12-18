@@ -12,6 +12,6 @@ parser.add_argument('--atmpres', help='path to cdf file containing atmopsheric p
 args = parser.parse_args()
 
 if args.atmpres:
-    ds = stglib.rskcdf2nc.cdf_to_nc(args.cdfname, atmpres=args.atmpres)
+    ds = stglib.rsk.cdf2nc.cdf_to_nc(args.cdfname, atmpres=args.atmpres)
 else:
-    ds = stglib.rskcdf2nc.cdf_to_nc(args.cdfname)
+    ds = stglib.rsk.cdf2nc.cdf_to_nc(args.cdfname)

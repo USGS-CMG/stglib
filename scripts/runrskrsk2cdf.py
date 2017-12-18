@@ -21,4 +21,4 @@ config = yaml.safe_load(open(args.config))
 for k in config:
     metadata[k] = config[k]
 
-RAW = stglib.rskrsk2cdf.rsk_to_cdf(metadata)
+RAW = stglib.rsk.rsk2cdf.rsk_to_cdf(metadata)

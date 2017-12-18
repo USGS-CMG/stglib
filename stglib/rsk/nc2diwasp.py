@@ -39,10 +39,9 @@ def nc_to_diwasp(nc_filename):
 
     nc_filename = ds.attrs['filename'] + 's-a.nc'
 
-    ds.to_netcdf(nc_filename, unlimited_dims='time', engine='netcdf4')
+    ds = utils.rename_time(ds)
 
-    # rename time variables after the fact to conform with EPIC/CMG standards
-    utils.rename_time(nc_filename)
+    ds.to_netcdf(nc_filename)
 
     return ds
 

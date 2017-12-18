@@ -10,4 +10,4 @@ parser.add_argument('ncname', help='processed .nc filename')
 
 args = parser.parse_args()
 
-ds = stglib.rsknc2diwasp.nc_to_diwasp(args.ncname)
+ds = stglib.rsk.nc2diwasp.nc_to_diwasp(args.ncname)
