@@ -10,8 +10,13 @@ def read_iq(filnam, start, stop, freq):
     iqmat = core.utils.loadmat(filnam)
 
     time = pd.date_range(start, stop, freq=freq)
+    offset = iqmat['FlowSubData_PrfHeader_0_BlankingDistance']
+    # beamdist_0 = np.linspace(offset, offset + 100*iqmat['FlowSubData_PrfHeader_0_CellSize'], 100)
     ds = {}
     ds['time'] = xr.DataArray(time, dims='time')
+    ds['velbeam'] = xr.DataArray([1, 2, 3, 4], dims='velbeam')
+    ds['beam'] = xr.DataArray([1, 2, 3, 4, 5], dims='beam')
+    # ds['beamdist_0'] = xr.DataArray(beamdist_0, dims='beamdist_0')
     attrs = {}
     for k in iqmat:
         if '__' not in k:
@@ -20,9 +25,9 @@ def read_iq(filnam, start, stop, freq):
                 if k in iqmat['Data_Units']:
                     ds[k].attrs['units'] = iqmat['Data_Units'][k]
             elif '_2_' in k or '_3_' in k:
-                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'bin_beam_2_3'))
+                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'beamdist_2_3'))
             elif '_0_' in k or '_1_' in k:
-                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'bin_beam_0_1'))
+                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'beamdist_0_1'))
             elif 'FlowData_Vel' in k or 'FlowData_SNR' in k:
                 ds[k] = xr.DataArray(iqmat[k], dims=('time', 'velbeam'))
             elif 'FlowData_NoiseLevel' in k:
@@ -39,6 +44,14 @@ def read_iq(filnam, start, stop, freq):
             ds.attrs[k] = iqmat['System_IqState'][k]
 
     return ds
+
+def clean_iq(iq):
+
+    bads = iq['FlowData_SNR'].mean() < 0
+
+
+
+    return iq
 
 def make_iq_plots(iq, directory='', savefig=True):
     plt.figure(figsize=(11,8.5))
