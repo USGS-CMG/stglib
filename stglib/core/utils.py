@@ -91,24 +91,31 @@ def write_metadata(ds, metadata):
 
     return ds
 
-def rename_time(nc_filename):
+def rename_time(ds):
     """
-    Rename time variables. Need to use netCDF4 module since xarray seems to have
-    issues with the naming of time variables/dimensions
+    Rename time variables for EPIC compliance, keeping a time_cf coorindate.
     """
 
-    nc = netCDF4.Dataset(nc_filename, 'r+')
-    timebak = nc['epic_time'][:]
-    nc.renameVariable('time', 'time_cf')
-    nc.renameVariable('epic_time', 'time')
-    nc.renameVariable('epic_time2', 'time2')
-    nc.close()
+    # nc = netCDF4.Dataset(nc_filename, 'r+')
+    # timebak = nc['epic_time'][:]
+    # nc.renameVariable('time', 'time_cf')
+    # nc.renameVariable('epic_time', 'time')
+    # nc.renameVariable('epic_time2', 'time2')
+    # nc.close()
+    #
+    # # need to do this in two steps after renaming the variable
+    # # not sure why, but it works this way
+    # nc = netCDF4.Dataset(nc_filename, 'r+')
+    # nc['time'][:] = timebak
+    # nc.close()
 
-    # need to do this in two steps after renaming the variable
-    # not sure why, but it works this way
-    nc = netCDF4.Dataset(nc_filename, 'r+')
-    nc['time'][:] = timebak
-    nc.close()
+    ds.rename({'time': 'time_cf'}, inplace=True)
+    ds.rename({'epic_time': 'time'}, inplace=True)
+    ds.rename({'epic_time2': 'time2'}, inplace=True)
+    ds.set_coords(['time', 'time2'], inplace=True)
+    ds.swap_dims({'time_cf': 'time'}, inplace=True)
+
+    return ds
 
 def create_epic_time(ds):
 
