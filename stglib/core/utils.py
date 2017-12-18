@@ -7,6 +7,7 @@ import platform
 import netCDF4
 import xarray as xr
 import numpy as np
+import scipy.io as spio
 
 def clip_ds(ds):
     """
@@ -192,3 +193,38 @@ def str2num(s):
         return float(s)
     except ValueError:
         return s
+
+def loadmat(filename):
+    '''
+    this function should be called instead of direct spio.loadmat
+    as it cures the problem of not properly recovering python dictionaries
+    from mat files. It calls the function check keys to cure all entries
+    which are still mat-objects
+
+    from: `StackOverflow <http://stackoverflow.com/questions/7008608/scipy-io-loadmat-nested-structures-i-e-dictionaries>`_
+    '''
+    data = spio.loadmat(filename, struct_as_record=False, squeeze_me=True)
+    return _check_keys(data)
+
+def _check_keys(dic):
+    '''
+    checks if entries in dictionary are mat-objects. If yes
+    todict is called to change them to nested dictionaries
+    '''
+    for key in dic:
+        if isinstance(dic[key], spio.matlab.mio5_params.mat_struct):
+            dic[key] = _todict(dic[key])
+    return dic
+
+def _todict(matobj):
+    '''
+    A recursive function which constructs from matobjects nested dictionaries
+    '''
+    dic = {}
+    for strg in matobj._fieldnames:
+        elem = matobj.__dict__[strg]
+        if isinstance(elem, spio.matlab.mio5_params.mat_struct):
+            dic[strg] = _todict(elem)
+        else:
+            dic[strg] = elem
+    return dic

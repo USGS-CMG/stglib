@@ -4,7 +4,7 @@ import xarray as xr
 
 
 def read_hobo(filnam, skiprows=1, skipfooter=0):
-    hobo =  pd.read_csv('/Volumes/Backstaff/field/1104/hobo3353atmos/3353-1104-atmos.csv',
+    hobo =  pd.read_csv(filnam,
                       usecols=[0, 1, 2, 3],
                       names=['#','datetime','abspres_kPa','temp_C'],
                       engine='python',
