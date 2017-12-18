@@ -58,15 +58,13 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     VEL = utils.add_epic_history(VEL)
 
+    VEL = utils.rename_time(VEL)
+
     nc_filename = VEL.attrs['filename'] + '.nc'
 
     VEL.to_netcdf(nc_filename, unlimited_dims='time')
+
     print('Done writing netCDF file', nc_filename)
-
-    # rename time variables after the fact to conform with EPIC/CMG standards
-    utils.rename_time(nc_filename)
-
-    print('Renamed dimensions')
 
     return VEL
 

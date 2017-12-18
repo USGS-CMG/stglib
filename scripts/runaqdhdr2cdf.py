@@ -21,4 +21,4 @@ config = yaml.safe_load(open(args.config))
 for k in config:
     metadata[k] = config[k]
 
-RAW = stglib.aqdhdr2cdf.prf_to_cdf(metadata)
+RAW = stglib.aqd.hdr2cdf.prf_to_cdf(metadata)
