@@ -6,21 +6,25 @@ import pandas as pd
 import numpy as np
 from . import core
 
-def read_iq(filnam, start, stop, freq):
+def read_iq(filnam):
     iqmat = core.utils.loadmat(filnam)
-
-    time = pd.date_range(start, stop, freq=freq)
     offset = iqmat['FlowSubData_PrfHeader_0_BlankingDistance']
     # beamdist_0 = np.linspace(offset, offset + 100*iqmat['FlowSubData_PrfHeader_0_CellSize'], 100)
     ds = {}
-    ds['time'] = xr.DataArray(time, dims='time')
+
+    ds['time'] = xr.DataArray(iqmat['FlowData_SampleTime'],
+        attrs={'standard_name': 'time',
+               'axis': 'T',
+               'units': 'microseconds since 2000-01-01 00:00:00', # per email from SonTek
+               'calendar': 'proleptic_gregorian'}, dims='time')
+
     ds['velbeam'] = xr.DataArray([1, 2, 3, 4], dims='velbeam')
     ds['beam'] = xr.DataArray([1, 2, 3, 4, 5], dims='beam')
     # ds['beamdist_0'] = xr.DataArray(beamdist_0, dims='beamdist_0')
     attrs = {}
     for k in iqmat:
         if '__' not in k:
-            if len(np.ravel(iqmat[k])) == len(time):
+            if len(np.ravel(iqmat[k])) == len(ds['time']):
                 ds[k] = xr.DataArray(np.ravel(iqmat[k]), dims='time')
                 if k in iqmat['Data_Units']:
                     ds[k].attrs['units'] = iqmat['Data_Units'][k]
@@ -43,7 +47,7 @@ def read_iq(filnam, start, stop, freq):
         if 'spare' not in k:
             ds.attrs[k] = iqmat['System_IqState'][k]
 
-    return ds
+    return xr.decode_cf(ds)
 
 def clean_iq(iq):
 
