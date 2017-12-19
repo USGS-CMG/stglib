@@ -1,8 +1,8 @@
 # stglib - Process data from a variety of oceanographic instrumentation
 
-This module contains code to process data from a variety of oceanographic instrumentation, consistent with the procedures of the Sediment Transport Group at the USGS Woods Hole Coastal and Marine Science Center.
+This package contains code to process data from a variety of oceanographic instrumentation, consistent with the procedures of the Sediment Transport Group at the USGS Woods Hole Coastal and Marine Science Center.
 
-Currently, this module has at least partial support for:
+Currently, this package has at least partial support for:
 
 - Nortek Aquadopp profilers, in mean-current and wave-burst modes
 - RBR d|wave pressure sensors
@@ -10,6 +10,8 @@ Currently, this module has at least partial support for:
 - SonTek IQ flow monitors
 - WET labs ECO NTUSB turbidity sensors
 - Onset HOBO pressure sensors
+
+This package makes heavy use of [NumPy](http://www.numpy.org), [xarray](http://xarray.pydata.org/en/stable/), and [netCDF4](http://unidata.github.io/netcdf4-python/).
 
 ## Nortek Aquadopp
 
@@ -42,6 +44,22 @@ This step will generally be completed by using the import statement `from rsklib
 
 This step will generally be completed by using the import statement `from rsklib import rskcdf2nc` and calling `rskcdf2nc.cdf_to_nc()`, or by running `rskcdf2nc.py` from the command line. When calling `cdf_to_nc()`, the user may provide the path to a netCDF file consisting of atmospheric pressure, which will be used to atmospherically correct the pressure data. This path can also be passed as a command-line argument to `rskcdf2nc.py`.
 
-### DIWASP processing and creation of EPIC-compliand wave statistics netCDF (.nc)
+### DIWASP processing and creation of EPIC-compliant wave statistics netCDF (.nc)
 
 This step will generally be completed by using the import statement `from rsklib import rsknc2diwasp` and calling `rsknc2diwasp.nc_to_diwasp()`, or by running `rsknc2diwasp.py` from the command line. Note that DIWASP is a MATLAB package and must be run from MATLAB before using this module. A sample MATLAB run file for DIWASP is included in the `scripts` directory.
+
+## YSI EXO2
+
+Currently this module supports reading the `.xlsx` file exported from the KOR software into an xarray Dataset.
+
+## SonTek IQ
+
+Currently this module supports reading the `.mat` file exported from the SonTek IQ software into an xarray Dataset.
+
+## WET labs ECO NTUSB
+
+Currently this module supports reading the text file saved from the terminal program used to interface with the instrument into an xarray Dataset.
+
+## Onset HOBO
+
+Currently this module supports reading the `.csv` file exported from the HOBO software into an xarray Dataset.
