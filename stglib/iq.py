@@ -56,14 +56,17 @@ def read_iq(filnam):
 
 def clean_iq(iq):
     """
-    TODO: Make this work
+    Preliminary data cleaning when SNR < 0 and velocity greater than 2 m/s
     """
-    
-    bads = iq['FlowData_SNR'].mean() < 0
+    bads = np.logical_or(iq['FlowData_SNR'] < 0, np.abs(iq['FlowData_Vel']) > 2000)
+    badsflat = np.any(bads, 1)
+
+    for var in ['Depth', 'Stage', 'Area', 'Flow', 'Vel_Mean', 'Volume_Total', 'Volume_Positive', 'Volume_Negative']:
+        iq['FlowData_' + var].values[badsflat] = np.nan
 
     return iq
 
-def make_iq_plots(iq, directory='', savefig=True):
+def make_iq_plots(iq, directory='', savefig=False):
     """
     Make IQ turnaround plots
     """
@@ -74,12 +77,7 @@ def make_iq_plots(iq, directory='', savefig=True):
         plt.subplot(3,1,n)
         plt.plot(iq['time'], iq[var])
         plt.ylabel(var + ' [' + iq[var].attrs['units'] + ']')
-        # if n == 1:
-            # plt.title(iq.attrs[''])
 
     if savefig:
         plt.savefig(directory + '/iq_stage_vel_flow.pdf')
     plt.show()
-
-
-    # plt.figure(figsize=(11,8.5))
