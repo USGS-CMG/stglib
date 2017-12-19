@@ -7,6 +7,11 @@ import numpy as np
 from . import core
 
 def read_iq(filnam):
+    """
+    Read SonTek IQ data which has been exported as a Matlab .mat file from IQ
+    software into an xarray Dataset
+    """
+
     iqmat = core.utils.loadmat(filnam)
     offset = iqmat['FlowSubData_PrfHeader_0_BlankingDistance']
     # beamdist_0 = np.linspace(offset, offset + 100*iqmat['FlowSubData_PrfHeader_0_CellSize'], 100)
@@ -50,14 +55,19 @@ def read_iq(filnam):
     return xr.decode_cf(ds)
 
 def clean_iq(iq):
-
+    """
+    TODO: Make this work
+    """
+    
     bads = iq['FlowData_SNR'].mean() < 0
-
-
 
     return iq
 
 def make_iq_plots(iq, directory='', savefig=True):
+    """
+    Make IQ turnaround plots
+    """
+
     plt.figure(figsize=(11,8.5))
 
     for n, var in enumerate(['FlowData_Depth', 'FlowData_Vel_Mean', 'FlowData_Flow'], start=1):
