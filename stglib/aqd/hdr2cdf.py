@@ -11,7 +11,6 @@ def prf_to_cdf(metadata):
     """Main load file"""
 
     # TODO: clock drift code
-    # TODO: Move time to center of ensemble??
     # TODO: logmeta code
 
     basefile = metadata['basefile']
@@ -106,24 +105,16 @@ def load_amp_vel(RAW, basefile):
 
     for n in [1, 2, 3]:
         afile = basefile + '.a' + str(n)
-        RAW['AMP' + str(n)] = xr.DataArray(pd.read_csv(afile, header=None, delim_whitespace=True),
-            dims=('time', 'bindist'), coords=[RAW['time'], RAW['bindist']])
-        # RAW['AMP' + str(n)] = RAW['AMP' + str(n)].rename({'dim_0': 'time'})
+        a = pd.read_csv(afile, header=None, delim_whitespace=True)
+        RAW['AMP' + str(n)] = xr.DataArray(a,
+                                           dims=('time', 'bindist'),
+                                           coords=[RAW['time'], RAW['bindist']])
+
         vfile = basefile + '.v' + str(n)
         v = pd.read_csv(vfile, header=None, delim_whitespace=True)
         # convert to cm/s
-        RAW['VEL' + str(n)] = xr.DataArray(v * 100, dims=('time', 'bindist'), coords=[RAW['time'], RAW['bindist']])
-
-    return RAW
-
-
-def insert_fill_values(RAW):
-    """Insert fill values for nans"""
-
-    print("Inserting fill values")
-    for k in RAW:
-        if k not in ['instmeta', 'time', 'time2', 'datetime'] and np.max(np.shape(RAW[k])) == np.max(np.shape(RAW['jd'])):
-            nanind = np.where(np.isnan(RAW[k]))
-            RAW[k][nanind] = 1e35
+        RAW['VEL' + str(n)] = xr.DataArray(v * 100,
+                                           dims=('time', 'bindist'),
+                                           coords=[RAW['time'], RAW['bindist']])
 
     return RAW
