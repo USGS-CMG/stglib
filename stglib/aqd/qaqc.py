@@ -465,23 +465,6 @@ def check_orientation(ds, waves=False):
 
     return ds
 
-def shift_aqd_time(ds, waves=False):
-    """Shift time to middle of burst"""
-
-    # shift times to center of ensemble
-    if not waves:
-        timeshift = ds.attrs['AQDAverageInterval']/2
-    else:
-        fs = float(ds.attrs['WaveSampleRate'].split()[0])
-        timeshift = ds.attrs['WaveNumberOfSamples']/fs/2
-
-    if timeshift.is_integer():
-        ds['time'] = ds['time'] + np.timedelta64(int(timeshift), 's')
-        print('Time shifted by:', int(timeshift), 's')
-    else:
-        warnings.warn('time NOT shifted because not a whole number of seconds: %f s ***' % timeshift)
-
-    return ds
 
 def update_attrs(ds, waves=False):
     """Define dimensions and variables in NetCDF file"""

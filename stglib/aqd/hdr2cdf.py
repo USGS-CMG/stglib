@@ -42,7 +42,7 @@ def prf_to_cdf(metadata):
     ds = load_amp_vel(ds, basefile)
 
     # Compute time stamps
-    ds = qaqc.shift_aqd_time(ds)
+    ds = utils.shift_time(ds, ds.attrs['AQDAverageInterval']/2)
 
     ds = utils.create_epic_time(ds)
 

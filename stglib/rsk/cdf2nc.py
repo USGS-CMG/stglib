@@ -31,7 +31,7 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # assign min/max:
     ds = utils.add_min_max(ds)
 
-    ds = shift_rsk_time(ds)
+    ds = utils.shift_time(ds, ds.attrs['burst_interval']*ds.attrs['sample_interval']/2)
 
     ds = utils.create_epic_time(ds)
 
@@ -57,20 +57,6 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     return ds
 
-
-def shift_rsk_time(ds):
-    """Shift time to middle of burst"""
-
-    # shift times to center of ensemble
-    timeshift = ds.attrs['burst_interval']*ds.attrs['sample_interval']/2
-
-    if timeshift.is_integer():
-        ds['time'] = ds['time'] + np.timedelta64(int(timeshift), 's')
-        print('Time shifted by:', int(timeshift), 's')
-    else:
-        warnings.warn('time NOT shifted because not a whole number of seconds: %f s ***' % timeshift)
-
-    return ds
 
 
 def ds_add_attrs(ds):

@@ -142,6 +142,20 @@ def add_start_stop_time(ds):
 
     return ds
 
+
+def shift_time(ds, timeshift):
+    """Shift time to middle of burst"""
+
+    # shift times to center of ensemble
+    if timeshift.is_integer():
+        ds['time'] = ds['time'] + np.timedelta64(int(timeshift), 's')
+        print('Time shifted by:', int(timeshift), 's')
+    else:
+        warnings.warn('time NOT shifted because not a whole number of seconds: %f s ***' % timeshift)
+
+    return ds
+
+
 def create_water_depth(ds):
     """Create water_depth variable"""
 
