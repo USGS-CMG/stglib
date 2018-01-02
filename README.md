@@ -8,7 +8,7 @@ Currently, this package has at least partial support for:
 - RBR d|wave pressure sensors
 - YSI EXO2 water-quality sondes
 - SonTek IQ flow monitors
-- WET labs ECO NTUSB turbidity sensors
+- WET labs sensors, including ECO NTUSB and ECO PAR
 - Onset HOBO pressure sensors
 
 This package makes heavy use of [NumPy](http://www.numpy.org), [xarray](http://xarray.pydata.org/en/stable/), and [netCDF4](http://unidata.github.io/netcdf4-python/).
@@ -55,10 +55,15 @@ Currently this module supports reading the `.xlsx` file exported from the KOR so
 ## SonTek IQ
 
 Currently this module supports reading the `.mat` file exported from the SonTek IQ software into an xarray Dataset.
+## WET labs ECO sensors
 
-## WET labs ECO NTUSB
+### NTUSB
 
-Currently this module supports reading the text file saved from the terminal program used to interface with the instrument into an xarray Dataset.
+Currently this module supports reading the text file saved from the terminal program used to interface with the instrument into an xarray `Dataset` using `stglib.eco.read_ntu()`
+
+### PAR
+
+Currently this module supports reading the text file saved from the terminal program used to interface with the instrument into an xarray `Dataset` using `stglib.eco.read_par()`
 
 ## Onset HOBO
 

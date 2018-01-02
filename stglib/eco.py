@@ -35,27 +35,7 @@ def read_ntu(filnam, spb=False, skiprows=None, skipfooter=0):
 
     return ds
 
-# # This is when it was sampling properly
-# ds = read_ntu(filnam, spb=10, skiprows=151, skipfooter=107079)
-# # This is when it was sampling continuously
-# ds2 = read_ntu(filnam, skiprows=1161, skipfooter=1)
-#
-# print(ds)
-# print(ds2)
-# # %%
-# plt.figure(figsize=(11,8.5))
-# plt.plot(ds2['time'], ds2['counts'])
-# plt.show()
-#
-# # %%
-#
-# plt.figure(figsize=(11,8.5))
-# plt.plot(ds['time'], ds['counts'].mean(dim='sample'))
-# plt.ylabel('NTU')
-# # plt.savefig('/Volumes/Backstaff/field/nrpp/gate/1100ntu.pdf')
-# plt.show()
-
-# %%
+# TODO: implement read_par()
 
 def main():
     import argparse
