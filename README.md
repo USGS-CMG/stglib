@@ -13,6 +13,8 @@ Currently, this package has at least partial support for:
 
 This package makes heavy use of [NumPy](http://www.numpy.org), [xarray](http://xarray.pydata.org/en/stable/), and [netCDF4](http://unidata.github.io/netcdf4-python/).
 
+To use this package, `import stglib` and see below for relevant usages.
+
 ## Nortek Aquadopp
 
 Processing consists of two main steps:
@@ -50,11 +52,12 @@ This step will generally be completed by using the import statement `from rsklib
 
 ## YSI EXO2
 
-Currently this module supports reading the `.xlsx` file exported from the KOR software into an xarray Dataset.
+Currently this module supports reading the `.xlsx` file exported from the KOR software into an xarray `Dataset` using `stglib.exo.read_exo()`.
 
 ## SonTek IQ
 
-Currently this module supports reading the `.mat` file exported from the SonTek IQ software into an xarray Dataset.
+Currently this module supports reading the `.mat` file exported from the SonTek IQ software into an xarray `Dataset` using `stglib.iq.read_iq()`.
+
 ## WET labs ECO sensors
 
 ### NTUSB
@@ -67,4 +70,4 @@ Currently this module supports reading the text file saved from the terminal pro
 
 ## Onset HOBO
 
-Currently this module supports reading the `.csv` file exported from the HOBO software into an xarray Dataset.
+Currently this module supports reading the `.csv` file exported from the HOBO software into an xarray `Dataset`.
