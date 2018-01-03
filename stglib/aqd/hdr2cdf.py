@@ -106,15 +106,21 @@ def load_amp_vel(RAW, basefile):
     for n in [1, 2, 3]:
         afile = basefile + '.a' + str(n)
         a = pd.read_csv(afile, header=None, delim_whitespace=True)
+
+        if 'bindist' in RAW:
+            coords = [RAW['time'], RAW['bindist']]
+        else:
+            coords = [RAW['time'], RAW.attrs['AQDCCD']]
+
         RAW['AMP' + str(n)] = xr.DataArray(a,
                                            dims=('time', 'bindist'),
-                                           coords=[RAW['time'], RAW['bindist']])
+                                           coords=coords)
 
         vfile = basefile + '.v' + str(n)
         v = pd.read_csv(vfile, header=None, delim_whitespace=True)
         # convert to cm/s
         RAW['VEL' + str(n)] = xr.DataArray(v * 100,
                                            dims=('time', 'bindist'),
-                                           coords=[RAW['time'], RAW['bindist']])
+                                           coords=coords)
 
     return RAW

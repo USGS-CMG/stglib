@@ -327,7 +327,6 @@ def read_aqd_hdr(basefile):
             Instmeta['AQDSyncPowerDelay'] = row[38:]
 
     while 'Current profile cell center distance from head (m)' not in row:
-    # while 'Data file format' not in row:
         row = f.readline().rstrip()
         if 'Pressure sensor' in row:
             Instmeta['AQDPressureSensor'] = row[38:]
@@ -349,6 +348,14 @@ def read_aqd_hdr(basefile):
                 row = f.readline().rstrip()
         elif 'Pressure sensor calibration' in row:
             Instmeta['AQDPressureCal'] = row[38:]
+
+    bd = []
+    while 'Data file format' not in row:
+        row = f.readline().rstrip()
+        if '-' not in row and row != '' and row != 'Data file format': # avoid the header rule line
+            bd.append(float(row.split()[1]))
+
+    Instmeta['AQDCCD'] = np.array(bd) # CCD = Cell Center Distance
 
     # % infer some things based on the Aquadopp brochure
     if Instmeta['AQDFrequency'] == 400:
@@ -516,17 +523,17 @@ def update_attrs(ds, waves=False):
         veltxt = 'wave-burst velocity'
 
     if ds.attrs['AQDCoordinateSystem'] == 'ENU':
-        ds['VEL1'].attrs.update({'long_name': 'Eastward ' + veltxt})
-        ds['VEL2'].attrs.update({'long_name': 'Northward ' + veltxt})
-        ds['VEL3'].attrs.update({'long_name': 'Vertical ' + veltxt})
+        ds['VEL1'].attrs['long_name'] = 'Eastward ' + veltxt
+        ds['VEL2'].attrs['long_name'] = 'Northward ' + veltxt
+        ds['VEL3'].attrs['long_name'] = 'Vertical ' + veltxt
     elif ds.attrs['AQDCoordinateSystem'] == 'XYZ':
-        ds['VEL1'].attrs.update({'long_name': veltxt.capitalize() + ' in X Direction'})
-        ds['VEL2'].attrs.update({'long_name': veltxt.capitalize() + ' in Y Direction'})
-        ds['VEL3'].attrs.update({'long_name': veltxt.capitalize() + ' in Z Direction'})
+        ds['VEL1'].attrs['long_name'] = veltxt.capitalize() + ' in X Direction'
+        ds['VEL2'].attrs['long_name'] = veltxt.capitalize() + ' in Y Direction'
+        ds['VEL3'].attrs['long_name'] = veltxt.capitalize() + ' in Z Direction'
     elif ds.attrs['AQDCoordinateSystem'] == 'BEAM':
-        ds['VEL1'].attrs.update({'long_name': 'Beam 1 ' + veltxt})
-        ds['VEL2'].attrs.update({'long_name': 'Beam 2 ' + veltxt})
-        ds['VEL3'].attrs.update({'long_name': 'Beam 3 ' + veltxt})
+        ds['VEL1'].attrs['long_name'] = 'Beam 1 ' + veltxt
+        ds['VEL2'].attrs['long_name'] = 'Beam 2 ' + veltxt
+        ds['VEL3'].attrs['long_name'] = 'Beam 3 ' + veltxt
 
     ds['Battery'].attrs.update({'units': 'Volts',
         'long_name': 'Battery Voltage'})
@@ -548,7 +555,7 @@ def update_attrs(ds, waves=False):
         'bin_count': ds.attrs['bin_count'],
         'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom']})
 
-    ds['TransMatrix'].attrs.update({'long_name': 'Transformation Matrix for this Aquadopp'})
+    ds['TransMatrix'].attrs['long_name'] = 'Transformation Matrix for this Aquadopp'
 
     return ds
 
