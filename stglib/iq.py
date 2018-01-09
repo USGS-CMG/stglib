@@ -56,13 +56,22 @@ def read_iq(filnam):
 
 def clean_iq(iq):
     """
-    Preliminary data cleaning when SNR < 0 and velocity greater than 2 m/s
+    Preliminary data cleaning when SNR < 0
     """
-    bads = np.logical_or(iq['FlowData_SNR'] < 0, np.abs(iq['FlowData_Vel']) > 2000)
+    bads = iq['FlowData_SNR'] < 0
     badsflat = np.any(bads, 1)
 
     for var in ['Depth', 'Stage', 'Area', 'Flow', 'Vel_Mean', 'Volume_Total', 'Volume_Positive', 'Volume_Negative']:
         iq['FlowData_' + var].values[badsflat] = np.nan
+
+    for var in ['FlowData_SNR']:
+        iq[var].values[bads] = np.nan
+
+    return iq
+
+def vel_to_ms(iq):
+
+    iq['FlowData_Vel_Mean'] = iq['FlowData_Vel_Mean'] / 1000
 
     return iq
 
