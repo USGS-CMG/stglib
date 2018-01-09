@@ -9,9 +9,7 @@ def read_par(filnam, spb=False, skiprows=None, skipfooter=0):
 
     par = read_eco_csv(filnam, names, skiprows=skiprows, skipfooter=skipfooter)
 
-    par = eco_pd_to_xr(par, spb=spb)
-
-    return par
+    return eco_pd_to_xr(par, spb=spb)
 
 
 def read_ntu(filnam, spb=False, skiprows=None, skipfooter=0):
@@ -20,9 +18,7 @@ def read_ntu(filnam, spb=False, skiprows=None, skipfooter=0):
 
     ntu = read_eco_csv(filnam, names, skiprows=skiprows, skipfooter=skipfooter)
 
-    ntu = eco_pd_to_xr(ntu, spb=spb)
-
-    return ntu
+    return eco_pd_to_xr(ntu, spb=spb)
 
 
 def read_eco_csv(filnam, names, skiprows=None, skipfooter=0):
