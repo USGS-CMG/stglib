@@ -4,6 +4,7 @@ from . import iq
 from . import hobo
 from . import aqd
 from . import rsk
+from . import indexvel
 from .core import utils
 # from .aqd import aqdhdr2cdf, aqdcdf2nc, wvswad2cdf, wvscdf2nc
 # from .rsk import rskrsk2cdf, rskcdf2nc, rsknc2diwasp
