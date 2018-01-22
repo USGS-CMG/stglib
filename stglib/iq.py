@@ -58,20 +58,55 @@ def clean_iq(iq):
     """
     Preliminary data cleaning when SNR < 0
     """
-    bads = iq['FlowData_SNR'] < 0
-    badsflat = np.any(bads, 1)
-
-    for var in ['Depth', 'Stage', 'Area', 'Flow', 'Vel_Mean', 'Volume_Total', 'Volume_Positive', 'Volume_Negative']:
-        iq['FlowData_' + var].values[badsflat] = np.nan
-
-    for var in ['FlowData_SNR']:
-        iq[var].values[bads] = np.nan
+    # bads = iq['FlowData_SNR'] < 0
+    # badsflat = np.any(bads, 1)
+    #
+    # for var in ['Depth', 'Stage', 'Area', 'Flow', 'Vel_Mean', 'Volume_Total', 'Volume_Positive', 'Volume_Negative']:
+    #     iq['FlowData_' + var].values[badsflat] = np.nan
+    #
+    # for var in ['FlowData_SNR']:
+    #     iq[var].values[bads] = np.nan
+    #
+    iq['FlowData_Vel'].values[iq['FlowData_Vel'] == -214748368] = np.nan
+    for bm in range(4):
+        iq['Profile_' + str(bm) + '_Vel'].values[iq['Profile_' + str(bm) + '_Vel'] == -214748368] = np.nan
+    #     iq['Profile_' + str(bm) + '_Amp'].values[iq['Profile_' + str(bm) + '_Amp'] == 65535] = np.nan
 
     return iq
 
 def vel_to_ms(iq):
+    """
+    Convert velocity data from mm/s to m/s
+    """
 
-    iq['FlowData_Vel_Mean'] = iq['FlowData_Vel_Mean'] / 1000
+    for var in ['FlowData_Vel_Mean', 'FlowData_Vel']:
+        iq[var] = iq[var] / 1000
+
+    return iq
+
+def make_beamdist(iq):
+    """
+    Generate physical coordinates to pair with the logical beamdist coordinates
+    """
+    for bm in range(4):
+        if bm < 2:
+            bdname = 'beamdist_0_1'
+        else:
+            bdname = 'beamdist_2_3'
+
+        r = range(len(iq[bdname]))
+
+        time = np.tile(iq['time'], (len(iq[bdname]), 1)).transpose()
+
+        cells = np.zeros(np.shape(iq['Profile_' + str(bm) + '_Vel']))
+        for n in range(len(iq['time'])):
+            cells[n,:] = iq['FlowSubData_PrfHeader_' + str(bm) + '_BlankingDistance'][n].values + \
+                         r * iq['FlowSubData_PrfHeader_' + str(bm) + '_CellSize'][n].values
+        iq['cells_' + str(bm)] = xr.DataArray(cells, dims=('time', bdname))
+        iq['time_' + str(bm)] = xr.DataArray(time, dims=('time', bdname))
+        iq.set_coords(['cells_' + str(bm),
+                       'time_' + str(bm)],
+                       inplace=True)
 
     return iq
 
