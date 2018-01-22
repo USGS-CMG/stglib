@@ -23,9 +23,22 @@ def clip_ds(ds):
         # we have good ensemble indices in the metadata
         print('Clipping data using good_ens')
 
-        ds = ds.isel(time=slice(ds.attrs['good_ens'][0], ds.attrs['good_ens'][1]))
+        # so we can deal with multiple good_ens ranges, or just a single range
+        if np.ndim(ds.attrs['good_ens']) == 1:
+            good_ens = [ds.attrs['good_ens']]
+        else:
+            good_ens = ds.attrs['good_ens']
 
-        histtext = 'Data clipped using good_ens values of ' + ds.attrs['good_ens'][0] + ', ' + ds.attrs['good_ens'][1] + '. '
+        goods = []
+        for x in good_ens:
+            goods.append(np.arange(x[0], x[1]))
+        goods = np.hstack(goods)
+
+        # for ge in goods:
+        ds = ds.isel(time=goods)
+
+        # histtext = 'Data clipped using good_ens values of ' + ge[0] + ', ' + ge[1] + '. '
+        histtext = 'Data clipped using good_ens values of ' + str(good_ens) + '. '
         if 'history' in ds.attrs:
             ds.attrs['history'] = histtext + ds.attrs['history']
         else:
