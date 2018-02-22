@@ -72,6 +72,7 @@ def clean_iq(iq):
     # for var in ['FlowData_SNR']:
     #     iq[var].values[bads] = np.nan
     #
+    iq['FlowData_Vel_Mean'].values[iq['FlowData_Vel_Mean'] < -214748] = np.nan
     iq['FlowData_Vel'].values[iq['FlowData_Vel'] == -214748368] = np.nan
     for bm in range(4):
         iq['Profile_' + str(bm) + '_Vel'].values[iq['Profile_' + str(bm) + '_Vel'] == -214748368] = np.nan
