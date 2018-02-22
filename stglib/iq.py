@@ -27,20 +27,25 @@ def read_iq(filnam):
     ds['beam'] = xr.DataArray([1, 2, 3, 4, 5], dims='beam')
     # ds['beamdist_0'] = xr.DataArray(beamdist_0, dims='beamdist_0')
     attrs = {}
+
+    # need to do this because sometimes the flowsubdata and profile data is one burst longer
+    timelen = len(ds['time'])
+
     for k in iqmat:
-        if '__' not in k:
+        if '__' not in k and 'FlowSubData' not in k:
+            print(k, np.shape(iqmat[k]))
             if len(np.ravel(iqmat[k])) == len(ds['time']):
                 ds[k] = xr.DataArray(np.ravel(iqmat[k]), dims='time')
                 if k in iqmat['Data_Units']:
                     ds[k].attrs['units'] = iqmat['Data_Units'][k]
             elif '_2_' in k or '_3_' in k:
-                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'beamdist_2_3'))
+                ds[k] = xr.DataArray(iqmat[k][0:timelen,:], dims=('time', 'beamdist_2_3'))
             elif '_0_' in k or '_1_' in k:
-                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'beamdist_0_1'))
+                ds[k] = xr.DataArray(iqmat[k][0:timelen,:], dims=('time', 'beamdist_0_1'))
             elif 'FlowData_Vel' in k or 'FlowData_SNR' in k:
-                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'velbeam'))
+                ds[k] = xr.DataArray(iqmat[k][0:timelen,:], dims=('time', 'velbeam'))
             elif 'FlowData_NoiseLevel' in k:
-                ds[k] = xr.DataArray(iqmat[k], dims=('time', 'beam'))
+                ds[k] = xr.DataArray(iqmat[k][0:timelen,:], dims=('time', 'beam'))
 
     ds = xr.Dataset(ds)
     for k in iqmat['System_IqSetup']['basicSetup']:
