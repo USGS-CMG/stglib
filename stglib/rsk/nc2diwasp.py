@@ -37,6 +37,8 @@ def nc_to_diwasp(nc_filename):
     # Add attrs
     ds = ds_add_attrs(ds)
 
+    ds = ds_add_diwasp_history(ds)
+
     nc_filename = ds.attrs['filename'] + 's-a.nc'
 
     ds = utils.rename_time(ds)
@@ -145,6 +147,20 @@ def trim_wp_ratio(ds):
 
     return ds
 
+
+def ds_add_diwasp_history(ds):
+    """
+    Add history indicating DIWASP has been applied
+    """
+
+    histtext = 'Wave statistics computed using DIWASP 1.4. '
+
+    if 'history' in ds.attrs:
+        ds.attrs['history'] = histtext + ds.attrs['history']
+    else:
+        ds.attrs['history'] = histtext
+
+    return ds
 
 def ds_add_attrs(ds):
     """
