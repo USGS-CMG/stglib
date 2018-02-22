@@ -1,4 +1,26 @@
-infile = '/Volumes/Backstaff/field/gb_proc/1076b/10763Bdw/10763Bdwb-cal.nc';
+mooring = '1076';
+dep = 'b';
+% mooring = '1077';
+% dep = 'b';
+% mooring = '1078';
+% dep = 'a';
+% mooring = '1078';
+% dep = 'b';
+% mooring = '1079';
+% dep = 'a';
+
+% mooring = '1080';
+% dep = 'b';
+
+
+if strcmp(mooring, '1080')
+    height = '1';
+else
+    height = '3';
+end
+
+rootdir = '/Volumes/Backstaff/field/gb_proc/';
+infile = [rootdir mooring dep '/' mooring height upper(dep) 'dw/' mooring height upper(dep) 'dwb-cal.nc'];
 
 initial_instrument_height = ncreadatt(infile, '/', 'initial_instrument_height');
 fs = 1/ncreadatt(infile, '/', 'sample_interval');
@@ -43,28 +65,11 @@ for n = 1:length(diwasp.S)
     dw.wp_4060(n) = m0/m1;
 end
 %%
-rootdir = '/Volumes/Backstaff/field/gb_proc/';
-% % mooring = '1076';
-% % dep = 'b';
-% mooring = '1077';
-% dep = 'b';
-% mooring = '1078';
-% dep = 'a';
-% mooring = '1078';
-% dep = 'b';
-% mooring = '1079';
-% dep = 'a';
 
-mooring = '1080';
-dep = 'b';
 
-if strcmp(mooring, '1080')
-    height = '1';
-else
-    height = '3';
-end
 
-load([rootdir mooring dep '/' mooring height upper(dep) 'dw/' mooring '2' upper(dep) 'dws-a.mat'])
+
+% load([rootdir mooring dep '/' mooring height upper(dep) 'dw/' mooring '2' upper(dep) 'dws-a.mat'])
 outfile = [rootdir mooring dep '/' mooring height upper(dep) 'dw/' mooring height upper(dep) 'diwasp.nc'];
 
 nccreate(outfile, 'wh_4061', 'dimensions', {'time', size(dw.wh_4061, 2)});
@@ -81,3 +86,4 @@ ncwrite(outfile, 'frequency', dw.frequency);
 
 nccreate(outfile, 'pspec', 'dimensions', {'frequency', size(dw.pspec, 1), 'time', size(dw.pspec, 2)});
 ncwrite(outfile, 'pspec', dw.pspec);
+
