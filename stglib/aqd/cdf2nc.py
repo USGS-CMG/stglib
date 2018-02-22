@@ -38,7 +38,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = qaqc.make_bin_depth(VEL)
 
     # Reshape and associate dimensions with lat/lon
-    for var in ['U', 'V', 'W', 'AGC', 'Pressure', 'Temperature', 'Heading', 'Pitch', 'Roll']:
+    for var in ['U', 'V', 'W', 'AGC', 'Pressure', 'Temperature', 'Heading', 'Pitch', 'Roll', 'bin_depth', 'Pressure_ac']:
         VEL = da_reshape(VEL, var)
 
     # swap_dims from bindist to depth
@@ -68,7 +68,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Rename time variables for EPIC compliance, keeping a time_cf coorindate.
     VEL = utils.rename_time(VEL)
 
-    nc_filename = VEL.attrs['filename'] + '.nc'
+    nc_filename = VEL.attrs['filename'] + '-a.nc'
 
     VEL.to_netcdf(nc_filename, unlimited_dims='time')
 
