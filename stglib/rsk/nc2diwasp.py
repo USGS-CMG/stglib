@@ -53,7 +53,7 @@ def create_water_depth(ds):
 
     if 'initial_instrument_height' in ds.attrs:
         if 'P_1ac' in ds:
-            ds.attrs['nominal_instrument_depth'] = ds['P_1ac'].mean().values
+            ds.attrs['nominal_instrument_depth'] = ds['P_1ac'].mean(dim='sample').values
             ds['water_depth'] = ds.attrs['nominal_instrument_depth']
             wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
             ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor,'\
