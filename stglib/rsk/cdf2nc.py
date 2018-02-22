@@ -37,6 +37,9 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     ds = ds_add_attrs(ds)
 
+    # for var in []:
+    #     ds = da_reshape(ds, var)
+
     ds = utils.add_min_max(ds)
 
     ds = utils.add_start_stop_time(ds)
@@ -57,7 +60,23 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     return ds
 
-
+# def da_reshape(ds, var):
+#     """
+#     Add lon and lat dimensions to DataArrays and reshape to conform to our
+#     standard order
+#     """
+#
+#     # Add the dimensions using concat
+#     ds[var] = xr.concat([ds[var]], dim=ds['lon'])
+#     ds[var] = xr.concat([ds[var]], dim=ds['lat'])
+#
+#     # Reshape using transpose depending on shape
+#     if len(ds[var].shape) == 4:
+#         ds[var] = ds[var].transpose('time', 'lon', 'lat', 'frequency')
+#     elif len(ds[var].shape) == 3:
+#         ds[var] = ds[var].transpose('time', 'lon', 'lat')
+# 
+#     return ds
 
 def ds_add_attrs(ds):
     # Update attributes for EPIC and STG compliance
