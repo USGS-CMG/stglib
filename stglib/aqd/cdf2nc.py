@@ -44,20 +44,28 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # swap_dims from bindist to depth
     VEL = ds_swap_dims(VEL)
 
+    # Rename DataArrays for EPIC compliance
     VEL = qaqc.ds_rename(VEL)
 
+    # Drop non-EPIC variables
     VEL = ds_drop(VEL)
 
+    # Add EPIC and CMG attributes
     VEL = qaqc.ds_add_attrs(VEL)
 
+    # Add min/max values
     VEL = utils.add_min_max(VEL)
 
+    # Add DELTA_A for EPIC compliance
     VEL = qaqc.add_delta_t(VEL)
 
+    # Add start_time and stop_time attrs
     VEL = utils.add_start_stop_time(VEL)
 
+    # Add history showing file used
     VEL = utils.add_epic_history(VEL)
 
+    # Rename time variables for EPIC compliance, keeping a time_cf coorindate.
     VEL = utils.rename_time(VEL)
 
     nc_filename = VEL.attrs['filename'] + '.nc'

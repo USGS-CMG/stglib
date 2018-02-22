@@ -51,11 +51,12 @@ def load_cdf(cdf_filename, atmpres=False):
     return ds
 
 def add_delta_t(ds, waves=False):
+    """
+    set DELTA_T attribute for EPIC compliance.
+    """
     if not waves:
-        # set DELTA_T attribute for EPIC compliance.
         ds.attrs.update({'DELTA_T': ds.attrs['AQDProfileInterval']})
     else:
-        # set DELTA_T attribute for EPIC compliance.
         ds.attrs.update({'DELTA_T': ds.attrs['WaveInterval']})
 
     return ds
