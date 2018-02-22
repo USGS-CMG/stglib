@@ -21,4 +21,4 @@ config = yaml.safe_load(open(args.config))
 for k in config:
     metadata[k] = config[k]
 
-stglib.wvswad2cdf.wad_to_cdf(metadata)
+stglib.aqd.wvswad2cdf.wad_to_cdf(metadata)

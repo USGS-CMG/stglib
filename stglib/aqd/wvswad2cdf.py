@@ -39,7 +39,7 @@ def wad_to_cdf(metadata):
 
     # Compute time stamps
     fs = float(ds.attrs['WaveSampleRate'].split()[0])
-    ds = qaqc.shift_aqd_time(ds, ds.attrs['WaveNumberOfSamples']/fs/2)
+    ds = utils.shift_time(ds, ds.attrs['WaveNumberOfSamples']/fs/2)
 
     ds = utils.create_epic_time(ds)
 
