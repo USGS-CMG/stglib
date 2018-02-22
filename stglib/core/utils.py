@@ -127,6 +127,7 @@ def rename_time(ds):
     ds.rename({'epic_time2': 'time2'}, inplace=True)
     ds.set_coords(['time', 'time2'], inplace=True)
     ds.swap_dims({'time_cf': 'time'}, inplace=True)
+    ds['time_cf'].encoding['dtype'] = 'i4' # output int32 time_cf for THREDDS compatibility
 
     return ds
 
