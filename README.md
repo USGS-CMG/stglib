@@ -17,14 +17,14 @@ To use this package, `import stglib` and see below for relevant usages.
 
 ## Nortek Aquadopp
 
-## Mean-current mode
+### Mean-current mode
 
 Processing consists of two main steps:
 
 1. Convert from text to a raw netCDF file with `.cdf` extension (`scripts/runaqdhdr2cdf.py`)
 2. Convert the raw `.cdf` data into an EPIC-compliant netCDF file with `.nc` extension (`scripts/runaqdcdf2nc.py`), optionally including atmospheric correction of the pressure data (see `scripts/aqd_make_press_ac.ipynb`)
 
-## Wave-burst mode
+### Wave-burst mode
 
 Processing consists of three main steps:
 
