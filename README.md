@@ -17,10 +17,20 @@ To use this package, `import stglib` and see below for relevant usages.
 
 ## Nortek Aquadopp
 
+## Mean-current mode
+
 Processing consists of two main steps:
 
 1. Convert from text to a raw netCDF file with `.cdf` extension (`scripts/runaqdhdr2cdf.py`)
 2. Convert the raw `.cdf` data into an EPIC-compliant netCDF file with `.nc` extension (`scripts/runaqdcdf2nc.py`), optionally including atmospheric correction of the pressure data (see `scripts/aqd_make_press_ac.ipynb`)
+
+## Wave-burst mode
+
+Processing consists of three main steps:
+
+1. Convert from text to a raw netCDF file with `.cdf` extension (`scripts/runwvswad2cdf.py`)
+2. Convert the raw `.cdf` data into an EPIC-compliant netCDF file with `.nc` extension (`scripts/runwvscdf2nc.py`), optionally including atmospheric correction of the pressure data (see `scripts/aqd_make_press_ac.ipynb`)
+3. Run DIWASP (within MATLAB) to produce wave statistics (see `scripts/rundiwasp_aqd.m`), and incorporate these statistics into an EPIC-compliant netCDF file with `.nc` extension (`scripts/runwvsnc2diwasp.py`). Note that DIWASP is a MATLAB package and must be run from MATLAB before using this module. This code uses a version of DIWASP that has been updated to use radial beam velocities in the computation of wave statistics.
 
 ## RBR d|wave
 
@@ -28,7 +38,7 @@ Processing consists of three main steps:
 
 1. Convert from `.rsk` binary to a raw netCDF file with `.cdf` extension (`scripts/runrskrsk2cdf.py`)
 2. Convert the raw `.cdf` data into an EPIC-compliant netCDF file with `.nc` extension (`scripts/runrskcdf2nc.py`), optionally including atmospheric correction of the pressure data (see `scripts/dw_make_press_ac.ipynb`)
-3. Run DIWASP (within MATLAB) to produce wave statistics, and incorporate these statistics into an EPIC-compliant netCDF file with `.nc` extension (`scripts/runrsknc2diwasp.py`). Note that DIWASP is a MATLAB package and must be run from MATLAB before using this module. A sample MATLAB run file for DIWASP is included in the `scripts` directory.
+3. Run DIWASP (within MATLAB) to produce wave statistics (see `scripts/rundiwasp.m`), and incorporate these statistics into an EPIC-compliant netCDF file with `.nc` extension (`scripts/runrsknc2diwasp.py`). Note that DIWASP is a MATLAB package and must be run from MATLAB before using this module. A sample MATLAB run file for DIWASP is included in the `scripts` directory.
 
 ## YSI EXO2
 
