@@ -15,6 +15,7 @@ height = '1';
 infile = [rootdir mooring dep '/' mooring height upper(dep) 'aqd/' mooring height upper(dep) 'aqdwvsb-cal.nc'];
 
 initial_instrument_height = ncreadatt(infile, '/', 'initial_instrument_height');
+nperburst = ncreadatt(infile, '/', 'WaveNumberOfSamples');
 fs = ncreadatt(infile, '/', 'WaveSampleRate');
 fs = str2num(fs(1:strfind(fs, ' ')-1));
 pres = ncread(infile, 'P_1ac'); % this assumes atmospherically corrected pressure
@@ -27,11 +28,13 @@ heading = ncread(infile, 'Hdg_1215');
 pitch = ncread(infile, 'Ptch_1216');
 roll = ncread(infile, 'Roll_1217'); 
 
+%%
+addpath /Users/dnowacki/Documents/matlabdjn/diwasp_1_1GD
 %% Process AQD wave data with DIWASP
-for burst = 1:size(pres,2)
+for burst = 1025:size(pres,2)
     
     ID.data = [pres(:,burst) vel1(:,burst)/1000 vel2(:,burst)/1000 vel3(:,burst)/1000];
-    ID.layout = make_xyzpos(0, heading(burst), pitch(burst), roll(burst), cellpos(burst), adcpheight); % magvar has already been applied
+    ID.layout = make_xyzpos(0, heading(burst), pitch(burst), roll(burst), cellpos(burst), adcpheight)'; % magvar has already been applied
     ID.datatypes={'pres' 'radial' 'radial' 'radial'};
 %     ID.layout = [0    0    0
 %         0    0    0
@@ -47,11 +50,20 @@ for burst = 1:size(pres,2)
     ID.depth = mean(pres(:,burst)) + adcpheight;
     ID.fs = 2;
     
-    SM.freqs = 1/256:1/128:ID.fs/2-1/256;
-    SM.dirs = 5:10:360-5;
+    SM.nperburst = nperburst;
+    SM.nsegs=16;
+    SM.nfft = 2^(nextpow2(SM.nperburst/SM.nsegs));
+    SM.iter = 100; 
+    SM.dres=180;
+    SM.nfreqs=SM.nfft/2;
+    SM.freqs = ID.fs/SM.nfft:ID.fs/SM.nfft:ID.fs/2;
+    SM.dirs = -180:360/SM.dres:180;
+    
+%     SM.freqs = 1/256:1/128:ID.fs/2-1/256;
+%     SM.dirs = 5:10:360-5;
     SM.xaxisdir = 90;
-    SM.funit = 'Hz';
-    SM.dunit = 'naut';
+%     SM.funit = 'Hz';
+%     SM.dunit = 'naut';
     
     EP.method = 'IMLM';
     % 'DFTM' Direct Fourier transform method
@@ -64,18 +76,19 @@ for burst = 1:size(pres,2)
     %EP.smooth = 'off';
     
     [diwasp.S(burst), diwasp.E(burst)] = dirspec(ID, SM, EP, {'MESSAGE', 0, 'PLOTTYPE', 0});
-    [diwasp.Hs(burst), diwasp.Tp(burst), diwasp.Dtp(burst), diwasp.Dp(burst)] = infospec(diwasp.S(burst));
+%     [diwasp.Hs(burst), diwasp.Tp(burst), diwasp.Dtp(burst), diwasp.Dp(burst)] = infospec(diwasp.S(burst));
+    [diwasp.H(burst),diwasp.HsConf(burst,:),diwasp.Tp(burst),diwasp.DTp(burst),diwasp.Dp(burst)] = infospec(diwasp.S(burst));
     disp(num2str(burst))
 end
 
 %%
-dw.wh_4061 = diwasp.Hs;
+dw.wh_4061 = diwasp.H;
 dw.wp_peak = diwasp.Tp;
 dw.frequency = diwasp.S(1).freqs;
 for n = 1:length(diwasp.S)
     dw.pspec(:,n) = sum(diwasp.S(n).S, 2) * diff(diwasp.S(1).dirs(1:2));
     m0 = sum(sum(diwasp.S(n).S)) * diff(diwasp.S(1).dirs(1:2)) * diff(diwasp.S(1).freqs(1:2));
-    m1 = sum(sum(repmat(diwasp.S(1).freqs', 1, 8) .* diwasp.S(n).S)) * diff(diwasp.S(1).dirs(1:2)) * diff(diwasp.S(1).freqs(1:2));
+    m1 = sum(sum(repmat(diwasp.S(1).freqs', 1, 181) .* diwasp.S(n).S)) * diff(diwasp.S(1).dirs(1:2)) * diff(diwasp.S(1).freqs(1:2));
     dw.wp_4060(n) = m0/m1;
 end
 %%
