@@ -71,7 +71,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     nc_filename = VEL.attrs['filename'] + '-a.nc'
 
     VEL.to_netcdf(nc_filename, unlimited_dims='time')
-
+    print(VEL['depth'])
     print('Done writing netCDF file', nc_filename)
 
     return VEL
@@ -81,9 +81,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
 
 def ds_swap_dims(ds):
-
-    ds = ds.swap_dims({'bindist': 'depth'})
-
+    ds.swap_dims({'bindist': 'depth'}, inplace=True)
     # need to swap dims and then reassign bindist to be a normal variable (no longer a coordinate)
     valbak = ds['bindist'].values
     ds = ds.drop('bindist')

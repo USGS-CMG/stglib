@@ -1,5 +1,3 @@
-#!/usr/bin/env python -m
-
 from __future__ import division, print_function
 import sys
 import netCDF4
