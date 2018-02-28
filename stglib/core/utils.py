@@ -292,6 +292,11 @@ def rename_time(ds):
 
     return ds
 
+def epic_to_cf_time(ds):
+    ds['time'] = ds['time_cf']
+    ds = ds.drop(['time_cf', 'time2'])
+    return xr.decode_cf(ds, decode_times=True)
+
 def create_epic_time(ds):
 
     # create Julian date

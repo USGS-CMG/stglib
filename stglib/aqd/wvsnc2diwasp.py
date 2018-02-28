@@ -9,9 +9,8 @@ from ..core import utils
 def nc_to_diwasp(nc_filename):
 
     ds = xr.open_dataset(nc_filename, autoclose=True, decode_times=False)
-    ds['time'] = ds['time_cf']
-    ds = ds.drop(['time_cf', 'time2'])
-    ds = xr.decode_cf(ds, decode_times=True)
+
+    ds = utils.epic_to_cf_time(ds)
 
     ds = utils.create_epic_time(ds)
 
