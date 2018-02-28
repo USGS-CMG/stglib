@@ -4,6 +4,23 @@ import xarray as xr
 
 
 def read_hobo(filnam, skiprows=1, skipfooter=0):
+    """Read data from an Onset HOBO pressure sensor .csv file into an xarray
+    Dataset.
+
+    Parameters
+    ----------
+    filnam : string
+        The filename
+    skiprows : int, optional
+        How many header rows to skip. Default 1
+    skipfooter : int, optional
+        How many footer rows to skip. Default 0
+
+    Returns
+    -------
+    xarray.Dataset
+        An xarray Dataset of the HOBO data
+    """
     hobo =  pd.read_csv(filnam,
                       usecols=[0, 1, 2, 3],
                       names=['#','datetime','abspres_kPa','temp_C'],

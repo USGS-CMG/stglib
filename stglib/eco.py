@@ -4,6 +4,25 @@ import xarray as xr
 
 
 def read_par(filnam, spb=False, skiprows=None, skipfooter=0):
+    """Read data from a WET Labs PAR csv file into an xarray
+    Dataset.
+
+    Parameters
+    ----------
+    filnam : string
+        The filename
+    spb: bool, optional
+        Samples per burst if using burst sampling
+    skiprows : int, optional
+        How many header rows to skip. Default None
+    skipfooter : into, optional
+        How many footer rows to skip. Default 0
+
+    Returns
+    -------
+    xarray.Dataset
+        An xarray Dataset of the PAR data
+    """
 
     names = ['date', 'time', 'counts']
 
@@ -13,6 +32,25 @@ def read_par(filnam, spb=False, skiprows=None, skipfooter=0):
 
 
 def read_ntu(filnam, spb=False, skiprows=None, skipfooter=0):
+    """Read data from a WET Labs NTU csv file into an xarray
+    Dataset.
+
+    Parameters
+    ----------
+    filnam : string
+        The filename
+    spb: bool, optional
+        Samples per burst if using burst sampling
+    skiprows : int, optional
+        How many header rows to skip. Default None
+    skipfooter : into, optional
+        How many footer rows to skip. Default 0
+
+    Returns
+    -------
+    xarray.Dataset
+        An xarray Dataset of the PAR data
+    """
 
     names = ['date', 'time', 'a', 'counts', 'b']
 

@@ -7,9 +7,18 @@ import numpy as np
 from . import core
 
 def read_iq(filnam):
-    """
-    Read SonTek IQ data which has been exported as a Matlab .mat file from IQ
+    """Read SonTek IQ data which has been exported as a Matlab .mat file from IQ
     software into an xarray Dataset
+
+    Parameters
+    ----------
+    filnam : string
+        The SonTek .mat filename
+
+    Returns
+    -------
+    xarray.Dataset
+        An xarray Dataset of the IQ data
     """
 
     iqmat = core.utils.loadmat(filnam)
