@@ -17,16 +17,44 @@ def nc_to_diwasp(nc_filename):
 
     mat = xr.open_dataset(ds.attrs['filename'] + 'wvs-diwasp.nc', autoclose=True)
 
-    for k in ['wp_peak', 'wh_4061', 'wp_4060']:
-        ds[k] = xr.DataArray(mat[k], dims='time')
-
     ds['frequency'] = xr.DataArray(mat['frequency'], dims=('frequency'))
+
+    ds['direction'] = xr.DataArray(mat['direction'], dims=('direction'))
+
+    for k in ['wp_peak', 'wh_4061', 'wp_4060', 'wvdir', 'dwvdir']:
+        ds[k] = xr.DataArray(mat[k], dims='time')
 
     ds['pspec'] = xr.DataArray(mat['pspec'], dims=('time', 'frequency'))
 
+    ds['dspec'] = xr.DataArray(mat['dspec'], dims=('time', 'direction', 'frequency'))
+
     ds = create_water_depth(ds)
 
-    ds = ds.drop(['P_1', 'P_1ac', 'sample'])
+    # Remove old variables as we just want to keep the wave statistics
+    ds = ds.drop(['P_1',
+                  'P_1ac',
+                  'sample',
+                  'Tx_1211',
+                  'vel1_1277',
+                  'vel2_1278',
+                  'vel3_1279',
+                  'U',
+                  'V',
+                  'W',
+                  'avgamp1',
+                  'avgamp2',
+                  'avgamp3',
+                  'AGC1_1221',
+                  'AGC2_1222',
+                  'AGC3_1223',
+                  'TransMatrix',
+                  'nrecs',
+                  'burst',
+                  'soundspeed',
+                  'Battery',
+                  'Hdg_1215',
+                  'Ptch_1216',
+                  'Roll_1217'])
 
     ds = utils.trim_max_wp(ds)
 
@@ -39,7 +67,7 @@ def nc_to_diwasp(nc_filename):
 
     ds = utils.ds_add_diwasp_history(ds)
 
-    nc_filename = ds.attrs['filename'] + 's-a.nc'
+    nc_filename = ds.attrs['filename'] + 'wvs-a.nc'
 
     ds = utils.rename_time(ds)
 

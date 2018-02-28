@@ -154,10 +154,30 @@ def ds_add_attrs(ds):
     ds['frequency'].attrs.update({'long_name': 'Frequency',
         'units': 'Hz'})
 
-    for var in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec', 'water_depth']:
-        add_attributes(ds[var], ds.attrs)
-        ds[var].attrs.update({'minimum': ds[var].min().values,
-            'maximum': ds[var].max().values})
+    if 'direction' in ds.coords:
+        ds['direction'].attrs.update({'long_name': 'Direction (from, relative to true north)',
+            'units': 'degrees'})
+
+    if 'dspec' in ds.data_vars:
+        ds['dspec'].attrs.update({'long_name': 'Directional wave energy spectrum',
+            'units': 'm^2/Hz/degree',
+            'note': 'Use caution: all spectra are provisional'})
+
+    if 'wvdir' in ds.data_vars:
+        ds['wvdir'].attrs.update({'long_name': 'Direction of peak period (from, relative to true north)',
+            'units': 'degrees',
+            'note': 'Compass direction from which waves are propagating as defined by the direction with the greatest energy at the peak period'})
+
+    if 'dwvdir' in ds.data_vars:
+        ds['dwvdir'].attrs.update({'long_name': 'Dominant wave direction (from, relative to true north)',
+            'units': 'degrees',
+            'note': 'Compass direction from which waves are propagating as defined by the direction band with greatest total energy summed over all frequencies'})
+
+    for var in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec', 'water_depth', 'dspec']:
+        if var in ds.variables:
+            add_attributes(ds[var], ds.attrs)
+            ds[var].attrs.update({'minimum': ds[var].min().values,
+                'maximum': ds[var].max().values})
 
     return ds
 
