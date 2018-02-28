@@ -28,16 +28,16 @@ def nc_to_diwasp(nc_filename):
 
     ds = ds.drop(['P_1', 'P_1ac', 'sample'])
 
-    ds = trim_max_wp(ds)
+    ds = utils.trim_max_wp(ds)
 
-    ds = trim_min_wh(ds)
+    ds = utils.trim_min_wh(ds)
 
-    ds = trim_wp_ratio(ds)
+    ds = utils.trim_wp_ratio(ds)
 
     # Add attrs
-    ds = ds_add_attrs(ds)
+    ds = utils.ds_add_attrs(ds)
 
-    ds = ds_add_diwasp_history(ds)
+    ds = utils.ds_add_diwasp_history(ds)
 
     nc_filename = ds.attrs['filename'] + 's-a.nc'
 
@@ -76,147 +76,5 @@ def create_water_depth(ds):
 
     if 'initial_instrument_height' not in ds.attrs:
         ds.attrs['initial_instrument_height'] = 0 # TODO: do we really want to set to zero?
-
-    return ds
-
-def trim_max_wp(ds):
-    """
-    QA/QC
-    Trim wave data based on maximum wave period as specified in metadata
-    """
-
-    if 'maximum_wp' in ds.attrs:
-        print('Trimming using maximum period of %f seconds'
-            % ds.attrs['maximum_wp'])
-        for var in ['wp_peak', 'wp_4060']:
-            ds[var] = ds[var].where((ds['wp_peak'] < ds.attrs['maximum_wp']) &
-                (ds['wp_4060'] < ds.attrs['maximum_wp']))
-
-        for var in ['wp_peak', 'wp_4060']:
-            notetxt = 'Values filled where wp_peak, wp_4060 >= %f' % ds.attrs['maximum_wp'] + '. '
-
-            if 'note' in ds[var].attrs:
-                ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
-            else:
-                ds[var].attrs.update({'note': notetxt})
-
-    return ds
-
-
-def trim_min_wh(ds):
-    """
-    QA/QC
-    Trim wave data based on minimum wave height as specified in metadata
-    """
-
-    if 'minimum_wh' in ds.attrs:
-        print('Trimming using minimum wave height of %f m'
-            % ds.attrs['minimum_wh'])
-        ds = ds.where(ds['wh_4061'] > ds.attrs['minimum_wh'])
-
-        for var in ['wp_peak', 'wp_4060', 'wh_4061']:
-            notetxt = 'Values filled where wh_4061 <= %f' % ds.attrs['minimum_wh'] + '. '
-
-            if 'note' in ds[var].attrs:
-                ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
-            else:
-                ds[var].attrs.update({'note': notetxt})
-
-    return ds
-
-
-def trim_wp_ratio(ds):
-    """
-    QA/QC
-    Trim wave data based on maximum ratio of wp_peak to wp_4060
-    """
-
-    if 'wp_ratio' in ds.attrs:
-        print('Trimming using maximum ratio of wp_peak to wp_4060 of %f'
-            % ds.attrs['wp_ratio'])
-        for var in ['wp_peak', 'wp_4060']:
-            ds[var] = ds[var].where(ds['wp_peak']/ds['wp_4060'] < ds.attrs['wp_ratio'])
-
-        for var in ['wp_peak', 'wp_4060']:
-            notetxt = 'Values filled where wp_peak:wp_4060 >= %f' % ds.attrs['wp_ratio'] + '. '
-
-            if 'note' in ds[var].attrs:
-                ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
-            else:
-                ds[var].attrs.update({'note': notetxt})
-
-    return ds
-
-
-def ds_add_diwasp_history(ds):
-    """
-    Add history indicating DIWASP has been applied
-    """
-
-    histtext = 'Wave statistics computed using DIWASP 1.4. '
-
-    if 'history' in ds.attrs:
-        ds.attrs['history'] = histtext + ds.attrs['history']
-    else:
-        ds.attrs['history'] = histtext
-
-    return ds
-
-def ds_add_attrs(ds):
-    """
-    Add EPIC and other attributes to variables
-    """
-
-    # Update attributes for EPIC and STG compliance
-    ds.lat.encoding['_FillValue'] = False
-    ds.lon.encoding['_FillValue'] = False
-    ds.depth.encoding['_FillValue'] = False
-    ds.time.encoding['_FillValue'] = False
-    ds.epic_time.encoding['_FillValue'] = False
-    ds.epic_time2.encoding['_FillValue'] = False
-    ds.frequency.encoding['_FillValue'] = False
-
-    ds['time'].attrs.update({'standard_name': 'time',
-        'axis': 'T'})
-
-    ds['epic_time'].attrs.update({'units': 'True Julian Day',
-        'type': 'EVEN',
-        'epic_code': 624})
-
-    ds['epic_time2'].attrs.update({'units': 'msec since 0:00 GMT',
-        'type': 'EVEN',
-        'epic_code': 624})
-
-    def add_attributes(var, dsattrs):
-        var.attrs.update({'serial_number': dsattrs['serial_number'],
-            'initial_instrument_height': dsattrs['initial_instrument_height'],
-            # 'nominal_instrument_depth': metadata['nominal_instrument_depth'], # FIXME
-            'height_depth_units': 'm',
-            'sensor_type': dsattrs['INST_TYPE'],
-            '_FillValue': 1e35})
-
-    ds['wp_peak'].attrs.update({'long_name': 'Dominant (peak) wave period',
-        'units': 's',
-        'epic_code': 4063})
-
-    ds['wp_4060'].attrs.update({'long_name': 'Average wave period',
-        'units': 's',
-        'epic_code': 4060})
-
-    ds['wh_4061'].attrs.update({'long_name': 'Significant wave height',
-        'units': 'm',
-        'epic_code': 4061})
-
-    ds['pspec'].attrs.update({'long_name': 'Pressure derived non-directional wave energy spectrum',
-        'units': 'm^2/Hz',
-        'note': 'Use caution: all spectra are provisional'})
-
-    ds['frequency'].attrs.update({'long_name': 'Frequency',
-        'units': 'Hz'})
-
-    for var in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec', 'water_depth']:
-        add_attributes(ds[var], ds.attrs)
-        ds[var].attrs.update({'minimum': ds[var].min().values,
-            'maximum': ds[var].max().values})
 
     return ds

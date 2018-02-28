@@ -3,21 +3,19 @@
 from __future__ import division, print_function
 import xarray as xr
 import sys
-sys.path.append('/Users/dnowacki/Documents/rsklib')
-import rsklib
+from ..core import utils
 
 
-def nc_to_diwasp(metadata):
+def nc_to_diwasp(nc_filename):
 
-    ds = xr.open_dataset(metadata['filename'] + '-wvsb-cal.nc', autoclose=True, decode_times=False)
-    print(ds)
+    ds = xr.open_dataset(nc_filename, autoclose=True, decode_times=False)
     ds['time'] = ds['time_cf']
     ds = ds.drop(['time_cf', 'time2'])
     ds = xr.decode_cf(ds, decode_times=True)
 
-    ds = rsklib.rskcdf2nc.create_epic_time(ds)
+    ds = utils.create_epic_time(ds)
 
-    mat = xr.open_dataset(metadata['filename'] + '-wvs-diwasp-pres.nc', autoclose=True)
+    mat = xr.open_dataset(ds.attrs['filename'] + 'wvs-diwasp.nc', autoclose=True)
 
     for k in ['wp_peak', 'wh_4061', 'wp_4060']:
         ds[k] = xr.DataArray(mat[k], dims='time')
@@ -26,25 +24,62 @@ def nc_to_diwasp(metadata):
 
     ds['pspec'] = xr.DataArray(mat['pspec'], dims=('time', 'frequency'))
 
-    ds, metadata = rsklib.rsknc2diwasp.create_water_depth(ds, metadata)
+    ds = create_water_depth(ds)
 
     ds = ds.drop(['P_1', 'P_1ac', 'sample'])
 
-    ds = rsklib.rsknc2diwasp.trim_max_wp(ds, metadata)
+    ds = utils.trim_max_wp(ds)
 
-    ds = rsklib.rsknc2diwasp.trim_min_wh(ds, metadata)
+    ds = utils.trim_min_wh(ds)
 
-    ds = rsklib.rsknc2diwasp.trim_wp_ratio(ds, metadata)
+    ds = utils.trim_wp_ratio(ds)
 
     # Add attrs
-    ds = rsklib.rsknc2diwasp.ds_add_attrs(ds, metadata)
+    ds = utils.ds_add_attrs(ds)
 
-    ds = rsklib.write_metadata(ds, metadata)
+    ds = utils.ds_add_diwasp_history(ds)
 
-    write_nc(ds, metadata)
+    nc_filename = ds.attrs['filename'] + 's-a.nc'
+
+    ds = utils.rename_time(ds)
+
+    ds.to_netcdf(nc_filename)
+
+    print('Done creating', nc_filename)
 
     return ds
 
+
+def create_water_depth(ds):
+    """Create water_depth variable"""
+
+    if 'initial_instrument_height' in ds.attrs:
+        if 'P_1ac' in ds:
+            ds.attrs['nominal_instrument_depth'] = ds['P_1ac'].mean(dim='sample').values
+            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
+            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor,'\
+                                             ' atmospherically corrected'
+            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
+        elif 'P_1' in VEL:
+            ds.attrs['nominal_instrument_depth'] = ds['P_1'].mean().values
+            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
+            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor'
+            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
+        else:
+            wdepth = ds.attrs['WATER_DEPTH']
+            ds.attrs['nominal_instrument_depth'] = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
+            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+        ds.attrs['WATER_DEPTH'] = wdepth # TODO: why is this being redefined here? Seems redundant
+    elif 'nominal_instrument_depth' in ds.attrs:
+        ds.attrs['initial_instrument_height'] = ds.attrs['WATER_DEPTH'] - ds.attrs['nominal_instrument_depth']
+        ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+
+    if 'initial_instrument_height' not in ds.attrs:
+        ds.attrs['initial_instrument_height'] = 0 # TODO: do we really want to set to zero?
+
+    return ds
 
 
 def write_nc(ds, metadata):
