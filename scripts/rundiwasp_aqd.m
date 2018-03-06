@@ -1,14 +1,14 @@
 rootdir = '/Volumes/Backstaff/field/gb_proc/';
-mooring = '1076';
-dep = 'a';
+% mooring = '1076';
+% dep = 'a';
 % mooring = '1076';
 % dep = 'b';
 % mooring = '1078';
 % dep = 'a';
 % mooring = '1078';
 % dep = 'b';
-% mooring = '1079';
-% dep = 'b';
+mooring = '1079';
+dep = 'b';
 
 height = '1';
 
@@ -31,41 +31,32 @@ roll = ncread(infile, 'Roll_1217');
 %%
 addpath /Users/dnowacki/Documents/matlabdjn/diwasp_1_1GD
 %% Process AQD wave data with DIWASP
-for burst = 1025:size(pres,2)
-    
+
+ID.fs = fs;
+SM.nperburst = nperburst;
+SM.nsegs=16;
+SM.nfft = 2^(nextpow2(SM.nperburst/SM.nsegs));
+SM.iter = 100; 
+SM.dres=180;
+SM.nfreqs=SM.nfft/2;
+SM.freqs = ID.fs/SM.nfft:ID.fs/SM.nfft:ID.fs/2;
+SM.dirs = -180:360/SM.dres:180;
+SM.xaxisdir = 90;
+EP.method = 'IMLM';
+
+for burst = 1:size(pres,2)
+    ID.depth = mean(pres(:,burst)) + adcpheight;
     ID.data = [pres(:,burst) vel1(:,burst)/1000 vel2(:,burst)/1000 vel3(:,burst)/1000];
     ID.layout = make_xyzpos(0, heading(burst), pitch(burst), roll(burst), cellpos(burst), adcpheight)'; % magvar has already been applied
     ID.datatypes={'pres' 'radial' 'radial' 'radial'};
-%     ID.layout = [0    0    0
-%         0    0    0
-%         adcpheight  cellpos(burst)+adcpheight  cellpos(burst)+adcpheight];
-%     ID.datatypes = {'pres', 'velx', 'vely'};
-    
-    % ID.data = aqd.waveburst(burst).pres;
-    % ID.layout = [0
-    %              0
-    %               .15  ];
-    % ID.datatypes = {'pres'};
-    
-    ID.depth = mean(pres(:,burst)) + adcpheight;
-    ID.fs = 2;
-    
-    SM.nperburst = nperburst;
-    SM.nsegs=16;
-    SM.nfft = 2^(nextpow2(SM.nperburst/SM.nsegs));
-    SM.iter = 100; 
-    SM.dres=180;
-    SM.nfreqs=SM.nfft/2;
-    SM.freqs = ID.fs/SM.nfft:ID.fs/SM.nfft:ID.fs/2;
-    SM.dirs = -180:360/SM.dres:180;
     
 %     SM.freqs = 1/256:1/128:ID.fs/2-1/256;
 %     SM.dirs = 5:10:360-5;
-    SM.xaxisdir = 90;
+
 %     SM.funit = 'Hz';
 %     SM.dunit = 'naut';
     
-    EP.method = 'IMLM';
+    
     % 'DFTM' Direct Fourier transform method
     % 'EMLM' Extended maximum likelihood method
     % 'IMLM' Iterated maximum likelihood method
@@ -85,7 +76,11 @@ end
 dw.wh_4061 = diwasp.H;
 dw.wp_peak = diwasp.Tp;
 dw.frequency = diwasp.S(1).freqs;
+dw.direction = diwasp.S(1).dirs;
+dw.wvdir = diwasp.DTp;
+dw.dwvdir = diwasp.Dp;
 for n = 1:length(diwasp.S)
+    dw.dspec(:,:,n) = diwasp.S(n).S;
     dw.pspec(:,n) = sum(diwasp.S(n).S, 2) * diff(diwasp.S(1).dirs(1:2));
     m0 = sum(sum(diwasp.S(n).S)) * diff(diwasp.S(1).dirs(1:2)) * diff(diwasp.S(1).freqs(1:2));
     m1 = sum(sum(repmat(diwasp.S(1).freqs', 1, 181) .* diwasp.S(n).S)) * diff(diwasp.S(1).dirs(1:2)) * diff(diwasp.S(1).freqs(1:2));
@@ -93,7 +88,7 @@ for n = 1:length(diwasp.S)
 end
 %%
 
-outfile = [rootdir mooring dep '/' mooring height upper(dep) 'aqd/' mooring height upper(dep) 'aqdwvs-diwasp-pres.nc'];
+outfile = [rootdir mooring dep '/' mooring height upper(dep) 'aqd/' mooring height upper(dep) 'aqdwvs-diwasp.nc'];
 
 nccreate(outfile, 'wh_4061', 'dimensions', {'time', size(dw.wh_4061, 2)});
 ncwrite(outfile, 'wh_4061', dw.wh_4061);
@@ -104,13 +99,27 @@ ncwrite(outfile, 'wp_peak', dw.wp_peak);
 nccreate(outfile, 'wp_4060', 'dimensions', {'time', size(dw.wp_4060, 2)});
 ncwrite(outfile, 'wp_4060', dw.wp_4060);
 
+nccreate(outfile, 'wvdir', 'dimensions', {'time', size(dw.wvdir, 2)});
+ncwrite(outfile, 'wvdir', dw.wvdir);
+
+nccreate(outfile, 'dwvdir', 'dimensions', {'time', size(dw.dwvdir, 2)});
+ncwrite(outfile, 'dwvdir', dw.dwvdir);
+
+% TODO: need to do wd_4062
+
 nccreate(outfile, 'frequency', 'dimensions', {'frequency', size(dw.frequency, 2)});
 ncwrite(outfile, 'frequency', dw.frequency);
+
+nccreate(outfile, 'direction', 'dimensions', {'direction', size(dw.direction, 2)});
+ncwrite(outfile, 'direction', dw.direction);
 
 nccreate(outfile, 'pspec', 'dimensions', {'frequency', size(dw.pspec, 1), 'time', size(dw.pspec, 2)});
 ncwrite(outfile, 'pspec', dw.pspec);
 
+nccreate(outfile, 'dspec', 'dimensions', {'frequency', size(dw.pspec, 1), 'direction', size(dw.direction, 2), 'time', size(dw.pspec, 2)});
+ncwrite(outfile, 'dspec', dw.dspec);
 
+save([outfile(1:end-2) 'mat'], 'diwasp')
 
 %% 
 function xyzpositions = make_xyzpos(magvar, heading, pitch, roll, height, adcpheight)
