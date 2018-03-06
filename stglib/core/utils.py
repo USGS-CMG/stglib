@@ -227,6 +227,26 @@ def trim_min_wh(ds):
 
     return ds
 
+def trim_max_wh(ds):
+    """
+    QA/QC
+    Trim wave data based on maximum wave height as specified in metadata
+    """
+
+    if 'maximum_wh' in ds.attrs:
+        print('Trimming using maximum wave height of %f m'
+            % ds.attrs['maximum_wh'])
+        ds = ds.where(ds['wh_4061'] < ds.attrs['maximum_wh'])
+
+        for var in ['wp_peak', 'wp_4060', 'wh_4061']:
+            notetxt = 'Values filled where wh_4061 >= %f' % ds.attrs['maximum_wh'] + '. '
+
+            if 'note' in ds[var].attrs:
+                ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
+            else:
+                ds[var].attrs.update({'note': notetxt})
+
+    return ds
 
 def trim_wp_ratio(ds):
     """

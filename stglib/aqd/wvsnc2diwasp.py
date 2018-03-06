@@ -59,6 +59,8 @@ def nc_to_diwasp(nc_filename):
 
     ds = utils.trim_min_wh(ds)
 
+    ds = utils.trim_max_wh(ds)
+
     ds = utils.trim_wp_ratio(ds)
 
     # Add attrs
