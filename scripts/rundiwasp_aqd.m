@@ -3,12 +3,12 @@ rootdir = '/Volumes/Backstaff/field/gb_proc/';
 % dep = 'a';
 % mooring = '1076';
 % dep = 'b';
-% mooring = '1078';
-% dep = 'a';
+mooring = '1078';
+dep = 'a';
 % mooring = '1078';
 % dep = 'b';
-mooring = '1079';
-dep = 'b';
+% mooring = '1079';
+% dep = 'b';
 
 height = '1';
 
@@ -71,14 +71,13 @@ for burst = 1:size(pres,2)
     [diwasp.H(burst),diwasp.HsConf(burst,:),diwasp.Tp(burst),diwasp.DTp(burst),diwasp.Dp(burst)] = infospec(diwasp.S(burst));
     disp(num2str(burst))
 end
-
 %%
 dw.wh_4061 = diwasp.H;
 dw.wp_peak = diwasp.Tp;
 dw.frequency = diwasp.S(1).freqs;
 dw.direction = diwasp.S(1).dirs;
-dw.wvdir = diwasp.DTp;
-dw.dwvdir = diwasp.Dp;
+dw.wvdir = compangle(diwasp.DTp, SM.xaxisdir);
+dw.dwvdir = compangle(diwasp.Dp, SM.xaxisdir);
 for n = 1:length(diwasp.S)
     dw.dspec(:,:,n) = diwasp.S(n).S;
     dw.pspec(:,n) = sum(diwasp.S(n).S, 2) * diff(diwasp.S(1).dirs(1:2));
@@ -151,12 +150,18 @@ g = CP.*SR;              h = SP;     j = CP.*CR;
 %transform the original x,y,z positions to the new positions accounting for
 %heading, pitch and roll... we also add adcpheight back in
 
-new_xyzpos(1,:)=xyzpos(1,:)*a+xyzpos(2,:)*b+xyzpos(3,:)*c;
-new_xyzpos(2,:)=xyzpos(1,:)*d+xyzpos(2,:)*e+xyzpos(3,:)*f;
-new_xyzpos(3,:)=xyzpos(1,:)*g+xyzpos(2,:)*h+xyzpos(3,:)*j+adcpheight;
+new_xyzpos(:,1)=xyzpos(1,:)*a+xyzpos(2,:)*b+xyzpos(3,:)*c;
+new_xyzpos(:,2)=xyzpos(1,:)*d+xyzpos(2,:)*e+xyzpos(3,:)*f;
+new_xyzpos(:,3)=xyzpos(1,:)*g+xyzpos(2,:)*h+xyzpos(3,:)*j+adcpheight;
 new_xyzpos(4,:)=[0,0,adcpheight];
 
 xyzpositions=new_xyzpos;
 xyzpositions = xyzpositions([4, 1:3], :);
 
+end
+
+function dirs=compangle(dirs,xaxisdir)
+dirs=xaxisdir*ones(size(dirs))-dirs;
+dirs=dirs+360*(dirs<0);
+dirs=dirs-360*(dirs>360);
 end
