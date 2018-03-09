@@ -75,7 +75,7 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 #         ds[var] = ds[var].transpose('time', 'lon', 'lat', 'frequency')
 #     elif len(ds[var].shape) == 3:
 #         ds[var] = ds[var].transpose('time', 'lon', 'lat')
-# 
+#
 #     return ds
 
 def ds_add_attrs(ds):

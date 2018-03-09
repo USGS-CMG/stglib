@@ -18,8 +18,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Create depth variable depending on orientation
     ds, T = qaqc.set_orientation(ds, ds['TransMatrix'].values)
 
-    print(ds)
-
     # Transform coordinates from, most likely, BEAM to ENU
     u, v, w = qaqc.coord_transform(ds['VEL1'].values, ds['VEL2'].values, ds['VEL3'].values,
         ds['Heading'].values, ds['Pitch'].values, ds['Roll'].values, T, ds.attrs['AQDCoordinateSystem'])
