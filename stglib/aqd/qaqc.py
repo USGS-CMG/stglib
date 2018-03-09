@@ -46,7 +46,7 @@ def load_cdf(cdf_filename, atmpres=False):
         p = xr.open_dataset(atmpres, autoclose=True)
         # TODO: check to make sure this data looks OK
         # need to call load for waves; it's not in memory and throws error
-        ds['Pressure_ac'] = xr.DataArray(ds['Pressure'].load() - (p['atmpres'] - p['atmpres'].offset))
+        ds['Pressure_ac'] = xr.DataArray(ds['Pressure'].load() - p['atmpres'] - p['atmpres'].offset)
 
     return ds
 
