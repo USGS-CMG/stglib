@@ -3,7 +3,7 @@ import pandas as pd
 import xarray as xr
 from .core import utils
 
-def read_exo(filnam, skiprows=25):
+def read_exo(filnam, skiprows=25, encoding='utf-8'):
     """Read data from a YSI EXO multiparameter sonde .xlsx file into an xarray
     Dataset.
 
@@ -20,10 +20,11 @@ def read_exo(filnam, skiprows=25):
         An xarray Dataset of the EXO data
     """
 
-    exo = pd.read_excel(filnam,
+    exo = pd.read_csv(filnam,
                         skiprows=skiprows,
                         infer_datetime_format=True,
-                        parse_dates=[['Date (MM/DD/YYYY)', 'Time (HH:MM:SS)']])
+                        parse_dates=[['Date (MM/DD/YYYY)', 'Time (HH:MM:SS)']],
+                        encoding=encoding)
     exo.rename(columns={'Date (MM/DD/YYYY)_Time (HH:MM:SS)': 'time'}, inplace=True)
     exo.set_index('time', inplace=True)
     exo.rename(columns=lambda x: x.replace(' ', '_'), inplace=True)
@@ -36,10 +37,11 @@ def xls_to_cdf(metadata):
 
     basefile = metadata['basefile']
 
-    if 'skiprows' in metadata:
-        ds = read_exo(basefile + '.xlsx', skiprows=metadata['skiprows'])
-    else:
-        ds = read_exo(basefile + '.xlsx')
+    try:
+        ds = read_exo(basefile + '.csv', skiprows=metadata['skiprows'])
+    except UnicodeDecodeError:
+        # try reading as Mac OS Western for old versions of Mac Excel
+        ds = read_exo(basefile + '.csv', skiprows=metadata['skiprows'], encoding='mac-roman')
 
     # write out metadata first, then deal exclusively with xarray attrs
     ds = utils.write_metadata(ds, metadata)
