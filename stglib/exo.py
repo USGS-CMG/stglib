@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 import pandas as pd
 import xarray as xr
+import numpy as np
 from .core import utils
 
 def read_exo(filnam, skiprows=25, encoding='utf-8'):
@@ -109,6 +110,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds['P_1ac'] = ds['P_1'] - met['atmpres'] - met['atmpres'].offset
         print('Correcting using offset of %f' % met['atmpres'].offset)
         ds['P_1ac'].attrs = attrs
+
+    ds = exo_qaqc(ds)
 
     # assign min/max:
     ds = utils.add_min_max(ds)
@@ -287,3 +290,33 @@ def read_exo_header(filnam, encoding='utf-8'):
             header[var]['data_columns'] = [int(x) for x in vals.values[0][3].split(';')]
 
     return header
+
+def exo_qaqc(ds):
+    """
+    QA/QC
+    Trim EXO data based on metadata
+    """
+
+    for var in ['C_51', 'SpC_48', 'S_41', 'Turb']:
+        if var + '_min_diff' in ds.attrs:
+            print('Trimming using minimum %s diff of %f' % (var, ds.attrs[var + '_min_diff']))
+            ds[var][np.ediff1d(ds[var], to_begin=0) < ds.attrs[var + '_min_diff']] = np.nan
+
+            notetxt = 'Values filled where data decreases by more than %f units in a single time step. ' % ds.attrs[var + '_min_diff']
+
+            if 'note' in ds[var].attrs:
+                ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
+            else:
+                ds[var].attrs.update({'note': notetxt})
+        if var + '_max_diff' in ds.attrs:
+            print('Trimming using maximum %s diff of %f' % (var, ds.attrs[var + '_max_diff']))
+            ds[var][np.ediff1d(ds[var], to_begin=0) > ds.attrs[var + '_max_diff']] = np.nan
+
+            notetxt = 'Values filled where data increases by more than %f units in a single time step. ' % ds.attrs[var + '_max_diff']
+
+            if 'note' in ds[var].attrs:
+                ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
+            else:
+                ds[var].attrs.update({'note': notetxt})
+
+    return ds
