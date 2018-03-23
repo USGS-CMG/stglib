@@ -39,7 +39,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # Reshape and associate dimensions with lat/lon
     for var in ['U', 'V', 'W', 'AGC', 'Pressure', 'Temperature', 'Heading', 'Pitch', 'Roll', 'bin_depth', 'Pressure_ac']:
-        VEL = da_reshape(VEL, var)
+        if var in VEL:
+            VEL = da_reshape(VEL, var)
 
     # swap_dims from bindist to depth
     VEL = ds_swap_dims(VEL)
