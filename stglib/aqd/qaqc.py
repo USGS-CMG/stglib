@@ -18,12 +18,12 @@ def ds_rename(ds, waves=False):
     if 'Pressure_ac' in ds:
         varnames['Pressure_ac'] = 'P_1ac'
 
-    if waves == False:
+    if not waves:
         varnames.update({'U': 'u_1205',
             'V': 'v_1206',
             'W': 'w_1204',
             'AGC': 'AGC_1202'})
-    elif waves == True:
+    elif waves:
         varnames.update({'VEL1': 'vel1_1277',
             'VEL2': 'vel2_1278',
             'VEL3': 'vel3_1279',
@@ -659,7 +659,7 @@ def ds_add_attrs(ds, waves=False):
         'nominal_instrument_depth': ds.attrs['nominal_instrument_depth'],
         'epic_code': 3})
 
-    if waves == False:
+    if not waves:
         ds['u_1205'].attrs.update({'name': 'u',
             'long_name': 'Eastward Velocity',
             'generic_name': 'u',
@@ -681,7 +681,7 @@ def ds_add_attrs(ds, waves=False):
             'generic_name': 'AGC',
             'epic_code': 1202})
 
-    elif waves == True:
+    elif waves:
         ds['vel1_1277'].attrs.update({'units': 'mm/s',
             'long_name': 'Beam 1 Velocity',
             'generic_name': 'vel1',
@@ -733,9 +733,9 @@ def ds_add_attrs(ds, waves=False):
         'name': 'bin depth'})
 
     if 'P_1ac' in ds:
-        ds['bin_depth'].attrs.update({'note': 'Actual depth time series of velocity bins. Calculated as corrected pressure(P_1ac) - bindist.'})
+        ds['bin_depth'].attrs.update({'note': 'Actual depth time series of velocity bins. Calculated as corrected pressure (P_1ac) - bindist.'})
     else:
-        ds['bin_depth'].attrs.update({'note': 'Actual depth time series of velocity bins. Calculated as pressure(P_1) - bindist.'})
+        ds['bin_depth'].attrs.update({'note': 'Actual depth time series of velocity bins. Calculated as pressure (P_1) - bindist.'})
 
     ds['Tx_1211'].attrs.update({'units': 'C',
         'name': 'Tx',

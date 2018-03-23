@@ -101,7 +101,7 @@ def da_reshape(ds, var, waves=False):
     ds[var] = xr.concat([ds[var]], dim=ds['lat'])
 
     # Reshape using transpose depending on shape
-    if waves == False:
+    if not waves:
         if len(ds[var].shape) == 4:
             ds[var] = ds[var].transpose('time', 'lon', 'lat', 'bindist')
         elif len(ds[var].shape) == 3:

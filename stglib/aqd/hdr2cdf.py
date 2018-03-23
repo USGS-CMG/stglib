@@ -8,7 +8,7 @@ from ..core import utils
 from . import qaqc
 
 def prf_to_cdf(metadata):
-    """Main load file"""
+    """Load a Aquadopp text files and output to netCDF format"""
 
     # TODO: clock drift code
     # TODO: logmeta code
