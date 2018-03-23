@@ -43,13 +43,25 @@ def rsk_to_xr(metadata):
     print("Done fetching data")
     d = np.asarray(data)
     # Get samples per burst
-    samplingcount = conn.execute("select samplingcount from schedules").fetchall()[0][0]
-
+    try:
+        # this seems to be used on older-style databases; throws error on newer files
+        samplingcount = conn.execute("select samplingcount from schedules").fetchall()[0][0]
+    except sqlite3.OperationalError:
+        samplingcount = conn.execute("select samplingcount from wave").fetchall()[0][0]
     metadata['samples_per_burst'] = samplingcount
-    samplingperiod = conn.execute("select samplingperiod from schedules").fetchall()[0][0]
+
+    try:
+        samplingperiod = conn.execute("select samplingperiod from schedules").fetchall()[0][0]
+    except sqlite3.OperationalError:
+        samplingperiod = conn.execute("select samplingperiod from wave").fetchall()[0][0]
     metadata['sample_interval'] = samplingperiod / 1000
-    repetitionperiod = conn.execute("select repetitionperiod from schedules").fetchall()[0][0]
+
+    try:
+        repetitionperiod = conn.execute("select repetitionperiod from schedules").fetchall()[0][0]
+    except sqlite3.OperationalError:
+        repetitionperiod = conn.execute("select repetitionperiod from wave").fetchall()[0][0]
     metadata['burst_interval'] = repetitionperiod / 1000
+
     metadata['burst_length'] = metadata['samples_per_burst'] * metadata['sample_interval']
     metadata['serial_number'] = conn.execute("select serialID from instruments").fetchall()[0][0]
     metadata['INST_TYPE'] = 'RBR Virtuoso d|wave'
