@@ -31,7 +31,31 @@ def read_exo(filnam, skiprows=25, encoding='utf-8'):
     exo.rename(columns=lambda x: x.replace('/', '_per_'), inplace=True)
     exo['Press_dbar'] = exo['Press_psi_a'] * 0.689476
 
-    return xr.Dataset(exo)
+    exo = xr.Dataset(exo)
+    hdr = read_exo_header(filnam, encoding=encoding)
+    exo.attrs['serial_number'] = hdr['serial_number']
+
+    # Apply sensor serial numbers to each sensor
+    for k in exo.variables:
+        if 'fDOM' in k:
+            exo[k].attrs['sensor_serial_number'] = hdr['fDOM']['sensor_serial_number']
+        elif 'Chlorophyll' in k or 'BGA-PE' in k:
+            exo[k].attrs['sensor_serial_number'] = hdr['Total Algae BGA-PE']['sensor_serial_number']
+        elif 'Temp' in k or 'Cond' in k or 'Sal' in k:
+            if 'Unknown CT' in hdr:
+                exo[k].attrs['sensor_serial_number'] = hdr['Unknown CT']['sensor_serial_number']
+            elif 'Wiped CT' in hdr:
+                exo[k].attrs['sensor_serial_number'] = hdr['Wiped CT']['sensor_serial_number']
+        elif 'ODO' in k:
+            exo[k].attrs['sensor_serial_number'] = hdr['Optical DO']['sensor_serial_number']
+        elif 'Turbidity' in k:
+            exo[k].attrs['sensor_serial_number'] = hdr['Turbidity']['sensor_serial_number']
+        elif 'pH' in k:
+            exo[k].attrs['sensor_serial_number'] = hdr['pH']['sensor_serial_number']
+        elif 'Press' in k or 'Depth' in k:
+            exo[k].attrs['sensor_serial_number'] = hdr['Depth Non-Vented 0-10m']['sensor_serial_number']
+
+    return exo
 
 def xls_to_cdf(metadata):
 
@@ -248,3 +272,18 @@ def ds_add_lat_lon(ds):
     ds['lon'] = xr.DataArray([ds.attrs['longitude']], dims=('lon'), name='lon')
 
     return ds
+
+def read_exo_header(filnam, encoding='utf-8'):
+    hdr = pd.read_csv(filnam, skiprows=None, encoding=encoding)
+    hdr = pd.DataFrame(hdr.iloc[:,0:4])
+    # print(hdr)
+    header = {}
+    header['serial_number'] = hdr[hdr['KOR Export File'] == 'Sonde ID'].values[0][1].split(' ')[1]
+    for var in ['fDOM', 'Total Algae BGA-PE', 'Wiped CT', 'Unknown CT', 'Optical DO', 'Turbidity', 'pH', 'Depth Non-Vented 0-10m']:
+        vals = hdr[hdr['KOR Export File'] == var]
+        if not vals.empty:
+            header[var] = {}
+            header[var]['sensor_serial_number'] = vals.values[0][1]
+            header[var]['data_columns'] = [int(x) for x in vals.values[0][3].split(';')]
+
+    return header
