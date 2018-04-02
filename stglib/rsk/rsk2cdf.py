@@ -34,6 +34,10 @@ def rsk_to_xr(metadata):
 
     rskfile = metadata['basefile'] + '.rsk'
 
+    ds = xr.Dataset()
+
+    ds = utils.write_metadata(ds, metadata)
+
     print('Loading from sqlite file %s; this may take a while for large datasets' % rskfile)
 
     conn = init_connection(rskfile)
@@ -48,23 +52,23 @@ def rsk_to_xr(metadata):
         samplingcount = conn.execute("select samplingcount from schedules").fetchall()[0][0]
     except sqlite3.OperationalError:
         samplingcount = conn.execute("select samplingcount from wave").fetchall()[0][0]
-    metadata['samples_per_burst'] = samplingcount
+    ds.attrs['samples_per_burst'] = samplingcount
 
     try:
         samplingperiod = conn.execute("select samplingperiod from schedules").fetchall()[0][0]
     except sqlite3.OperationalError:
         samplingperiod = conn.execute("select samplingperiod from wave").fetchall()[0][0]
-    metadata['sample_interval'] = samplingperiod / 1000
+    ds.attrs['sample_interval'] = samplingperiod / 1000
 
     try:
         repetitionperiod = conn.execute("select repetitionperiod from schedules").fetchall()[0][0]
     except sqlite3.OperationalError:
         repetitionperiod = conn.execute("select repetitionperiod from wave").fetchall()[0][0]
-    metadata['burst_interval'] = repetitionperiod / 1000
+    ds.attrs['burst_interval'] = repetitionperiod / 1000
 
-    metadata['burst_length'] = metadata['samples_per_burst'] * metadata['sample_interval']
-    metadata['serial_number'] = conn.execute("select serialID from instruments").fetchall()[0][0]
-    metadata['INST_TYPE'] = 'RBR Virtuoso d|wave'
+    ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * ds.attrs['sample_interval']
+    ds.attrs['serial_number'] = conn.execute("select serialID from instruments").fetchall()[0][0]
+    ds.attrs['INST_TYPE'] = 'RBR Virtuoso d|wave'
 
     a = {}
     a['unixtime'] = d[:,0].copy()
@@ -84,9 +88,7 @@ def rsk_to_xr(metadata):
     times = pd.to_datetime(a['unixtime'][:,0], unit='ms')
     samples = np.arange(samplingcount)
 
-    dwave = {}
-
-    dwave['P_1'] = xr.DataArray(a['pres'],
+    ds['P_1'] = xr.DataArray(a['pres'],
         coords=[times, samples],
         dims=('time', 'sample'),
         name='Pressure',
@@ -95,28 +97,28 @@ def rsk_to_xr(metadata):
                'units': 'dbar',
                'epic_code': 1,
                'height_depth_units': 'm',
-               'initial_instrument_height': metadata['initial_instrument_height'],
-               'serial_number': metadata['serial_number']})
+               'initial_instrument_height': ds.attrs['initial_instrument_height'],
+               'serial_number': ds.attrs['serial_number']})
 
-    dwave['time'] = xr.DataArray(times, dims=('time'), name='time')
+    ds['time'] = xr.DataArray(times, dims=('time'), name='time')
 
-    dwave['sample'] = xr.DataArray(samples, dims=('sample'), name='sample')
+    ds['sample'] = xr.DataArray(samples, dims=('sample'), name='sample')
 
-    dwave['lat'] = xr.DataArray([metadata['latitude']],
+    ds['lat'] = xr.DataArray([ds.attrs['latitude']],
         dims=('lat'),
         name='lat',
         attrs={'units': 'degree_north',
                'long_name': 'Latitude',
                'epic_code': 500})
 
-    dwave['lon'] = xr.DataArray([metadata['longitude']],
+    ds['lon'] = xr.DataArray([ds.attrs['longitude']],
         dims=('lon'),
         name='lon',
         attrs={'units': 'degree_east',
                'long_name': 'Longitude',
                'epic_code': 502})
 
-    dwave['depth'] = xr.DataArray([metadata['WATER_DEPTH']],
+    ds['depth'] = xr.DataArray([ds.attrs['WATER_DEPTH']],
         dims=('depth'),
         name='depth',
         attrs={'units': 'm',
@@ -125,15 +127,10 @@ def rsk_to_xr(metadata):
                'positive': 'down', # TODO: are these attrs necessary/appropriate?
                'epic_code': 3})
 
-    # Create Dataset from dictionary of DataArrays
-    RAW = xr.Dataset(dwave)
-
     # need to add the time attrs after DataArrays have been combined into Dataset
-    RAW['time'].attrs.update({'standard_name': 'time', 'axis': 'T'})
+    ds['time'].attrs.update({'standard_name': 'time', 'axis': 'T'})
 
-    RAW = utils.write_metadata(RAW, metadata)
-
-    return RAW
+    return ds
 
 
         # # TODO: add the following??
