@@ -28,9 +28,6 @@ def cdf_to_nc(cdf_filename, atmpres=None):
         print('Correcting using offset of %f' % met['atmpres'].offset)
         ds['P_1ac'].attrs = attrs
 
-    # assign min/max:
-    ds = utils.add_min_max(ds)
-
     ds = utils.shift_time(ds, ds.attrs['burst_interval']*ds.attrs['sample_interval']/2)
 
     ds = utils.create_epic_time(ds)
