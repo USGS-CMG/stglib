@@ -37,8 +37,10 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     ds = ds_add_attrs(ds)
 
-    # for var in []:
-    #     ds = da_reshape(ds, var)
+    # Reshape and associate dimensions with lat/lon
+    for var in ['P_1', 'P_1ac']:
+        if var in ds:
+            ds = utils.add_lat_lon(ds, var)
 
     ds = utils.add_min_max(ds)
 

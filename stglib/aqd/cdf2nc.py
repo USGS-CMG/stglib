@@ -40,7 +40,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Reshape and associate dimensions with lat/lon
     for var in ['U', 'V', 'W', 'AGC', 'Pressure', 'Temperature', 'Heading', 'Pitch', 'Roll', 'bin_depth', 'Pressure_ac']:
         if var in VEL:
-            VEL = da_reshape(VEL, var)
+            VEL = utils.add_lat_lon(VEL, var)
 
     # swap_dims from bindist to depth
     VEL = ds_swap_dims(VEL)
@@ -91,24 +91,22 @@ def ds_swap_dims(ds):
     return ds
 
 
-def da_reshape(ds, var, waves=False):
-    """
-    Add lon and lat dimensions to DataArrays and reshape to conform to our
-    standard order
-    """
-
-    # Add the dimensions using concat
-    ds[var] = xr.concat([ds[var]], dim=ds['lon'])
-    ds[var] = xr.concat([ds[var]], dim=ds['lat'])
-
-    # Reshape using transpose depending on shape
-    if not waves:
-        if len(ds[var].shape) == 4:
-            ds[var] = ds[var].transpose('time', 'lon', 'lat', 'bindist')
-        elif len(ds[var].shape) == 3:
-            ds[var] = ds[var].transpose('time', 'lon', 'lat')
-
-    return ds
+# def da_reshape(ds, var, waves=False):
+#     """
+#     Add lon and lat dimensions to DataArrays and reshape to conform to our
+#     standard order
+#     """
+#
+#     utils.add_lat_lon(ds, var)
+#
+#     # Reshape using transpose depending on shape
+#     if not waves:
+#         if len(ds[var].shape) == 4:
+#             ds[var] = ds[var].transpose('time', 'lon', 'lat', 'bindist')
+#         elif len(ds[var].shape) == 3:
+#             ds[var] = ds[var].transpose('time', 'lon', 'lat')
+#
+#     return ds
 
 
 def ds_drop(ds):

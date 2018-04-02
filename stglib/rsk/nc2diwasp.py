@@ -36,6 +36,11 @@ def nc_to_diwasp(nc_filename):
     # Add attrs
     ds = utils.ds_add_attrs(ds)
 
+    # Reshape and associate dimensions with lat/lon
+    for var in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec']:
+        if var in ds:
+            ds = utils.add_lat_lon(ds, var)
+
     ds = utils.ds_add_diwasp_history(ds)
 
     nc_filename = ds.attrs['filename'] + 's-a.nc'

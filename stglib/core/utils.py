@@ -342,6 +342,20 @@ def add_start_stop_time(ds):
 
     return ds
 
+def add_lat_lon(ds, var):
+    """Add lat and lon dimensions"""
+
+    ds[var] = xr.concat([ds[var]], dim=ds['lon'])
+    ds[var] = xr.concat([ds[var]], dim=ds['lat'])
+
+    # Reorder so lat, lon are at the end.
+    dims = [d for d in ds[var].dims if (d != 'lon') and (d != 'lat')]
+    dims.extend(['lat', 'lon'])
+    dims = tuple(dims)
+
+    ds[var] = ds[var].transpose(*dims)
+
+    return ds
 
 def shift_time(ds, timeshift):
     """Shift time to middle of burst"""
