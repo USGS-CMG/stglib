@@ -41,6 +41,9 @@ def nc_to_diwasp(nc_filename):
         if var in ds:
             ds = utils.add_lat_lon(ds, var)
 
+    # assign min/max (need to do this after trimming):
+    ds = utils.add_min_max(ds)
+
     ds = utils.ds_add_diwasp_history(ds)
 
     nc_filename = ds.attrs['filename'] + 's-a.nc'
