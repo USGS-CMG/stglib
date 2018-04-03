@@ -3,4 +3,8 @@ channels:
   - defaults
 
 dependencies:
+  - python=3.6
   - sphinx-argparse
+  - pandas
+  - xarray
+  - numpy
