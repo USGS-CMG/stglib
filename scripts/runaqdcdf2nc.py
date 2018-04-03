@@ -6,9 +6,7 @@ import stglib
 import argparse
 import yaml
 
-parser = argparse.ArgumentParser(description='Convert raw Aquadopp .cdf format to processed .nc files')
-parser.add_argument('cdfname', help='raw .CDF filename')
-parser.add_argument('--atmpres', help='path to cdf file containing atmopsheric pressure data')
+parser = stglib.cmd.aqdcdf2nc_parser()
 
 args = parser.parse_args()
 

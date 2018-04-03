@@ -6,9 +6,7 @@ import stglib
 import argparse
 import yaml
 
-parser = argparse.ArgumentParser(description='Convert Aquadopp text files to raw .cdf format. Run this script from the directory containing Aquadopp files')
-parser.add_argument('gatts', help='path to global attributes file (gatts formatted)')
-parser.add_argument('config', help='path to ancillary config file (YAML formatted)')
+parser = stglib.cmd.aqdhdr2cdf_parser()
 
 args = parser.parse_args()
 
