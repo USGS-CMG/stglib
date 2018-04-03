@@ -70,6 +70,8 @@ def rsk_to_xr(metadata):
     ds.attrs['serial_number'] = conn.execute("select serialID from instruments").fetchall()[0][0]
     ds.attrs['INST_TYPE'] = 'RBR Virtuoso d|wave'
 
+    conn.close()
+
     a = {}
     a['unixtime'] = d[:,0].copy()
     a['pres'] = d[:,1].copy()

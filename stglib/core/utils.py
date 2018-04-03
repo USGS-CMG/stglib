@@ -195,8 +195,10 @@ def trim_max_wp(ds):
         print('Trimming using maximum period of %f seconds'
             % ds.attrs['maximum_wp'])
         for var in ['wp_peak', 'wp_4060']:
-            ds[var] = ds[var].where((ds['wp_peak'] < ds.attrs['maximum_wp']) &
-                (ds['wp_4060'] < ds.attrs['maximum_wp']))
+            ds[var] = ds[var].where(
+                    (ds['wp_peak'] < ds.attrs['maximum_wp']) &
+                    (ds['wp_4060'] < ds.attrs['maximum_wp'])
+                    )
 
         for var in ['wp_peak', 'wp_4060']:
             notetxt = 'Values filled where wp_peak, wp_4060 >= %f' % ds.attrs['maximum_wp'] + '. '

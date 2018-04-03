@@ -91,24 +91,6 @@ def ds_swap_dims(ds):
     return ds
 
 
-# def da_reshape(ds, var, waves=False):
-#     """
-#     Add lon and lat dimensions to DataArrays and reshape to conform to our
-#     standard order
-#     """
-#
-#     utils.add_lat_lon(ds, var)
-#
-#     # Reshape using transpose depending on shape
-#     if not waves:
-#         if len(ds[var].shape) == 4:
-#             ds[var] = ds[var].transpose('time', 'lon', 'lat', 'bindist')
-#         elif len(ds[var].shape) == 3:
-#             ds[var] = ds[var].transpose('time', 'lon', 'lat')
-#
-#     return ds
-
-
 def ds_drop(ds):
     """
     Drop old DataArrays from Dataset that won't make it into the final .nc file
@@ -127,6 +109,4 @@ def ds_drop(ds):
         'jd',
         'Depth']
 
-    ds = ds.drop(todrop)
-
-    return ds
+    return ds.drop([t for t in todrop if t in ds.variables])
