@@ -27,7 +27,7 @@ def nc_to_diwasp(nc_filename):
 
     ds['dspec'] = xr.DataArray(mat['dspec'], dims=('time', 'direction', 'frequency'))
 
-    ds = create_water_depth(ds)
+    ds = utils.create_water_depth(ds)
 
     # Remove old variables as we just want to keep the wave statistics
     ds = ds.drop(['P_1',
@@ -79,36 +79,7 @@ def nc_to_diwasp(nc_filename):
     return ds
 
 
-def create_water_depth(ds):
-    """Create water_depth variable"""
 
-    if 'initial_instrument_height' in ds.attrs:
-        if 'P_1ac' in ds:
-            ds.attrs['nominal_instrument_depth'] = ds['P_1ac'].mean(dim='sample').values
-            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
-            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
-            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor,'\
-                                             ' atmospherically corrected'
-            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
-        elif 'P_1' in VEL:
-            ds.attrs['nominal_instrument_depth'] = ds['P_1'].mean().values
-            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
-            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
-            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor'
-            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
-        else:
-            wdepth = ds.attrs['WATER_DEPTH']
-            ds.attrs['nominal_instrument_depth'] = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
-            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
-        ds.attrs['WATER_DEPTH'] = wdepth # TODO: why is this being redefined here? Seems redundant
-    elif 'nominal_instrument_depth' in ds.attrs:
-        ds.attrs['initial_instrument_height'] = ds.attrs['WATER_DEPTH'] - ds.attrs['nominal_instrument_depth']
-        ds['water_depth'] = ds.attrs['nominal_instrument_depth']
-
-    if 'initial_instrument_height' not in ds.attrs:
-        ds.attrs['initial_instrument_height'] = 0 # TODO: do we really want to set to zero?
-
-    return ds
 
 
 def write_nc(ds, metadata):

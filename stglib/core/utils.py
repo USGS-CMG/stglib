@@ -372,31 +372,44 @@ def shift_time(ds, timeshift):
 
     return ds
 
-
 def create_water_depth(ds):
     """Create water_depth variable"""
 
+    press = None
+
+    if 'Pressure_ac' in ds:
+        press = 'Pressure_ac'
+    elif 'P_1ac' in ds:
+        press = 'P_1ac'
+    elif 'Pressure' in ds:
+        press = 'Pressure'
+    elif 'P_1' in ds:
+        press = 'P_1'
+
+    if 'sample' in ds.dims:
+        dims = ('time', 'sample')
+    else:
+        dims = 'time'
+
     if 'initial_instrument_height' in ds.attrs:
-        if 'Pressure_ac' in ds:
-            ds.attrs['nominal_instrument_depth'] = np.nanmean(ds['Pressure_ac'])
-            ds['Depth'] = ds.attrs['nominal_instrument_depth']
+        if press:
+            ds.attrs['nominal_instrument_depth'] = ds[press].mean(dim=dims).values
+            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
             wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
-            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor, atmospherically corrected'
-            ds.attrs['WATER_DEPTH_datum'] = 'MSL'
-        elif 'Pressure' in ds:
-            ds.attrs['nominal_instrument_depth'] = np.nanmean(ds['Pressure'])
-            ds['Depth'] = ds.attrs['nominal_instrument_depth']
-            wdepth = ds.attrs['nominal_instrument_depth'] + ds.attrs['initial_instrument_height']
-            ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor'
+            if 'ac' in press:
+                ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor, atmospherically corrected'
+            else:
+                ds.attrs['WATER_DEPTH_source'] = 'water depth = MSL from pressure sensor'
             ds.attrs['WATER_DEPTH_datum'] = 'MSL'
         else:
             wdepth = ds.attrs['WATER_DEPTH']
             ds.attrs['nominal_instrument_depth'] = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
-            ds['Depth'] = ds.attrs['nominal_instrument_depth']
+        ds['Depth'] = ds.attrs['nominal_instrument_depth']
         ds.attrs['WATER_DEPTH'] = wdepth # TODO: why is this being redefined here? Seems redundant
+
     elif 'nominal_instrument_depth' in ds.attrs:
         ds.attrs['initial_instrument_height'] = ds.attrs['WATER_DEPTH'] - ds.attrs['nominal_instrument_depth']
-        ds['Depth'] = ds.attrs['nominal_instrument_depth']
+        ds['water_depth'] = ds.attrs['nominal_instrument_depth']
 
     if 'initial_instrument_height' not in ds.attrs:
         ds.attrs['initial_instrument_height'] = 0 # TODO: do we really want to set to zero?
