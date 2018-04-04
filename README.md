@@ -42,7 +42,7 @@ Processing consists of three main steps:
 
 ## YSI EXO2
 
-Currently this module supports reading the `.xlsx` file exported from the KOR software into an xarray `Dataset` using `stglib.exo.read_exo()`
+Currently this module supports reading the `.csv` file exported from the KOR software into an xarray `Dataset` using `stglib.exo.read_exo()`
 
 ## SonTek IQ
 

@@ -5,7 +5,7 @@ import numpy as np
 from .core import utils
 
 def read_exo(filnam, skiprows=25, encoding='utf-8'):
-    """Read data from a YSI EXO multiparameter sonde .xlsx file into an xarray
+    """Read data from a YSI EXO multiparameter sonde .csv file into an xarray
     Dataset.
 
     Parameters
@@ -14,6 +14,8 @@ def read_exo(filnam, skiprows=25, encoding='utf-8'):
         The filename
     skiprows : int, optional
         How many header rows to skip. Default 25
+    encoding : string, optional
+        File encoding. Default 'utf-8'
 
     Returns
     -------
@@ -58,7 +60,10 @@ def read_exo(filnam, skiprows=25, encoding='utf-8'):
 
     return exo
 
-def xls_to_cdf(metadata):
+def csv_to_cdf(metadata):
+    """
+    Process EXO .csv file to a raw .cdf file
+    """
 
     basefile = metadata['basefile']
 
