@@ -4,7 +4,6 @@ import sys
 sys.path.insert(0, '/Users/dnowacki/Documents/stglib')
 import stglib
 import argparse
-import yaml
 
 parser = argparse.ArgumentParser(description='Convert raw Aquadopp .cdf wave files to processed .nc files')
 parser.add_argument('cdfname', help='raw .CDF filename')

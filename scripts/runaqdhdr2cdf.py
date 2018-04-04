@@ -6,9 +6,7 @@ import stglib
 import argparse
 import yaml
 
-parser = stglib.cmd.aqdhdr2cdf_parser()
-
-args = parser.parse_args()
+args = stglib.cmd.aqdhdr2cdf_parse_args()
 
 # initialize metadata from the globalatts file
 metadata = stglib.read_globalatts(args.gatts)
