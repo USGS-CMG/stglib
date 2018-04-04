@@ -6,7 +6,13 @@
 stglib Documentation
 ====================
 
-stglib is a library of routines to process data from a variety of oceanographic instrumentation, consistent with the procedures of the Sediment Transport Group at the USGS Woods Hole Coastal and Marine Science Center.
+stglib is a library of routines to process data from a variety of oceanographic instrumentation, consistent with the procedures of the Sediment Transport Group at the USGS Woods Hole Coastal and Marine Science Center. 
+
+stglib serves two distinct but related purposes:
+
+1. A library to import data into xarray Datasets, which can be manipulated in an interactive Python environment (e.g., IPython, Jupyter notebooks).
+2. A series of run scripts to process data into EPIC-compliant netCDF files for release to the public.
+
 
 Currently, this package has at least partial support for:
 
@@ -28,6 +34,9 @@ Currently, this package has at least partial support for:
    wvs
    rsk
    exo
+   iq
+   wet
+   hobo
    code
 
 

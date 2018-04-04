@@ -9,3 +9,4 @@ dependencies:
   - xarray
   - numpy
   - matplotlib
+  - numpydoc

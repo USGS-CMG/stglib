@@ -39,3 +39,28 @@ EXO
 
    stglib.exo.csv_to_cdf
    stglib.exo.read_exo
+
+WET Labs
+========
+
+.. autosummary::
+   :toctree: generated/
+
+   stglib.eco.read_par
+   stglib.eco.read_ntu
+
+SonTek IQ
+=========
+
+.. autosummary::
+  :toctree: generated/
+
+  stglib.iq.read_iq
+
+Onset HOBO
+==========
+
+.. autosummary::
+  :toctree: generated/
+
+  stglib.hobo.read_hobo
