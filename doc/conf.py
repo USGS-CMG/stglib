@@ -163,3 +163,5 @@ texinfo_documents = [
 
 
 # -- Extension configuration -------------------------------------------------
+
+autosummary_generate = True

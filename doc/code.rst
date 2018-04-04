@@ -5,24 +5,37 @@ API Documentation
 Aquadopp (currents)
 ===================
 
-.. autofunction:: stglib.aqd.hdr2cdf.prf_to_cdf
-.. autofunction:: stglib.aqd.cdf2nc.cdf_to_nc
+.. autosummary::
+   :toctree: generated/
+
+   stglib.aqd.hdr2cdf.prf_to_cdf
+   stglib.aqd.cdf2nc.cdf_to_nc
 
 Aquadopp (waves)
 ===================
-.. autofunction:: stglib.aqd.wvswad2cdf.wad_to_cdf
-.. autofunction:: stglib.aqd.wvscdf2nc.cdf_to_nc
-.. autofunction:: stglib.aqd.wvsnc2diwasp.nc_to_diwasp
+
+.. autosummary::
+   :toctree: generated/
+
+   stglib.aqd.wvswad2cdf.wad_to_cdf
+   stglib.aqd.wvscdf2nc.cdf_to_nc
+   stglib.aqd.wvsnc2diwasp.nc_to_diwasp
 
 d|wave
 ======
 
-.. autofunction:: stglib.rsk.rsk2cdf.rsk_to_cdf
-.. autofunction:: stglib.rsk.cdf2nc.cdf_to_nc
-.. autofunction:: stglib.rsk.nc2diwasp.nc_to_diwasp
+.. autosummary::
+   :toctree: generated/
+
+   stglib.rsk.rsk2cdf.rsk_to_cdf
+   stglib.rsk.cdf2nc.cdf_to_nc
+   stglib.rsk.nc2diwasp.nc_to_diwasp
 
 EXO
 ===
 
-.. autofunction:: stglib.exo.csv_to_cdf
-.. autofunction:: stglib.exo.read_exo
+.. autosummary::
+   :toctree: generated/
+
+   stglib.exo.csv_to_cdf
+   stglib.exo.read_exo
