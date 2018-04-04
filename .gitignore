@@ -1,5 +1,7 @@
 __pycache__
 *.pyc
+dist
+stglib.egg-info
 
 # Sphinx
 doc/_build

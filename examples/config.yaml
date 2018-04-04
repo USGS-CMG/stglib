@@ -1,0 +1,20 @@
+basefile: 'GB0014_14D100014_080316_120000'
+filename: '10762Aexo'   # name of output file, -raw.cdf or .nc will be appended to this
+# SN: '14D100014'
+LatLonDatum: 'NAD83'
+ClockError: 0 # sec, negative is slow
+initial_instrument_height: 0.15  # meters - estimated!!!
+initial_instrument_height_note: ''
+zeroed_pressure: 'Yes' # was pressure zeroed before deployment
+P_1ac_note: 'Corrected for variations in atmospheric pressure using Grand Bay NERR met station (GNDCRMET).'
+skiprows: 25
+#fDOMRFU_max_diff: 3
+#fDOMQSU_max_diff: 30
+C_51_min_diff: -0.3
+SpC_48_min_diff: -2.5
+S_41_min_diff: -2
+Turb_max_diff: 100
+# Example of how to trim by specifying the good ensembles. Hyphen before each number, and each number on its own line is required
+# good_ens:
+# - 500
+# - 600

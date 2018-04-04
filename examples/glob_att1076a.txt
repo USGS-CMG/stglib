@@ -1,0 +1,25 @@
+    SciPi; N. Ganju
+    PROJECT; USGS Coastal and Marine Geology Program
+    EXPERIMENT; Grand Bay
+    DESCRIPTION; Site GB1, Heron Bay
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Sed Trans Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; PMEL/EPIC
+    MOORING; 1076
+    WATER_DEPTH; 1.55
+    WATER_DEPTH_NOTE; (meters), nominal depth
+    latitude; 30.37876
+    longitude; -88.38794
+    magnetic_variation; -1.88
+    Deployment_date; 2016-08-04 15:41
+    Recovery_date; 2016-10-19 20:10
+    DATA_CMNT; 
+    platform_type; FG Lander
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; Grand Bay, AL/MS
+    VAR_FILL; 1.e+35
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov
