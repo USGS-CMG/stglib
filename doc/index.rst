@@ -21,8 +21,13 @@ Currently, this package has at least partial support for:
    :maxdepth: 2
    :caption: Contents:
 
+   overview
    config
+   atmos
    aqd
+   wvs
+   rsk
+   exo
    code
 
 

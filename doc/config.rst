@@ -1,5 +1,5 @@
-Config files
-************
+Configuration files
+*******************
 
 There are two required configuration files for processing data. Contents of both files will be included as attributes in both the xarray Dataset and the netCDF files.
 
