@@ -12,6 +12,7 @@ Currently, this package has at least partial support for:
 - SonTek IQ flow monitors
 - WET labs sensors, including ECO NTUSB and ECO PAR
 - Onset HOBO pressure sensors
+- Moving-boat ADCP data processed using [QRev](https://hydroacoustics.usgs.gov/movingboat/QRev.shtml), for use in index-velocity computation
 
 This package makes heavy use of [NumPy](http://www.numpy.org), [xarray](http://xarray.pydata.org/en/stable/), and [netCDF4](http://unidata.github.io/netcdf4-python/). It has been tested only on Python 3.6+.
 
