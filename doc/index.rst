@@ -6,7 +6,7 @@
 stglib Documentation
 ====================
 
-stglib is a library of routines to process data from a variety of oceanographic instrumentation, consistent with the procedures of the Sediment Transport Group at the USGS Woods Hole Coastal and Marine Science Center. 
+stglib is a library of routines to process data from a variety of oceanographic instrumentation, consistent with the procedures of the Sediment Transport Group at the USGS Woods Hole Coastal and Marine Science Center.
 
 stglib serves two distinct but related purposes:
 
@@ -22,6 +22,9 @@ Currently, this package has at least partial support for:
 - SonTek IQ flow monitors
 - WET labs sensors, including ECO NTUSB and ECO PAR
 - Onset HOBO pressure sensors
+- Moving-boat ADCP data processed using QRev_, for use in index-velocity computation
+
+.. _QRev: https://hydroacoustics.usgs.gov/movingboat/QRev.shtml
 
 .. toctree::
    :maxdepth: 2
@@ -37,6 +40,7 @@ Currently, this package has at least partial support for:
    iq
    wet
    hobo
+   indexvel
    code
 
 

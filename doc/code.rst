@@ -64,3 +64,11 @@ Onset HOBO
   :toctree: generated/
 
   stglib.hobo.read_hobo
+
+QRev
+====
+
+.. autosummary::
+  :toctree: generated/
+
+  stglib.indexvel.parse_qrev_xml
