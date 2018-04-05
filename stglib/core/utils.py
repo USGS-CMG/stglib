@@ -73,10 +73,11 @@ def add_min_max(ds):
     exclude = list(ds.dims)
     exclude.extend(('epic_time', 'epic_time2', 'time', 'time2', 'TIM'))
 
+    alloweddims = ['time', 'sample', 'depth']
+
     for k in ds.variables:
         if k not in exclude:
-            dims = ['time', 'sample', 'depth']
-            kwargs = {'dim': [d for d in dims if d in ds[k].dims]}
+            kwargs = {'dim': tuple(d for d in alloweddims if d in ds[k].dims)}
 
             ds[k].attrs.update({'minimum': ds[k].min(**kwargs).squeeze().values,
                                 'maximum': ds[k].max(**kwargs).squeeze().values})
