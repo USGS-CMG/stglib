@@ -1,6 +1,11 @@
+notifications:
+  email: false
+
 language: python
+
 python:
   - "3.6"
+
 install:
 
   - sudo apt-get update
@@ -23,3 +28,6 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION xarray
   - source activate test-environment
   - python setup.py install
+
+script:
+  python -m unittest discover stglib/tests
