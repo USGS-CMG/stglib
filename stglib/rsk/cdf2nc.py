@@ -1,8 +1,5 @@
 from __future__ import division, print_function
-
-import warnings
 import xarray as xr
-import numpy as np
 from ..core import utils
 
 
@@ -28,7 +25,9 @@ def cdf_to_nc(cdf_filename, atmpres=None):
         print('Correcting using offset of %f' % met['atmpres'].offset)
         ds['P_1ac'].attrs = attrs
 
-    ds = utils.shift_time(ds, ds.attrs['burst_interval']*ds.attrs['sample_interval']/2)
+    ds = utils.shift_time(ds,
+                          ds.attrs['burst_interval'] *
+                          ds.attrs['sample_interval'] / 2)
 
     ds = utils.create_epic_time(ds)
 
@@ -71,6 +70,7 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 #         ds[var] = ds[var].transpose('time', 'lon', 'lat')
 #
 #     return ds
+
 
 def ds_add_attrs(ds):
     # Update attributes for EPIC and STG compliance

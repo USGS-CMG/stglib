@@ -1,8 +1,7 @@
 from __future__ import division, print_function
-import sys
-import netCDF4
 import xarray as xr
 from ..core import utils
+
 
 def nc_to_diwasp(nc_filename):
 
@@ -12,7 +11,8 @@ def nc_to_diwasp(nc_filename):
 
     ds = utils.create_epic_time(ds)
 
-    mat = xr.open_dataset(ds.attrs['filename'][:-2] + 'diwasp.nc', autoclose=True)
+    mat = xr.open_dataset(ds.attrs['filename'][:-2] + 'diwasp.nc',
+                          autoclose=True)
 
     for k in ['wp_peak', 'wh_4061', 'wp_4060']:
         ds[k] = xr.DataArray(mat[k], dims='time')

@@ -28,7 +28,8 @@ def read_exo(filnam, skiprows=25, encoding='utf-8'):
                         infer_datetime_format=True,
                         parse_dates=[['Date (MM/DD/YYYY)', 'Time (HH:MM:SS)']],
                         encoding=encoding)
-    exo.rename(columns={'Date (MM/DD/YYYY)_Time (HH:MM:SS)': 'time'}, inplace=True)
+    exo.rename(columns={'Date (MM/DD/YYYY)_Time (HH:MM:SS)': 'time'},
+               inplace=True)
     exo.set_index('time', inplace=True)
     exo.rename(columns=lambda x: x.replace(' ', '_'), inplace=True)
     exo.rename(columns=lambda x: x.replace('/', '_per_'), inplace=True)
@@ -71,7 +72,9 @@ def csv_to_cdf(metadata):
         ds = read_exo(basefile + '.csv', skiprows=metadata['skiprows'])
     except UnicodeDecodeError:
         # try reading as Mac OS Western for old versions of Mac Excel
-        ds = read_exo(basefile + '.csv', skiprows=metadata['skiprows'], encoding='mac-roman')
+        ds = read_exo(basefile + '.csv',
+                      skiprows=metadata['skiprows'],
+                      encoding='mac-roman')
 
     # write out metadata first, then deal exclusively with xarray attrs
     ds = utils.write_metadata(ds, metadata)
@@ -104,7 +107,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # ds = ds_add_attrs(ds)
 
-    ds = ds.drop(['Press_psi_a', 'Site_Name', 'Fault_Code', 'Time_(Fract._Sec)'])
+    ds = ds.drop(['Press_psi_a',
+                  'Site_Name',
+                  'Fault_Code',
+                  'Time_(Fract._Sec)'])
 
     if atmpres:
         print("Atmospherically correcting data")
@@ -146,7 +152,8 @@ def ds_rename_vars(ds):
                     'Battery_V': 'Bat_106',
                     'fDOM_RFU': 'fDOMRFU',
                     'fDOM_QSU': 'fDOMQSU',
-                    'Chlorophyll_RFU': 'CHLrfu', # capitalization based on Chincoteague names
+                    # capitalization based on Chincoteague names
+                    'Chlorophyll_RFU': 'CHLrfu',
                     'Chlorophyll_µg_per_L': 'Fch_906',
                     'BGA-PE_RFU': 'BGAPErfu',
                     'BGA-PE_µg_per_L': 'BGAPE',
@@ -192,24 +199,29 @@ def ds_add_attrs(ds):
                                 'long_name': 'Battery voltage',
                                 'epic_code': 106})
 
-    ds['fDOMRFU'].attrs.update({'units': 'Relative fluorescence units (RFU)',
-                                'long_name': 'Fluorescent dissolved organic matter'})
+    ds['fDOMRFU'].attrs.update({
+        'units': 'Relative fluorescence units (RFU)',
+        'long_name': 'Fluorescent dissolved organic matter'})
 
-    ds['fDOMQSU'].attrs.update({'units': 'Quinine sulfate equivalent units (QSU)',
-                                'long_name': 'Fluorescent dissolved organic matter'})
+    ds['fDOMQSU'].attrs.update({
+        'units': 'Quinine sulfate equivalent units (QSU)',
+        'long_name': 'Fluorescent dissolved organic matter'})
 
-    ds['CHLrfu'].attrs.update({'units': 'Relative fluorescence units (RFU)',
-                               'long_name': 'Chlorophyll A'})
+    ds['CHLrfu'].attrs.update({
+        'units': 'Relative fluorescence units (RFU)',
+        'long_name': 'Chlorophyll A'})
 
     ds['Fch_906'].attrs.update({'units': 'ug/L',
                                 'long_name': 'Chlorophyll A',
                                 'epic_code': 906})
 
-    ds['BGAPErfu'].attrs.update({'units': 'Relative fluorescence units (RFU)',
-                                 'long_name': 'Blue green algae phycoerythrin'})
+    ds['BGAPErfu'].attrs.update({
+        'units': 'Relative fluorescence units (RFU)',
+        'long_name': 'Blue green algae phycoerythrin'})
 
-    ds['BGAPE'].attrs.update({'units': 'ug/L',
-                              'long_name': 'Blue green algae phycoerythrin'})
+    ds['BGAPE'].attrs.update({
+        'units': 'ug/L',
+        'long_name': 'Blue green algae phycoerythrin'})
 
     ds['T_28'].attrs.update({'units': 'C',
                             'long_name': 'Temperature',
@@ -286,8 +298,16 @@ def read_exo_header(filnam, encoding='utf-8'):
     hdr = pd.DataFrame(hdr.iloc[:,0:4])
     # print(hdr)
     header = {}
-    header['serial_number'] = hdr[hdr['KOR Export File'] == 'Sonde ID'].values[0][1].split(' ')[1]
-    for var in ['fDOM', 'Total Algae BGA-PE', 'Wiped CT', 'Unknown CT', 'Optical DO', 'Turbidity', 'pH', 'Depth Non-Vented 0-10m']:
+    header['serial_number'] = (
+        hdr[hdr['KOR Export File'] == 'Sonde ID'].values[0][1].split(' ')[1])
+    for var in ['fDOM',
+                'Total Algae BGA-PE',
+                'Wiped CT',
+                'Unknown CT',
+                'Optical DO',
+                'Turbidity',
+                'pH',
+                'Depth Non-Vented 0-10m']:
         vals = hdr[hdr['KOR Export File'] == var]
         if not vals.empty:
             header[var] = {}
