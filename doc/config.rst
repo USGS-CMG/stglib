@@ -14,8 +14,25 @@ This file describes attributes that apply to the mooring, and uses a peculiar fo
 Instrument-specific configuration file
 ======================================
 
-This file is instrument-specific and is YAML formatted. An example is given below.
+This file is instrument-specific and is YAML formatted. A few examples are given below.
 
-.. literalinclude:: ../examples/config.yaml
+Aquadopp
+--------
+
+.. literalinclude:: ../examples/aqd_config.yaml
+   :language: yaml
+   :linenos:
+
+d|wave
+------
+
+.. literalinclude:: ../examples/dw_config.yaml
+   :language: yaml
+   :linenos:
+
+EXO
+---
+
+.. literalinclude:: ../examples/exo_config.yaml
    :language: yaml
    :linenos:
