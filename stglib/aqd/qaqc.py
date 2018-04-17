@@ -132,12 +132,21 @@ def set_orientation(VEL, T):
 
     if VEL.attrs['orientation'] == 'UP':
         print('User instructed that instrument was pointing UP')
-        VEL['depth'] = xr.DataArray(np.flipud(np.linspace(Wdepth - (binn * (M - 1) + blank2 + binn), Wdepth - (blank2 + binn), num=binc)), dims=('bindist')) # need to use flipud because 1d array
+        VEL['depth'] = xr.DataArray(
+            np.flipud(
+                np.linspace(
+                    Wdepth - (binn * (M - 1) + blank2 + binn),
+                    Wdepth - (blank2 + binn),
+                    num=binc)
+                ), dims=('bindist')) # need to use flipud because 1d array
     elif VEL.attrs['orientation'] == 'DOWN':
         print('User instructed that instrument was pointing DOWN')
         T[1,:] = -T[1,:]
         T[2,:] = -T[2,:]
-        VEL['depth'] = xr.DataArray(np.linspace(Wdepth - blank3 + binn, Wdepth - blank3 + binn * M, num=binc),  dims=('bindist'))
+        VEL['depth'] = xr.DataArray(np.linspace(Wdepth - blank3 + binn,
+                                                Wdepth - blank3 + binn * M,
+                                                num=binc),
+                                    dims=('bindist'))
 
     return VEL, T
 
@@ -242,8 +251,9 @@ def read_aqd_hdr(basefile):
             idx = row.find(' sec')
             Instmeta['AQDProfileInterval'] = float(row[38:idx])
         elif 'Number of cells' in row:
-            Instmeta['AQDNumberOfCells'] = float(row[38:])
-        elif row.find('Cell size', 0, 9) != -1: # required here to differentiate from the wave cell size
+            Instmeta['AQDNumberOfCells'] = int(row[38:])
+        # required here to differentiate from the wave cell size
+        elif row.find('Cell size', 0, 9) != -1:
             idx = row.find(' cm')
             Instmeta['AQDCellSize'] = float(row[38:idx])
         elif 'Average interval' in row:
@@ -281,7 +291,7 @@ def read_aqd_hdr(basefile):
             Instmeta['AQDAnalogInput2'] = row[38:]
         elif 'Power output' in row:
             Instmeta['AQDAnalogPowerOutput'] = row[38:]
-        elif 'Powerlevel' in row: # TODO: WRONG, this is not analog powerlevel
+        elif 'Powerlevel' in row: # FIXME: WRONG, this is not analog powerlevel
             Instmeta['AQDAnalogPowerLevel'] = row[38:]
         elif 'Coordinate system' in row:
             Instmeta['AQDCoordinateSystem'] = row[38:]
@@ -294,7 +304,7 @@ def read_aqd_hdr(basefile):
         elif 'Number of pings per burst' in row:
             Instmeta['AQDNumberOfPingsPerBurst'] = float(row[38:])
         elif 'Software version' in row:
-            Instmeta['AQDSoftwareVersion'] = row[38:] # can't be float, was wrong in m-file
+            Instmeta['AQDSoftwareVersion'] = row[38:]
         elif 'Deployment name' in row:
             Instmeta['AQDDeploymentName'] = row[38:]
         elif 'Deployment time' in row:
@@ -353,12 +363,13 @@ def read_aqd_hdr(basefile):
     bd = []
     while 'Data file format' not in row:
         row = f.readline().rstrip()
-        if '-' not in row and row != '' and row != 'Data file format': # avoid the header rule line
+        # avoid the header rule line
+        if '-' not in row and row != '' and row != 'Data file format':
             bd.append(float(row.split()[1]))
 
     Instmeta['AQDCCD'] = np.array(bd) # CCD = Cell Center Distance
 
-    # % infer some things based on the Aquadopp brochure
+    # infer some things based on the Aquadopp brochure
     if Instmeta['AQDFrequency'] == 400:
         Instmeta['AQDBeamWidth'] = 3.7
     elif Instmeta['AQDFrequency'] == 600:
@@ -385,6 +396,8 @@ def read_aqd_hdr(basefile):
 # %     Instmeta = rmfield(Instmeta,fields);
 # % else
 # % end
+
+    f.close()
 
     return Instmeta
 
@@ -480,7 +493,9 @@ def update_attrs(ds, waves=False):
     ds['lat'] = xr.DataArray([ds.attrs['latitude']], dims=('lat'), name='lat')
     ds['lon'] = xr.DataArray([ds.attrs['longitude']], dims=('lon'), name='lon')
 
-    ds['TransMatrix'] = xr.DataArray(ds.attrs['AQDTransMatrix'], dims=('Tmatrix', 'Tmatrix'), name='TransMatrix')
+    ds['TransMatrix'] = xr.DataArray(ds.attrs['AQDTransMatrix'],
+                                     dims=('Tmatrix', 'Tmatrix'),
+                                     name='TransMatrix')
 
     ds['time'].attrs.update({'standard_name': 'time',
         'axis': 'T'})
@@ -507,13 +522,16 @@ def update_attrs(ds, waves=False):
     ds['Pressure'].attrs.update({'units': 'dbar',
         'long_name': 'Pressure',
         'generic_name': 'press',
-        'note': 'Raw pressure from instrument, not corrected for changes in atmospheric pressure'})
+        'note': ('Raw pressure from instrument, not corrected for changes '
+                 'in atmospheric pressure')})
 
     for n in [1, 2, 3]:
-        ds['VEL' + str(n)].attrs.update({'units': 'cm/s',
+        ds['VEL' + str(n)].attrs.update({
+            'units': 'cm/s',
             'Type': 'scalar',
             'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom']})
-        ds['AMP' + str(n)].attrs.update({'long_name': 'Beam ' + str(n) + ' Echo Amplitude',
+        ds['AMP' + str(n)].attrs.update({
+            'long_name': 'Beam ' + str(n) + ' Echo Amplitude',
             'units': 'counts',
             'Type': 'scalar',
             'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom'] })
@@ -556,7 +574,8 @@ def update_attrs(ds, waves=False):
         'bin_count': ds.attrs['bin_count'],
         'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom']})
 
-    ds['TransMatrix'].attrs['long_name'] = 'Transformation Matrix for this Aquadopp'
+    ds['TransMatrix'].attrs['long_name'] = ('Transformation Matrix '
+                                            'for this Aquadopp')
 
     return ds
 

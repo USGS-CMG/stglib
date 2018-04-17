@@ -12,7 +12,8 @@ args = stglib.cmd.aqdhdr2cdf_parse_args()
 metadata = stglib.read_globalatts(args.gatts)
 
 # Add additional metadata from metadata config file
-config = yaml.safe_load(open(args.config))
+with open(args.config) as f:
+    config = yaml.safe_load(f)
 
 for k in config:
     metadata[k] = config[k]

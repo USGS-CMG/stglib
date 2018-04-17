@@ -501,6 +501,14 @@ def create_water_depth(ds):
     return ds
 
 
+def check_valid_metadata(metadata):
+    for k in ['initial_instrument_height',
+              'orientation']:
+        if k not in metadata:
+            raise KeyError(
+                k + ' must be defined, most likely in config.yaml')
+
+
 def read_globalatts(fname):
     """
     Read global attributes file (glob_attxxxx.txt) and create metadata
