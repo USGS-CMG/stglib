@@ -1,0 +1,8 @@
+basefile: '055110_20161020_1503'
+filename: '10793Adw'   # name of output file, -raw.cdf or .nc will be appended to this
+LatLonDatum: 'NAD83'
+initial_instrument_height: 0.15  # meters - estimated!!!
+maximum_wp: 4
+minimum_wh: 0.02
+wp_ratio: 2
+P_1ac_note: 'Corrected for variations in atmospheric pressure using Grand Bay NERR met station (GNDCRMET).'
