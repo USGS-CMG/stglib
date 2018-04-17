@@ -193,40 +193,43 @@ def magvar_correct(ds):
 def trim_vel(ds, waves=False):
     """Trim velocity data depending on specified method"""
 
-    if 'Pressure_ac' in ds:
-        print('Using atmospherically corrected pressure to trim')
-        WL = ds['Pressure_ac'] + ds.attrs['transducer_offset_from_bottom']
-        P = ds['Pressure_ac']
-    else:
-        # FIXME incorporate press_ ac below
-        print('Using NON-atmospherically corrected pressure to trim')
-        WL = ds['Pressure'] + ds.attrs['transducer_offset_from_bottom']
-        P = ds['Pressure']
+    if ('trim_method' in ds.attrs and
+           ds.attrs['trim_method'].lower() != 'none' and
+           ds.attrs['trim_method'] != None):
 
+        if 'Pressure_ac' in ds:
+            print('Using atmospherically corrected pressure to trim')
+            WL = ds['Pressure_ac'] + ds.attrs['transducer_offset_from_bottom']
+            P = ds['Pressure_ac']
+        elif 'Pressure' in ds:
+            # FIXME incorporate press_ ac below
+            print('Using NON-atmospherically corrected pressure to trim')
+            WL = ds['Pressure'] + ds.attrs['transducer_offset_from_bottom']
+            P = ds['Pressure']
 
-    if 'trim_method' in ds.attrs:
-        if 'water level' in ds.attrs['trim_method'].lower():
-            if ds.attrs['trim_method'].lower() == 'water level':
-                print('Trimming using water level')
-                for var in ['U', 'V', 'W', 'AGC']:
-                    ds[var] = ds[var].where(ds['bindist'] < P)
-                ds.attrs['history'] = 'Trimmed velocity data using water level. '+ ds.attrs['history']
-            elif ds.attrs['trim_method'].lower() == 'water level sl':
-                print('Trimming using water level and sidelobes')
-                for var in ['U', 'V', 'W', 'AGC']:
-                    ds[var] = ds[var].where(ds['bindist'] < P * np.cos(np.deg2rad(ds.attrs['AQDBeamAngle'])))
-                ds.attrs['history'] = 'Trimmed velocity data using water level and sidelobes. '+ ds.attrs['history']
+        if ds.attrs['trim_method'].lower() == 'water level':
+            print('Trimming using water level')
+            for var in ['U', 'V', 'W', 'AGC']:
+                ds[var] = ds[var].where(ds['bindist'] < P)
+            ds.attrs['history'] = 'Trimmed velocity data using water level. '+ ds.attrs['history']
+        elif ds.attrs['trim_method'].lower() == 'water level sl':
+            print('Trimming using water level and sidelobes')
+            for var in ['U', 'V', 'W', 'AGC']:
+                ds[var] = ds[var].where(ds['bindist'] < P * np.cos(np.deg2rad(ds.attrs['AQDBeamAngle'])))
+            ds.attrs['history'] = 'Trimmed velocity data using water level and sidelobes. '+ ds.attrs['history']
 
-            # find first bin that is all bad values
-            # there might be a better way to do this using xarray and named dimensions, but this works for now
-            lastbin = np.argmin(np.all(np.isnan(ds['U']), axis=0) == False)
+        # find first bin that is all bad values
+        # there might be a better way to do this using xarray and named dimensions, but this works for now
+        lastbin = np.argmin(np.all(np.isnan(ds['U']), axis=0) == False)
+        print(lastbin)
+        # this trims so there are no all-nan rows in the data
+        ds = ds.isel(bindist=slice(0, lastbin))
 
-            # this trims so there are no all-nan rows in the data
-            ds = ds.isel(bindist=slice(0, lastbin))
-
-            # TODO: need to add histcomment
+        # TODO: need to add histcomment
 
         # TODO: add other trim methods
+    else:
+        print('Did not trim velocity data')
 
     return ds
 
