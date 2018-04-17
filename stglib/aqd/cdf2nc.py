@@ -69,7 +69,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Rename time variables for EPIC compliance, keeping a time_cf coorindate.
     VEL = utils.rename_time(VEL)
 
-    nc_filename = VEL.attrs['filename'] + '-a.nc'
+    if 'prefix' in VEL.attrs:
+        nc_filename = VEL.attrs['prefix'] + VEL.attrs['filename'] + '-a.nc'
+    else:
+        nc_filename = VEL.attrs['filename'] + '-a.nc'
 
     VEL.to_netcdf(nc_filename, unlimited_dims='time')
 

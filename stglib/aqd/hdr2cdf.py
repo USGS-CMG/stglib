@@ -13,6 +13,11 @@ def prf_to_cdf(metadata):
 
     basefile = metadata['basefile']
 
+    if 'prefix' in metadata:
+        basefile = metadata['prefix'] + basefile
+
+    utils.check_valid_metadata(metadata)
+
     # get instrument metadata from the HDR file
     instmeta = qaqc.read_aqd_hdr(basefile)
 
@@ -44,7 +49,10 @@ def prf_to_cdf(metadata):
     ds = utils.create_epic_time(ds)
 
     # configure file
-    cdf_filename = ds.attrs['filename'] + '-raw.cdf'
+    if 'prefix' in ds.attrs:
+        cdf_filename = ds.attrs['prefix'] + ds.attrs['filename'] + '-raw.cdf'
+    else:
+        cdf_filename = ds.attrs['filename'] + '-raw.cdf'
 
     ds = qaqc.update_attrs(ds)
 
