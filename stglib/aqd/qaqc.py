@@ -242,7 +242,18 @@ def read_aqd_hdr(basefile):
     # % TODO read and save all of the instrument settings in the .hdr file
     # % replacing strncmp with strfind, strncmp need the exact length of string,
     # % many of those were wrong and lots of metadata was going missing.
+
     hdrFile = basefile + '.hdr'
+
+    # read in whole file first; shouldn't be too bad since it's small, to
+    # check and make sure it's not an HR file.
+    # FIXME: this will need to be removed when we start supporting HR
+    # check for HR by seeing if extended velocity range is in .hdr
+    with open(hdrFile) as f:
+        if 'Extended velocity range' in f.read():
+            raise NotImplementedError(
+                'stglib does not currently support Aquadopp HR datasets')
+
     f = open(hdrFile, 'r')
     row = ''
 
