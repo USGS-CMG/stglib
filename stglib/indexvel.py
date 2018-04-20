@@ -5,8 +5,7 @@ import scipy.stats
 
 def parse_qrev_xml(doc, negateq=False):
     """
-    Parse XML output from QRev and return as a dict of Pandas dataframes and
-    numpy arrays.
+    Parse XML output from QRev and return as a Pandas DataFrame
 
     Parameters
     ----------
