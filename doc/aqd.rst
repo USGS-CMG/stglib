@@ -3,7 +3,7 @@ Processing Aquadopp (currents) data
 
 After getting the code, make sure you change ``sys.path`` or ``sys.path.append`` lines point to the equivalent place on the local system.
 
-**NOTE: this code works with up- or down-looking Aquadopp data collected in 'beam', 'XYZ' or 'earth'.  
+**NOTE: this code works with up- or down-looking Aquadopp data collected in 'beam', 'XYZ' or 'earth'.  <br>
 It doesn't work on HR AQD yet.**
 
 Data will generally be processed using a series of run scripts that use command line arguments.  For AQD current's it's a 2 step process. 
