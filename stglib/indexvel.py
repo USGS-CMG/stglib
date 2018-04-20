@@ -18,22 +18,42 @@ def parse_qrev_xml(doc, negateq=False):
 
     Returns
     -------
-    adcp : dict
-        Dictionary of relevant values extracted from the QRev XML tree.
+    pandas.DataFrame
+        pandas DataFrame of relevant values extracted from the QRev XML tree.
     """
 
     adcp = {}
-    lendoc = len(doc['Channel']['Transect'])
-    adcp['starttime'] = pd.to_datetime([doc['Channel']['Transect'][n]['StartDateTime']['#text'] for n in range(lendoc)])
-    adcp['endtime'] = pd.to_datetime([doc['Channel']['Transect'][n]['EndDateTime']['#text'] for n in range(lendoc)])
-    adcp['time'] = pd.to_datetime(np.mean([adcp['starttime'].view('i8'), adcp['endtime'].view('i8')], axis=0).astype('datetime64[ns]'))
-    adcp['q'] = np.asarray([float(doc['Channel']['Transect'][n]['Discharge']['Total']['#text']) for n in range(lendoc)])
+    dct = doc['Channel']['Transect']
+    r = range(len(dct))
+
+    adcp['starttime'] = pd.to_datetime(
+        [dct[n]['StartDateTime']['#text'] for n in r])
+    adcp['endtime'] = pd.to_datetime(
+        [dct[n]['EndDateTime']['#text'] for n in r])
+    adcp['q'] = np.asarray(
+        [float(dct[n]['Discharge']['Total']['#text']) for n in r])
+    adcp['AreaQrev'] = np.asarray(
+        [float(dct[n]['Other']['Area']['#text']) for n in r])
+    adcp['filename'] = np.asarray(
+        [dct[n]['Filename']['#text'] for n in r])
+
+    adcp['time'] = pd.to_datetime(
+        np.mean([adcp['starttime'].view('i8'), adcp['endtime'].view('i8')],
+                axis=0).astype('datetime64[ns]'))
+
+    adcp['qnegated'] = negateq
     if negateq:
         adcp['q'] = -adcp['q']
-    adcp['AreaQrev'] = np.asarray([float(doc['Channel']['Transect'][n]['Other']['Area']['#text']) for n in range(lendoc)])
-    adcp['filename'] = np.asarray([doc['Channel']['Transect'][n]['Filename']['#text'] for n in range(lendoc)])
 
-    return adcp
+    df = pd.DataFrame(adcp, columns=['time',
+                                     'q',
+                                     'AreaQrev',
+                                     'qnegated',
+                                     'starttime',
+                                     'endtime',
+                                     'filename'])
+
+    return df.set_index('time')
 
 def linregress(adcp):
     """
