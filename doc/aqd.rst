@@ -1,13 +1,17 @@
 Processing Aquadopp (currents) data
 ***********************************
 
-Data will generally be processed using a series of run scripts. The first script for each instrument type
-depends on two :doc:`configuration files </config>`.
+After getting the code, make sure you change sys.path or sys.path.append lines point to the equivalent place on the local system.
 
-Instrument data to raw .cdf
+** NOTE: this code only works with non-HR uplooking AQD. **
+
+Data will generally be processed using a series of run scripts that use command line arguments.  FOr Aqd current's it's a 2 step process. 
+
+Step 1 : Instrument data to raw .cdf
 ===========================
 
-Convert from text to a raw netCDF file with ``.cdf`` extension.
+Step 1: Convert from text to a raw netCDF file with ``.cdf`` extension using runaqdhdr2cdf.py. This script 
+depends on two arguments, the global attribute file and extra configuration information :doc:`configuration files </config>`.
 
 runaqdhdr2cdf.py
 ----------------
@@ -16,10 +20,10 @@ runaqdhdr2cdf.py
    :ref: stglib.core.cmd.aqdhdr2cdf_parser
    :prog: runaqdhdr2cdf.py
 
-Raw .cdf to clean .nc 
+Step 2: Convert the Raw .cdf to clean, EPIC format .nc using runaqdcdf2nc.py. 
 =====================
 
-Convert the raw .cdf data into an EPIC-compliant netCDF file with .nc extension, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.
+Convert the raw .cdf data into an EPIC-compliant netCDF file with .nc extension, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.  Correcting pressure for atmospheric is a side-bar task- use the .ipynb examples to see what to do.
 
 runaqdcdf2nc.py
 ---------------
