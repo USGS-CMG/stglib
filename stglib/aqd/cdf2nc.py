@@ -57,7 +57,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Add min/max values
     VEL = utils.add_min_max(VEL)
 
-    # Add DELTA_A for EPIC compliance
+    # Add DELTA_T for EPIC compliance
     VEL = qaqc.add_delta_t(VEL)
 
     # Add start_time and stop_time attrs

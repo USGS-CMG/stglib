@@ -77,14 +77,9 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
         u = vel1
         v = vel2
         w = vel3
-        # u =  vel1 * math.cos(magvar) + vel2 * math.sin(magvar);
-        # v = -vel1 * math.sin(magvar) + vel2 * math.cos(magvar);
-        # w = vel3;
-    elif cs == 'XYZ':
-        # TODO: add XYZ
-        print("Data are in XYZ coordinates; transforming to Earth coordinates")
-    elif cs == 'BEAM':
-        print('Data are in BEAM coordinates; transforming to Earth coordinates')
+
+    elif cs == 'XYZ' or cs == 'BEAM':
+        print('Data are in %s coordinates; transforming to Earth coordinates' % cs)
 
         for i in range(N):
             hh = np.pi * (heading[i] - 90) / 180
@@ -101,7 +96,10 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
                           [np.sin(pp),  np.sin(rr) * np.cos(pp),  np.cos(pp) * np.cos(rr)]])
 
             # resulting transformation matrix
-            R = np.dot(np.dot(H, P), T)
+            if cs == 'XYZ':
+                R = np.dot(H, P)
+            elif cs == 'BEAM':
+                R = np.dot(np.dot(H, P), T)
 
             for j in range(M):
                 vel = np.dot(R, np.array([vel1[i,j], vel2[i,j], vel3[i,j]]).T)
