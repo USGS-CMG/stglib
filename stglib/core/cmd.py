@@ -22,12 +22,6 @@ def aqdhdr2cdf_parser():
     return parser
 
 
-def aqdhdr2cdf_parse_args():
-    parser = aqdhdr2cdf_parser()
-
-    return parser.parse_args()
-
-
 def aqdcdf2nc_parser():
     description = ('Convert raw Aquadopp .cdf format to processed .nc files, '
                    'optionally compensating for atmospheric pressure')
@@ -37,12 +31,6 @@ def aqdcdf2nc_parser():
                                            'atmopsheric pressure data'))
 
     return parser
-
-
-def aqdcdf2nc_parse_args():
-    parser = aqdcdf2nc_parser()
-
-    return parser.parse_args()
 
 
 def rskrsk2cdf_parser():
@@ -56,12 +44,6 @@ def rskrsk2cdf_parser():
     return parser
 
 
-def rskrsk2cdf_parse_args():
-    parser = rskrsk2cdf_parser()
-
-    return parser.parse_args()
-
-
 def rskcdf2nc_parser():
     description = ('Convert raw RBR d|wave .cdf format to processed .nc files,'
                    ' optionally compensating for atmospheric pressure')
@@ -73,12 +55,6 @@ def rskcdf2nc_parser():
     return parser
 
 
-def rskcdf2nc_parse_args():
-    parser = rskcdf2nc_parser()
-
-    return parser.parse_args()
-
-
 def rsknc2diwasp_parser():
     description = 'Convert processed .nc files using DIWASP'
     parser = argparse.ArgumentParser(description=description)
@@ -87,7 +63,11 @@ def rsknc2diwasp_parser():
     return parser
 
 
-def rsknc2diwasp_parse_args():
-    parser = rsknc2diwasp_parser()
+def aqdturnaround_parser():
+    description = ('Create Aquadopp turnaround plots. Run this script from '
+                   'the directory containing Aquadopp files')
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('basefile',
+                        help='basename of AQD file (without extension)')
 
-    return parser.parse_args()
+    return parser

@@ -5,7 +5,7 @@ sys.path.insert(0, '/Users/dnowacki/Documents/stglib')
 import stglib
 import yaml
 
-args = stglib.cmd.rskrsk2cdf_parse_args()
+args = stglib.cmd.rskrsk2cdf_parser().parse_args()
 
 # initialize metadata from the globalatts file
 metadata = stglib.read_globalatts(args.gatts)
