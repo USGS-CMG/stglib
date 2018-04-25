@@ -41,6 +41,7 @@ Currently, this package has at least partial support for:
    wet
    hobo
    indexvel
+   turnaround
    code
 
 
