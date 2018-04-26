@@ -9,6 +9,7 @@ import warnings
 import xarray as xr
 import numpy as np
 import scipy.io as spio
+import pandas as pd
 
 
 def clip_ds(ds):
@@ -382,6 +383,12 @@ def epic_to_cf_time(ds):
     ds['time'] = ds['time_cf']
     ds = ds.drop(['time_cf', 'time2'])
     return xr.decode_cf(ds, decode_times=True)
+
+
+def epic_to_datetime(time, time2):
+    thedate = pd.to_datetime(time - 0.5, origin='julian', unit='D')
+    thetime = pd.to_timedelta(time2, unit='ms')
+    return thedate + thetime
 
 
 def create_epic_time(ds):
