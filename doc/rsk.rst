@@ -29,18 +29,31 @@ runrskcdf2nc.py
    :prog: runrskcdf2nc.py
 
 
-DIWASP
-======
+Waves processing
+================
+
+Option 1: internal waves code
+-----------------------------
+
+This option is recommended as it does not require MATLAB. Generate the waves statistics and incorporate them into an EPIC-compliant netCDF file with .nc extension using ``runrsknc2waves.py``.
+
+runrsknc2diwasp.py
+~~~~~~~~~~~~~~~~~~
+
+.. argparse::
+  :ref: stglib.core.cmd.rsknc2waves_parser
+  :prog: runrsknc2waves.py
+
+
+Option 2: DIWASP
+----------------
 
 Run DIWASP (within MATLAB) to produce wave statistics (see ``scripts/rundiwasp.m`` for an example run script). DIWASP must be run within MATLAB.
-
-Clean .nc to DIWASP .nc
-=======================
 
 Incorporate the DIWASP statistics into an EPIC-compliant netCDF file with .nc extension using ``runrsknc2diwasp.py``.
 
 runrsknc2diwasp.py
-------------------
+~~~~~~~~~~~~~~~~~~
 
 .. argparse::
   :ref: stglib.core.cmd.rsknc2diwasp_parser
