@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 
 import stglib
-import argparse
 import yaml
 
-parser = argparse.ArgumentParser(description='Convert EXO .csv file to raw .cdf format. Run this script from the directory containing EXO file')
-parser.add_argument('gatts', help='path to global attributes file (gatts formatted)')
-parser.add_argument('config', help='path to ancillary config file (YAML formatted)')
-
-args = parser.parse_args()
+args = stglib.cmd.exocsv2cdf_parser().parse_args()
 
 # initialize metadata from the globalatts file
 metadata = stglib.read_globalatts(args.gatts)

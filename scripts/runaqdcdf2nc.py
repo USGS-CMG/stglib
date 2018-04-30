@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import stglib
-import argparse
 
 args = stglib.cmd.aqdcdf2nc_parser().parse_args()
 

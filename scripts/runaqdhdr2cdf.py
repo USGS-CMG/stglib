@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import stglib
-import argparse
 import yaml
 
 args = stglib.cmd.aqdhdr2cdf_parser().parse_args()

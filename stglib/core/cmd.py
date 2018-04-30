@@ -70,6 +70,25 @@ def rsknc2waves_parser():
 
     return parser
 
+def exocsv2cdf_parser():
+    description = ('Convert EXO .csv file to raw .cdf format. Run this script '
+                   'from the directory containing EXO file')
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def exocdf2nc_parser():
+    description = 'Convert raw EXO .cdf format to processed .nc files'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('cdfname', help='raw .CDF filename')
+    parser.add_argument('--atmpres', help=('path to cdf file containing '
+                                           'atmopsheric pressure data'))
+
+    return parser
+
 
 def aqdturnaround_parser():
     description = ('Create Aquadopp turnaround plots. Run this script from '
