@@ -42,10 +42,8 @@ def clip_ds(ds):
 
         histtext = 'Data clipped using good_ens values of %s . ' % (
             str(good_ens))
-        if 'history' in ds.attrs:
-            ds.attrs['history'] = histtext + ds.attrs['history']
-        else:
-            ds.attrs['history'] = histtext
+
+        ds = insert_history(ds, histtext)
 
     elif 'good_dates' in ds.attrs:
         # clip by start/end dates that are not Deployment_date
@@ -56,10 +54,8 @@ def clip_ds(ds):
 
         histtext = 'Data clipped using good_dates of %s . ' % (
             ds.attrs['good_dates'])
-        if 'history' in ds.attrs:
-            ds.attrs['history'] = histtext + ds.attrs['history']
-        else:
-            ds.attrs['history'] = histtext
+
+        ds = insert_history(ds, histtext)
 
     elif 'Deployment_date' in ds.attrs and 'Recovery_date' in ds.attrs:
         # we clip by the times in/out of water as specified in the metadata
@@ -70,10 +66,8 @@ def clip_ds(ds):
         histtext = ('Data clipped using Deployment_date of %s and '
                     'Recovery_date of %s. ') % (ds.attrs['Deployment_date'],
                                                 ds.attrs['Recovery_date'])
-        if 'history' in ds.attrs:
-            ds.attrs['history'] = histtext + ds.attrs['history']
-        else:
-            ds.attrs['history'] = histtext
+
+        ds = insert_history(ds, histtext)
     else:
         # do nothing
         print('Did not clip data; no values specified in metadata')
@@ -107,13 +101,20 @@ def add_min_max(ds):
     return ds
 
 
-def add_epic_history(ds):
-
-    ds.attrs['history'] = 'Processed to EPIC using ' + \
-                          os.path.basename(sys.argv[0]) + \
-                          '. ' + ds.attrs['history']
+def insert_history(ds, histtext):
+    if 'history' in ds.attrs:
+        ds.attrs['history'] = histtext + ds.attrs['history']
+    else:
+        ds.attrs['history'] = histtext
 
     return ds
+
+
+def add_epic_history(ds):
+    histtext = 'Processed to EPIC using %s. ' % os.path.basename(sys.argv[0])
+
+    return insert_history(ds, histtext)
+
 
 
 def ds_add_diwasp_history(ds):
@@ -123,12 +124,7 @@ def ds_add_diwasp_history(ds):
 
     histtext = 'Wave statistics computed using DIWASP 1.4. '
 
-    if 'history' in ds.attrs:
-        ds.attrs['history'] = histtext + ds.attrs['history']
-    else:
-        ds.attrs['history'] = histtext
-
-    return ds
+    return insert_history(ds, histtext)
 
 
 def ds_add_attrs(ds):
@@ -341,11 +337,12 @@ def write_metadata(ds, metadata):
 
     f = os.path.basename(inspect.stack()[1][1])
 
-    ds.attrs.update({
-        'history': 'Processed using ' + f + ' with Python ' +
-                   platform.python_version() + ', xarray ' + xr.__version__ +
-                   ', NumPy ' + np.__version__ + ', netCDF4 ' +
-                   netCDF4.__version__})
+    histtext = ('Processed using ' + f + ' with Python ' +
+                platform.python_version() + ', xarray ' + xr.__version__ +
+                ', NumPy ' + np.__version__ + ', netCDF4 ' +
+                netCDF4.__version__ + '. ')
+
+    ds = insert_history(ds, histtext)
 
     return ds
 
