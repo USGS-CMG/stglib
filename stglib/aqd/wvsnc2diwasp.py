@@ -94,8 +94,7 @@ def write_nc(ds, metadata):
     rename_time(nc_filename)
 
 def main():
-    import sys
-    sys.path.insert(0, '/Users/dnowacki/Documents/aqdlib')
+
     import aqdlib
     import argparse
     import yaml

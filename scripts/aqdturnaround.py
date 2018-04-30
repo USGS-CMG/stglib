@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import sys
-sys.path.append('/Users/dnowacki/Documents/stglib')
 import stglib
 import matplotlib.pyplot as plt
 import xarray as xr
