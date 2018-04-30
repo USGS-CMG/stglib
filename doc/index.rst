@@ -30,6 +30,7 @@ Currently, this package has at least partial support for:
    :maxdepth: 2
    :caption: Contents:
 
+   install
    overview
    config
    atmos
