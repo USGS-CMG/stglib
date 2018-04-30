@@ -63,6 +63,14 @@ def rsknc2diwasp_parser():
     return parser
 
 
+def rsknc2waves_parser():
+    description = 'Generate waves statistics file'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('ncname', help='processed .nc filename')
+
+    return parser
+
+
 def aqdturnaround_parser():
     description = ('Create Aquadopp turnaround plots. Run this script from '
                    'the directory containing Aquadopp files')

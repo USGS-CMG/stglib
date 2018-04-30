@@ -6,5 +6,5 @@ from . import aqd
 from . import rsk
 from . import indexvel
 from . import core
-from .core import utils, cmd
+from .core import utils, cmd, waves
 from .core.utils import read_globalatts

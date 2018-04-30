@@ -116,6 +116,13 @@ def add_epic_history(ds):
     return insert_history(ds, histtext)
 
 
+def ds_add_waves_history(ds):
+    histtext = ('Wave statistics computed using scipy.signal.welch(), '
+                'assigning cutoff following Jones & Monismith (2007), and '
+                'applying f^-4 tail past cutoff. ')
+
+    return insert_history(ds, histtext)
+
 
 def ds_add_diwasp_history(ds):
     """
@@ -437,13 +444,12 @@ def shift_time(ds, timeshift):
     """Shift time to middle of burst"""
 
     # shift times to center of ensemble
-    if timeshift.is_integer():
-        ds['time'] = ds['time'] + np.timedelta64(int(timeshift), 's')
-        print('Time shifted by:', int(timeshift), 's')
-    else:
+    ds['time'] = ds['time'] + np.timedelta64(int(timeshift), 's')
+    print('Time shifted by %.f s' % int(timeshift))
+    if not timeshift.is_integer():
         warnings.warn(
-            ('time NOT shifted because not a whole number of seconds: '
-             '%f s ***') % timeshift)
+            'time offset of %.3f s was adjusted to %.f s for shifting time' %
+            (timeshift, int(timeshift)))
 
     return ds
 
