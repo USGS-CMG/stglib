@@ -31,7 +31,11 @@ setup(name='stglib',
                'scripts/runrsknc2waves.py',
                'scripts/runrsknc2diwasp.py',
                'scripts/runexocsv2cdf.py',
-               'scripts/runexocdf2nc.py'
+               'scripts/runexocdf2nc.py',
+               'scripts/runwvswad2cdf.py',
+               'scripts/runwvscdf2nc.py',
+               'scripts/runwvsnc2diwasp.py',
+               'scripts/runwvsnc2waves.py'
                ],
       include_package_data=True
      )

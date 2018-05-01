@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
 import stglib
-import argparse
 
-parser = argparse.ArgumentParser(description='Convert processed Aquadopp waves .nc files using DIWASP')
-parser.add_argument('ncname', help='processed .nc filename')
-
-args = parser.parse_args()
+args = stglib.cmd.wvsnc2diwasp_parser().parse_args()
 
 ds = stglib.aqd.wvsnc2diwasp.nc_to_diwasp(args.ncname)
