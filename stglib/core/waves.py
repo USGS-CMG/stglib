@@ -1,6 +1,58 @@
 from __future__ import division, print_function
 import scipy.signal as spsig
 import numpy as np
+import xarray as xr
+
+def make_waves_ds(ds, noise=0.9):
+
+    print('Computing waves statistics')
+
+    f, Pxx = pressure_spectra(ds['P_1ac'],
+                                    fs=1/ds.attrs['sample_interval'])
+
+    z = ds.attrs['initial_instrument_height']
+    h = ds['P_1ac'].mean(dim='sample') + z
+
+    k = np.asarray(
+        [qkfs(2*np.pi/(1/f), x) for x in h.values])
+
+    Kp = transfer_function(k, h, z)
+    Pnn = elevation_spectra(Pxx, Kp)
+
+    spec = xr.Dataset()
+    # spec['time'] = xr.DataArray(dw1076['b']['P_1ac'].time, dims='time')
+    # spec['frequency'] = xr.DataArray(f, dims='frequency')
+    spec['Pnn'] = xr.DataArray(Pnn,
+                               dims=('time', 'frequency'),
+                               coords=(ds['time'], f))
+    spec['Pxx'] = xr.DataArray(Pxx,
+                               dims=('time', 'frequency'),
+                               coords=(ds['time'], f))
+    tailind, noisecut, noisecutind, fpeakcutind = zip(
+        *[define_cutoff(f, x, noise=0.75) for x in spec['Pxx'].values])
+    spec['tailind'] = xr.DataArray(np.asarray(tailind), dims='time')
+    spec['noisecutind'] = xr.DataArray(np.asarray(noisecutind), dims='time')
+    spec['fpeakcutind'] = xr.DataArray(np.asarray(fpeakcutind), dims='time')
+    thetail = [make_tail(
+        spec['frequency'],
+        spec['Pnn'][burst, :],
+        spec['tailind'][burst].values)
+        for burst in range(len(spec['time']))]
+    spec['pspec'] = xr.DataArray(thetail, dims=('time', 'frequency'))
+    spec['m0'] = xr.DataArray(
+        make_m0(spec['frequency'], spec['pspec']),
+        dims='time')
+    spec['m2'] = xr.DataArray(
+        make_m2(spec['frequency'], spec['pspec']),
+        dims='time')
+    spec['wh_4061'] = xr.DataArray(
+        make_Hs(spec['m0']), dims='time')
+    spec['wp_4060'] = xr.DataArray(
+        make_Tm(spec['m0'], spec['m2']), dims='time')
+    spec['wp_peak'] = xr.DataArray(make_Tp(spec['pspec']), dims='time')
+    spec['kh'] = xr.DataArray(k, dims=('time', 'frequency'))
+
+    return spec
 
 
 def pressure_spectra(x, fs=1.0, window='hanning', nperseg=256, **kwargs):

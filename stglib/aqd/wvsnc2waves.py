@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 import xarray as xr
 import sys
-from ..core import utils
+from ..core import utils, waves
 
 
 def nc_to_waves(nc_filename):
@@ -12,7 +12,7 @@ def nc_to_waves(nc_filename):
 
     ds = utils.create_epic_time(ds)
 
-    spec = make_waves_ds(ds)
+    spec = waves.make_waves_ds(ds)
 
     for k in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec']:
         ds[k] = spec[k]
