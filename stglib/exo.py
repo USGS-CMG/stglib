@@ -4,6 +4,7 @@ import xarray as xr
 import numpy as np
 from .core import utils
 
+
 def read_exo(filnam, skiprows=25, encoding='utf-8'):
     """Read data from a YSI EXO multiparameter sonde .csv file into an xarray
     Dataset.
@@ -24,10 +25,10 @@ def read_exo(filnam, skiprows=25, encoding='utf-8'):
     """
 
     exo = pd.read_csv(filnam,
-                        skiprows=skiprows,
-                        infer_datetime_format=True,
-                        parse_dates=[['Date (MM/DD/YYYY)', 'Time (HH:MM:SS)']],
-                        encoding=encoding)
+                      skiprows=skiprows,
+                      infer_datetime_format=True,
+                      parse_dates=[['Date (MM/DD/YYYY)', 'Time (HH:MM:SS)']],
+                      encoding=encoding)
     exo.rename(columns={'Date (MM/DD/YYYY)_Time (HH:MM:SS)': 'time'},
                inplace=True)
     exo.set_index('time', inplace=True)
@@ -42,24 +43,33 @@ def read_exo(filnam, skiprows=25, encoding='utf-8'):
     # Apply sensor serial numbers to each sensor
     for k in exo.variables:
         if 'fDOM' in k:
-            exo[k].attrs['sensor_serial_number'] = hdr['fDOM']['sensor_serial_number']
+            exo[k].attrs['sensor_serial_number'] = (
+                hdr['fDOM']['sensor_serial_number'])
         elif 'Chlorophyll' in k or 'BGA-PE' in k:
-            exo[k].attrs['sensor_serial_number'] = hdr['Total Algae BGA-PE']['sensor_serial_number']
+            exo[k].attrs['sensor_serial_number'] = (
+                hdr['Total Algae BGA-PE']['sensor_serial_number'])
         elif 'Temp' in k or 'Cond' in k or 'Sal' in k:
             if 'Unknown CT' in hdr:
-                exo[k].attrs['sensor_serial_number'] = hdr['Unknown CT']['sensor_serial_number']
+                exo[k].attrs['sensor_serial_number'] = (
+                    hdr['Unknown CT']['sensor_serial_number'])
             elif 'Wiped CT' in hdr:
-                exo[k].attrs['sensor_serial_number'] = hdr['Wiped CT']['sensor_serial_number']
+                exo[k].attrs['sensor_serial_number'] = (
+                    hdr['Wiped CT']['sensor_serial_number'])
         elif 'ODO' in k:
-            exo[k].attrs['sensor_serial_number'] = hdr['Optical DO']['sensor_serial_number']
+            exo[k].attrs['sensor_serial_number'] = (
+                hdr['Optical DO']['sensor_serial_number'])
         elif 'Turbidity' in k:
-            exo[k].attrs['sensor_serial_number'] = hdr['Turbidity']['sensor_serial_number']
+            exo[k].attrs['sensor_serial_number'] = (
+                hdr['Turbidity']['sensor_serial_number'])
         elif 'pH' in k:
-            exo[k].attrs['sensor_serial_number'] = hdr['pH']['sensor_serial_number']
+            exo[k].attrs['sensor_serial_number'] = (
+                hdr['pH']['sensor_serial_number'])
         elif 'Press' in k or 'Depth' in k:
-            exo[k].attrs['sensor_serial_number'] = hdr['Depth Non-Vented 0-10m']['sensor_serial_number']
+            exo[k].attrs['sensor_serial_number'] = (
+                hdr['Depth Non-Vented 0-10m']['sensor_serial_number'])
 
     return exo
+
 
 def csv_to_cdf(metadata):
     """
@@ -91,6 +101,7 @@ def csv_to_cdf(metadata):
     print('Finished writing data to %s' % cdf_filename)
 
     return ds
+
 
 def cdf_to_nc(cdf_filename, atmpres=False):
     """
@@ -143,30 +154,28 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     print('Done writing netCDF file', nc_filename)
 
 
-
-
 def ds_rename_vars(ds):
 
     # set up dict of instrument -> EPIC variable names
     varnames = {'Press_dbar': 'P_1',
-                    'Battery_V': 'Bat_106',
-                    'fDOM_RFU': 'fDOMRFU',
-                    'fDOM_QSU': 'fDOMQSU',
-                    # capitalization based on Chincoteague names
-                    'Chlorophyll_RFU': 'CHLrfu',
-                    'Chlorophyll_µg_per_L': 'Fch_906',
-                    'BGA-PE_RFU': 'BGAPErfu',
-                    'BGA-PE_µg_per_L': 'BGAPE',
-                    'Temp_°C': 'T_28',
-                    'Cond_mS_per_cm': 'C_51',
-                    'SpCond_mS_per_cm': 'SpC_48',
-                    'Sal_psu': 'S_41',
-                    'ODO_%_sat': 'OST_62',
-                    'ODO_mg_per_L': 'DO',
-                    'Turbidity_NTU': 'Turb',
-                    'pH': 'pH_159',
-                    'pH_mV': 'pHmV',
-                    'Depth_m': 'D_3'}
+                'Battery_V': 'Bat_106',
+                'fDOM_RFU': 'fDOMRFU',
+                'fDOM_QSU': 'fDOMQSU',
+                # capitalization based on Chincoteague names
+                'Chlorophyll_RFU': 'CHLrfu',
+                'Chlorophyll_µg_per_L': 'Fch_906',
+                'BGA-PE_RFU': 'BGAPErfu',
+                'BGA-PE_µg_per_L': 'BGAPE',
+                'Temp_°C': 'T_28',
+                'Cond_mS_per_cm': 'C_51',
+                'SpCond_mS_per_cm': 'SpC_48',
+                'Sal_psu': 'S_41',
+                'ODO_%_sat': 'OST_62',
+                'ODO_mg_per_L': 'DO',
+                'Turbidity_NTU': 'Turb',
+                'pH': 'pH_159',
+                'pH_mV': 'pHmV',
+                'Depth_m': 'D_3'}
 
     # check to make sure they exist before trying to rename
     newvars = {}
@@ -175,6 +184,7 @@ def ds_rename_vars(ds):
             newvars[k] = varnames[k]
 
     return ds.rename(newvars)
+
 
 def ds_add_attrs(ds):
     # Update attributes for EPIC and STG compliance
@@ -224,13 +234,13 @@ def ds_add_attrs(ds):
         'long_name': 'Blue green algae phycoerythrin'})
 
     ds['T_28'].attrs.update({'units': 'C',
-                            'long_name': 'Temperature',
-                            'epic_code': 28})
+                             'long_name': 'Temperature',
+                             'epic_code': 28})
 
     ds['C_51'].attrs.update({'units': 'S/m',
-                            'long_name': 'Conductivity',
-                            'epic_code': 51})
-    ds['C_51'] = ds['C_51']/10 # convert from mS/cm to S/m
+                             'long_name': 'Conductivity',
+                             'epic_code': 51})
+    ds['C_51'] = ds['C_51']/10  # convert from mS/cm to S/m
 
     ds['SpC_48'].attrs.update({'units': 'mS/cm',
                                'long_name': 'Conductivity',
@@ -242,21 +252,22 @@ def ds_add_attrs(ds):
                              'epic_code': 41})
 
     ds['OST_62'].attrs.update({'units': '%',
-                              'long_name': 'Oxygen percent saturation',
-                              'epic_code': 62})
+                               'long_name': 'Oxygen percent saturation',
+                               'epic_code': 62})
 
     ds['DO'].attrs.update({'units': 'mg/L',
                            'long_name': 'Dissolved oxygen'})
 
     ds['Turb'].attrs.update({'units': 'Nephelometric turbidity units (NTU)',
-                           'long_name': 'Turbidity'})
+                             'long_name': 'Turbidity'})
 
-    ds['pH_159'].attrs.update({'units': '',
-                               'long_name': 'pH',
-                               'epic_code': 159})
+    if 'pH_159' in ds.variables:
+        ds['pH_159'].attrs.update({'units': '',
+                                   'long_name': 'pH',
+                                   'epic_code': 159})
 
     ds['P_1'].attrs.update({'units': 'mV',
-                             'long_name': 'pH'})
+                            'long_name': 'pH'})
 
     ds['P_1'].attrs.update({'units': 'dbar',
                             'long_name': 'Pressure',
@@ -287,15 +298,17 @@ def ds_add_attrs(ds):
 
     return ds
 
+
 def ds_add_lat_lon(ds):
     ds['lat'] = xr.DataArray([ds.attrs['latitude']], dims=('lat'), name='lat')
     ds['lon'] = xr.DataArray([ds.attrs['longitude']], dims=('lon'), name='lon')
 
     return ds
 
+
 def read_exo_header(filnam, encoding='utf-8'):
     hdr = pd.read_csv(filnam, skiprows=None, encoding=encoding)
-    hdr = pd.DataFrame(hdr.iloc[:,0:4])
+    hdr = pd.DataFrame(hdr.iloc[:, 0:4])
     # print(hdr)
     header = {}
     header['serial_number'] = (
@@ -312,9 +325,11 @@ def read_exo_header(filnam, encoding='utf-8'):
         if not vals.empty:
             header[var] = {}
             header[var]['sensor_serial_number'] = vals.values[0][1]
-            header[var]['data_columns'] = [int(x) for x in vals.values[0][3].split(';')]
+            header[var]['data_columns'] = (
+                [int(x) for x in vals.values[0][3].split(';')])
 
     return header
+
 
 def exo_qaqc(ds):
     """
@@ -324,20 +339,28 @@ def exo_qaqc(ds):
 
     for var in ['C_51', 'SpC_48', 'S_41', 'Turb']:
         if var + '_min_diff' in ds.attrs:
-            print('Trimming using minimum %s diff of %f' % (var, ds.attrs[var + '_min_diff']))
-            ds[var][np.ediff1d(ds[var], to_begin=0) < ds.attrs[var + '_min_diff']] = np.nan
+            print('Trimming using minimum %s diff of %f' %
+                  (var, ds.attrs[var + '_min_diff']))
+            ds[var][np.ediff1d(
+                ds[var], to_begin=0) < ds.attrs[var + '_min_diff']] = np.nan
 
-            notetxt = 'Values filled where data decreases by more than %f units in a single time step. ' % ds.attrs[var + '_min_diff']
+            notetxt = ('Values filled where data decreases by more than %f '
+                       'units in a single time step. ' %
+                       ds.attrs[var + '_min_diff'])
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
             else:
                 ds[var].attrs.update({'note': notetxt})
         if var + '_max_diff' in ds.attrs:
-            print('Trimming using maximum %s diff of %f' % (var, ds.attrs[var + '_max_diff']))
-            ds[var][np.ediff1d(ds[var], to_begin=0) > ds.attrs[var + '_max_diff']] = np.nan
+            print('Trimming using maximum %s diff of %f' %
+                  (var, ds.attrs[var + '_max_diff']))
+            ds[var][np.ediff1d(
+                ds[var], to_begin=0) > ds.attrs[var + '_max_diff']] = np.nan
 
-            notetxt = 'Values filled where data increases by more than %f units in a single time step. ' % ds.attrs[var + '_max_diff']
+            notetxt = ('Values filled where data increases by more than %f '
+                       'units in a single time step. ' %
+                       ds.attrs[var + '_max_diff'])
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']

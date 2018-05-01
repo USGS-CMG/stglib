@@ -70,6 +70,7 @@ def rsknc2waves_parser():
 
     return parser
 
+
 def exocsv2cdf_parser():
     description = ('Convert EXO .csv file to raw .cdf format. Run this script '
                    'from the directory containing EXO file')

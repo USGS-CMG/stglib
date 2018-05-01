@@ -3,12 +3,36 @@ import scipy.signal as spsig
 import numpy as np
 
 
-def pressure_spectra(x, fs=1.0, window='hanning', nperseg=256):
-    f, Pxx = spsig.welch(x, fs=fs, window=window, nperseg=nperseg)
+def pressure_spectra(x, fs=1.0, window='hanning', nperseg=256, **kwargs):
+    """Compute pressure spectral density using Welch's method
+
+    Parameters
+    ----------
+    x : array_like
+        Time-series of pressure data
+    fs : float, optional
+        Sampling frequency (Hz)
+    window : str, optional
+        Window, default 'hanning'
+    nperseg : int, optional
+        Length of each segment, default 256
+    **kwargs
+        Arbitrary keyword arguments passed to scipy.signal.welch
+
+    Returns
+    -------
+    f : ndarray
+        Array of sample frequencies
+    Pxx : ndarray
+        Power spectral density of pressure data
+    """
+    f, Pxx = spsig.welch(x, fs=fs, window=window, nperseg=nperseg, **kwargs)
     return f, Pxx
 
 
 def elevation_spectra(Pxx, Kp):
+    """Compute elevation spectra using linear wave theory and transfer function
+    """
     return Pxx / (Kp**2)
 
 
@@ -62,7 +86,6 @@ def make_tail(f, Pnn, tailind):
         return np.ones_like(f) * np.nan
     else:
         tail[ti:] = Pnn[ti] * (f[ti:]/f[ti])**-4
-    # print(tail[tailind:]/tail[tailind])
         return np.hstack((Pnn[:ti], tail[ti:]))
 
 
@@ -99,10 +122,10 @@ def qkfs(omega, h):
     y = np.sqrt(x) * (x < 1) + x * (x >= 1)
 
     t = np.tanh(y)
-    y = y - ( (y*t-x) / (t + y * (1-t**2)))
+    y = y - ((y*t-x) / (t + y * (1-t**2)))
     t = np.tanh(y)
-    y = y - ( (y*t-x) / (t + y * (1-t**2)))
+    y = y - ((y*t-x) / (t + y * (1-t**2)))
     t = np.tanh(y)
-    y = y - ( (y*t-x) / (t + y * (1-t**2)))
+    y = y - ((y*t-x) / (t + y * (1-t**2)))
 
     return y/h

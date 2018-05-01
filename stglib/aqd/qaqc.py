@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-
 import numpy as np
 import xarray as xr
 
@@ -10,30 +9,33 @@ def ds_rename(ds, waves=False):
     """
 
     varnames = {'Pressure': 'P_1',
-        'Temperature': 'Tx_1211',
-        'Heading': 'Hdg_1215',
-        'Pitch': 'Ptch_1216',
-        'Roll': 'Roll_1217'}
+                'Temperature': 'Tx_1211',
+                'Heading': 'Hdg_1215',
+                'Pitch': 'Ptch_1216',
+                'Roll': 'Roll_1217'}
 
     if 'Pressure_ac' in ds:
         varnames['Pressure_ac'] = 'P_1ac'
 
     if not waves:
-        varnames.update({'U': 'u_1205',
-            'V': 'v_1206',
-            'W': 'w_1204',
-            'AGC': 'AGC_1202'})
+        varnames.update(
+            {'U': 'u_1205',
+             'V': 'v_1206',
+             'W': 'w_1204',
+             'AGC': 'AGC_1202'})
     elif waves:
-        varnames.update({'VEL1': 'vel1_1277',
-            'VEL2': 'vel2_1278',
-            'VEL3': 'vel3_1279',
-            'AMP1': 'AGC1_1221',
-            'AMP2': 'AGC2_1222',
-            'AMP3': 'AGC3_1223'})
+        varnames.update(
+            {'VEL1': 'vel1_1277',
+             'VEL2': 'vel2_1278',
+             'VEL3': 'vel3_1279',
+             'AMP1': 'AGC1_1221',
+             'AMP2': 'AGC2_1222',
+             'AMP3': 'AGC3_1223'})
 
     ds.rename(varnames, inplace=True)
 
     return ds
+
 
 def load_cdf(cdf_filename, atmpres=False):
     """
@@ -46,9 +48,12 @@ def load_cdf(cdf_filename, atmpres=False):
         p = xr.open_dataset(atmpres, autoclose=True)
         # TODO: check to make sure this data looks OK
         # need to call load for waves; it's not in memory and throws error
-        ds['Pressure_ac'] = xr.DataArray(ds['Pressure'].load() - p['atmpres'] - p['atmpres'].offset)
+        ds['Pressure_ac'] = xr.DataArray(ds['Pressure'].load() -
+                                         p['atmpres'] -
+                                         p['atmpres'].offset)
 
     return ds
+
 
 def add_delta_t(ds, waves=False):
     """
@@ -62,14 +67,20 @@ def add_delta_t(ds, waves=False):
     return ds
 
 
+def make_tilt(p, r):
+    return np.array([[np.cos(p), -np.sin(p)*np.sin(r), -np.cos(r)*np.sin(p)],
+                     [0,           np.cos(r),              -np.sin(r)],
+                     [np.sin(p),  np.sin(r)*np.cos(p),  np.cos(p)*np.cos(r)]])
+
+
 def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
     """Perform coordinate transformation to ENU"""
 
     N, M = np.shape(vel1)
 
-    u = np.zeros((N,M))
-    v = np.zeros((N,M))
-    w = np.zeros((N,M))
+    u = np.zeros((N, M))
+    v = np.zeros((N, M))
+    w = np.zeros((N, M))
 
     if cs == 'ENU':
         print('Data already in Earth coordinates; doing nothing')
@@ -79,7 +90,8 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
         w = vel3
 
     elif cs == 'XYZ' or cs == 'BEAM':
-        print('Data are in %s coordinates; transforming to Earth coordinates' % cs)
+        print('Data are in %s coordinates; transforming to Earth '
+              'coordinates' % cs)
 
         for i in range(N):
             hh = np.pi * (heading[i] - 90) / 180
@@ -91,9 +103,7 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
                           [ 0,          0,          1]])
 
             # make tilt matrix
-            P = np.array([[np.cos(pp), -np.sin(pp) * np.sin(rr), -np.cos(rr) * np.sin(pp)],
-                          [0,           np.cos(rr),              -np.sin(rr)],
-                          [np.sin(pp),  np.sin(rr) * np.cos(pp),  np.cos(pp) * np.cos(rr)]])
+            P = make_tilt(pp, rr)
 
             # resulting transformation matrix
             if cs == 'XYZ':
@@ -102,7 +112,8 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
                 R = np.dot(np.dot(H, P), T)
 
             for j in range(M):
-                vel = np.dot(R, np.array([vel1[i,j], vel2[i,j], vel3[i,j]]).T)
+                vel = np.dot(
+                    R, np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T)
                 u[i,j] = vel[0]
                 v[i,j] = vel[1]
                 w[i,j] = vel[2]
@@ -114,18 +125,23 @@ def set_orientation(VEL, T):
     """
     Create depth variable depending on instrument orientation
     """
-    # TODO: this code seems too complicated. also should we really be modifying the trans matrix?
+    # TODO: this code seems too complicated.
+    # also should we really be modifying the trans matrix?
 
     N, M = np.shape(VEL['VEL1'])
 
     if 'Pressure_ac' in VEL:
-        Wdepth = np.nanmean(VEL['Pressure_ac']) + VEL.attrs['transducer_offset_from_bottom']
+        Wdepth = (np.nanmean(VEL['Pressure_ac']) +
+                  VEL.attrs['transducer_offset_from_bottom'])
     else:
-        Wdepth = np.nanmean(VEL['Pressure']) + VEL.attrs['transducer_offset_from_bottom']
+        Wdepth = (np.nanmean(VEL['Pressure']) +
+                  VEL.attrs['transducer_offset_from_bottom'])
 
-    blank2 = VEL.attrs['AQDBlankingDistance'] + VEL.attrs['transducer_offset_from_bottom']
+    blank2 = (VEL.attrs['AQDBlankingDistance'] +
+              VEL.attrs['transducer_offset_from_bottom'])
     binn = VEL.attrs['bin_size']
-    blank3 = VEL.attrs['transducer_offset_from_bottom'] - VEL.attrs['AQDBlankingDistance']
+    blank3 = (VEL.attrs['transducer_offset_from_bottom'] -
+              VEL.attrs['AQDBlankingDistance'])
     binc = VEL.attrs['bin_count']
 
     if VEL.attrs['orientation'] == 'UP':
@@ -136,11 +152,11 @@ def set_orientation(VEL, T):
                     Wdepth - (binn * (M - 1) + blank2 + binn),
                     Wdepth - (blank2 + binn),
                     num=binc)
-                ), dims=('bindist')) # need to use flipud because 1d array
+                ), dims=('bindist'))  # need to use flipud because 1d array
     elif VEL.attrs['orientation'] == 'DOWN':
         print('User instructed that instrument was pointing DOWN')
-        T[1,:] = -T[1,:]
-        T[2,:] = -T[2,:]
+        T[1, :] = -T[1, :]
+        T[2, :] = -T[2, :]
         VEL['depth'] = xr.DataArray(np.linspace(Wdepth - blank3 + binn,
                                                 Wdepth - blank3 + binn * M,
                                                 num=binc),
@@ -168,7 +184,8 @@ def magvar_correct(ds):
     elif 'magnetic_variation' in ds.attrs:
         magvardeg = ds.attrs['magnetic_variation']
     else:
-        print('No magnetic variation information provided; using zero for compass correction')
+        print('No magnetic variation information provided; '
+              'using zero for compass correction')
         magvardeg = 0
 
     print('Rotating heading and horizontal velocities by %f degrees' % magvardeg)
@@ -209,15 +226,21 @@ def trim_vel(ds, waves=False):
             print('Trimming using water level')
             for var in ['U', 'V', 'W', 'AGC']:
                 ds[var] = ds[var].where(ds['bindist'] < P)
-            ds.attrs['history'] = 'Trimmed velocity data using water level. '+ ds.attrs['history']
+            ds.attrs['history'] = (
+                'Trimmed velocity data using water level. ' +
+                ds.attrs['history'])
         elif ds.attrs['trim_method'].lower() == 'water level sl':
             print('Trimming using water level and sidelobes')
             for var in ['U', 'V', 'W', 'AGC']:
-                ds[var] = ds[var].where(ds['bindist'] < P * np.cos(np.deg2rad(ds.attrs['AQDBeamAngle'])))
-            ds.attrs['history'] = 'Trimmed velocity data using water level and sidelobes. '+ ds.attrs['history']
+                ds[var] = ds[var].where(ds['bindist'] <
+                                        P * np.cos(np.deg2rad(ds.attrs['AQDBeamAngle'])))
+            ds.attrs['history'] = (
+                'Trimmed velocity data using water level and sidelobes. ' +
+                ds.attrs['history'])
 
         # find first bin that is all bad values
-        # there might be a better way to do this using xarray and named dimensions, but this works for now
+        # there might be a better way to do this using xarray and named
+        # dimensions, but this works for now
         lastbin = np.argmin(np.all(np.isnan(ds['U']), axis=0) == False)
         print(lastbin)
         # this trims so there are no all-nan rows in the data
@@ -236,10 +259,6 @@ def read_aqd_hdr(basefile):
     Get instrument metadata from .hdr file
     Was formerly readAQDprfHeader.m
     """
-    #
-    # % TODO read and save all of the instrument settings in the .hdr file
-    # % replacing strncmp with strfind, strncmp need the exact length of string,
-    # % many of those were wrong and lots of metadata was going missing.
 
     hdrFile = basefile + '.hdr'
 
@@ -261,19 +280,19 @@ def read_aqd_hdr(basefile):
         row = f.readline().rstrip()
         if 'Profile interval' in row:
             idx = row.find(' sec')
-            Instmeta['AQDProfileInterval'] = float(row[38:idx])
+            Instmeta['AQDProfileInterval'] = int(row[38:idx])
         elif 'Number of cells' in row:
             Instmeta['AQDNumberOfCells'] = int(row[38:])
         # required here to differentiate from the wave cell size
         elif row.find('Cell size', 0, 9) != -1:
             idx = row.find(' cm')
-            Instmeta['AQDCellSize'] = float(row[38:idx])
+            Instmeta['AQDCellSize'] = int(row[38:idx])
         elif 'Average interval' in row:
             idx = row.find(' sec')
-            Instmeta['AQDAverageInterval'] = float(row[38:idx])
+            Instmeta['AQDAverageInterval'] = int(row[38:idx])
         elif 'Measurement load' in row:
             idx = row.find(' %')
-            Instmeta['AQDMeasurementLoad'] = float(row[38:idx])
+            Instmeta['AQDMeasurementLoad'] = int(row[38:idx])
         elif 'Transmit pulse length' in row:
             idx = row.find(' m')
             Instmeta['AQDTransmitPulseLength'] = float(row[38:idx])
@@ -282,16 +301,16 @@ def read_aqd_hdr(basefile):
             Instmeta['AQDBlankingDistance'] = float(row[38:idx])
         elif 'Compass update rate' in row:
             idx = row.find(' sec')
-            Instmeta['AQDCompassUpdateRate'] = float(row[38:idx])
+            Instmeta['AQDCompassUpdateRate'] = int(row[38:idx])
         elif 'Wave measurements' in row:
             Instmeta['WaveMeasurements'] = row[38:]
         elif 'Wave - Powerlevel' in row:
             Instmeta['WavePower'] = row[38:]
         elif 'Wave - Interval' in row:
             idx = row.find(' sec')
-            Instmeta['WaveInterval'] = float(row[38:idx])
+            Instmeta['WaveInterval'] = int(row[38:idx])
         elif 'Wave - Number of samples' in row:
-            Instmeta['WaveNumberOfSamples'] = float(row[38:])
+            Instmeta['WaveNumberOfSamples'] = int(row[38:])
         elif 'Wave - Sampling rate' in row:
             Instmeta['WaveSampleRate'] = row[38:]
         elif 'Wave - Cell size' in row:
@@ -303,8 +322,8 @@ def read_aqd_hdr(basefile):
             Instmeta['AQDAnalogInput2'] = row[38:]
         elif 'Power output' in row:
             Instmeta['AQDAnalogPowerOutput'] = row[38:]
-        elif 'Powerlevel' in row: # FIXME: WRONG, this is not analog powerlevel
-            Instmeta['AQDAnalogPowerLevel'] = row[38:]
+        elif 'Powerlevel' in row:
+            Instmeta['AQDPowerLevel'] = row[38:]
         elif 'Coordinate system' in row:
             Instmeta['AQDCoordinateSystem'] = row[38:]
         elif 'Sound speed' in row:
@@ -312,9 +331,9 @@ def read_aqd_hdr(basefile):
         elif 'Salinity' in row:
             Instmeta['AQDSalinity'] = row[38:]
         elif 'Number of beams' in row:
-            Instmeta['AQDNumberOfBeams'] = float(row[38:])
+            Instmeta['AQDNumberOfBeams'] = int(row[38:])
         elif 'Number of pings per burst' in row:
-            Instmeta['AQDNumberOfPingsPerBurst'] = float(row[38:])
+            Instmeta['AQDNumberOfPingsPerBurst'] = int(row[38:])
         elif 'Software version' in row:
             Instmeta['AQDSoftwareVersion'] = row[38:]
         elif 'Deployment name' in row:
@@ -359,15 +378,16 @@ def read_aqd_hdr(basefile):
             Instmeta['AQDTilt'] = row[38:]
         elif 'Head frequency' in row:
             idx = row.find(' kHz')
-            Instmeta['AQDFrequency'] = float(row[38:idx])
+            Instmeta['AQDFrequency'] = int(row[38:idx])
         elif 'Number of beams' in row:
-            Instmeta['AQDNumBeams'] = float(row[38:])
+            Instmeta['AQDNumBeams'] = int(row[38:])
         elif 'Serial number' in row:
             Instmeta['AQDHeadSerialNumber'] = row[38:]
         elif 'Transformation matrix' in row:
-            Instmeta['AQDTransMatrix'] = np.zeros((3,3))
+            Instmeta['AQDTransMatrix'] = np.zeros((3, 3))
             for n in np.arange(3):
-                Instmeta['AQDTransMatrix'][n,:] = [float(x) for x in row[38:].split()]
+                Instmeta['AQDTransMatrix'][n,:] = (
+                    [float(x) for x in row[38:].split()])
                 row = f.readline().rstrip()
         elif 'Pressure sensor calibration' in row:
             Instmeta['AQDPressureCal'] = row[38:]
@@ -379,7 +399,7 @@ def read_aqd_hdr(basefile):
         if '-' not in row and row != '' and row != 'Data file format':
             bd.append(float(row.split()[1]))
 
-    Instmeta['AQDCCD'] = np.array(bd) # CCD = Cell Center Distance
+    Instmeta['AQDCCD'] = np.array(bd)  # CCD = Cell Center Distance
 
     # infer some things based on the Aquadopp brochure
     if Instmeta['AQDFrequency'] == 400:
@@ -394,20 +414,7 @@ def read_aqd_hdr(basefile):
         Instmeta['AQDBeamWidth'] = np.nan
 
     Instmeta['AQDBeamPattern'] = 'convex'
-    Instmeta['AQDBeamAngle'] = 25;
-# Instmeta.AQDVelRange = 1000; % cm/s
-# Instmeta.AQDTempRange = [-4 40];
-# Instmeta.AQDPressRange = [0 100];
-# % no tilt range given in AQD docs
-#
-# fclose(hdr);
-#
-# % %if waves data were not collected remove wave parameters from metadata
-# % if strfind(Instmeta.AQDWaveStatus,'DISABLED',7)
-# %     fields = {'AQDWavePower','AQDWaveInterval','AQDWaveSampleRate','AQDWaveNumberOfSamples'};
-# %     Instmeta = rmfield(Instmeta,fields);
-# % else
-# % end
+    Instmeta['AQDBeamAngle'] = 25
 
     f.close()
 
@@ -417,14 +424,16 @@ def read_aqd_hdr(basefile):
 def check_attrs(ds, waves=False):
 
     # Add some metadata originally in the run scripts
-    ds.attrs['nominal_sensor_depth_note'] = 'WATER_DEPTH - initial_instrument_height'
-    ds.attrs['nominal_sensor_depth'] = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
-    ds.attrs['transducer_offset_from_bottom'] = ds.attrs['initial_instrument_height']
+    ds.attrs['nominal_sensor_depth_note'] = ('WATER_DEPTH - '
+                                             'initial_instrument_height')
+    ds.attrs['nominal_sensor_depth'] = (
+        ds.attrs['WATER_DEPTH'] -
+        ds.attrs['initial_instrument_height'])
+    ds.attrs['transducer_offset_from_bottom'] = (
+        ds.attrs['initial_instrument_height'])
 
-    # % now verify the global metadata for standard EPIC and cmg stuff
-    # % everything in metadata and instmeta get written as global attributes
-    # % these also get copied to the .nc file
-    if 'initial_instrument_height' not in ds.attrs or np.isnan(ds.attrs['initial_instrument_height']):
+    if ('initial_instrument_height' not in ds.attrs or
+            np.isnan(ds.attrs['initial_instrument_height'])):
         ds.attrs['initial_instrument_height'] = 0
 
     ds.attrs['serial_number'] = ds.attrs['AQDSerial_Number']
@@ -433,16 +442,18 @@ def check_attrs(ds, waves=False):
     # profilers have the same attribute wording.  Redundant, but necessary
     if not waves:
         ds.attrs['bin_count'] = ds.attrs['AQDNumberOfCells']
-        ds.attrs['bin_size'] = ds.attrs['AQDCellSize'] / 100 # from cm to m
-        ds.attrs['blanking_distance'] = ds.attrs['AQDBlankingDistance'] # already in m
-        # Nortek lists the distance to the center of the first bin as the blanking
-        # distance plus one cell size
-        ds.attrs['center_first_bin'] = ds.attrs['blanking_distance'] + ds.attrs['bin_size'] # in m
+        ds.attrs['bin_size'] = ds.attrs['AQDCellSize'] / 100  # from cm to m
+        ds.attrs['blanking_distance'] = ds.attrs['AQDBlankingDistance']
+        # Nortek lists the distance to the center of the first bin as the
+        # blanking distance plus one cell size
+        ds.attrs['center_first_bin'] = (ds.attrs['blanking_distance'] +
+                                        ds.attrs['bin_size']) # in m
     else:
-        ds.attrs['bin_count'] = 1 # only 1 wave bin
-        ds.attrs['bin_size'] = ds.attrs['WaveCellSize'] # already in m
-        ds.attrs['blanking_distance'] = ds.attrs['AQDBlankingDistance'] # already in m
-        # need to set center_first_bin after return in main calling function
+        ds.attrs['bin_count'] = 1  # only 1 wave bin
+        ds.attrs['bin_size'] = ds.attrs['WaveCellSize']
+        ds.attrs['blanking_distance'] = ds.attrs['AQDBlankingDistance']
+        # TODO: need to set center_first_bin after return in main
+        # calling function
 
     ds.attrs['salinity_set_by_user'] = ds.attrs['AQDSalinity']
     ds.attrs['salinity_set_by_user_units'] = 'ppt'
@@ -451,14 +462,12 @@ def check_attrs(ds, waves=False):
     ds.attrs['beam_width'] = ds.attrs['AQDBeamWidth']
     ds.attrs['beam_pattern'] = ds.attrs['AQDBeamPattern']
     ds.attrs['beam_angle'] = ds.attrs['AQDBeamAngle']
-    # instmeta['AQDHeadRotation'] = metadata.pop('head_rotation') # also deletes this key. Not sure why the Matlab file does this, maybe need TODO look into this
 
-    # TODO: figure these out
-    # metadata['insterr'] = instmeta['error']
-    # metadata['inststat'] = instmeta['status']
-    # metadata['instorient'] = instmeta['orient']
+    # TODO: Ideally we want to read the error, status, and orientation from
+    # the .SEN file, but this requires reading the first good burst, which
+    # is unknown at this point.
 
-    ds.attrs['INST_TYPE'] = 'Nortek Aquadopp Profiler';
+    ds.attrs['INST_TYPE'] = 'Nortek Aquadopp Profiler'
 
     return ds
 
@@ -473,7 +482,9 @@ def check_orientation(ds, waves=False):
     # TODO: these values are already in the HDR file...
     if not waves:
         bindist = np.linspace(ds.attrs['center_first_bin'],
-                              (ds.attrs['center_first_bin'] + ((ds.attrs['bin_count'] - 1) * ds.attrs['bin_size'])),
+                              (ds.attrs['center_first_bin'] +
+                               ((ds.attrs['bin_count'] - 1) *
+                               ds.attrs['bin_size'])),
                               num=ds.attrs['bin_count'])
     else:
         bindist = ds['cellpos'][0]
@@ -482,18 +493,26 @@ def check_orientation(ds, waves=False):
         print('User instructed that instrument was pointing UP')
         # depth, or distance below surface, is a positive number below the
         # surface, negative above the surface, for CMG purposes and consistency with ADCP
-        depth = (ds.attrs['WATER_DEPTH'] - ds.attrs['transducer_offset_from_bottom']) - bindist
-        Depth_NOTE = 'user reports uplooking bin depths = water_depth - transducer offset from bottom - bindist' # TODO: this is never used
+        depth = (ds.attrs['WATER_DEPTH'] -
+                 ds.attrs['transducer_offset_from_bottom']) - bindist
+        # TODO: this is never used
+        Depth_NOTE = ('user reports uplooking bin depths = water_depth - '
+                      'transducer offset from bottom - bindist')
     elif ds.attrs['orientation'] == 'DOWN':
         print('User instructed that instrument was pointing DOWN')
-        depth = (ds.attrs['WATER_DEPTH'] - ds.attrs['transducer_offset_from_bottom']) + bindist
-        Depth_NOTE = 'user reports downlooking bin depths = water_depth - transducer_offset_from_bottom + bindist' # TODO: this is never used
+        depth = (ds.attrs['WATER_DEPTH'] -
+                 ds.attrs['transducer_offset_from_bottom']) + bindist
+        # TODO: this is never used
+        Depth_NOTE = ('user reports downlooking bin depths = water_depth - '
+                      'transducer_offset_from_bottom + bindist')
 
     if not waves:
         ds['bindist'] = xr.DataArray(bindist, dims=('bindist'), name='bindist')
         ds['depth'] = xr.DataArray(depth, dims=('bindist'), name='depth')
     else:
-        ds['bindist'] = xr.DataArray([bindist], dims=('bindist'), name='bindist')
+        ds['bindist'] = xr.DataArray([bindist],
+                                     dims=('bindist'),
+                                     name='bindist')
         ds['depth'] = xr.DataArray([depth], dims=('bindist'), name='depth')
 
     return ds
@@ -509,44 +528,57 @@ def update_attrs(ds, waves=False):
                                      dims=('Tmatrix', 'Tmatrix'),
                                      name='TransMatrix')
 
-    ds['time'].attrs.update({'standard_name': 'time',
-        'axis': 'T'})
+    ds['time'].attrs.update(
+        {'standard_name': 'time',
+         'axis': 'T'})
 
-    ds['lat'].attrs.update({'units': 'degree_north',
-        'long_name': 'Latitude',
-        'epic_code': 500})
+    ds['lat'].attrs.update(
+        {'units': 'degree_north',
+         'long_name': 'Latitude',
+         'epic_code': 500})
 
-    ds['lon'].attrs.update({'units': 'degree_east',
-        'long_name': 'Longitude',
-        'epic_code': 502})
+    ds['lon'].attrs.update(
+        {'units': 'degree_east',
+         'long_name': 'Longitude',
+         'epic_code': 502})
 
-    ds['bindist'].attrs.update({'units': 'm',
-        'long_name': 'distance from transducer head',
-        'bin_size': ds.attrs['bin_size'],
-        'center_first_bin': ds.attrs['center_first_bin'],
-        'bin_count': ds.attrs['bin_count'],
-        'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom']})
+    if 'position_datum' in ds.attrs:
+        ds['lat'].attrs['datum'] = ds.attrs['position_datum']
+        ds['lon'].attrs['datum'] = ds.attrs['position_datum']
 
-    ds['Temperature'].attrs.update({'units': 'C',
-        'long_name': 'Temperature',
-        'generic_name': 'temp'})
+    ds['bindist'].attrs.update(
+        {'units': 'm',
+         'long_name': 'distance from transducer head',
+         'bin_size': ds.attrs['bin_size'],
+         'center_first_bin': ds.attrs['center_first_bin'],
+         'bin_count': ds.attrs['bin_count'],
+         'transducer_offset_from_bottom':
+            ds.attrs['transducer_offset_from_bottom']})
 
-    ds['Pressure'].attrs.update({'units': 'dbar',
-        'long_name': 'Pressure',
-        'generic_name': 'press',
-        'note': ('Raw pressure from instrument, not corrected for changes '
-                 'in atmospheric pressure')})
+    ds['Temperature'].attrs.update(
+        {'units': 'C',
+         'long_name': 'Temperature',
+         'generic_name': 'temp'})
+
+    ds['Pressure'].attrs.update(
+        {'units': 'dbar',
+         'long_name': 'Pressure',
+         'generic_name': 'press',
+         'note': ('Raw pressure from instrument, not corrected for changes '
+                  'in atmospheric pressure')})
 
     for n in [1, 2, 3]:
         ds['VEL' + str(n)].attrs.update({
             'units': 'cm/s',
             'Type': 'scalar',
-            'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom']})
+            'transducer_offset_from_bottom':
+                ds.attrs['transducer_offset_from_bottom']})
         ds['AMP' + str(n)].attrs.update({
             'long_name': 'Beam ' + str(n) + ' Echo Amplitude',
             'units': 'counts',
             'Type': 'scalar',
-            'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom'] })
+            'transducer_offset_from_bottom':
+                ds.attrs['transducer_offset_from_bottom']})
 
     if not waves:
         veltxt = 'current velocity'
@@ -566,25 +598,31 @@ def update_attrs(ds, waves=False):
         ds['VEL2'].attrs['long_name'] = 'Beam 2 ' + veltxt
         ds['VEL3'].attrs['long_name'] = 'Beam 3 ' + veltxt
 
-    ds['Battery'].attrs.update({'units': 'Volts',
-        'long_name': 'Battery Voltage'})
+    ds['Battery'].attrs.update(
+        {'units': 'Volts',
+         'long_name': 'Battery Voltage'})
 
-    ds['Pitch'].attrs.update({'units': 'degrees',
-        'long_name': 'Instrument Pitch'})
+    ds['Pitch'].attrs.update(
+        {'units': 'degrees',
+         'long_name': 'Instrument Pitch'})
 
-    ds['Roll'].attrs.update({'units': 'degrees',
-        'long_name': 'Instrument Roll'})
+    ds['Roll'].attrs.update(
+        {'units': 'degrees',
+         'long_name': 'Instrument Roll'})
 
-    ds['Heading'].attrs.update({'units': 'degrees',
-        'long_name': 'Instrument Heading',
-        'datum': 'magnetic north'})
+    ds['Heading'].attrs.update(
+        {'units': 'degrees',
+         'long_name': 'Instrument Heading',
+         'datum': 'magnetic north'})
 
-    ds['depth'].attrs.update({'units': 'm',
-        'long_name': 'mean water depth',
-        'bin_size': ds.attrs['bin_size'],
-        'center_first_bin': ds.attrs['center_first_bin'],
-        'bin_count': ds.attrs['bin_count'],
-        'transducer_offset_from_bottom': ds.attrs['transducer_offset_from_bottom']})
+    ds['depth'].attrs.update(
+        {'units': 'm',
+         'long_name': 'mean water depth',
+         'bin_size': ds.attrs['bin_size'],
+         'center_first_bin': ds.attrs['center_first_bin'],
+         'bin_count': ds.attrs['bin_count'],
+         'transducer_offset_from_bottom':
+            ds.attrs['transducer_offset_from_bottom']})
 
     ds['TransMatrix'].attrs['long_name'] = ('Transformation Matrix '
                                             'for this Aquadopp')
@@ -633,14 +671,7 @@ def update_attrs(ds, waves=False):
     #                 continue
     #
     #         # if isfield(metadata.AnalogInput1,'range'),
-    #         #         netcdf.putAtt(ncid,Ana1id,'range',metadata.AnalogInput1.range);
-    #         # end
-    #         # if isfield(metadata.AnalogInput1.cals,'NTUcoef'),
-    #         #         netcdf.putAtt(ncid,Ana1id,'NTUcoef',metadata.AnalogInput1.cals.NTUcoef);
-    #         # end
-    #         # if isfield(metadata.AnalogInput1.cals,'SEDcoef'),
-    #         #         netcdf.putAtt(ncid,Ana1id,'SEDcoef',metadata.AnalogInput1.cals.SEDcoef);
-    #         # end
+
 
 def ds_add_attrs(ds, waves=False):
     """
@@ -648,19 +679,23 @@ def ds_add_attrs(ds, waves=False):
     """
 
     def add_vel_attributes(vel, dsattrs):
-        vel.attrs.update({'units': 'cm/s',
-            'data_cmnt': 'Velocity in shallowest bin is often suspect and should be used with caution'})
+        vel.attrs.update(
+            {'units': 'cm/s',
+             'data_cmnt': ('Velocity in shallowest bin is often suspect and '
+                           'should be used with caution')})
 
         # TODO: why do we only do trim_method for Water Level SL?
         if 'trim_method' in dsattrs and dsattrs['trim_method'].lower() == 'water level sl':
-            vel.attrs.update({'note': 'Velocity bins trimmed if out of water or if side lobes intersect sea surface'})
+            vel.attrs['note'] = ('Velocity bins trimmed if out of water or if '
+                                 'side lobes intersect sea surface')
 
     def add_attributes(var, dsattrs):
-        var.attrs.update({'serial_number': dsattrs['AQDSerial_Number'],
-            'initial_instrument_height': dsattrs['initial_instrument_height'],
-            'nominal_instrument_depth': dsattrs['nominal_instrument_depth'],
-            'height_depth_units': 'm',
-            'sensor_type': dsattrs['INST_TYPE']})
+        var.attrs.update(
+            {'serial_number': dsattrs['AQDSerial_Number'],
+             'initial_instrument_height': dsattrs['initial_instrument_height'],
+             'nominal_instrument_depth': dsattrs['nominal_instrument_depth'],
+             'height_depth_units': 'm',
+             'sensor_type': dsattrs['INST_TYPE']})
         var.encoding['_FillValue'] = 1e35
 
     ds.attrs.update({'COMPOSITE': 0})
@@ -673,134 +708,169 @@ def ds_add_attrs(ds, waves=False):
     ds.epic_time.encoding['_FillValue'] = False
     ds.epic_time2.encoding['_FillValue'] = False
 
-    ds['time'].attrs.update({'standard_name': 'time',
-        'axis': 'T'})
+    ds['time'].attrs.update(
+        {'standard_name': 'time',
+         'axis': 'T'})
 
-    ds['epic_time'].attrs.update({'units': 'True Julian Day',
-        'type': 'EVEN',
-        'epic_code': 624})
+    ds['epic_time'].attrs.update(
+        {'units': 'True Julian Day',
+         'type': 'EVEN',
+         'epic_code': 624})
 
-    ds['epic_time2'].attrs.update({'units': 'msec since 0:00 GMT',
-        'type': 'EVEN',
-        'epic_code': 624})
+    ds['epic_time2'].attrs.update(
+        {'units': 'msec since 0:00 GMT',
+         'type': 'EVEN',
+         'epic_code': 624})
 
-    ds['depth'].attrs.update({'units': 'm',
-        'long_name': 'mean water depth',
-        'initial_instrument_height': ds.attrs['initial_instrument_height'],
-        'nominal_instrument_depth': ds.attrs['nominal_instrument_depth'],
-        'epic_code': 3})
+    ds['depth'].attrs.update(
+        {'units': 'm',
+         'long_name': 'mean water depth',
+         'initial_instrument_height': ds.attrs['initial_instrument_height'],
+         'nominal_instrument_depth': ds.attrs['nominal_instrument_depth'],
+         'epic_code': 3})
 
     if not waves:
-        ds['u_1205'].attrs.update({'name': 'u',
-            'long_name': 'Eastward Velocity',
-            'generic_name': 'u',
-            'epic_code': 1205})
+        ds['u_1205'].attrs.update(
+            {'name': 'u',
+             'long_name': 'Eastward Velocity',
+             'generic_name': 'u',
+             'epic_code': 1205})
 
-        ds['v_1206'].attrs.update({'name': 'v',
-            'long_name': 'Northward Velocity',
-            'generic_name': 'v',
-            'epic_code': 1206})
+        ds['v_1206'].attrs.update(
+            {'name': 'v',
+             'long_name': 'Northward Velocity',
+             'generic_name': 'v',
+             'epic_code': 1206})
 
-        ds['w_1204'].attrs.update({'name': 'w',
-            'long_name': 'Vertical Velocity',
-            'generic_name': 'w',
-            'epic_code': 1204})
+        ds['w_1204'].attrs.update(
+            {'name': 'w',
+             'long_name': 'Vertical Velocity',
+             'generic_name': 'w',
+             'epic_code': 1204})
 
-        ds['AGC_1202'].attrs.update({'units': 'counts',
-            'name': 'AGC',
-            'long_name': 'Average Echo Intensity',
-            'generic_name': 'AGC',
-            'epic_code': 1202})
+        ds['AGC_1202'].attrs.update(
+            {'units': 'counts',
+             'name': 'AGC',
+             'long_name': 'Average Echo Intensity',
+             'generic_name': 'AGC',
+             'epic_code': 1202})
 
     elif waves:
-        ds['vel1_1277'].attrs.update({'units': 'mm/s',
-            'long_name': 'Beam 1 Velocity',
-            'generic_name': 'vel1',
-            'epic_code': 1277})
+        ds['vel1_1277'].attrs.update(
+            {'units': 'mm/s',
+             'long_name': 'Beam 1 Velocity',
+             'generic_name': 'vel1',
+             'epic_code': 1277})
 
-        ds['vel2_1278'].attrs.update({'units': 'mm/s',
-            'long_name': 'Beam 2 Velocity',
-            'generic_name': 'vel2',
-            'epic_code': 1278})
+        ds['vel2_1278'].attrs.update(
+            {'units': 'mm/s',
+             'long_name': 'Beam 2 Velocity',
+             'generic_name': 'vel2',
+             'epic_code': 1278})
 
-        ds['vel3_1279'].attrs.update({'units': 'mm/s',
-            'long_name': 'Beam 3 Velocity',
-            'generic_name': 'vel3',
-            'epic_code': 1279})
+        ds['vel3_1279'].attrs.update(
+            {'units': 'mm/s',
+             'long_name': 'Beam 3 Velocity',
+             'generic_name': 'vel3',
+             'epic_code': 1279})
 
-        ds['AGC1_1221'].attrs.update({'units': 'counts',
-            'long_name': 'Echo Intensity (AGC) Beam 1',
-            'generic_name': 'AGC1',
-            'epic_code': 1221})
+        ds['AGC1_1221'].attrs.update(
+            {'units': 'counts',
+             'long_name': 'Echo Intensity (AGC) Beam 1',
+             'generic_name': 'AGC1',
+             'epic_code': 1221})
 
-        ds['AGC2_1222'].attrs.update({'units': 'counts',
-            'long_name': 'Echo Intensity (AGC) Beam 2',
-            'generic_name': 'AGC2',
-            'epic_code': 1222})
+        ds['AGC2_1222'].attrs.update(
+            {'units': 'counts',
+             'long_name': 'Echo Intensity (AGC) Beam 2',
+             'generic_name': 'AGC2',
+             'epic_code': 1222})
 
-        ds['AGC3_1223'].attrs.update({'units': 'counts',
-            'long_name': 'Echo Intensity (AGC) Beam 3',
-            'generic_name': 'AGC3',
-            'epic_code': 1223})
+        ds['AGC3_1223'].attrs.update(
+            {'units': 'counts',
+             'long_name': 'Echo Intensity (AGC) Beam 3',
+             'generic_name': 'AGC3',
+             'epic_code': 1223})
 
-    ds['P_1'].attrs.update({'units': 'dbar',
-        'name': 'P',
-        'long_name': 'Pressure',
-        'generic_name': 'depth',
-        'epic_code': 1}) # TODO: is this generic name correct?
+    ds['P_1'].attrs.update(
+        {'units': 'dbar',
+         'name': 'P',
+         'long_name': 'Pressure',
+         'generic_name': 'depth',
+         'epic_code': 1})  # TODO: is this generic name correct?
 
     if 'P_1ac' in ds:
-        ds['P_1ac'].attrs.update({'units': 'dbar',
-            'name': 'Pac',
-            'long_name': 'Corrected pressure'})
+        ds['P_1ac'].attrs.update(
+            {'units': 'dbar',
+             'name': 'Pac',
+             'long_name': 'Corrected pressure'})
         if 'P_1ac_note' in ds.attrs:
             ds['P_1ac'].attrs.update({'note': ds.attrs['P_1ac_note']})
 
         add_attributes(ds['P_1ac'], ds.attrs)
 
-        ds.attrs['history'] = 'Atmospheric pressure compensated. ' + ds.attrs['history']
+        ds.attrs['history'] = ('Atmospheric pressure compensated. ' +
+                               ds.attrs['history'])
 
-    ds['bin_depth'].attrs.update({'units': 'm',
-        'name': 'bin depth'})
+    ds['bin_depth'].attrs.update(
+        {'units': 'm',
+         'name': 'bin depth'})
 
     if 'P_1ac' in ds:
-        ds['bin_depth'].attrs.update({'note': 'Actual depth time series of velocity bins. Calculated as corrected pressure (P_1ac) - bindist.'})
+        ds['bin_depth'].attrs['note'] = ('Actual depth time series of '
+                                         'velocity bins. Calculated as '
+                                         'corrected pressure (P_1ac) - '
+                                         'bindist.')
     else:
-        ds['bin_depth'].attrs.update({'note': 'Actual depth time series of velocity bins. Calculated as pressure (P_1) - bindist.'})
+        ds['bin_depth'].attrs.update(
+            {'note': ('Actual depth time series of velocity bins. Calculated '
+                      'as pressure (P_1) - bindist.')})
 
-    ds['Tx_1211'].attrs.update({'units': 'C',
-        'name': 'Tx',
-        'long_name': 'Instrument Transducer Temperature',
-        'generic_name': 'temp',
-        'epic_code': 1211})
+    ds['Tx_1211'].attrs.update(
+        {'units': 'C',
+         'name': 'Tx',
+         'long_name': 'Instrument Transducer Temperature',
+         'generic_name': 'temp',
+         'epic_code': 1211})
 
-    ds['Hdg_1215'].attrs.update({'units': 'degrees',
-        'name': 'Hdg',
-        'long_name': 'Instrument Heading',
-        'generic_name': 'hdg',
-        'epic_code': 1215})
+    ds['Hdg_1215'].attrs.update(
+        {'units': 'degrees',
+         'name': 'Hdg',
+         'long_name': 'Instrument Heading',
+         'generic_name': 'hdg',
+         'epic_code': 1215})
 
     if 'magnetic_variation_at_site' in ds.attrs:
-        ds['Hdg_1215'].attrs.update({'note': 'Heading is degrees true. Converted from magnetic with magnetic variation of ' + str(ds.attrs['magnetic_variation_at_site'])})
+        ds['Hdg_1215'].attrs['note'] = ('Heading is degrees true. Converted '
+                                        'from magnetic with magnetic variation'
+                                        ' of %f.' %
+                                        ds.attrs['magnetic_variation_at_site'])
     elif 'magnetic_variation' in ds.attrs:
-        ds['Hdg_1215'].attrs.update({'note': 'Heading is degrees true. Converted from magnetic with magnetic variation of ' + str(ds.attrs['magnetic_variation'])})
+        ds['Hdg_1215'].attrs['note'] = ('Heading is degrees true. Converted '
+                                        'from magnetic with magnetic variation'
+                                        ' of %f.' %
+                                        ds.attrs['magnetic_variation'])
 
-    ds['Ptch_1216'].attrs.update({'units': 'degrees',
-        'name': 'Ptch',
-        'long_name': 'Instrument Pitch',
-        'generic_name': 'ptch',
-        'epic_code': 1216})
+    ds['Ptch_1216'].attrs.update(
+        {'units': 'degrees',
+         'name': 'Ptch',
+         'long_name': 'Instrument Pitch',
+         'generic_name': 'ptch',
+         'epic_code': 1216})
 
-    ds['Roll_1217'].attrs.update({'units': 'degrees',
-        'name': 'Roll',
-        'long_name': 'Instrument Roll',
-        'generic_name': 'roll',
-        'epic_code': 1217})
+    ds['Roll_1217'].attrs.update(
+        {'units': 'degrees',
+         'name': 'Roll',
+         'long_name': 'Instrument Roll',
+         'generic_name': 'roll',
+         'epic_code': 1217})
 
-    ds['bindist'].attrs.update({'units': 'm',
-        'long_name': 'distance from transducer head',
-        'blanking_distance': ds.attrs['AQDBlankingDistance'],
-        'note': 'distance is along profile from instrument head to center of bin'})
+    ds['bindist'].attrs.update(
+        {'units': 'm',
+         'long_name': 'distance from transducer head',
+         'blanking_distance': ds.attrs['AQDBlankingDistance'],
+         'note': ('distance is along profile from instrument '
+                  'head to center of bin')})
 
     if not waves:
         for v in ['AGC_1202', 'u_1205', 'v_1206', 'w_1204']:
@@ -808,10 +878,21 @@ def ds_add_attrs(ds, waves=False):
         for v in ['u_1205', 'v_1206', 'w_1204']:
             add_vel_attributes(ds[v], ds.attrs)
     elif waves:
-        for v in ['vel1_1277', 'vel2_1278', 'vel3_1279', 'AGC1_1221', 'AGC2_1222', 'AGC3_1223']:
+        for v in ['vel1_1277',
+                  'vel2_1278',
+                  'vel3_1279',
+                  'AGC1_1221',
+                  'AGC2_1222',
+                  'AGC3_1223']:
             add_attributes(ds[v], ds.attrs)
 
-    for v in ['P_1', 'Tx_1211', 'Hdg_1215', 'Ptch_1216', 'Roll_1217', 'bin_depth', 'bindist']:
+    for v in ['P_1',
+              'Tx_1211',
+              'Hdg_1215',
+              'Ptch_1216',
+              'Roll_1217',
+              'bin_depth',
+              'bindist']:
         add_attributes(ds[v], ds.attrs)
 
     return ds

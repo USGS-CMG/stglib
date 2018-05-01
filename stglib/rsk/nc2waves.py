@@ -50,6 +50,7 @@ def nc_to_waves(nc_filename):
 
     return ds
 
+
 def make_waves_ds(ds, noise=0.9):
 
     print('Computing waves statistics')
@@ -76,30 +77,27 @@ def make_waves_ds(ds, noise=0.9):
                                dims=('time', 'frequency'),
                                coords=(ds['time'], f))
     tailind, noisecut, noisecutind, fpeakcutind = zip(
-        *[waves.define_cutoff(f, x, noise=0.75)
-        for x in spec['Pxx'].values])
+        *[waves.define_cutoff(f, x, noise=0.75) for x in spec['Pxx'].values])
     spec['tailind'] = xr.DataArray(np.asarray(tailind), dims='time')
     spec['noisecutind'] = xr.DataArray(np.asarray(noisecutind), dims='time')
     spec['fpeakcutind'] = xr.DataArray(np.asarray(fpeakcutind), dims='time')
     thetail = [waves.make_tail(
         spec['frequency'],
-        spec['Pnn'][burst,:],
+        spec['Pnn'][burst, :],
         spec['tailind'][burst].values)
         for burst in range(len(spec['time']))]
     spec['pspec'] = xr.DataArray(thetail, dims=('time', 'frequency'))
-    spec['m0'] = xr.DataArray(waves.make_m0(spec['frequency'],
-                                                        spec['pspec']),
-                                                        dims='time')
-    spec['m2'] = xr.DataArray(waves.make_m2(spec['frequency'],
-                                                        spec['pspec']),
-                                                        dims='time')
-    spec['wh_4061'] = xr.DataArray(waves.make_Hs(spec['m0']),
-                                                             dims='time')
-    spec['wp_4060'] = xr.DataArray(waves.make_Tm(spec['m0'],
-                                                             spec['m2']),
-                                                             dims='time')
-    spec['wp_peak'] = xr.DataArray(waves.make_Tp(spec['pspec']),
-                                                             dims='time')
+    spec['m0'] = xr.DataArray(
+        waves.make_m0(spec['frequency'], spec['pspec']),
+        dims='time')
+    spec['m2'] = xr.DataArray(
+        waves.make_m2(spec['frequency'], spec['pspec']),
+        dims='time')
+    spec['wh_4061'] = xr.DataArray(
+        waves.make_Hs(spec['m0']), dims='time')
+    spec['wp_4060'] = xr.DataArray(
+        waves.make_Tm(spec['m0'], spec['m2']), dims='time')
+    spec['wp_peak'] = xr.DataArray(waves.make_Tp(spec['pspec']), dims='time')
     spec['kh'] = xr.DataArray(k, dims=('time', 'frequency'))
 
     return spec
