@@ -33,6 +33,43 @@ def aqdcdf2nc_parser():
     return parser
 
 
+def wvswad2cdf_parser():
+    description = ('Convert Aquadopp .wad wave files to raw .cdf format. '
+                   'Run this script from the directory containing Aquadopp '
+                   'files')
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def wvscdf2nc_parser():
+    description = 'Convert raw Aquadopp .cdf wave files to processed .nc files'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('cdfname', help='raw .CDF filename')
+    parser.add_argument('--atmpres', help=('path to cdf file containing '
+                                           'atmopsheric pressure data'))
+
+    return parser
+
+
+def wvsnc2diwasp_parser():
+    description = 'Convert processed Aquadopp waves .nc files using DIWASP'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('ncname', help='processed .nc filename')
+
+    return parser
+
+
+def wvsnc2waves_parser():
+    description = 'Generate waves statistics file'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('ncname', help='processed .nc filename')
+
+    return parser
+
+
 def rskrsk2cdf_parser():
     description = ('Convert raw RBR d|wave files (.rsk) to raw .cdf format. '
                    'Run this script from the directory '
