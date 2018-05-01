@@ -77,21 +77,7 @@ def nc_to_diwasp(nc_filename):
     print('Done creating', nc_filename)
 
     return ds
-
-
-
-
-
-def write_nc(ds, metadata):
-    """Write cleaned and trimmed Dataset to .nc file"""
-
-    nc_filename = metadata['filename'] + 'wvs_diwasp-cal.nc'
-
-
-    ds.to_netcdf(nc_filename, unlimited_dims='time', engine='netcdf4')
-
-    # rename time variables after the fact to conform with EPIC/CMG standards
-    rename_time(nc_filename)
+    
 
 def main():
 
