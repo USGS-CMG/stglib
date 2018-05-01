@@ -106,7 +106,10 @@ def make_Tm(m0, m2):
 
 
 def make_Tp(Pnn):
-    return 1/Pnn['frequency'][Pnn.fillna(0).argmax(dim='frequency')].values
+    # ensure we don't return 0 frequency as a peak period
+    fp = Pnn['frequency'][Pnn.fillna(0).argmax(dim='frequency')].values
+    fp[fp == 0] = np.nan
+    return 1/fp
 
 
 def qkfs(omega, h):
