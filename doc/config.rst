@@ -45,8 +45,8 @@ d|wave
 
 d|wave-specific options include:
 
-- ``maximum_wp``: maximum allowable wave period, in seconds
-- ``minimum_wh``: minimum allowable wave period, in seconds
+- ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
+- ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
 
 .. literalinclude:: ../examples/dw_config.yaml

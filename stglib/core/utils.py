@@ -242,18 +242,18 @@ def trim_max_wp(ds):
     Trim wave data based on maximum wave period as specified in metadata
     """
 
-    if 'maximum_wp' in ds.attrs:
+    if 'wp_max' in ds.attrs:
         print('Trimming using maximum period of %f seconds'
-              % ds.attrs['maximum_wp'])
+              % ds.attrs['wp_max'])
         for var in ['wp_peak', 'wp_4060']:
             ds[var] = ds[var].where(
-                    (ds['wp_peak'] < ds.attrs['maximum_wp']) &
-                    (ds['wp_4060'] < ds.attrs['maximum_wp'])
+                    (ds['wp_peak'] < ds.attrs['wp_max']) &
+                    (ds['wp_4060'] < ds.attrs['wp_max'])
                     )
 
         for var in ['wp_peak', 'wp_4060']:
             notetxt = 'Values filled where wp_peak, wp_4060 >= %f. ' \
-                      % ds.attrs['maximum_wp']
+                      % ds.attrs['wp_max']
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
@@ -269,14 +269,14 @@ def trim_min_wh(ds):
     Trim wave data based on minimum wave height as specified in metadata
     """
 
-    if 'minimum_wh' in ds.attrs:
+    if 'wh_min' in ds.attrs:
         print('Trimming using minimum wave height of %f m'
-              % ds.attrs['minimum_wh'])
-        ds = ds.where(ds['wh_4061'] > ds.attrs['minimum_wh'])
+              % ds.attrs['wh_min'])
+        ds = ds.where(ds['wh_4061'] > ds.attrs['wh_min'])
 
         for var in ['wp_peak', 'wp_4060', 'wh_4061']:
             notetxt = 'Values filled where wh_4061 <= %f. ' \
-                      % ds.attrs['minimum_wh'] + '. '
+                      % ds.attrs['wh_min'] + '. '
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
@@ -292,14 +292,14 @@ def trim_max_wh(ds):
     Trim wave data based on maximum wave height as specified in metadata
     """
 
-    if 'maximum_wh' in ds.attrs:
+    if 'wh_max' in ds.attrs:
         print('Trimming using maximum wave height of %f m'
-              % ds.attrs['maximum_wh'])
-        ds = ds.where(ds['wh_4061'] < ds.attrs['maximum_wh'])
+              % ds.attrs['wh_max'])
+        ds = ds.where(ds['wh_4061'] < ds.attrs['wh_max'])
 
         for var in ['wp_peak', 'wp_4060', 'wh_4061']:
             notetxt = 'Values filled where wh_4061 >= %f. ' \
-                      % ds.attrs['maximum_wh']
+                      % ds.attrs['wh_max']
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
