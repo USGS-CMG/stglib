@@ -14,7 +14,7 @@ def make_waves_ds(ds, noise=0.9):
     h = ds['P_1ac'].mean(dim='sample') + z
 
     k = np.asarray(
-        [qkfs(2*np.pi/(1/f), x) for x in h.values])
+        [qkfs(2*np.pi*f, x) for x in h.values])
 
     Kp = transfer_function(k, h, z)
     Pnn = elevation_spectra(Pxx, Kp)
