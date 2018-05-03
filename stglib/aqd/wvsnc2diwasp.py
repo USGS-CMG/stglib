@@ -68,7 +68,7 @@ def nc_to_diwasp(nc_filename):
 
     ds = utils.ds_add_diwasp_history(ds)
 
-    nc_filename = ds.attrs['filename'] + 'wvs-a.nc'
+    nc_filename = ds.attrs['filename'] + 'wvs_diwasp-cal.nc'
 
     ds = utils.rename_time(ds)
 
@@ -77,7 +77,7 @@ def nc_to_diwasp(nc_filename):
     print('Done creating', nc_filename)
 
     return ds
-    
+
 
 def main():
 
