@@ -129,9 +129,9 @@ def load_wad(ds):
             np.reshape(WAD[0:nsamps, n], (nburst, wavensamps)),
             dims=('time', 'sample'))
 
-    # convert to cm/s
-    for n in [1, 2, 3]:
-        ds['VEL' + str(n)] = ds['VEL' + str(n)] * 100
+    # convert m/s to mm/s
+    for var in ['VEL1', 'VEL2', 'VEL3']:
+        ds[var] = ds[var] * 1000
 
     print('Done loading ' + wadfile)
 
