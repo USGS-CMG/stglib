@@ -126,7 +126,6 @@ def set_orientation(VEL, T):
     Create depth variable depending on instrument orientation
     """
     # TODO: this code seems too complicated.
-    # also should we really be modifying the trans matrix?
 
     N, M = np.shape(VEL['VEL1'])
 
