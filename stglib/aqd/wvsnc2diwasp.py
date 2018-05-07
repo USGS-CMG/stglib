@@ -1,9 +1,7 @@
-#!/usr/bin/env python
-
 from __future__ import division, print_function
 import xarray as xr
-import sys
-from ..core import utils
+import numpy as np
+from ..core import utils, waves
 
 
 def nc_to_diwasp(nc_filename):
@@ -14,7 +12,8 @@ def nc_to_diwasp(nc_filename):
 
     ds = utils.create_epic_time(ds)
 
-    mat = xr.open_dataset(ds.attrs['filename'] + 'wvs-diwasp.nc', autoclose=True)
+    mat = xr.open_dataset(ds.attrs['filename'] + 'wvs-diwasp.nc',
+                          autoclose=True)
 
     ds['frequency'] = xr.DataArray(mat['frequency'], dims=('frequency'))
 
@@ -25,7 +24,8 @@ def nc_to_diwasp(nc_filename):
 
     ds['pspec'] = xr.DataArray(mat['pspec'], dims=('time', 'frequency'))
 
-    ds['dspec'] = xr.DataArray(mat['dspec'], dims=('time', 'direction', 'frequency'))
+    ds['dspec'] = xr.DataArray(mat['dspec'],
+                               dims=('time', 'direction', 'frequency'))
 
     ds = utils.create_water_depth(ds)
 
@@ -77,31 +77,3 @@ def nc_to_diwasp(nc_filename):
     print('Done creating', nc_filename)
 
     return ds
-
-
-def main():
-
-    import aqdlib
-    import argparse
-    import yaml
-
-
-    parser = argparse.ArgumentParser(description='Convert processed .nc files using DIWASP')
-    parser.add_argument('gatts', help='path to global attributes file (gatts formatted)')
-    parser.add_argument('config', help='path to ancillary config file (YAML formatted)')
-
-    args = parser.parse_args()
-
-    # initialize metadata from the globalatts file
-    metadata = aqdlib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    config = yaml.safe_load(open(args.config))
-
-    for k in config:
-        metadata[k] = config[k]
-
-    ds = nc_to_diwasp(metadata)
-
-if __name__ == '__main__':
-    main()

@@ -114,9 +114,9 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
             for j in range(M):
                 vel = np.dot(
                     R, np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T)
-                u[i,j] = vel[0]
-                v[i,j] = vel[1]
-                w[i,j] = vel[2]
+                u[i, j] = vel[0]
+                v[i, j] = vel[1]
+                w[i, j] = vel[2]
 
     return u, v, w
 
@@ -187,10 +187,12 @@ def magvar_correct(ds):
               'using zero for compass correction')
         magvardeg = 0
 
-    print('Rotating heading and horizontal velocities by %f degrees' % magvardeg)
+    print('Rotating heading and horizontal velocities by %f degrees' %
+          magvardeg)
 
     ds['Heading'] = ds['Heading'] + magvardeg
-    ds['Heading'][ds['Heading'] >= 360] = ds['Heading'][ds['Heading'] >= 360] - 360
+    ds['Heading'][ds['Heading'] >= 360] = (
+        ds['Heading'][ds['Heading'] >= 360] - 360)
     ds['Heading'][ds['Heading'] < 0] = ds['Heading'][ds['Heading'] < 0] + 360
 
     vel1 = ds['U'].copy()
@@ -209,7 +211,7 @@ def trim_vel(ds, waves=False):
 
     if ('trim_method' in ds.attrs and
            ds.attrs['trim_method'].lower() != 'none' and
-           ds.attrs['trim_method'] != None):
+           ds.attrs['trim_method'] is not None):
 
         if 'Pressure_ac' in ds:
             print('Using atmospherically corrected pressure to trim')
@@ -231,8 +233,9 @@ def trim_vel(ds, waves=False):
         elif ds.attrs['trim_method'].lower() == 'water level sl':
             print('Trimming using water level and sidelobes')
             for var in ['U', 'V', 'W', 'AGC']:
-                ds[var] = ds[var].where(ds['bindist'] <
-                                        P * np.cos(np.deg2rad(ds.attrs['AQDBeamAngle'])))
+                ds[var] = ds[var].where(
+                    ds['bindist'] <
+                    P * np.cos(np.deg2rad(ds.attrs['AQDBeamAngle'])))
             ds.attrs['history'] = (
                 'Trimmed velocity data using water level and sidelobes. ' +
                 ds.attrs['history'])
@@ -252,6 +255,7 @@ def trim_vel(ds, waves=False):
         print('Did not trim velocity data')
 
     return ds
+
 
 def read_aqd_hdr(basefile):
     """
@@ -385,7 +389,7 @@ def read_aqd_hdr(basefile):
         elif 'Transformation matrix' in row:
             Instmeta['AQDTransMatrix'] = np.zeros((3, 3))
             for n in np.arange(3):
-                Instmeta['AQDTransMatrix'][n,:] = (
+                Instmeta['AQDTransMatrix'][n, :] = (
                     [float(x) for x in row[38:].split()])
                 row = f.readline().rstrip()
         elif 'Pressure sensor calibration' in row:
@@ -446,7 +450,7 @@ def check_attrs(ds, waves=False):
         # Nortek lists the distance to the center of the first bin as the
         # blanking distance plus one cell size
         ds.attrs['center_first_bin'] = (ds.attrs['blanking_distance'] +
-                                        ds.attrs['bin_size']) # in m
+                                        ds.attrs['bin_size'])  # in m
     else:
         ds.attrs['bin_count'] = 1  # only 1 wave bin
         ds.attrs['bin_size'] = ds.attrs['WaveCellSize']
@@ -491,7 +495,8 @@ def check_orientation(ds, waves=False):
     if ds.attrs['orientation'] == 'UP':
         print('User instructed that instrument was pointing UP')
         # depth, or distance below surface, is a positive number below the
-        # surface, negative above the surface, for CMG purposes and consistency with ADCP
+        # surface, negative above the surface, for CMG purposes and consistency
+        # with ADCP
         depth = (ds.attrs['WATER_DEPTH'] -
                  ds.attrs['transducer_offset_from_bottom']) - bindist
         # TODO: this is never used
@@ -684,7 +689,8 @@ def ds_add_attrs(ds, waves=False):
                            'should be used with caution')})
 
         # TODO: why do we only do trim_method for Water Level SL?
-        if 'trim_method' in dsattrs and dsattrs['trim_method'].lower() == 'water level sl':
+        if ('trim_method' in dsattrs and
+                dsattrs['trim_method'].lower() == 'water level sl'):
             vel.attrs['note'] = ('Velocity bins trimmed if out of water or if '
                                  'side lobes intersect sea surface')
 

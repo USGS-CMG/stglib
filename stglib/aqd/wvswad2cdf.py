@@ -8,7 +8,21 @@ from . import qaqc
 
 
 def wad_to_cdf(metadata):
-    """Main waves load file"""
+    """Load Aquadopp waves data and create raw netCDF file
+
+    Parameters
+    ----------
+    metadata : dict
+        Dictionary of required metadata
+    writefile : bool, optional
+        Flag to write raw .cdf file. Default True
+
+    Returns
+    -------
+    xarray.Dataset
+        Raw waves data in an xarray Dataset
+
+    """
 
     basefile = metadata['basefile']
 

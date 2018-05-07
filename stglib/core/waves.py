@@ -3,12 +3,13 @@ import scipy.signal as spsig
 import numpy as np
 import xarray as xr
 
+
 def make_waves_ds(ds, noise=0.9):
 
     print('Computing waves statistics')
 
     f, Pxx = pressure_spectra(ds['P_1ac'],
-                                    fs=1/ds.attrs['sample_interval'])
+                              fs=1/ds.attrs['sample_interval'])
 
     z = ds.attrs['initial_instrument_height']
     h = ds['P_1ac'].mean(dim='sample') + z
