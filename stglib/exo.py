@@ -340,7 +340,7 @@ def exo_qaqc(ds):
 
     for var in ['C_51', 'SpC_48', 'S_41', 'Turb']:
         if var + '_min_diff' in ds.attrs:
-            print('Trimming using minimum %s diff of %f' %
+            print('%s: Trimming using minimum diff of %f' %
                   (var, ds.attrs[var + '_min_diff']))
             ds[var][np.ediff1d(
                 ds[var], to_begin=0) < ds.attrs[var + '_min_diff']] = np.nan
@@ -353,8 +353,9 @@ def exo_qaqc(ds):
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
             else:
                 ds[var].attrs.update({'note': notetxt})
+
         if var + '_max_diff' in ds.attrs:
-            print('Trimming using maximum %s diff of %f' %
+            print('%s: Trimming using maximum diff of %f' %
                   (var, ds.attrs[var + '_max_diff']))
             ds[var][np.ediff1d(
                 ds[var], to_begin=0) > ds.attrs[var + '_max_diff']] = np.nan
