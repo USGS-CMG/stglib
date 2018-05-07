@@ -29,11 +29,16 @@ def make_waves_ds(ds, noise=0.9):
     spec['Pxx'] = xr.DataArray(Pxx,
                                dims=('time', 'frequency'),
                                coords=(ds['time'], f))
-    tailind, noisecut, noisecutind, fpeakcutind = zip(
-        *[define_cutoff(f, x, noise=0.75) for x in spec['Pxx'].values])
+    spec['Kp'] = xr.DataArray(Kp,
+                              dims=('time', 'frequency'),
+                              coords=(ds['time'], f))
+    tailind, noisecut, noisecutind, fpeakcutind, Kpcutind = zip(
+        *[define_cutoff(f, x, y, noise=0.75) for x, y in
+            zip(spec['Pxx'].values, spec['Kp'].values)])
     spec['tailind'] = xr.DataArray(np.asarray(tailind), dims='time')
     spec['noisecutind'] = xr.DataArray(np.asarray(noisecutind), dims='time')
     spec['fpeakcutind'] = xr.DataArray(np.asarray(fpeakcutind), dims='time')
+    spec['Kpcutind'] = xr.DataArray(np.asarray(Kpcutind), dims='time')
     thetail = [make_tail(
         spec['frequency'],
         spec['Pnn'][burst, :],
@@ -114,22 +119,25 @@ def transfer_function(k, h, z):
     return Kp
 
 
-def define_cutoff(f, Pxx, noise=0.9):
+def define_cutoff(f, Pxx, Kp, noise=0.9):
     noisecut = 12*np.mean(Pxx[f >= noise*f[-1]])
     tmp = np.where(Pxx <= noisecut)[0]
     # sometimes the first value is less than the noise floor (not sure why)
     if 0 in tmp:  # it has chosen the first value, which we want to ignore
-        noisecutind = tmp[1] - 1
+        noisecutind = tmp[1] - 1  # cutoff based on 12*noise level
     else:
         noisecutind = tmp[0] - 1
     fpeakcut = 1.1*f[np.argmax(Pxx)]
-    fpeakcutind = np.searchsorted(f, fpeakcut)
+    fpeakcutind = np.searchsorted(f, fpeakcut)  # cutoff based on 1.1*fp
+    Kpcutind = np.argmax(Kp <= 0.1)  # cutoff based on Kp<=0.1
 
-    if noisecutind > fpeakcutind:
+    if (noisecutind > fpeakcutind) and (noisecutind <= Kpcutind):
         tailind = noisecutind
+    elif (noisecutind > fpeakcutind) and (noisecutind > Kpcutind):
+        tailind = Kpcutind
     else:
         tailind = np.nan
-    return tailind, noisecut, noisecutind, fpeakcutind
+    return tailind, noisecut, noisecutind, fpeakcutind, Kpcutind
 
 
 def make_tail(f, Pnn, tailind):
