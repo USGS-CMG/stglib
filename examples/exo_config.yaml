@@ -14,7 +14,12 @@ C_51_min_diff: -0.3
 SpC_48_min_diff: -2.5
 S_41_min_diff: -2
 Turb_max_diff: 100
-# Example of how to trim by specifying the good ensembles. Hyphen before each number, and each number on its own line is required
-# good_ens:
-# - 500
-# - 600
+# Example of how to trim by specifying the bad ensembles that should be removed.
+# Here we will remove C_51 values at in ensembles 500:600 and 905:910.
+# You must specify these ranges as pairs, start and end
+C_51_bad_ens: [[500, 600], [905, 910]]
+# Here's an example of just removing a single value (51):
+S_41_bad_ens: [51, 52]
+# Or an single range (200-250). Note that Python's indexing means that this
+# will actually remove values 200 through 249.
+Turb_bad_ens: [200, 250]

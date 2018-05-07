@@ -2,6 +2,7 @@ from __future__ import division, print_function
 import pandas as pd
 import xarray as xr
 import numpy as np
+import scipy.signal
 from .core import utils
 
 
@@ -366,5 +367,60 @@ def exo_qaqc(ds):
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
             else:
                 ds[var].attrs.update({'note': notetxt})
+
+        if var + '_med_diff' in ds.attrs:
+            if 'kernel_size' in ds.attrs:
+                kernel_size = ds.attrs['kernel_size']
+            else:
+                kernel_size = 5
+            print('%s: Trimming using %d-point median filter diff of %f' %
+                  (var, kernel_size, ds.attrs[var + '_med_diff']))
+            filtered = scipy.signal.medfilt(ds[var], kernel_size=kernel_size)
+            bads = np.abs(ds[var] - filtered) > ds.attrs[var + '_med_diff']
+            ds[var][bads] = np.nan
+
+            notetxt = ('Values filled where difference between %d-point '
+                       'median filter and original values is greater than '
+                       '%f. ' %
+                       (kernel_size, ds.attrs[var + '_med_diff']))
+
+            if 'note' in ds[var].attrs:
+                ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
+            else:
+                ds[var].attrs.update({'note': notetxt})
+
+        if var + '_med_diff_pct' in ds.attrs:
+            if 'kernel_size' in ds.attrs:
+                kernel_size = ds.attrs['kernel_size']
+            else:
+                kernel_size = 5
+            print('%s: Trimming using %d-point median filter diff of %f pct' %
+                  (var, kernel_size, ds.attrs[var + '_med_diff_pct']))
+            filtered = scipy.signal.medfilt(ds[var], kernel_size=kernel_size)
+            bads = (100 * np.abs(ds[var] - filtered)/ds[var] >
+                    ds.attrs[var + '_med_diff_pct'])
+            ds[var][bads] = np.nan
+
+            notetxt = ('Values filled where percent difference between '
+                       '%d-point median filter and original values is greater '
+                       'than %f. ' %
+                       (kernel_size, ds.attrs[var + '_med_diff_pct']))
+
+            if 'note' in ds[var].attrs:
+                ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
+            else:
+                ds[var].attrs.update({'note': notetxt})
+
+        if var + '_bad_ens' in ds.attrs:
+            inc = np.arange(0, len(ds.attrs[var + '_bad_ens']), 2)
+            for n in inc:
+                print('%s: Trimming using bad_ens %d:%d' %
+                      (var,
+                       ds.attrs[var + '_bad_ens'][n],
+                       ds.attrs[var + '_bad_ens'][n+1]))
+                bads = np.full(ds[var].shape, False)
+                bads[np.arange(ds.attrs[var + '_bad_ens'][n],
+                               ds.attrs[var + '_bad_ens'][n+1])] = True
+                ds[var][bads] = np.nan
 
     return ds
