@@ -124,7 +124,12 @@ def load_wad(ds):
 
     r, c = np.shape(WAD)
     print(wadfile + ' has ' + str(r) + ' rows and ' + str(c) + ' columns')
-
+    if r % 1024:
+        print('Number of rows read is not a multiple of %d. Truncating data '
+              'to last full burst' %
+              ds.attrs['WaveNumberOfSamples'])
+        print('')
+        ds = ds.sel(time=ds.time[0:-1])
     nburst = int(np.floor(r/ds.attrs['WaveNumberOfSamples']))
     nsamps = int(nburst * ds.attrs['WaveNumberOfSamples'])
     wavensamps = int(ds.attrs['WaveNumberOfSamples'])
