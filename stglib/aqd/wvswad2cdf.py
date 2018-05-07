@@ -7,7 +7,7 @@ from ..core import utils
 from . import qaqc
 
 
-def wad_to_cdf(metadata):
+def wad_to_cdf(metadata, writefile=True):
     """Load Aquadopp waves data and create raw netCDF file
 
     Parameters
@@ -58,17 +58,15 @@ def wad_to_cdf(metadata):
 
     ds = utils.create_epic_time(ds)
 
-    # configure file
-    cdf_filename = ds.attrs['filename'] + 'wvs-raw.cdf'
-
     ds = qaqc.update_attrs(ds, waves=True)
 
     # need to drop datetime
     ds = ds.drop('datetime')
 
-    ds.to_netcdf(cdf_filename, unlimited_dims='time')
-
-    print('Finished writing data to %s' % cdf_filename)
+    if writefile:
+        cdf_filename = ds.attrs['filename'] + 'wvs-raw.cdf'
+        ds.to_netcdf(cdf_filename, unlimited_dims='time')
+        print('Finished writing data to %s' % cdf_filename)
 
     return ds
 
