@@ -173,6 +173,29 @@ def make_Tp(Pnn):
     return 1/fp
 
 
+def polar2compass(polar):
+    """Convert polar directions (starts at positive x, increases
+    counterclockwise) to compass directions (starts at positive y, increases
+    clockwise)
+
+    http://nautilus.baruch.sc.edu/CSV/explain_coord_sys_diagram.pdf
+    """
+    comp = -np.atleast_1d(polar) + 90
+    comp[comp < 0] = comp[comp < 0] + 360
+
+    return comp
+
+
+def to2from(todir):
+    """Convert "bearing to" directions to "bearing from" directions
+    (helpful for waves from/to conventions)
+    """
+
+    fromdir = np.atleast_1d(todir) - 180
+    fromdir[fromdir < 0] = fromdir[fromdir < 0] + 360
+
+    return fromdir
+
 def qkfs(omega, h):
     """
     Modified from Wiberg & Sherwood 2009; only does 3 iterations.

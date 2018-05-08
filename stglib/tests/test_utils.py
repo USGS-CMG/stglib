@@ -79,5 +79,21 @@ class TestAqd(unittest.TestCase):
         np.testing.assert_almost_equal(result, expected)
 
 
+class TestUtils(unittest.TestCase):
+
+    def test_polar2compass(self):
+        polar = [90, 80, 0, -80, -100, -180, 180, 100, 260, 280, 365]
+        result = stglib.waves.polar2compass(polar)
+        expected = [0, 10, 90, 170, 190, 270, 270, 350, 190, 170, 85]
+
+        np.testing.assert_equal(result, expected)
+
+    def test_to2from(self):
+        todir = [0, 45, 90, 135, 180, 225, 270, 315, 360, -180]
+        result = stglib.waves.to2from(todir)
+        expected = [180, 225, 270, 315, 0, 45, 90, 135, 180, 0]
+
+        np.testing.assert_equal(result, expected)
+
 if __name__ == '__main__':
     unittest.main()
