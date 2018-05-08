@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 import numpy as np
+import math
 import xarray as xr
 
 
@@ -68,9 +69,9 @@ def add_delta_t(ds, waves=False):
 
 
 def make_tilt(p, r):
-    return np.array([[np.cos(p), -np.sin(p)*np.sin(r), -np.cos(r)*np.sin(p)],
-                     [0,           np.cos(r),              -np.sin(r)],
-                     [np.sin(p),  np.sin(r)*np.cos(p),  np.cos(p)*np.cos(r)]])
+    return np.array([[math.cos(p), -math.sin(p)*math.sin(r), -math.cos(r)*math.sin(p)],
+                     [0,           math.cos(r),              -math.sin(r)],
+                     [math.sin(p),  math.sin(r)*math.cos(p),  math.cos(p)*math.cos(r)]])
 
 
 def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
@@ -98,8 +99,8 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
             pp = np.pi * pitch[i] / 180
             rr = np.pi * roll[i] / 180
 
-            H = np.array([[ np.cos(hh), np.sin(hh), 0],
-                          [-np.sin(hh), np.cos(hh), 0],
+            H = np.array([[ math.cos(hh), math.sin(hh), 0],
+                          [-math.sin(hh), math.cos(hh), 0],
                           [ 0,          0,          1]])
 
             # make tilt matrix
