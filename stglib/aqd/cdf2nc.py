@@ -19,11 +19,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = utils.create_water_depth(VEL)
 
     # Create depth variable depending on orientation
-    VEL, T = qaqc.set_orientation(VEL, VEL['TransMatrix'].values)
+    VEL, T, T_orig = qaqc.set_orientation(VEL, VEL['TransMatrix'].values)
 
     # Transform coordinates from, most likely, BEAM to ENU
     u, v, w = qaqc.coord_transform(VEL['VEL1'].values, VEL['VEL2'].values, VEL['VEL3'].values,
-        VEL['Heading'].values, VEL['Pitch'].values, VEL['Roll'].values, T, VEL.attrs['AQDCoordinateSystem'])
+        VEL['Heading'].values, VEL['Pitch'].values, VEL['Roll'].values, T, T_orig, VEL.attrs['AQDCoordinateSystem'])
 
     VEL['U'] = xr.DataArray(u, dims=('time', 'bindist'))
     VEL['V'] = xr.DataArray(v, dims=('time', 'bindist'))

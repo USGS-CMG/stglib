@@ -74,7 +74,7 @@ def make_tilt(p, r):
                      [math.sin(p),  math.sin(r)*math.cos(p),  math.cos(p)*math.cos(r)]])
 
 
-def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
+def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
     """Perform coordinate transformation to ENU"""
 
     N, M = np.shape(vel1)
@@ -107,17 +107,22 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, cs):
             P = make_tilt(pp, rr)
 
             # resulting transformation matrix
+            R = np.dot(np.dot(H, P), T)
             if cs == 'XYZ':
-                R = np.dot(H, P)
-            elif cs == 'BEAM':
-                R = np.dot(np.dot(H, P), T)
+                for j in range(M):
+                    vel = np.dot(np.dot(R, np.linalg.inv(T_orig)),
+                        np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T)
+                    u[i, j] = vel[0]
+                    v[i, j] = vel[1]
+                    w[i, j] = vel[2]
 
-            for j in range(M):
-                vel = np.dot(
-                    R, np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T)
-                u[i, j] = vel[0]
-                v[i, j] = vel[1]
-                w[i, j] = vel[2]
+            elif cs == 'BEAM':
+                for j in range(M):
+                    vel = np.dot(
+                        R, np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T)
+                    u[i, j] = vel[0]
+                    v[i, j] = vel[1]
+                    w[i, j] = vel[2]
 
     return u, v, w
 
@@ -144,6 +149,8 @@ def set_orientation(VEL, T):
               VEL.attrs['AQDBlankingDistance'])
     binc = VEL.attrs['bin_count']
 
+    T_orig = T.copy()
+
     if VEL.attrs['orientation'] == 'UP':
         print('User instructed that instrument was pointing UP')
         VEL['depth'] = xr.DataArray(
@@ -162,7 +169,7 @@ def set_orientation(VEL, T):
                                                 num=binc),
                                     dims=('bindist'))
 
-    return VEL, T
+    return VEL, T, T_orig
 
 
 def make_bin_depth(VEL):

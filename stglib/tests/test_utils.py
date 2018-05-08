@@ -28,6 +28,8 @@ class TestAqd(unittest.TestCase):
                            [-2896, 2896, 0],
                            [-2896, -2896, 5792]])/4096
 
+        self.T_orig = self.T.copy()
+
         self.vel1 = np.expand_dims([0.23, 0.23, 0.23], 1)
         self.vel2 = np.expand_dims([-0.52, -0.52, -0.52], 1)
         self.vel3 = np.expand_dims([0.12, 0.12, 0.12], 1)
@@ -47,6 +49,7 @@ class TestAqd(unittest.TestCase):
                                                   self.p,
                                                   self.r,
                                                   self.T,
+                                                  self.T_orig,
                                                   'BEAM')
 
         result = np.hstack((u, v, w))
@@ -69,6 +72,7 @@ class TestAqd(unittest.TestCase):
                                                   self.p,
                                                   self.r,
                                                   T,
+                                                  self.T_orig,
                                                   'BEAM')
 
         result = np.hstack((u, v, w))
@@ -78,6 +82,48 @@ class TestAqd(unittest.TestCase):
 
         np.testing.assert_almost_equal(result, expected)
 
+
+    def test_xyz_to_enu(self):
+
+        u, v, w = stglib.aqd.qaqc.coord_transform(self.vel1,
+                                                  self.vel2,
+                                                  self.vel3,
+                                                  self.h,
+                                                  self.p,
+                                                  self.r,
+                                                  self.T,
+                                                  self.T_orig,
+                                                  'XYZ')
+
+        result = np.hstack((u, v, w))
+        expected = np.array([[0.520000000000000, 0.230000000000000, 0.120000000000000],
+                             [0.558771983800901, 0.142329791902643, 0.0722225758067118],
+                             [-0.495456501337512, 0.253945766296246, 0.166536491684568]])
+
+        np.testing.assert_almost_equal(result, expected)
+
+    def test_xyz_to_enu_downlooking(self):
+
+        T = self.T.copy()
+        T[1, :] = -T[1, :]
+        T[2, :] = -T[2, :]
+
+        u, v, w = stglib.aqd.qaqc.coord_transform(self.vel1,
+                                                  self.vel2,
+                                                  self.vel3,
+                                                  self.h,
+                                                  self.p,
+                                                  self.r,
+                                                  T,
+                                                  self.T_orig,
+                                                  'XYZ')
+
+        result = np.hstack((u, v, w))
+        expected = np.array([[-0.520000000000000, 0.230000000000000, -0.120000000000000],
+                             [-0.479197782595360, 0.308957928704944, -0.112314217470635],
+                             [0.144416971478138, -0.548502906329893, -0.126444850020645]])
+
+        np.testing.assert_almost_equal(result, expected)
 
 class TestUtils(unittest.TestCase):
 
