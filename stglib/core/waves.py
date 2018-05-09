@@ -32,7 +32,7 @@ def make_waves_ds(ds, noise=0.9):
     spec['Kp'] = xr.DataArray(Kp,
                               dims=('time', 'frequency'),
                               coords=(ds['time'], f))
-    tailind, noisecut, noisecutind, fpeakcutind, Kpcutind = zip(
+    tailind, noisecutind, fpeakcutind, Kpcutind = zip(
         *[define_cutoff(f, x, y, noise=0.75) for x, y in
             zip(spec['Pxx'].values, spec['Kp'].values)])
     spec['tailind'] = xr.DataArray(np.asarray(tailind), dims='time')
@@ -137,7 +137,7 @@ def define_cutoff(f, Pxx, Kp, noise=0.9):
         tailind = Kpcutind
     else:
         tailind = np.nan
-    return tailind, noisecut, noisecutind, fpeakcutind, Kpcutind
+    return tailind, noisecutind, fpeakcutind, Kpcutind
 
 
 def make_tail(f, Pnn, tailind):
