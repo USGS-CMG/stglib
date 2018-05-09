@@ -208,8 +208,22 @@ def make_tail(f, Pnn, tailind):
         return np.hstack((Pnn[:ti], tail[ti:]))
 
 
+def make_mwd(freqs, dirs, dspec):
+    """Create mean wave direction (EPIC 4062) variable"""
 
+    Sxsin = dspec * np.expand_dims(np.sin(np.deg2rad(dirs)), axis=1)
+    Sxcos = dspec * np.expand_dims(np.cos(np.deg2rad(dirs)), axis=1)
 
+    Dnum = np.trapz(np.trapz(Sxsin, x=freqs), x=dirs)
+    Ddnom = np.trapz(np.trapz(Sxcos, x=freqs), x=dirs)
+
+    Dm = np.rad2deg(np.arctan(np.abs(Dnum/Ddnom)))
+
+    Dm[(Dnum > 0) & (Ddnom < 0)] = 180 - Dm[(Dnum > 0) & (Ddnom < 0)]
+    Dm[(Dnum < 0) & (Ddnom < 0)] = 180 + Dm[(Dnum < 0) & (Ddnom < 0)]
+    Dm[(Dnum < 0) & (Ddnom > 0)] = 360 - Dm[(Dnum < 0) & (Ddnom > 0)]
+
+    return Dm
 
 def make_moment(f, Pnn, n):
     """Compute nth moment (m0, m1, m2, etc.) of power spectra"""

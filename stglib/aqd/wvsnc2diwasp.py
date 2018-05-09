@@ -17,15 +17,41 @@ def nc_to_diwasp(nc_filename):
 
     ds['frequency'] = xr.DataArray(mat['frequency'], dims=('frequency'))
 
-    ds['direction'] = xr.DataArray(mat['direction'], dims=('direction'))
+    # Note we convert the polar/cartesian coordinates provided by DIWASP to
+    # compass coordinates
+    dirs = waves.polar2compass(waves.to2from(mat['direction']))
 
-    for k in ['wp_peak', 'wh_4061', 'wp_4060', 'wvdir', 'dwvdir']:
+    # Return only unique directions (diwasp has double directions...)
+    # FIXME: Why is this?
+    _, idx = np.unique(dirs, return_index=True)
+
+    ds['direction'] = xr.DataArray(dirs[idx], dims=('direction'))
+
+    ds['dspec'] = xr.DataArray(mat['dspec'][:,idx,:],
+                               dims=('time', 'direction', 'frequency'))
+
+    pspec = np.trapz(ds['dspec'].values, x=ds['direction'], axis=1)
+
+    m0 = waves.make_moment(ds['frequency'].values, pspec, 0)
+    m2 = waves.make_moment(ds['frequency'].values, pspec, 2)
+
+    ds['wh_4061'] = xr.DataArray(waves.make_Hs(m0), dims='time')
+
+    ds['wp_4060'] = xr.DataArray(waves.make_Tm(m0, m2), dims='time')
+
+    for k in ['wp_peak']:
         ds[k] = xr.DataArray(mat[k], dims='time')
 
-    ds['pspec'] = xr.DataArray(mat['pspec'], dims=('time', 'frequency'))
+    for k in ['wvdir', 'dwvdir']:
+        ds[k] = xr.DataArray(waves.polar2compass(waves.to2from(mat[k])),
+                             dims='time')
 
-    ds['dspec'] = xr.DataArray(mat['dspec'],
-                               dims=('time', 'direction', 'frequency'))
+    ds['pspec'] = xr.DataArray(pspec, dims=('time', 'frequency'))
+
+    ds['wd_4062'] = xr.DataArray(waves.make_mwd(ds['frequency'].values,
+                                                ds['direction'].values,
+                                                ds['dspec'].values),
+                                 dims='time')
 
     ds = utils.create_water_depth(ds)
 
