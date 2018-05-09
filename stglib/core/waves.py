@@ -46,10 +46,10 @@ def make_waves_ds(ds, noise=0.9):
         for burst in range(len(spec['time']))]
     spec['pspec'] = xr.DataArray(thetail, dims=('time', 'frequency'))
     spec['m0'] = xr.DataArray(
-        make_m0(spec['frequency'], spec['pspec']),
+        make_moment(spec['frequency'], spec['pspec'], 0),
         dims='time')
     spec['m2'] = xr.DataArray(
-        make_m2(spec['frequency'], spec['pspec']),
+        make_moment(spec['frequency'], spec['pspec'], 2),
         dims='time')
     spec['wh_4061'] = xr.DataArray(
         make_Hs(spec['m0']), dims='time')
@@ -150,12 +150,12 @@ def make_tail(f, Pnn, tailind):
         return np.hstack((Pnn[:ti], tail[ti:]))
 
 
-def make_m0(f, Pnn):
-    return np.trapz(Pnn, x=f)
 
 
-def make_m2(f, Pnn):
-    return np.trapz(Pnn * f**2, x=f)
+
+def make_moment(f, Pnn, n):
+    """Compute nth moment (m0, m1, m2, etc.) of power spectra"""
+    return np.trapz(Pnn * f**n, x=f)
 
 
 def make_Hs(m0):
