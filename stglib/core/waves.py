@@ -120,6 +120,41 @@ def transfer_function(k, h, z):
 
 
 def define_cutoff(f, Pxx, Kp, noise=0.9):
+    """Define cutoff based on Jones & Monismith (2007) values for the
+    noise floor cutoff (12*noise), f_peak cutoff (1.1*f_peak), along with
+    a cutoff based on 0.1 K_p (pressure transfer function)
+
+    Parameters
+    ----------
+    f : array_like
+        Frequencies
+    Pxx : array_like
+        Untransformed pressure spectra
+    Kp : array_like
+        Pressure transfer function
+    noise : float, optional
+        Fractional frequency above which we consider data to be noise.
+        Default 0.9 (i.e. top 10% of frequencies considered noise)
+
+    Returns
+    -------
+    tailind : int
+        Index for where to start applying the f^-4 tail
+    noisecutind : int
+        Index for noise cutoff
+    fpeakcutind : int
+        Index for f_peak cutoff
+    Kpcutind : int
+        Index for the K_p cutoff
+
+    References
+    ----------
+    Jones, N. L., & Monismith, S. G. (2007). Measuring short-period wind waves
+    in a tidally forced environment with a subsurface pressure gauge.
+    Limnology and Oceanography: Methods, 5, 317–327.
+    http://doi.org/10.4319/lom.2007.5.317
+    """
+
     noisecut = 12*np.mean(Pxx[f >= noise*f[-1]])
     tmp = np.where(Pxx <= noisecut)[0]
     # sometimes the first value is less than the noise floor (not sure why)
@@ -141,6 +176,29 @@ def define_cutoff(f, Pxx, Kp, noise=0.9):
 
 
 def make_tail(f, Pnn, tailind):
+    """Make f^-4 tail following Jones & Monismith (2007)
+
+    Parameters
+    ----------
+    f : array_like
+        Frequencies
+    Pnn : array_like
+        Spectra
+    tailind : int
+        Index for where to start applying the f^-4 tail
+
+    Returns
+    -------
+    array_like
+        Spectra with f^-4 tail applied above tailind
+
+    References
+    ----------
+    Jones, N. L., & Monismith, S. G. (2007). Measuring short-period wind waves
+    in a tidally forced environment with a subsurface pressure gauge.
+    Limnology and Oceanography: Methods, 5, 317–327.
+    http://doi.org/10.4319/lom.2007.5.317
+    """
     ti = tailind.astype(int)
     tail = np.ones_like(f)
     if np.isnan(tailind):
