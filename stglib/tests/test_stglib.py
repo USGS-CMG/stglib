@@ -57,7 +57,7 @@ class TestAqd(unittest.TestCase):
                              [0.510589752632478, -0.266778740685713, 0.363012589777355],
                              [-0.144471300248944, 0.544447107731532, 0.382565448778586]])
 
-        np.testing.assert_almost_equal(result, expected)
+        np.testing.assert_allclose(result, expected)
 
     def test_coord_transform_downlooking(self):
 
@@ -80,8 +80,7 @@ class TestAqd(unittest.TestCase):
                              [-0.581528098781915, -0.135532612145337, -0.327271926208413],
                              [0.457413978956800, -0.281857021448140, -0.418306112347528]])
 
-        np.testing.assert_almost_equal(result, expected)
-
+        np.testing.assert_allclose(result, expected)
 
     def test_xyz_to_enu(self):
 
@@ -100,7 +99,7 @@ class TestAqd(unittest.TestCase):
                              [0.558771983800901, 0.142329791902643, 0.0722225758067118],
                              [-0.495456501337512, 0.253945766296246, 0.166536491684568]])
 
-        np.testing.assert_almost_equal(result, expected)
+        np.testing.assert_allclose(result, expected)
 
     def test_xyz_to_enu_downlooking(self):
 
@@ -123,9 +122,10 @@ class TestAqd(unittest.TestCase):
                              [-0.479197782595360, 0.308957928704944, -0.112314217470635],
                              [0.144416971478138, -0.548502906329893, -0.126444850020645]])
 
-        np.testing.assert_almost_equal(result, expected)
+        np.testing.assert_allclose(result, expected)
 
-class TestUtils(unittest.TestCase):
+
+class TestWavesUtils(unittest.TestCase):
 
     def test_polar2compass(self):
         polar = [90, 80, 0, -80, -100, -180, 180, 100, 260, 280, 365]
@@ -140,6 +140,49 @@ class TestUtils(unittest.TestCase):
         expected = [180, 225, 270, 315, 0, 45, 90, 135, 180, 0]
 
         np.testing.assert_equal(result, expected)
+
+
+class TestWaves(unittest.TestCase):
+    """Test waves against published Chincoteague data.
+    Use the first published burst"""
+
+    def setUp(self):
+        self.bbv = xr.open_dataset(
+            ('http://stellwagen.er.usgs.gov/thredds/dodsC/TSdata/'
+             'CHINCOTEAGUE/10191Aaqdwvs_diwasp-cal.nc'), decode_times=False)
+
+        self.frequency = self.bbv['frequency'].squeeze()
+        self.pspec = self.bbv['pspec'].isel(time=0).squeeze()
+
+        self.m0 = stglib.waves.make_moment(
+            self.frequency,
+            self.pspec,
+            0)
+
+        self.m2 = stglib.waves.make_moment(
+            self.frequency,
+            self.pspec,
+            2)
+
+    def test_make_Hs(self):
+        result = stglib.waves.make_Hs(self.m0)
+        expected = self.bbv['wh_4061'][0].squeeze()
+
+        # can't expect 1e-7 agreement for wave heights, so relax rtol
+        np.testing.assert_allclose(result, expected, rtol=1e-2)
+
+    def test_make_Tm(self):
+        result = stglib.waves.make_Tm(self.m0, self.m2)
+        expected = self.bbv['wp_4060'][0].squeeze()
+
+        np.testing.assert_allclose(result, expected)
+
+    def test_make_Tp(self):
+        result = stglib.waves.make_Tp(self.pspec)
+        expected = self.bbv['wp_peak'][0].squeeze()
+
+        np.testing.assert_allclose(result, expected)
+
 
 if __name__ == '__main__':
     unittest.main()
