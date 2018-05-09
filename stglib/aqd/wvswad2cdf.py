@@ -76,18 +76,12 @@ def load_whd(metadata):
 
     whdfile = metadata['basefile'] + '.whd'
 
-    # read csv and parse dates
-    # https://stackoverflow.com/q/27112591
-    def parse(year, month, day, hour, minute, second):
-        return (year + '-' + month + '-' + day + ' ' +
-                hour + ':' + minute + ':' + second)
-
     WHD = pd.read_csv(
         whdfile,
         header=None,
         delim_whitespace=True,
         parse_dates={'datetime': [2, 0, 1, 3, 4, 5]},
-        date_parser=parse,
+        date_parser=qaqc.date_parser,
         usecols=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
                  10, 11, 12, 13, 14, 16, 17, 18, 19, 20])
 

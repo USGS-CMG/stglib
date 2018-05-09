@@ -71,17 +71,13 @@ def load_sen(basefile):
 
     senfile = basefile + '.sen'
 
-    # read csv and parse dates
-    # https://stackoverflow.com/questions/27112591/parsing-year-month-day-hour-minute-second-in-python
-    def parse(year, month, day, hour, minute, second):
-        return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second
-
     SEN = pd.read_csv(senfile,
                       header=None,
                       delim_whitespace=True,
                       parse_dates={'datetime': [2, 0, 1, 3, 4, 5]},
-                      date_parser=parse,
-                      usecols=[0, 1, 2, 3, 4, 5, 8, 10, 11, 12, 13, 14, 15, 16])
+                      date_parser=qaqc.date_parser,
+                      usecols=[0, 1, 2, 3, 4, 5, 8, 10,
+                               11, 12, 13, 14, 15, 16])
 
     # rename columns from numeric to human-readable
     SEN.rename(columns={10: 'Heading',
