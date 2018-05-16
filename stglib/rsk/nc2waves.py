@@ -45,6 +45,6 @@ def nc_to_waves(nc_filename):
 
     ds = utils.rename_time(ds)
 
-    ds.to_netcdf(nc_filename)
+    ds.to_netcdf(nc_filename, unlimited_dims=['time'])
 
     return ds

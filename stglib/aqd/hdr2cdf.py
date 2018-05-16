@@ -59,7 +59,7 @@ def prf_to_cdf(metadata):
     # need to drop datetime
     ds = ds.drop('datetime')
 
-    ds.to_netcdf(cdf_filename, unlimited_dims='time')
+    ds.to_netcdf(cdf_filename, unlimited_dims=['time'])
 
     print('Finished writing data to %s' % cdf_filename)
 

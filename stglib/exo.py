@@ -97,7 +97,7 @@ def csv_to_cdf(metadata):
     # configure file
     cdf_filename = ds.attrs['filename'] + '-raw.cdf'
 
-    ds.to_netcdf(cdf_filename, engine='netcdf4')
+    ds.to_netcdf(cdf_filename, unlimited_dims=['time'])
 
     print('Finished writing data to %s' % cdf_filename)
 
@@ -151,7 +151,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.rename_time(ds)
 
-    ds.to_netcdf(nc_filename)
+    ds.to_netcdf(nc_filename, unlimited_dims=['time'])
     print('Done writing netCDF file', nc_filename)
 
 
