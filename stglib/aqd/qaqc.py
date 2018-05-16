@@ -162,21 +162,29 @@ def set_orientation(VEL, T):
 
     if VEL.attrs['orientation'] == 'UP':
         print('User instructed that instrument was pointing UP')
-        VEL['depth'] = xr.DataArray(
-            np.flipud(
-                np.linspace(
-                    Wdepth - (binn * (M - 1) + blank2 + binn),
-                    Wdepth - (blank2 + binn),
-                    num=binc)
-                ), dims=('bindist'))  # need to use flipud because 1d array
+        # try a simpler approach
+        VEL['depth'] = xr.DataArray(Wdepth -
+            (VEL['bindist'] + VEL.attrs['transducer_offset_from_bottom']),
+            dims='bindist')
+        # VEL['depth'] = xr.DataArray(
+        #     np.flipud(
+        #         np.linspace(
+        #             Wdepth - (binn * (M - 1) + blank2 + binn),
+        #             Wdepth - (blank2 + binn),
+        #             num=binc)
+        #         ), dims=('bindist'))  # need to use flipud because 1d array
     elif VEL.attrs['orientation'] == 'DOWN':
         print('User instructed that instrument was pointing DOWN')
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
-        VEL['depth'] = xr.DataArray(np.linspace(Wdepth - blank3 + binn,
-                                                Wdepth - blank3 + binn * M,
-                                                num=binc),
-                                    dims=('bindist'))
+        # try a simpler approach
+        VEL['depth'] = xr.DataArray(Wdepth -
+            VEL.attrs['transducer_offset_from_bottom'] + VEL['bindist'],
+            dims='bindist')
+        # VEL['depth'] = xr.DataArray(np.linspace(Wdepth - blank3 + binn,
+        #                                         Wdepth - blank3 + binn * M,
+        #                                         num=binc),
+        #                             dims=('bindist'))
 
     return VEL, T, T_orig
 
