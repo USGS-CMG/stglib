@@ -25,11 +25,24 @@ def read_exo(filnam, skiprows=25, encoding='utf-8'):
         An xarray Dataset of the EXO data
     """
 
-    exo = pd.read_csv(filnam,
-                      skiprows=skiprows,
-                      infer_datetime_format=True,
-                      parse_dates=[['Date (MM/DD/YYYY)', 'Time (HH:MM:SS)']],
-                      encoding=encoding)
+    try:
+        exo = pd.read_csv(filnam,
+                          skiprows=skiprows,
+                          infer_datetime_format=True,
+                          parse_dates=[['Date (MM/DD/YYYY)',
+                                        'Time (HH:MM:SS)']],
+                          encoding=encoding)
+    except UnicodeDecodeError:
+        exo = pd.read_csv(filnam,
+                          skiprows=skiprows,
+                          infer_datetime_format=True,
+                          parse_dates=[['Date (MM/DD/YYYY)',
+                                        'Time (HH:MM:SS)']],
+                          encoding='mac-roman')
+    except ValueError:
+        print((' *** Could not decode header. '
+               'Have you specified skiprows correctly?'))
+
     exo.rename(columns={'Date (MM/DD/YYYY)_Time (HH:MM:SS)': 'time'},
                inplace=True)
     exo.set_index('time', inplace=True)
