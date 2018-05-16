@@ -134,5 +134,22 @@ def aqdturnaround_parser():
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('basefile',
                         help='basename of AQD file (without extension)')
+    parser.add_argument('--orientation',
+                        default='UP',
+                        help='instrument orientation (UP/DOWN). Default UP')
+
+    return parser
+
+
+def exoturnaround_parser():
+    description = ('Create YSI EXO turnaround plots. Run this script from '
+                   'the directory containing EXO files')
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('basefile',
+                        help='basename of EXO .csv file (without extension)')
+    parser.add_argument('--skiprows',
+                        default=25,
+                        type=int,
+                        help='Number of header rows to skip. Default 25')
 
     return parser

@@ -35,7 +35,9 @@ setup(name='stglib',
                'scripts/runwvswad2cdf.py',
                'scripts/runwvscdf2nc.py',
                'scripts/runwvsnc2diwasp.py',
-               'scripts/runwvsnc2waves.py'
+               'scripts/runwvsnc2waves.py',
+               'scripts/aqdturnaround.py',
+               'scripts/exoturnaround.py'
                ],
       include_package_data=True
      )

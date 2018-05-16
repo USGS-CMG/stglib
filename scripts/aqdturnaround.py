@@ -15,13 +15,20 @@ ds = stglib.utils.write_metadata(ds, meta)
 
 ds = stglib.aqd.hdr2cdf.load_amp_vel(ds, args.basefile)
 
+T_orig = meta['AQDTransMatrix'].copy()
+T = meta['AQDTransMatrix']
+if args.orientation == 'DOWN':
+    T[1,:] = -T[1,:]
+    T[2,:] = -T[2,:]
+
 u, v, w = stglib.aqd.qaqc.coord_transform(ds['VEL1'].values,
                                           ds['VEL2'].values,
                                           ds['VEL3'].values,
                                           ds['Heading'].values,
                                           ds['Pitch'].values,
                                           ds['Roll'].values,
-                                          meta['AQDTransMatrix'],
+                                          T,
+                                          T_orig,
                                           meta['AQDCoordinateSystem'])
 
 ds['U'] = xr.DataArray(u, dims=('time', 'bindist'))
