@@ -166,6 +166,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.rename_time(ds)
 
+    # No longer report depth
+    ds = ds.drop('Depth_m')
+
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
     nc_filename = ds.attrs['filename'] + '-a.nc'
@@ -194,8 +197,7 @@ def ds_rename_vars(ds):
                 'ODO_mg_per_L': 'DO',
                 'Turbidity_NTU': 'Turb',
                 'pH': 'pH_159',
-                'pH_mV': 'pHmV',
-                'Depth_m': 'D_3'}
+                'pH_mV': 'pHmV'}
 
     # check to make sure they exist before trying to rename
     newvars = {}
@@ -293,10 +295,6 @@ def ds_add_attrs(ds):
                             'long_name': 'Pressure',
                             'epic_code': 1})
 
-    ds['D_3'].attrs.update({'units': 'm',
-                            'long_name': 'Depth',
-                            'epic_code': 3})
-
     if 'P_1ac' in ds:
         ds['P_1ac'].attrs.update({'units': 'dbar',
                                   'name': 'Pac',
@@ -357,7 +355,7 @@ def exo_qaqc(ds):
     Trim EXO data based on metadata
     """
 
-    for var in ['C_51', 'SpC_48', 'S_41', 'Turb']:
+    for var in ['C_51', 'SpC_48', 'S_41', 'Turb', 'fDOMRFU', 'fDOMQSU']:
         ds = trim_min_diff(ds, var)
 
         ds = trim_max_diff(ds, var)
