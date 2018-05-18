@@ -154,15 +154,21 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.create_epic_time(ds)
 
+    # add lat/lon coordinates
     ds = ds_add_lat_lon(ds)
 
+    # add lat/lon coordinates to each variable
+    for var in ds.variables:
+        if (var not in ds.coords) and ('time' not in var):
+            ds = utils.add_lat_lon(ds, var)
+
     ds = ds_add_attrs(ds)
+
+    ds = utils.rename_time(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
     nc_filename = ds.attrs['filename'] + '-a.nc'
-
-    ds = utils.rename_time(ds)
 
     ds.to_netcdf(nc_filename, unlimited_dims=['time'])
     print('Done writing netCDF file', nc_filename)
@@ -307,7 +313,7 @@ def ds_add_attrs(ds):
         var.encoding['_FillValue'] = 1e35
 
     for var in ds.variables:
-        if var not in ds.coords and var != 'time2':
+        if (var not in ds.coords) and ('time' not in var):
             add_attributes(ds[var], ds.attrs)
 
     return ds
