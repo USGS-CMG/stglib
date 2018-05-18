@@ -260,7 +260,7 @@ def ds_add_attrs(ds):
     ds['C_51'].attrs.update({'units': 'S/m',
                              'long_name': 'Conductivity',
                              'epic_code': 51})
-    ds['C_51'] = ds['C_51']/10  # convert from mS/cm to S/m
+    ds['C_51'].values = ds['C_51'].values/10  # convert from mS/cm to S/m
 
     ds['SpC_48'].attrs.update({'units': 'mS/cm',
                                'long_name': 'Conductivity',
