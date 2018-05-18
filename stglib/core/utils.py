@@ -354,6 +354,13 @@ def write_metadata(ds, metadata):
     return ds
 
 
+def set_var_dtype(ds, var, dtype='float32'):
+
+    ds[var].encoding['dtype'] = dtype
+
+    return ds
+
+
 def rename_time(ds):
     """
     Rename time variables for EPIC compliance, keeping a time_cf coorindate.

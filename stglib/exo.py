@@ -161,6 +161,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     for var in ds.variables:
         if (var not in ds.coords) and ('time' not in var):
             ds = utils.add_lat_lon(ds, var)
+            # cast as float32
+            ds = utils.set_var_dtype(ds, var)
 
     ds = ds_add_attrs(ds)
 
