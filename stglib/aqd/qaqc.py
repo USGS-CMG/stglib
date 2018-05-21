@@ -264,6 +264,12 @@ def trim_vel(ds, waves=False):
             ds.attrs['history'] = (
                 'Trimmed velocity data using water level and sidelobes. ' +
                 ds.attrs['history'])
+        elif ds.attrs['trim_method'].lower() == 'bin range':
+            print('Trimming using good_bins of %s' %
+                str(ds.attrs['good_bins']))
+            for var in ['U', 'V', 'W', 'AGC']:
+                ds[var] = ds[var].isel(bindist=slice(ds.attrs['good_bins'][0],
+                                                     ds.attrs['good_bins'][1]))
 
         # find first bin that is all bad values
         # there might be a better way to do this using xarray and named

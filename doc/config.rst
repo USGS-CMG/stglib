@@ -34,7 +34,7 @@ Aquadopp-specific options include:
 - ``head_rotation``: probably will be ``'horizontal'``
 - ``zeroed_pressure``
 - ``cutoff_ampl``: will probably always be ``0``
-- ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
+- ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``'bin range'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
 
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml
