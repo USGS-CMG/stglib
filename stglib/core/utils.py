@@ -85,7 +85,7 @@ def add_min_max(ds):
     """
 
     exclude = list(ds.dims)
-    exclude.extend(('epic_time', 'epic_time2', 'time', 'time2', 'TIM'))
+    exclude.extend(('epic_time', 'epic_time2', 'time', 'time2', 'TIM', 'time2d'))
 
     alloweddims = ['time', 'sample', 'depth']
 
@@ -176,8 +176,7 @@ def ds_add_attrs(ds):
         var.attrs.update({
             'serial_number': dsattrs['serial_number'],
             'initial_instrument_height': dsattrs['initial_instrument_height'],
-            # FIXME
-            # 'nominal_instrument_depth': metadata['nominal_instrument_depth'],
+            'nominal_instrument_depth': dsattrs['nominal_instrument_depth'],
             'height_depth_units': 'm',
             'sensor_type': dsattrs['INST_TYPE'],
             '_FillValue': 1e35})
@@ -234,6 +233,13 @@ def ds_add_attrs(ds):
             'note': ('Compass direction from which waves are propagating as '
                      'defined by the direction band with greatest total '
                      'energy summed over all frequencies')})
+
+    if 'wd_4062' in ds.data_vars:
+        ds['wd_4062'].attrs.update({
+            'long_name': 'Mean wave direction',
+            'units': 'degrees',
+            'epic_code': 4062,
+            'note': 'Compass direction from which waves are propagating'})
 
     for var in ['wp_peak', 'wh_4061', 'wp_4060',
                 'pspec', 'water_depth', 'dspec']:
@@ -431,6 +437,49 @@ def create_epic_time(ds):
 
     return ds
 
+# nc = netCDF4.Dataset(nc_filename, 'r+')
+# timebak = nc['epic_time'][:]
+# nc.renameVariable('time', 'time_cf')
+# nc.renameVariable('epic_time', 'time')
+# nc.renameVariable('epic_time2', 'time2')
+# nc.close()
+#
+# # need to do this in two steps after renaming the variable
+# # not sure why, but it works this way
+# nc = netCDF4.Dataset(nc_filename, 'r+')
+# nc['time'][:] = timebak
+# nc.close()
+
+def create_2d_epic_time(ds):
+    # create sample times in ms
+
+    # nc = netCDF4.Dataset(nc_filename, 'r+')
+    # td = nc.sample_interval * np.arange(nc.samples_per_burst) * 1000
+    # ts = np.expand_dims(
+    #     [np.datetime64(x) for x in netCDF4.num2date(nc['time'][:], nc['time'].units)], 1)
+    # newt = ts+[np.timedelta64(int(x)) for x in td]
+    # ds['time2d'] =
+
+
+    # nc.close()
+    print('Creating 2D time variable')
+    td = (ds.attrs['sample_interval'] *
+          np.arange(ds.attrs['samples_per_burst']) * 1000)
+    #
+    ds['time2d'] = xr.DataArray(
+        np.expand_dims(ds['time'],1) + [np.timedelta64(int(x)) for x in td],
+        dims=('time', 'sample'))
+
+    # ds['jd'] = xr.DataArray(np.reshape(
+    #     pd.DatetimeIndex(np.ravel(ds['time2d'])).to_julian_date().values + 0.5,
+    #     ds['time2d'].shape), dims=('time', 'sample'))
+    #
+    # ds['epic_time'] = np.floor(ds['jd'])
+    #
+    # ds['epic_time2'] = np.round(
+    #     (ds['jd'] - np.floor(ds['jd']))*86400000).astype(np.int32)
+
+    return ds
 
 def add_start_stop_time(ds):
     """Add start_time and stop_time attrs"""
