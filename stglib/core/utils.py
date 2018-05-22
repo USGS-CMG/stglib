@@ -134,19 +134,29 @@ def ds_add_diwasp_history(ds):
     return insert_history(ds, histtext)
 
 
+def ds_coord_no_fillvalue(ds):
+
+    for var in ['lat',
+                'lon',
+                'depth',
+                'time',
+                'epic_time',
+                'epic_time2',
+                'sample',
+                'frequency']:
+        if var in ds:
+            ds[var].encoding['_FillValue'] = False
+
+    return ds
+
+
 def ds_add_attrs(ds):
     """
     Add EPIC and other attributes to variables
     """
 
     # Update attributes for EPIC and STG compliance
-    ds.lat.encoding['_FillValue'] = False
-    ds.lon.encoding['_FillValue'] = False
-    ds.depth.encoding['_FillValue'] = False
-    ds.time.encoding['_FillValue'] = False
-    ds.epic_time.encoding['_FillValue'] = False
-    ds.epic_time2.encoding['_FillValue'] = False
-    ds.frequency.encoding['_FillValue'] = False
+    ds = ds_coord_no_fillvalue(ds)
 
     ds['time'].attrs.update({
         'standard_name': 'time',
