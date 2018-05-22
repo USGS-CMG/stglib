@@ -483,7 +483,7 @@ def create_water_depth(ds):
     if 'initial_instrument_height' in ds.attrs:
         if press:
             ds.attrs['nominal_instrument_depth'] = (
-                ds[press].mean(dim=dims).values)
+                ds[press].squeeze().mean(dim=dims).values)
             ds['water_depth'] = ds.attrs['nominal_instrument_depth']
             wdepth = (
                 ds.attrs['nominal_instrument_depth'] +

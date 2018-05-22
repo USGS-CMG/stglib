@@ -8,11 +8,11 @@ def make_waves_ds(ds, noise=0.9):
 
     print('Computing waves statistics')
 
-    f, Pxx = pressure_spectra(ds['P_1ac'],
+    f, Pxx = pressure_spectra(ds['P_1ac'].squeeze(),
                               fs=1/ds.attrs['sample_interval'])
 
     z = ds.attrs['initial_instrument_height']
-    h = ds['P_1ac'].mean(dim='sample') + z
+    h = ds['P_1ac'].squeeze().mean(dim='sample') + z
 
     k = np.asarray(
         [qkfs(2*np.pi*f, x) for x in h.values])
