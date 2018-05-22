@@ -33,6 +33,11 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     ds = ds_add_attrs(ds)
 
+    # add lat/lon coordinates to each variable
+    for var in ds.data_vars:
+        if 'time' not in var:
+            ds = utils.add_lat_lon(ds, var)
+
     ds = utils.add_min_max(ds)
 
     ds = utils.add_start_stop_time(ds)
