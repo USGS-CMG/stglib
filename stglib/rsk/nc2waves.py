@@ -45,6 +45,11 @@ def nc_to_waves(nc_filename):
 
     ds = utils.rename_time(ds)
 
+    for var in ds.data_vars:
+        if 'time' not in var:
+            # cast as float32
+            ds = utils.set_var_dtype(ds, var)
+
     ds.to_netcdf(nc_filename, unlimited_dims=['time'])
 
     return ds
