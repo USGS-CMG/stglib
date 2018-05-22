@@ -282,9 +282,9 @@ def trim_min_wh(ds):
     if 'wh_min' in ds.attrs:
         print('Trimming using minimum wave height of %f m'
               % ds.attrs['wh_min'])
-        ds = ds.where(ds['wh_4061'] > ds.attrs['wh_min'])
+        for var in ['wp_peak', 'wh_4061', 'wp_4060']:
+            ds[var] = ds[var].where(ds['wh_4061'] > ds.attrs['wh_min'])
 
-        for var in ['wp_peak', 'wp_4060', 'wh_4061']:
             notetxt = 'Values filled where wh_4061 <= %f. ' \
                       % ds.attrs['wh_min'] + '. '
 
@@ -305,9 +305,9 @@ def trim_max_wh(ds):
     if 'wh_max' in ds.attrs:
         print('Trimming using maximum wave height of %f m'
               % ds.attrs['wh_max'])
-        ds = ds.where(ds['wh_4061'] < ds.attrs['wh_max'])
+        for var in ['wp_peak', 'wh_4061', 'wp_4060']:
+            ds[var] = ds[var].where(ds['wh_4061'] < ds.attrs['wh_max'])
 
-        for var in ['wp_peak', 'wp_4060', 'wh_4061']:
             notetxt = 'Values filled where wh_4061 >= %f. ' \
                       % ds.attrs['wh_max']
 
