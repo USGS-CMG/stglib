@@ -2,23 +2,32 @@ import unittest
 import stglib
 import xarray as xr
 import numpy as np
+import pandas as pd
 
 
 class TestTimes(unittest.TestCase):
 
-    def test_epic_time_conversion(self):
-        bbvcf = xr.open_dataset(
+    def setUp(self):
+        self.bbvcf = xr.open_dataset(
             ('http://geoport.whoi.edu/thredds/dodsC/silt/usgs/Projects/'
              'stellwagen/CF-1.6/CHINCOTEAGUE/10191Aaqd-a.nc'))
-        bbvepic = xr.open_dataset(
+        self.bbvepic = xr.open_dataset(
             ('http://stellwagen.er.usgs.gov/thredds/dodsC/TSdata/'
              'CHINCOTEAGUE/10191Aaqd-a.nc'), decode_times=False)
 
-        difftime = bbvcf['time'].values - stglib.utils.epic_to_datetime(
-           bbvepic['time'], bbvepic['time2']).values
+    def test_epic_time_conversion(self):
+        difftime = self.bbvcf['time'].values - stglib.utils.epic_to_datetime(
+           self.bbvepic['time'], self.bbvepic['time2']).values
 
         # values should be equal to at least 1 ms
         assert np.all(difftime <= np.timedelta64(1, 'ms'))
+
+    def test_make_jd(self):
+        # using definition from R. Signell's julian.m
+        result = stglib.utils.make_jd(pd.DatetimeIndex(['1968-05-23 00:00']))
+        expected = [2440000.]
+
+        assert result == expected
 
 
 class TestAqd(unittest.TestCase):
