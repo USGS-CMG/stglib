@@ -9,7 +9,7 @@ def nc_to_diwasp(nc_filename):
 
     ds = utils.epic_to_cf_time(ds)
 
-    ds = utils.create_epic_time(ds)
+    ds = utils.create_epic_times(ds)
 
     mat = xr.open_dataset(ds.attrs['filename'][:-2] + 'diwasp.nc',
                           autoclose=True)

@@ -418,22 +418,34 @@ def epic_to_datetime(time, time2):
     return thedate + thetime
 
 
-def create_epic_time(ds):
+def make_jd(time):
+    return time.to_julian_date().values + 0.5
 
-    # create Julian date
-    ds['jd'] = ds['time'].to_dataframe().index.to_julian_date() + 0.5
 
-    ds['epic_time'] = np.floor(ds['jd'])
+def make_epic_time(jd):
+    epic_time = np.floor(jd)
     # make sure they are all integers, and then cast as such
-    if np.all(np.mod(ds['epic_time'], 1) == 0):
-        ds['epic_time'] = ds['epic_time'].astype(np.int32)
+    if np.all(np.mod(epic_time, 1) == 0):
+        epic_time = epic_time.astype(np.int32)
     else:
-        warnings.warn('not all EPIC time values are integers; '
+        warnings.warn('Not all EPIC time values are integers; '
                       'this will cause problems with time and time2')
 
+    return epic_time
+
+
+def make_epic_time2(jd):
     # TODO: Hopefully this is correct... roundoff errors on big numbers...
-    ds['epic_time2'] = np.round(
-        (ds['jd'] - np.floor(ds['jd']))*86400000).astype(np.int32)
+    return np.round((jd - np.floor(jd))*86400000).astype(np.int32)
+
+
+def create_epic_times(ds, waves=False):
+    ds['jd'] = xr.DataArray(make_jd(ds['time'].to_dataframe().index),
+                            dims='time')
+
+    ds['epic_time'] = make_epic_time(ds['jd'])
+
+    ds['epic_time2'] = make_epic_time2(ds['jd'])
 
     return ds
 

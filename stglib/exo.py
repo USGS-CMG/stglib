@@ -105,7 +105,7 @@ def csv_to_cdf(metadata):
 
     del metadata
 
-    ds = utils.create_epic_time(ds)
+    ds = utils.create_epic_times(ds)
 
     # configure file
     cdf_filename = ds.attrs['filename'] + '-raw.cdf'
@@ -152,7 +152,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # assign min/max:
     ds = utils.add_min_max(ds)
 
-    ds = utils.create_epic_time(ds)
+    ds = utils.create_epic_times(ds)
 
     # add lat/lon coordinates
     ds = ds_add_lat_lon(ds)

@@ -56,7 +56,7 @@ def wad_to_cdf(metadata, writefile=True):
     ds.attrs['sample_interval'] = 1/fs
     ds = utils.shift_time(ds, ds.attrs['WaveNumberOfSamples']/fs/2)
 
-    ds = utils.create_epic_time(ds)
+    ds = utils.create_epic_times(ds, waves=True)
 
     ds = qaqc.update_attrs(ds, waves=True)
 

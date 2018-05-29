@@ -9,7 +9,7 @@ def nc_to_waves(nc_filename):
 
     ds = utils.epic_to_cf_time(ds)
 
-    ds = utils.create_epic_time(ds)
+    ds = utils.create_epic_times(ds)
 
     spec = waves.make_waves_ds(ds)
 

@@ -29,7 +29,7 @@ def cdf_to_nc(cdf_filename, atmpres=None):
                           ds.attrs['burst_interval'] *
                           ds.attrs['sample_interval'] / 2)
 
-    ds = utils.create_epic_time(ds)
+    ds = utils.create_epic_times(ds)
 
     ds = ds_add_attrs(ds)
 
