@@ -21,8 +21,7 @@ def make_waves_ds(ds, noise=0.9):
     Pnn = elevation_spectra(Pxx, Kp)
 
     spec = xr.Dataset()
-    # spec['time'] = xr.DataArray(dw1076['b']['P_1ac'].time, dims='time')
-    # spec['frequency'] = xr.DataArray(f, dims='frequency')
+
     spec['Pnn'] = xr.DataArray(Pnn,
                                dims=('time', 'frequency'),
                                coords=(ds['time'], f))
@@ -225,6 +224,7 @@ def make_mwd(freqs, dirs, dspec):
 
     return Dm
 
+
 def make_moment(f, Pnn, n):
     """Compute nth moment (m0, m1, m2, etc.) of power spectra"""
     return np.trapz(Pnn * f**n, x=f)
@@ -267,6 +267,7 @@ def to2from(todir):
     fromdir[fromdir < 0] = fromdir[fromdir < 0] + 360
 
     return fromdir
+
 
 def qkfs(omega, h):
     """

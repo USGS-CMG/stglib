@@ -27,7 +27,7 @@ def nc_to_diwasp(nc_filename):
 
     ds['direction'] = xr.DataArray(dirs[idx], dims=('direction'))
 
-    ds['dspec'] = xr.DataArray(mat['dspec'][:,idx,:],
+    ds['dspec'] = xr.DataArray(mat['dspec'][:, idx, :],
                                dims=('time', 'direction', 'frequency'))
 
     pspec = np.trapz(ds['dspec'].values, x=ds['direction'], axis=1)

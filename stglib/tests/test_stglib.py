@@ -5,6 +5,23 @@ import numpy as np
 import pandas as pd
 
 
+class TestIq(unittest.TestCase):
+
+    def setUp(self):
+        self.ds = xr.Dataset()
+        self.fdvm = np.random.rand(5,)
+        self.fdv = np.random.rand(5, 4)
+        self.ds['FlowData_Vel_Mean'] = xr.DataArray(self.fdvm)
+        self.ds['FlowData_Vel'] = xr.DataArray(self.fdv)
+
+    def test_vel_to_ms(self):
+        expected = self.ds/1000
+        result = stglib.iq.vel_to_ms(self.ds)
+
+        for v in ['FlowData_Vel', 'FlowData_Vel_Mean']:
+            np.testing.assert_array_equal(result[v], expected[v])
+
+
 class TestTimes(unittest.TestCase):
 
     def setUp(self):

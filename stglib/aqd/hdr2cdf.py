@@ -1,9 +1,9 @@
 from __future__ import division, print_function
 import pandas as pd
 import xarray as xr
-import numpy as np
 from ..core import utils
 from . import qaqc
+
 
 def prf_to_cdf(metadata):
     """Load a Aquadopp text files and output to netCDF format"""
@@ -83,8 +83,8 @@ def load_sen(basefile):
     SEN.rename(columns={10: 'Heading',
                         11: 'Pitch',
                         12: 'Roll',
-                        13:'Pressure',
-                        14:'Temperature',
+                        13: 'Pressure',
+                        14: 'Temperature',
                         8: 'Battery'},
                inplace=True)
 
