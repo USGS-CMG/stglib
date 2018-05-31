@@ -15,7 +15,7 @@ def rsk_to_cdf(metadata):
 
     print("Writing to raw netCDF")
 
-    ds.to_netcdf(ds.attrs['filename'] + '-raw.cdf', unlimited_dims=['time'])
+    ds.to_netcdf(ds.attrs['filename'] + '-raw.cdf')
 
     print("Done")
 

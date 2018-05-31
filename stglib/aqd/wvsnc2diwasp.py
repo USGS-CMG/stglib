@@ -98,7 +98,7 @@ def nc_to_diwasp(nc_filename):
 
     ds = utils.rename_time(ds)
 
-    ds.to_netcdf(nc_filename, unlimited_dims=['time'])
+    ds.to_netcdf(nc_filename)
 
     print('Done creating', nc_filename)
 

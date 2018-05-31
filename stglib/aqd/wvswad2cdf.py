@@ -65,7 +65,7 @@ def wad_to_cdf(metadata, writefile=True):
 
     if writefile:
         cdf_filename = ds.attrs['filename'] + 'wvs-raw.cdf'
-        ds.to_netcdf(cdf_filename, unlimited_dims=['time'])
+        ds.to_netcdf(cdf_filename)
         print('Finished writing data to %s' % cdf_filename)
 
     return ds
