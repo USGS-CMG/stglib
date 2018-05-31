@@ -3,7 +3,7 @@ import xarray as xr
 from ..core import utils
 
 
-def cdf_to_nc(cdf_filename, atmpres=None):
+def cdf_to_nc(cdf_filename, atmpres=None, writefile=True):
     """
     Load raw .cdf file, trim, apply QAQC, and save to .nc
     """
@@ -25,9 +25,9 @@ def cdf_to_nc(cdf_filename, atmpres=None):
         print('Correcting using offset of %f' % met['atmpres'].offset)
         ds['P_1ac'].attrs = attrs
 
-    ds = utils.shift_time(ds,
-                          ds.attrs['burst_interval'] *
-                          ds.attrs['sample_interval'] / 2)
+    # ds = utils.shift_time(ds,
+    #                       ds.attrs['burst_interval'] *
+    #                       ds.attrs['sample_interval'] / 2)
 
     ds = utils.create_epic_times(ds)
 
@@ -44,19 +44,27 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     ds = utils.add_start_stop_time(ds)
 
+    ds = utils.ds_coord_no_fillvalue(ds)
+
     ds = utils.add_epic_history(ds)
 
-    # Write to .nc file
-    print("Writing cleaned/trimmed data to .nc file")
-    nc_filename = ds.attrs['filename'] + 'b-cal.nc'
+    for var in ds.variables:
+        if (var not in ds.coords) and ('time' not in var):
+            # cast as float32
+            ds = utils.set_var_dtype(ds, var)
 
-    ds = utils.rename_time(ds)
+    if writefile:
+        # Write to .nc file
+        print("Writing cleaned/trimmed data to .nc file")
+        nc_filename = ds.attrs['filename'] + 'b-cal.nc'
+
+        ds.to_netcdf(nc_filename)
+
         # Rename time variables for EPIC compliance, keeping a time_cf
         # coorindate.
         utils.rename_time_2d(nc_filename)
 
-    ds.to_netcdf(nc_filename, unlimited_dims=['time'])
-    print('Done writing netCDF file', nc_filename)
+        print('Done writing netCDF file', nc_filename)
 
     # rename time variables after the fact to conform with EPIC/CMG standards
     # utils.rename_time(nc_filename)

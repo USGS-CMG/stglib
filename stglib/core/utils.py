@@ -85,7 +85,8 @@ def add_min_max(ds):
     """
 
     exclude = list(ds.dims)
-    exclude.extend(('epic_time', 'epic_time2', 'time', 'time2', 'TIM', 'time2d'))
+    [exclude.append(k) for k in ds.variables if 'time' in k]
+    exclude.append('TIM')
 
     alloweddims = ['time', 'sample', 'depth']
 
@@ -129,7 +130,7 @@ def ds_add_diwasp_history(ds):
     Add history indicating DIWASP has been applied
     """
 
-    histtext = 'Wave statistics computed using DIWASP 1.4. '
+    histtext = 'Wave statistics computed using DIWASP 1.1GD. '
 
     return insert_history(ds, histtext)
 
@@ -140,8 +141,13 @@ def ds_coord_no_fillvalue(ds):
                 'lon',
                 'depth',
                 'time',
+                'time2',
+                'time_cf',
+                'time_cf_2d',
                 'epic_time',
                 'epic_time2',
+                'epic_time_2d',
+                'epic_time2_2d',
                 'sample',
                 'frequency']:
         if var in ds:
@@ -431,7 +437,9 @@ def open_time_2d_dataset(filename):
 
 def epic_to_cf_time(ds):
     ds['time'] = ds['time_cf']
-    ds = ds.drop(['time_cf', 'time2'])
+    for v in ['time_cf', 'time2', 'epic_time', 'epic_time2']:
+        if v in ds:
+            ds = ds.drop(v)
     return xr.decode_cf(ds, decode_times=True)
 
 

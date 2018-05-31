@@ -40,12 +40,16 @@ def cdf_to_nc(cdf_filename, atmpres=False, writefile=True):
 
     ds = qaqc.ds_rename(ds, waves=True)
 
+    ds = utils.ds_coord_no_fillvalue(ds)
+
     ds = qaqc.ds_add_attrs(ds, waves=True)
 
     ds = utils.add_min_max(ds)
 
-    # Rename time variables for EPIC compliance, keeping a time_cf coorindate.
-    ds = utils.rename_time(ds)
+    for var in ds.variables:
+        if (var not in ds.coords) and ('time' not in var):
+            # cast as float32
+            ds = utils.set_var_dtype(ds, var)
 
     if writefile:
         nc_filename = ds.attrs['filename'] + 'wvsb-cal.nc'
