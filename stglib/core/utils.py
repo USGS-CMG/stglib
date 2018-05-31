@@ -406,6 +406,19 @@ def rename_time(ds):
     return ds
 
 
+def rename_time_2d(nc_filename):
+    # Need to do this in two steps after renaming the variable.
+    # Not sure why, but it works this way.
+    with netCDF4.Dataset(nc_filename, 'r+') as nc:
+        nc.renameVariable('time', 'time_cf')
+        nc.renameVariable('time_2d', 'time_cf_2d')
+        timebak = nc['epic_time_2d'][:]
+        nc.renameVariable('epic_time_2d', 'time')
+        nc.renameVariable('epic_time2_2d', 'time2')
+
+    with netCDF4.Dataset(nc_filename, 'r+') as nc:
+        nc['time'][:] = timebak
+
 def open_time_2d_dataset(filename):
     # need to drop 'time' variable because of xarray limitations related
     # to coordinates and variables with the same name, otherwise it raises a
@@ -460,25 +473,26 @@ def create_epic_times(ds, waves=False):
     return ds
 
 
-def create_2d_epic_time(ds):
+def create_2d_time(ds):
     print('Creating 2D time variable')
+    # time increment in milliseconds
     td = (ds.attrs['sample_interval'] *
           np.arange(ds.attrs['samples_per_burst']) * 1000)
-    #
-    ds['time2d'] = xr.DataArray(
-        np.expand_dims(ds['time'],1) + [np.timedelta64(int(x)) for x in td],
-        dims=('time', 'sample'))
 
-    # ds['jd'] = xr.DataArray(np.reshape(
-    #     pd.DatetimeIndex(np.ravel(ds['time2d'])).to_julian_date().values + 0.5,
-    #     ds['time2d'].shape), dims=('time', 'sample'))
-    #
-    # ds['epic_time'] = np.floor(ds['jd'])
-    #
-    # ds['epic_time2'] = np.round(
-    #     (ds['jd'] - np.floor(ds['jd']))*86400000).astype(np.int32)
+    # time_2d is a CF representation of a 2d time
+    ds['time_2d'] = xr.DataArray(np.expand_dims(ds['time'], 1) +
+                                 [np.timedelta64(int(x), 'ms') for x in td],
+                                 dims=('time', 'sample'))
+
+    raveljd = make_jd(pd.DatetimeIndex(np.ravel(ds['time_2d'])))
+    ds['jd_2d'] = xr.DataArray(np.reshape(raveljd, ds['time_2d'].shape),
+                               dims=('time', 'sample'))
+
+    ds['epic_time_2d'] = make_epic_time(ds['jd_2d'])
+    ds['epic_time2_2d'] = make_epic_time2(ds['jd_2d'])
 
     return ds
+
 
 def add_start_stop_time(ds):
     """Add start_time and stop_time attrs"""

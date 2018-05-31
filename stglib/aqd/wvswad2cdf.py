@@ -58,6 +58,8 @@ def wad_to_cdf(metadata, writefile=True):
 
     ds = utils.create_epic_times(ds, waves=True)
 
+    ds = utils.create_2d_time(ds)
+
     ds = qaqc.update_attrs(ds, waves=True)
 
     # need to drop datetime

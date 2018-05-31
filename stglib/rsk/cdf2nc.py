@@ -31,6 +31,8 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     ds = utils.create_epic_times(ds)
 
+    ds = utils.create_2d_time(ds)
+
     ds = ds_add_attrs(ds)
 
     # add lat/lon coordinates to each variable
@@ -49,6 +51,9 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     nc_filename = ds.attrs['filename'] + 'b-cal.nc'
 
     ds = utils.rename_time(ds)
+        # Rename time variables for EPIC compliance, keeping a time_cf
+        # coorindate.
+        utils.rename_time_2d(nc_filename)
 
     ds.to_netcdf(nc_filename, unlimited_dims=['time'])
     print('Done writing netCDF file', nc_filename)
@@ -91,6 +96,11 @@ def ds_add_attrs(ds):
     ds['epic_time2'].attrs.update({'units': 'msec since 0:00 GMT',
                                    'type': 'EVEN',
                                    'epic_code': 624})
+
+    if 'epic_time_2d' in ds:
+        ds['epic_time_2d'].attrs = ds['epic_time'].attrs
+    if 'epic_time2_2d' in ds:
+        ds['epic_time2_2d'].attrs = ds['epic_time2'].attrs
 
     if 'P_1ac' in ds:
         ds['P_1ac'].attrs.update({'units': 'dbar',
