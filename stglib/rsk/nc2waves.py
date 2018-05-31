@@ -5,7 +5,7 @@ from ..core import utils, waves
 
 def nc_to_waves(nc_filename):
 
-    ds = xr.open_dataset(nc_filename, autoclose=True, decode_times=False)
+    ds = utils.open_time_2d_dataset(nc_filename)
 
     ds = utils.epic_to_cf_time(ds)
 

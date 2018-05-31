@@ -406,6 +406,16 @@ def rename_time(ds):
     return ds
 
 
+def open_time_2d_dataset(filename):
+    # need to drop 'time' variable because of xarray limitations related
+    # to coordinates and variables with the same name, otherwise it raises a
+    # MissingDimensionsError
+    return xr.open_dataset(filename,
+                           autoclose=True,
+                           decode_times=False,
+                           drop_variables='time')
+
+
 def epic_to_cf_time(ds):
     ds['time'] = ds['time_cf']
     ds = ds.drop(['time_cf', 'time2'])
