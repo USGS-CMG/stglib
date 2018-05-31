@@ -449,31 +449,8 @@ def create_epic_times(ds, waves=False):
 
     return ds
 
-# nc = netCDF4.Dataset(nc_filename, 'r+')
-# timebak = nc['epic_time'][:]
-# nc.renameVariable('time', 'time_cf')
-# nc.renameVariable('epic_time', 'time')
-# nc.renameVariable('epic_time2', 'time2')
-# nc.close()
-#
-# # need to do this in two steps after renaming the variable
-# # not sure why, but it works this way
-# nc = netCDF4.Dataset(nc_filename, 'r+')
-# nc['time'][:] = timebak
-# nc.close()
 
 def create_2d_epic_time(ds):
-    # create sample times in ms
-
-    # nc = netCDF4.Dataset(nc_filename, 'r+')
-    # td = nc.sample_interval * np.arange(nc.samples_per_burst) * 1000
-    # ts = np.expand_dims(
-    #     [np.datetime64(x) for x in netCDF4.num2date(nc['time'][:], nc['time'].units)], 1)
-    # newt = ts+[np.timedelta64(int(x)) for x in td]
-    # ds['time2d'] =
-
-
-    # nc.close()
     print('Creating 2D time variable')
     td = (ds.attrs['sample_interval'] *
           np.arange(ds.attrs['samples_per_burst']) * 1000)

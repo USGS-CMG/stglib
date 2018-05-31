@@ -138,17 +138,6 @@ def rsk_to_xr(metadata):
                'long_name': 'Longitude',
                'epic_code': 502})
 
-    # ds['depth'] = xr.DataArray(
-    #     [ds.attrs['WATER_DEPTH']],
-    #     dims=('depth'),
-    #     name='depth',
-    #     attrs={
-    #         'units': 'm',
-    #         'long_name': 'mean water depth',
-    #         'axis': 'z',  # TODO: are these attrs necessary/appropriate?
-    #         'positive': 'down',  # TODO: are these necessary/appropriate?
-    #         'epic_code': 3})
-
     # need to add  time attrs after DataArrays have been combined into Dataset
     ds['time'].attrs.update({'standard_name': 'time', 'axis': 'T'})
 
