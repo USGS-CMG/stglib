@@ -42,6 +42,9 @@ def cdf_to_nc(cdf_filename, atmpres=False, writefile=True):
 
     ds = qaqc.ds_add_attrs(ds, waves=True)
 
+    # Add DELTA_T for EPIC compliance
+    ds = qaqc.add_delta_t(ds, waves=True)
+
     ds = utils.add_min_max(ds)
 
     for var in ds.variables:
