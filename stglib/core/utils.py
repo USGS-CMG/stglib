@@ -184,8 +184,8 @@ def ds_add_attrs(ds):
             'initial_instrument_height': dsattrs['initial_instrument_height'],
             'nominal_instrument_depth': dsattrs['nominal_instrument_depth'],
             'height_depth_units': 'm',
-            'sensor_type': dsattrs['INST_TYPE'],
-            '_FillValue': 1e35})
+            'sensor_type': dsattrs['INST_TYPE']})
+        var.encoding['_FillValue'] = 1e35
 
     ds['wp_peak'].attrs.update({
         'long_name': 'Dominant (peak) wave period',
@@ -472,7 +472,8 @@ def make_epic_time2(jd):
 
 def create_epic_times(ds, waves=False):
     ds['jd'] = xr.DataArray(make_jd(ds['time'].to_dataframe().index),
-                            dims='time')
+                            dims='time',
+                            encoding={'_FillValue': False})
 
     ds['epic_time'] = make_epic_time(ds['jd'])
 
@@ -494,7 +495,8 @@ def create_2d_time(ds):
 
     raveljd = make_jd(pd.DatetimeIndex(np.ravel(ds['time_2d'])))
     ds['jd_2d'] = xr.DataArray(np.reshape(raveljd, ds['time_2d'].shape),
-                               dims=('time', 'sample'))
+                               dims=('time', 'sample'),
+                               encoding={'_FillValue': False})
 
     ds['epic_time_2d'] = make_epic_time(ds['jd_2d'])
     ds['epic_time2_2d'] = make_epic_time2(ds['jd_2d'])

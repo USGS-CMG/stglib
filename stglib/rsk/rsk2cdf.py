@@ -111,12 +111,12 @@ def rsk_to_xr(metadata):
         name='Pressure',
         attrs={
             'long_name': 'Pressure',
-            '_FillValue': 1e35,
             'units': 'dbar',
             'epic_code': 1,
             'height_depth_units': 'm',
             'initial_instrument_height': ds.attrs['initial_instrument_height'],
-            'serial_number': ds.attrs['serial_number']})
+            'serial_number': ds.attrs['serial_number']},
+        encoding={'_FillValue': 1e35})
 
     ds['time'] = xr.DataArray(times, dims=('time'), name='time')
 

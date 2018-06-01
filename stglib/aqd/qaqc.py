@@ -661,6 +661,13 @@ def update_attrs(ds, waves=False):
 
     ds['TransMatrix'].attrs['long_name'] = ('Transformation Matrix '
                                             'for this Aquadopp')
+    if waves:
+        ds['burst'].attrs.update(
+            {'units': 'count',
+             'long_name': 'Record number'})
+        ds['burst'].encoding['_FillValue'] = 1e35
+
+        ds['cellpos'].encoding['_FillValue'] = 1e35
 
     return ds
 

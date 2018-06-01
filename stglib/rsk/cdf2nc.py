@@ -113,8 +113,8 @@ def ds_add_attrs(ds):
     if 'P_1ac' in ds:
         ds['P_1ac'].attrs.update({'units': 'dbar',
                                   'name': 'Pac',
-                                  'long_name': 'Corrected pressure',
-                                  '_FillValue': 1e35})
+                                  'long_name': 'Corrected pressure'})
+        ds['P_1ac'].encoding['_FillValue'] = 1e35
         if 'P_1ac_note' in ds.attrs:
             ds['P_1ac'].attrs.update({'note': ds.attrs['P_1ac_note']})
 
