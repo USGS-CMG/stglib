@@ -78,8 +78,8 @@ def rsk_to_xr(metadata):
 
     ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * \
         ds.attrs['sample_interval']
-    ds.attrs['serial_number'] = conn.execute(
-        "select serialID from instruments").fetchall()[0][0]
+    ds.attrs['serial_number'] = str(conn.execute(
+        "select serialID from instruments").fetchall()[0][0])
     ds.attrs['INST_TYPE'] = 'RBR Virtuoso d|wave'
 
     conn.close()
