@@ -2,6 +2,25 @@ from __future__ import print_function, division
 import pandas as pd
 import numpy as np
 import scipy.stats
+import xmltodict
+
+
+def read_areacomp_stationarea(filename):
+    return read_areacomp(filename)
+
+
+def read_areacomp_stationstage(filename):
+    return read_areacomp(filename)
+
+
+def read_areacomp(filename):
+    return pd.read_csv(filename, skiprows=4)
+
+
+def read_qrev_xml(filename, encoding='utf-8'):
+    with open(filename, encoding=encoding) as fd:
+        return xmltodict.parse(fd.read())
+
 
 def parse_qrev_xml(doc, negateq=False):
     """
@@ -54,12 +73,17 @@ def parse_qrev_xml(doc, negateq=False):
 
     return df.set_index('time')
 
+
 def linregress(adcp):
     """
     Perform a linear regression and return slope, intercept, r value, p value,
     and standard error of the slope. This is just a wrapper around
     `scipy.stats.linregress()`
     """
-    adcp['slope'], adcp['intercept'], adcp['r_value'], adcp['p_value'], adcp['std_err'] = scipy.stats.linregress(adcp['veli'], adcp['Vca'])
+    (adcp['slope'],
+     adcp['intercept'],
+     adcp['r_value'],
+     adcp['p_value'],
+     adcp['std_err']) = scipy.stats.linregress(adcp['veli'], adcp['Vca'])
 
     return adcp
