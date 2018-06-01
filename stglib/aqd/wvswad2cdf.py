@@ -109,6 +109,7 @@ def load_whd(metadata):
     ds = xr.Dataset.from_dataframe(WHD)
     ds = ds.rename({'index': 'time'})
     ds['time'] = ds['datetime']
+    ds = ds.drop(['minpressure', 'cellsize', 'nrecs', 'soundspeed'])
 
     return ds
 

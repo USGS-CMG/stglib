@@ -35,6 +35,17 @@ def ds_rename(ds, waves=False):
 
     ds.rename(varnames, inplace=True)
 
+    for v in ['avgamp1',
+              'avgamp2',
+              'avgamp3',
+              'U',
+              'V',
+              'W',
+              'Depth',
+              'water_depth']:
+        if v in ds:
+            ds = ds.drop(v)
+
     return ds
 
 
