@@ -48,6 +48,8 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True):
 
     ds = utils.add_epic_history(ds)
 
+    ds = dw_add_delta_t(ds)
+
     for var in ds.variables:
         if (var not in ds.coords) and ('time' not in var):
             # cast as float32
@@ -119,5 +121,11 @@ def ds_add_attrs(ds):
             ds['P_1ac'].attrs.update({'note': ds.attrs['P_1ac_note']})
 
     ds.attrs['COMPOSITE'] = 0
+
+    return ds
+
+def dw_add_delta_t(ds):
+
+    ds.attrs['DELTA_T'] = int(ds.attrs['burst_interval'])
 
     return ds
