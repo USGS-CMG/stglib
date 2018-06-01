@@ -53,6 +53,7 @@ def read_exo(filnam, skiprows=25, encoding='utf-8'):
     exo = xr.Dataset(exo)
     hdr = read_exo_header(filnam, encoding=encoding)
     exo.attrs['serial_number'] = hdr['serial_number']
+    exo.attrs['INST_TYPE'] = 'YSI EXO2 Multiparameter Sonde'
 
     # Apply sensor serial numbers to each sensor
     for k in exo.variables:
