@@ -620,8 +620,8 @@ def read_globalatts(fname):
         a = csv.reader(csvfile, delimiter=';')
 
         for row in a:
-            if row[0] == 'MOORING':
-                metadata[row[0].strip()] = row[1].strip()
+            if row[0].strip() == 'MOORING':
+                metadata[row[0].strip()] = str(row[1].strip())
             else:
                 metadata[row[0].strip()] = str2num(row[1].strip())
 
