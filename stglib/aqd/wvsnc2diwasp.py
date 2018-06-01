@@ -79,6 +79,7 @@ def nc_to_diwasp(nc_filename):
               'Hdg_1215',
               'Ptch_1216',
               'Roll_1217',
+              'Bat_106',
               'Depth']:
         if v in ds:
             ds = ds.drop(v)
