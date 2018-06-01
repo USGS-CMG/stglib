@@ -5,6 +5,15 @@ import numpy as np
 import pandas as pd
 
 
+class TestGlobalAttributes(unittest.TestCase):
+
+    def test_mooring_as_string(self):
+        gatts = stglib.utils.read_globalatts('../../examples/glob_att1076a.txt')
+
+        assert isinstance(gatts['MOORING'], str)
+        assert gatts['MOORING'] == '1076'
+
+
 class TestIq(unittest.TestCase):
 
     def setUp(self):
