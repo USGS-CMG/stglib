@@ -137,7 +137,6 @@ def load_wad(ds):
 
     samples = np.arange(wavensamps)
 
-    ds['sample'] = xr.DataArray(samples, dims=('sample'), name='sample')
     thevars = ['Pressure', 'VEL1', 'VEL2', 'VEL3', 'AMP1', 'AMP2', 'AMP3']
     thecols = [2, 5, 6, 7, 9, 10, 11]
     for var, n in zip(thevars, thecols):
