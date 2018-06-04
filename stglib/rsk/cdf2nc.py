@@ -3,7 +3,10 @@ import xarray as xr
 from ..core import utils
 
 
-def cdf_to_nc(cdf_filename, atmpres=None, writefile=True):
+def cdf_to_nc(cdf_filename,
+              atmpres=None,
+              writefile=True,
+              format='NETCDF3_64BIT'):
     """
     Load raw .cdf file, trim, apply QAQC, and save to .nc
     """
@@ -60,7 +63,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True):
         print("Writing cleaned/trimmed data to .nc file")
         nc_filename = ds.attrs['filename'] + 'b-cal.nc'
 
-        ds.to_netcdf(nc_filename)
+        ds.to_netcdf(nc_filename, format=format)
 
         # Rename time variables for EPIC compliance, keeping a time_cf
         # coorindate.
