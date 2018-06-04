@@ -756,12 +756,7 @@ def ds_add_attrs(ds, waves=False):
     ds.attrs.update({'COMPOSITE': 0})
 
     # Update attributes for EPIC and STG compliance
-    ds.lat.encoding['_FillValue'] = False
-    ds.lon.encoding['_FillValue'] = False
-    ds.depth.encoding['_FillValue'] = False
-    ds.time.encoding['_FillValue'] = False
-    ds.epic_time.encoding['_FillValue'] = False
-    ds.epic_time2.encoding['_FillValue'] = False
+    ds = utils.ds_coord_no_fillvalue(ds)
 
     ds['time'].attrs.update(
         {'standard_name': 'time',

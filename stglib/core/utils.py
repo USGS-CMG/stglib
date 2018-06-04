@@ -151,7 +151,7 @@ def ds_coord_no_fillvalue(ds):
                 'sample',
                 'frequency']:
         if var in ds:
-            ds[var].encoding['_FillValue'] = False
+            ds[var].encoding['_FillValue'] = None
 
     return ds
 
@@ -473,7 +473,7 @@ def make_epic_time2(jd):
 def create_epic_times(ds, waves=False):
     ds['jd'] = xr.DataArray(make_jd(ds['time'].to_dataframe().index),
                             dims='time',
-                            encoding={'_FillValue': False})
+                            encoding={'_FillValue': None})
 
     ds['epic_time'] = make_epic_time(ds['jd'])
 
@@ -496,7 +496,7 @@ def create_2d_time(ds):
     raveljd = make_jd(pd.DatetimeIndex(np.ravel(ds['time_2d'])))
     ds['jd_2d'] = xr.DataArray(np.reshape(raveljd, ds['time_2d'].shape),
                                dims=('time', 'sample'),
-                               encoding={'_FillValue': False})
+                               encoding={'_FillValue': None})
 
     ds['epic_time_2d'] = make_epic_time(ds['jd_2d'])
     ds['epic_time2_2d'] = make_epic_time2(ds['jd_2d'])

@@ -26,7 +26,7 @@ def nc_to_diwasp(nc_filename):
     _, idx = np.unique(dirs, return_index=True)
 
     ds['direction'] = xr.DataArray(dirs[idx], dims=('direction'),
-                                   encoding={'_FillValue': False})
+                                   encoding={'_FillValue': None})
 
     ds['dspec'] = xr.DataArray(mat['dspec'][:, idx, :],
                                dims=('time', 'direction', 'frequency'))
