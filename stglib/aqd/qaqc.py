@@ -213,15 +213,17 @@ def magvar_correct(ds):
         ds['Heading'][ds['Heading'] >= 360] - 360)
     ds['Heading'][ds['Heading'] < 0] = ds['Heading'][ds['Heading'] < 0] + 360
 
-    vel1 = ds['U'].copy()
-    vel2 = ds['V'].copy()
-
-    magvar = magvardeg * np.pi / 180
-
-    ds['U'] =  vel1 * np.cos(magvar) + vel2 * np.sin(magvar)
-    ds['V'] = -vel1 * np.sin(magvar) + vel2 * np.cos(magvar)
+    ds['U'], ds['V'] = rotate(ds['U'],  ds['V'], magvardeg)
 
     return ds
+
+
+def rotate(u, v, deg):
+    rad = np.deg2rad(deg)
+    urot =  u * np.cos(rad) + v * np.sin(rad)
+    vrot = -u * np.sin(rad) + v * np.cos(rad)
+
+    return urot, vrot
 
 
 def trim_vel(ds, waves=False):
