@@ -471,13 +471,15 @@ def make_epic_time2(jd):
 
 
 def create_epic_times(ds, waves=False):
-    ds['jd'] = xr.DataArray(make_jd(ds['time'].to_dataframe().index),
-                            dims='time',
-                            encoding={'_FillValue': None})
+    jd = make_jd(ds['time'].to_dataframe().index)
 
-    ds['epic_time'] = make_epic_time(ds['jd'])
+    ds['epic_time'] = xr.DataArray(make_epic_time(jd),
+                                   dims='time',
+                                   encoding={'_FillValue': None})
 
-    ds['epic_time2'] = make_epic_time2(ds['jd'])
+    ds['epic_time2'] = xr.DataArray(make_epic_time2(jd),
+                                    dims='time',
+                                    encoding={'_FillValue': None})
 
     return ds
 
@@ -494,12 +496,14 @@ def create_2d_time(ds):
                                  dims=('time', 'sample'))
 
     raveljd = make_jd(pd.DatetimeIndex(np.ravel(ds['time_2d'])))
-    ds['jd_2d'] = xr.DataArray(np.reshape(raveljd, ds['time_2d'].shape),
-                               dims=('time', 'sample'),
-                               encoding={'_FillValue': None})
+    jd_2d = np.reshape(raveljd, ds['time_2d'].shape)
 
-    ds['epic_time_2d'] = make_epic_time(ds['jd_2d'])
-    ds['epic_time2_2d'] = make_epic_time2(ds['jd_2d'])
+    ds['epic_time_2d'] = xr.DataArray(make_epic_time(jd_2d),
+                                      dims=('time', 'sample'),
+                                      encoding={'_FillValue': None})
+    ds['epic_time2_2d'] = xr.DataArray(make_epic_time2(jd_2d),
+                                       dims=('time', 'sample'),
+                                       encoding={'_FillValue': None})
 
     return ds
 
