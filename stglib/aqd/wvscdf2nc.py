@@ -22,22 +22,32 @@ def cdf_to_nc(cdf_filename,
     # Create depth variable depending on orientation
     ds, T, T_orig = qaqc.set_orientation(ds, ds['TransMatrix'].values)
 
+    # Make bin_depth variable
     ds = qaqc.make_bin_depth(ds)
 
+    # Swap dimensions from bindist to depth
+    qaqc.swap_bindist_to_depth(ds)
+
+    # Rename DataArrays within Dataset for EPIC compliance
+    # and append depth coord to velocities and amplitudes
     ds = qaqc.ds_rename(ds, waves=True)
 
+    # add EPIC and CMG attributes, set _FillValue
     ds = qaqc.ds_add_attrs(ds, waves=True)
 
     # Add DELTA_T for EPIC compliance
     ds = qaqc.add_delta_t(ds, waves=True)
 
+    # Add minimum and maximum attributes
     ds = utils.add_min_max(ds)
 
+    # Cast vars as float32
     for var in ds.variables:
         if (var not in ds.coords) and ('time' not in var):
             # cast as float32
             ds = utils.set_var_dtype(ds, var)
 
+    # Ensure no _FillValue is assigned to coordinates
     ds = utils.ds_coord_no_fillvalue(ds)
 
     if writefile:

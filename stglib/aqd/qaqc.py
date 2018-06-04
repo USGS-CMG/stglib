@@ -44,7 +44,8 @@ def ds_rename(ds, waves=False):
               'V',
               'W',
               'Depth',
-              'water_depth']:
+              'water_depth',
+              'cellpos']:
         if v in ds:
             ds = ds.drop(v)
 
@@ -147,6 +148,10 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
                     w[i, j] = vel[2]
 
     return u, v, w
+
+
+def swap_bindist_to_depth(ds):
+    ds.swap_dims({'bindist': 'depth'}, inplace=True)
 
 
 def set_orientation(VEL, T):
@@ -557,6 +562,8 @@ def update_attrs(ds, waves=False):
     ds['TransMatrix'] = xr.DataArray(ds.attrs['AQDTransMatrix'],
                                      dims=('Tmatrix', 'Tmatrix'),
                                      name='TransMatrix')
+    # Need to remove AQDTransMatrix from attrs for netCDF3 compliance
+    ds.attrs.pop('AQDTransMatrix')
 
     ds['time'].attrs.update(
         {'standard_name': 'time',

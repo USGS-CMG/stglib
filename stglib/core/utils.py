@@ -86,7 +86,8 @@ def add_min_max(ds):
 
     exclude = list(ds.dims)
     [exclude.append(k) for k in ds.variables if 'time' in k]
-    exclude.append('TIM')
+    exclude.extend(['TIM', 'TransMatrix'])
+
 
     alloweddims = ['time', 'sample', 'depth']
 
@@ -143,11 +144,14 @@ def ds_coord_no_fillvalue(ds):
                 'time',
                 'time2',
                 'time_cf',
+                'time_2d',
                 'time_cf_2d',
                 'epic_time',
                 'epic_time2',
                 'epic_time_2d',
                 'epic_time2_2d',
+                'TransMatrix',
+                'direction',
                 'sample',
                 'frequency']:
         if var in ds:
@@ -247,8 +251,8 @@ def ds_add_attrs(ds):
             'epic_code': 4062,
             'note': 'Compass direction from which waves are propagating'})
 
-    for var in ['wp_peak', 'wh_4061', 'wp_4060',
-                'pspec', 'water_depth', 'dspec']:
+    for var in ['wp_peak', 'wh_4061', 'wp_4060', 'wd_4062',
+                'pspec', 'water_depth', 'dspec', 'wvdir', 'dwvdir']:
         if var in ds.variables:
             add_attributes(ds[var], ds.attrs)
             ds[var].attrs.update({
