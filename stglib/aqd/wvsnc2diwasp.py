@@ -97,9 +97,18 @@ def nc_to_diwasp(nc_filename, format='NETCDF3_64BIT'):
 
     ds = utils.ds_add_diwasp_history(ds)
 
+    # add lat/lon coordinates to each variable
+    for var in ds.variables:
+        if (var not in ds.coords) and ('time' not in var):
+            ds = utils.add_lat_lon(ds, var)
+            # cast as float32
+            ds = utils.set_var_dtype(ds, var)
+
     nc_filename = ds.attrs['filename'] + 'wvs_diwasp-cal.nc'
 
     ds = utils.rename_time(ds)
+
+    print('Writing to netCDF')
 
     ds.to_netcdf(nc_filename, format=format)
 
