@@ -4,7 +4,7 @@ import numpy as np
 from ..core import utils, waves
 
 
-def nc_to_diwasp(nc_filename):
+def nc_to_diwasp(nc_filename, format='NETCDF3_64BIT'):
 
     ds = utils.open_time_2d_dataset(nc_filename)
 
@@ -101,7 +101,7 @@ def nc_to_diwasp(nc_filename):
 
     ds = utils.rename_time(ds)
 
-    ds.to_netcdf(nc_filename)
+    ds.to_netcdf(nc_filename, format=format)
 
     print('Done creating', nc_filename)
 
