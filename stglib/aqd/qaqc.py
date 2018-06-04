@@ -13,7 +13,8 @@ def ds_rename(ds, waves=False):
                 'Temperature': 'Tx_1211',
                 'Heading': 'Hdg_1215',
                 'Pitch': 'Ptch_1216',
-                'Roll': 'Roll_1217'}
+                'Roll': 'Roll_1217',
+                'Battery': 'Bat_106'}
 
     if 'Pressure_ac' in ds:
         varnames['Pressure_ac'] = 'P_1ac'
@@ -926,6 +927,10 @@ def ds_add_attrs(ds, waves=False):
          'generic_name': 'roll',
          'epic_code': 1217})
 
+    ds['Bat_106'].attrs.update({'units': 'V',
+                                'long_name': 'Battery voltage',
+                                'epic_code': 106})
+
     ds['bindist'].attrs.update(
         {'units': 'm',
          'long_name': 'distance from transducer head',
@@ -952,6 +957,7 @@ def ds_add_attrs(ds, waves=False):
               'Hdg_1215',
               'Ptch_1216',
               'Roll_1217',
+              'Bat_106',
               'bin_depth',
               'bindist']:
         add_attributes(ds[v], ds.attrs)

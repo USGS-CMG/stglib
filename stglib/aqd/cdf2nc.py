@@ -128,7 +128,6 @@ def ds_drop(ds):
         'AMP1',
         'AMP2',
         'AMP3',
-        'Battery',
         'TransMatrix',
         'AnalogInput1',
         'AnalogInput2',
