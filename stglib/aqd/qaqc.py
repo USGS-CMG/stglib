@@ -153,23 +153,14 @@ def set_orientation(VEL, T):
     """
     Create depth variable depending on instrument orientation
     """
-    # TODO: this code seems too complicated.
-
-    N, M = np.shape(VEL['VEL1'])
 
     if 'Pressure_ac' in VEL:
-        Wdepth = (np.nanmean(VEL['Pressure_ac']) +
-                  VEL.attrs['transducer_offset_from_bottom'])
+        presvar = 'Pressure_ac'
     else:
-        Wdepth = (np.nanmean(VEL['Pressure']) +
-                  VEL.attrs['transducer_offset_from_bottom'])
+        presvar = 'Pressure'
 
-    blank2 = (VEL.attrs['AQDBlankingDistance'] +
+    Wdepth = (np.nanmean(VEL[presvar]) +
               VEL.attrs['transducer_offset_from_bottom'])
-    binn = VEL.attrs['bin_size']
-    blank3 = (VEL.attrs['transducer_offset_from_bottom'] -
-              VEL.attrs['AQDBlankingDistance'])
-    binc = VEL.attrs['bin_count']
 
     T_orig = T.copy()
 
@@ -179,13 +170,6 @@ def set_orientation(VEL, T):
         VEL['depth'] = xr.DataArray(Wdepth -
             (VEL['bindist'] + VEL.attrs['transducer_offset_from_bottom']),
             dims='bindist')
-        # VEL['depth'] = xr.DataArray(
-        #     np.flipud(
-        #         np.linspace(
-        #             Wdepth - (binn * (M - 1) + blank2 + binn),
-        #             Wdepth - (blank2 + binn),
-        #             num=binc)
-        #         ), dims=('bindist'))  # need to use flipud because 1d array
     elif VEL.attrs['orientation'] == 'DOWN':
         print('User instructed that instrument was pointing DOWN')
         T[1, :] = -T[1, :]
@@ -194,10 +178,6 @@ def set_orientation(VEL, T):
         VEL['depth'] = xr.DataArray(Wdepth -
             VEL.attrs['transducer_offset_from_bottom'] + VEL['bindist'],
             dims='bindist')
-        # VEL['depth'] = xr.DataArray(np.linspace(Wdepth - blank3 + binn,
-        #                                         Wdepth - blank3 + binn * M,
-        #                                         num=binc),
-        #                             dims=('bindist'))
 
     return VEL, T, T_orig
 
