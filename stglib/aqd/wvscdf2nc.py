@@ -22,23 +22,6 @@ def cdf_to_nc(cdf_filename,
     # Create depth variable depending on orientation
     ds, T, T_orig = qaqc.set_orientation(ds, ds['TransMatrix'].values)
 
-    # Transform coordinates from, most likely, BEAM to ENU
-    u, v, w = qaqc.coord_transform(ds['VEL1'].values,
-                                   ds['VEL2'].values,
-                                   ds['VEL3'].values,
-                                   ds['Heading'].values,
-                                   ds['Pitch'].values,
-                                   ds['Roll'].values,
-                                   T,
-                                   T_orig,
-                                   ds.attrs['AQDCoordinateSystem'])
-
-    ds['U'] = xr.DataArray(u, dims=('time', 'sample'))
-    ds['V'] = xr.DataArray(v, dims=('time', 'sample'))
-    ds['W'] = xr.DataArray(w, dims=('time', 'sample'))
-
-    ds = qaqc.magvar_correct(ds)
-
     ds = qaqc.make_bin_depth(ds)
 
     ds = qaqc.ds_rename(ds, waves=True)
