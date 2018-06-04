@@ -1,14 +1,18 @@
 import unittest
 import stglib
+import os
 import xarray as xr
 import numpy as np
 import pandas as pd
 
 
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
 class TestGlobalAttributes(unittest.TestCase):
 
     def test_mooring_as_string(self):
-        gatts = stglib.utils.read_globalatts('../../examples/glob_att1076a.txt')
+        filepath = os.path.join(THIS_DIR, '../../examples/glob_att1076a.txt')
+        gatts = stglib.utils.read_globalatts(filepath)
 
         assert isinstance(gatts['MOORING'], str)
         assert gatts['MOORING'] == '1076'
