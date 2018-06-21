@@ -123,7 +123,7 @@ def load_wad(ds):
 
     r, c = np.shape(WAD)
     print(wadfile + ' has ' + str(r) + ' rows and ' + str(c) + ' columns')
-    if r % 1024:
+    if r % ds.attrs['WaveNumberOfSamples']:
         print('Number of rows read is not a multiple of %d. Truncating data '
               'to last full burst' %
               ds.attrs['WaveNumberOfSamples'])
@@ -134,8 +134,6 @@ def load_wad(ds):
     wavensamps = int(ds.attrs['WaveNumberOfSamples'])
     print('Metadata reports ' + str(nburst) + ' bursts, ' + str(nsamps) +
           ' samples, ' + str(wavensamps) + ' samples per burst')
-
-    samples = np.arange(wavensamps)
 
     thevars = ['Pressure', 'VEL1', 'VEL2', 'VEL3', 'AMP1', 'AMP2', 'AMP3']
     thecols = [2, 5, 6, 7, 9, 10, 11]
