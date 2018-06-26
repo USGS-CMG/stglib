@@ -37,6 +37,15 @@ def ds_rename(ds, waves=False):
 
     ds.rename(varnames, inplace=True)
 
+    if waves:
+        for v in ['vel1_1277',
+                  'vel2_1278',
+                  'vel3_1279',
+                  'AGC1_1221',
+                  'AGC2_1222',
+                  'AGC3_1223']:
+            ds[v] = ds[v].expand_dims('depth', axis=-1)
+
     for v in ['avgamp1',
               'avgamp2',
               'avgamp3',
