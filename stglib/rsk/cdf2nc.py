@@ -38,6 +38,8 @@ def cdf_to_nc(cdf_filename,
 
     ds = ds_add_attrs(ds)
 
+    ds = ds_add_depth_dim(ds)
+
     # add lat/lon coordinates to each variable
     for var in ds.data_vars:
         if 'time' not in var:
@@ -93,6 +95,22 @@ def cdf_to_nc(cdf_filename,
 #         ds[var] = ds[var].transpose('time', 'lon', 'lat')
 #
 #     return ds
+
+def ds_add_depth_dim(ds):
+    print('Creating depth dimension')
+    if 'P_1ac' in ds:
+        p = 'P_1ac'
+    else:
+        p = 'P_1'
+
+    ds['depth'] = xr.DataArray([ds[p].mean(dim=['time', 'sample'])],
+                               dims='depth')
+    ds['depth'].attrs['positive'] = 'down'
+    ds['depth'].attrs['axis'] = 'z'
+    ds['depth'].attrs['units'] = 'm'
+    ds['depth'].attrs['epic_code'] = 3
+
+    return ds
 
 
 def ds_add_attrs(ds):
