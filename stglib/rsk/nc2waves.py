@@ -48,6 +48,6 @@ def nc_to_waves(nc_filename):
             # cast as float32
             ds = utils.set_var_dtype(ds, var)
 
-    ds.to_netcdf(nc_filename)
+    ds.to_netcdf(nc_filename, unlimited_dims=['time'])
 
     return ds
