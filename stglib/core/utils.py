@@ -574,7 +574,7 @@ def create_water_depth(ds):
         if press:
             ds.attrs['nominal_instrument_depth'] = (
                 ds[press].squeeze().mean(dim=dims).values)
-            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+            # ds['water_depth'] = ds.attrs['nominal_instrument_depth']
             wdepth = (
                 ds.attrs['nominal_instrument_depth'] +
                 ds.attrs['initial_instrument_height'])
@@ -591,7 +591,7 @@ def create_water_depth(ds):
             ds.attrs['nominal_instrument_depth'] = (
                 ds.attrs['WATER_DEPTH'] -
                 ds.attrs['initial_instrument_height'])
-        ds['Depth'] = ds.attrs['nominal_instrument_depth']
+        # ds['Depth'] = ds.attrs['nominal_instrument_depth']
         # TODO: why is this being redefined here? Seems redundant
         ds.attrs['WATER_DEPTH'] = wdepth
 
@@ -599,7 +599,7 @@ def create_water_depth(ds):
         ds.attrs['initial_instrument_height'] = (
             ds.attrs['WATER_DEPTH'] -
             ds.attrs['nominal_instrument_depth'])
-        ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+        # ds['water_depth'] = ds.attrs['nominal_instrument_depth']
 
     if 'initial_instrument_height' not in ds.attrs:
         # TODO: do we really want to set to zero?
