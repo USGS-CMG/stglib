@@ -142,6 +142,9 @@ def ds_add_attrs(ds):
         if 'P_1ac_note' in ds.attrs:
             ds['P_1ac'].attrs.update({'note': ds.attrs['P_1ac_note']})
 
+    if 'burst' in ds:
+        ds['burst'].encoding['_FillValue'] = 1e35
+
     ds.attrs['COMPOSITE'] = 0
 
     return ds

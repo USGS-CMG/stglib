@@ -122,6 +122,9 @@ def rsk_to_xr(metadata):
 
     ds['sample'] = xr.DataArray(samples, dims=('sample'), name='sample')
 
+    ds['burst'] = xr.DataArray(np.arange(len(times)), dims=('time'),
+                               attrs={'long_name': 'burst number'})
+
     ds['lat'] = xr.DataArray(
         [ds.attrs['latitude']],
         dims=('lat'),
