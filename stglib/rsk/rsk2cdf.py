@@ -34,7 +34,7 @@ def rsk_to_xr(metadata):
     Load data from RSK file and generate an xarray Dataset
     """
 
-    rskfile = metadata['basefile'] + '.rsk'
+    rskfile = metadata.pop('basefile') + '.rsk'
 
     ds = xr.Dataset()
 
