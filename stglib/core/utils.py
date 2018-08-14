@@ -421,7 +421,7 @@ def rename_time_2d(nc_filename):
     # Not sure why, but it works this way.
     with netCDF4.Dataset(nc_filename, 'r+') as nc:
         nc.renameVariable('time', 'time_cf')
-        nc.renameVariable('time_2d', 'time_cf_2d')
+        # nc.renameVariable('time_2d', 'time_cf_2d')
         timebak = nc['epic_time_2d'][:]
         nc.renameVariable('epic_time_2d', 'time')
         nc.renameVariable('epic_time2_2d', 'time2')
@@ -508,6 +508,8 @@ def create_2d_time(ds):
     ds['epic_time2_2d'] = xr.DataArray(make_epic_time2(jd_2d),
                                        dims=('time', 'sample'),
                                        encoding={'_FillValue': None})
+
+    ds = ds.drop('time_2d') # don't need it anymore
 
     return ds
 
