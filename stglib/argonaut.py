@@ -8,16 +8,21 @@ from .aqd import qaqc
 
 def read_argonaut(filbase):
     return pd.read_csv(filnam,
-                        skiprows=skiprows,
-                        infer_datetime_format=True,
-                        parse_dates=['Date and Time'],
-                        encoding=encoding)
+                       skiprows=skiprows,
+                       infer_datetime_format=True,
+                       parse_dates=['Date and Time'],
+                       encoding=encoding)
 
 def read_dat_raw(filnam):
     df = pd.read_csv(filnam,
-                       delim_whitespace=True,
-                       parse_dates={'time': ['Year', 'Month', 'Day', 'Hour', 'Minute', 'Second']},
-                       date_parser=qaqc.date_parser)
+                     delim_whitespace=True,
+                     parse_dates={'time': ['Year',
+                                           'Month',
+                                           'Day',
+                                           'Hour',
+                                           'Minute',
+                                           'Second']},
+                     date_parser=qaqc.date_parser)
     df.set_index('time', inplace=True)
     return df
 
@@ -32,7 +37,7 @@ def read_ctl(filnam):
 
         while 'Flow data file format is as follows' not in row:
             row = f.readline().rstrip()
-            
+
         f.close()
 
 # parse_dates={'datetime': [2, 0, 1, 3, 4, 5]},
