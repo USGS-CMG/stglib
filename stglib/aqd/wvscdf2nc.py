@@ -23,7 +23,7 @@ def cdf_to_nc(cdf_filename,
     ds, T, T_orig = qaqc.set_orientation(ds, ds['TransMatrix'].values)
 
     # Make bin_depth variable
-    ds = qaqc.make_bin_depth(ds)
+    ds = qaqc.make_bin_depth(ds, waves=True)
 
     # Swap dimensions from bindist to depth
     qaqc.swap_bindist_to_depth(ds)

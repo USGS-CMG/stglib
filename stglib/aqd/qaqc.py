@@ -196,13 +196,18 @@ def set_orientation(VEL, T):
     return VEL, T, T_orig
 
 
-def make_bin_depth(VEL):
+def make_bin_depth(VEL, waves=False):
     """Create bin_depth variable"""
 
     if 'Pressure_ac' in VEL:
-        VEL['bin_depth'] = VEL['Pressure_ac'] - VEL['bindist']
+        pres = 'Pressure_ac'
     else:
-        VEL['bin_depth'] = VEL['Pressure'] - VEL['bindist']
+        pres = 'Pressure'
+
+    if not waves:
+        VEL['bin_depth'] = VEL[pres] - VEL['bindist']
+    else:
+        VEL['bin_depth'] = VEL[pres].mean(dim='sample') - VEL['bindist']
 
     return VEL
 
