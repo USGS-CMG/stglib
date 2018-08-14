@@ -103,6 +103,8 @@ def csv_to_cdf(metadata):
                       skiprows=metadata['skiprows'],
                       encoding='mac-roman')
 
+    metadata.pop('skiprows')
+
     # write out metadata first, then deal exclusively with xarray attrs
     ds = utils.write_metadata(ds, metadata)
 
