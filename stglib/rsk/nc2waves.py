@@ -18,6 +18,8 @@ def nc_to_waves(nc_filename):
 
     ds = utils.create_water_depth(ds)
 
+    ds = utils.create_water_depth_var(ds)
+
     ds = ds.drop(['P_1', 'P_1ac', 'sample'])
 
     ds = utils.trim_max_wp(ds)
@@ -32,7 +34,7 @@ def nc_to_waves(nc_filename):
     ds = utils.ds_add_attrs(ds)
 
     # Reshape and associate dimensions with lat/lon
-    for var in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec']:
+    for var in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec', 'water_depth']:
         if var in ds:
             ds = utils.add_lat_lon(ds, var)
 

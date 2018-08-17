@@ -553,8 +553,35 @@ def shift_time(ds, timeshift):
     return ds
 
 
+def create_water_depth_var(ds):
+
+    press = None
+
+    if 'Pressure_ac' in ds:
+        press = 'Pressure_ac'
+    elif 'P_1ac' in ds:
+        press = 'P_1ac'
+    elif 'Pressure' in ds:
+        press = 'Pressure'
+    elif 'P_1' in ds:
+        press = 'P_1'
+
+    if 'sample' in ds.dims:
+        ds['water_depth'] = xr.DataArray(
+            ds[press].squeeze().mean(dim='sample') +
+            ds.attrs['initial_instrument_height'])
+    else:
+        ds['water_depth'] = xr.DataArray(
+            ds[press].squeeze() + ds.attrs['initial_instrument_height'])
+
+    ds['water_depth'].attrs['long_name'] = 'Total water depth'
+    ds['water_depth'].attrs['units'] = 'm'
+
+    return ds
+
+
 def create_water_depth(ds):
-    """Create water_depth variable"""
+    """Create WATER_DEPTH attribute"""
 
     press = None
 

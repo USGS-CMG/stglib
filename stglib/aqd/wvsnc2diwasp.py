@@ -56,6 +56,8 @@ def nc_to_diwasp(nc_filename, format='NETCDF3_64BIT'):
 
     ds = utils.create_water_depth(ds)
 
+    ds = utils.create_water_depth_var(ds)
+
     # Remove old variables as we just want to keep the wave statistics
     for v in ['P_1',
               'P_1ac',
