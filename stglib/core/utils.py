@@ -259,6 +259,9 @@ def ds_add_attrs(ds):
                 'minimum': ds[var].min().values,
                 'maximum': ds[var].max().values})
 
+    if 'burst' in ds:
+        ds['burst'].encoding['_FillValue'] = 1e35
+
     return ds
 
 
