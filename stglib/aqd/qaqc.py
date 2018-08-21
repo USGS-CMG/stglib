@@ -853,6 +853,8 @@ def ds_add_attrs(ds, waves=False):
              'generic_name': 'AGC3',
              'epic_code': 1223})
 
+        ds.attrs['COORD_SYSTEM'] = 'GEOGRAPHIC + sample'
+
     ds['P_1'].attrs.update(
         {'units': 'dbar',
          'name': 'P',
