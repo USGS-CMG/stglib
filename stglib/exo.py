@@ -366,7 +366,7 @@ def exo_qaqc(ds):
     Trim EXO data based on metadata
     """
 
-    for var in ['C_51', 'SpC_48', 'S_41', 'Turb', 'fDOMRFU', 'fDOMQSU']:
+    for var in ['C_51', 'SpC_48', 'S_41', 'Turb', 'fDOMRFU', 'fDOMQSU', 'CHLrfu', 'Fch_906', 'BGAPErfu', 'BGAPE']:
         ds = trim_min(ds, var)
 
         ds = trim_max(ds, var)
