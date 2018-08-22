@@ -12,10 +12,13 @@ import scipy.io as spio
 import pandas as pd
 
 
-def clip_ds(ds):
+def clip_ds(ds, wvs=False):
     """
     Clip an xarray Dataset from metadata, either via good_ens or
-    Deployment_date and Recovery_date
+    Deployment_date and Recovery_date.
+
+    wvs only applies to Aquadopp waves here. It is distinct from waves flag
+    because AQD waves can have a different sampling interval than AQD currents
     """
 
     print('first burst in full file:', ds['time'].min().values)
@@ -23,7 +26,7 @@ def clip_ds(ds):
 
     # clip either by ensemble indices or by the deployment and recovery
     # date specified in metadata
-    if 'good_ens' in ds.attrs:
+    if 'good_ens' in ds.attrs and not wvs:
         # we have good ensemble indices in the metadata
         print('Clipping data using good_ens')
 
@@ -41,6 +44,19 @@ def clip_ds(ds):
         ds = ds.isel(time=goods)
 
         histtext = 'Data clipped using good_ens values of %s . ' % (
+            str(good_ens))
+
+        ds = insert_history(ds, histtext)
+
+    elif 'good_ens_wvs' in ds.attrs and wvs:
+        print('Clipping data using good_ens_wvs')
+        good_ens = ds.attrs['good_ens_wvs']
+
+        goods = np.arange(good_ens[0], good_ens[1])
+
+        ds = ds.isel(time=goods)
+
+        histtext = 'Data clipped using good_ens_wvs values of %s . ' % (
             str(good_ens))
 
         ds = insert_history(ds, histtext)

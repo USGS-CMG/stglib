@@ -14,7 +14,7 @@ def cdf_to_nc(cdf_filename,
     ds = qaqc.load_cdf(cdf_filename, atmpres=atmpres)
 
     # Clip data to in/out water times or via good_ens
-    ds = utils.clip_ds(ds)
+    ds = utils.clip_ds(ds, wvs=True)
 
     # Create water_depth variables
     ds = utils.create_water_depth(ds)
