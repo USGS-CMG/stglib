@@ -367,6 +367,10 @@ def exo_qaqc(ds):
     """
 
     for var in ['C_51', 'SpC_48', 'S_41', 'Turb', 'fDOMRFU', 'fDOMQSU']:
+        ds = trim_min(ds, var)
+
+        ds = trim_max(ds, var)
+
         ds = trim_min_diff(ds, var)
 
         ds = trim_max_diff(ds, var)
@@ -376,6 +380,34 @@ def exo_qaqc(ds):
         ds = trim_med_diff_pct(ds, var)
 
         ds = trim_bad_ens(ds, var)
+
+    return ds
+
+
+def trim_min(ds, var):
+    if var + '_min' in ds.attrs:
+        print('%s: Trimming using minimum value of %f' %
+              (var, ds.attrs[var + '_min']))
+        ds[var][ds[var] < ds.attrs[var + '_min']] = np.nan
+
+        notetxt = ('Values filled where less than %f units. ' %
+                   ds.attrs[var + '_min'])
+
+        ds = insert_note(ds, var, notetxt)
+
+    return ds
+
+
+def trim_max(ds, var):
+    if var + '_max' in ds.attrs:
+        print('%s: Trimming using maximum value of %f' %
+              (var, ds.attrs[var + '_max']))
+        ds[var][ds[var] > ds.attrs[var + '_max']] = np.nan
+
+        notetxt = ('Values filled where greater than %f units. ' %
+                   ds.attrs[var + '_max'])
+
+        ds = insert_note(ds, var, notetxt)
 
     return ds
 
