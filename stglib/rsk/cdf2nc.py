@@ -17,6 +17,8 @@ def cdf_to_nc(cdf_filename,
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
+    ds = utils.create_nominal_instrument_depth(ds)
+
     if atmpres is not None:
         print("Atmospherically correcting data")
 

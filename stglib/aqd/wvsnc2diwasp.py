@@ -54,7 +54,7 @@ def nc_to_diwasp(nc_filename, format='NETCDF3_64BIT'):
                                                 ds['dspec'].values),
                                  dims='time')
 
-    ds = utils.create_water_depth(ds)
+    # ds = utils.create_water_depth(ds)
 
     ds = utils.create_water_depth_var(ds)
 

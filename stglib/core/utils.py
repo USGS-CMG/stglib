@@ -656,6 +656,14 @@ def create_water_depth(ds):
     return ds
 
 
+def create_nominal_instrument_depth(ds):
+    if 'nominal_instrument_depth' not in ds.attrs:
+        ds.attrs['nominal_instrument_depth'] = (
+            ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height'])
+
+    return ds
+
+
 def check_valid_metadata(metadata):
     for k in ['initial_instrument_height',
               'orientation']:

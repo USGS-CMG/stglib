@@ -15,8 +15,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Clip data to in/out water times or via good_ens
     VEL = utils.clip_ds(VEL)
 
-    # Create water_depth variables
-    VEL = utils.create_water_depth(VEL)
+    # Create water_depth attribute
+    # VEL = utils.create_water_depth(VEL)
+    VEL = utils.create_nominal_instrument_depth(VEL)
 
     # Create depth variable depending on orientation
     VEL, T, T_orig = qaqc.set_orientation(VEL, VEL['TransMatrix'].values)

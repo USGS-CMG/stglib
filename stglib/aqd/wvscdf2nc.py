@@ -17,7 +17,8 @@ def cdf_to_nc(cdf_filename,
     ds = utils.clip_ds(ds, wvs=True)
 
     # Create water_depth variables
-    ds = utils.create_water_depth(ds)
+    # ds = utils.create_water_depth(ds)
+    ds = utils.create_nominal_instrument_depth(ds)
 
     # Create depth variable depending on orientation
     ds, T, T_orig = qaqc.set_orientation(ds, ds['TransMatrix'].values)

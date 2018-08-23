@@ -166,7 +166,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = ds_add_attrs(ds)
 
-    ds = utils.create_water_depth(ds)
+    # ds = utils.create_water_depth(ds)
+    ds = utils.create_nominal_instrument_depth(ds)
 
     ds = exo_create_depth(ds)
 
