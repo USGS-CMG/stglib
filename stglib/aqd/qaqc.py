@@ -288,7 +288,7 @@ def trim_vel(ds, waves=False):
         # find first bin that is all bad values
         # there might be a better way to do this using xarray and named
         # dimensions, but this works for now
-        lastbin = np.argmin(np.all(np.isnan(ds['U']), axis=0) == False)
+        lastbin = np.argmin(np.all(np.isnan(ds['U'].values), axis=0) == False)
 
         # this trims so there are no all-nan rows in the data
         ds = ds.isel(bindist=slice(0, lastbin))
