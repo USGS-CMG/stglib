@@ -206,6 +206,7 @@ def ds_rename_vars(ds):
                 'BGA-PE_RFU': 'BGAPErfu',
                 'BGA-PE_µg_per_L': 'BGAPE',
                 'Temp_°C': 'T_28',
+                'Temp_∞C': 'T_28',
                 'Cond_mS_per_cm': 'C_51',
                 'SpCond_mS_per_cm': 'SpC_48',
                 'Sal_psu': 'S_41',
