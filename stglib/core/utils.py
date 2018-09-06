@@ -128,8 +128,11 @@ def insert_history(ds, histtext):
     return ds
 
 
-def add_epic_history(ds):
-    histtext = 'Processed to EPIC using %s. ' % os.path.basename(sys.argv[0])
+def add_history(ds):
+    if (not 'cf' in ds.attrs) or (ds.attrs['cf'] != '1.6'):
+        histtext = 'Processed to EPIC using %s. ' % os.path.basename(sys.argv[0])
+    elif ds.attrs['cf'] == '1.6':
+        histtext = 'Processed to CF using %s. ' % os.path.basename(sys.argv[0])
 
     return insert_history(ds, histtext)
 

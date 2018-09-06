@@ -82,10 +82,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = utils.add_start_stop_time(VEL)
 
     # Add history showing file used
-    VEL = utils.add_epic_history(VEL)
+    VEL = utils.add_history(VEL)
 
     # Rename time variables for EPIC compliance, keeping a time_cf coorindate.
-    VEL = utils.rename_time(VEL)
+    if (not 'cf' in VEL.attrs) or (VEL.attrs['cf'] != '1.6'):
+        VEL = utils.rename_time(VEL)
 
     for var in VEL.variables:
         if (var not in VEL.coords) and ('time' not in var):
