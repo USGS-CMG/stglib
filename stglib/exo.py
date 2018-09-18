@@ -134,6 +134,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = utils.clip_ds(ds)
 
     ds = ds_rename_vars(ds)
+    if 'C_51' in ds:
+        ds['C_51'].values = ds['C_51'].values/10  # convert from mS/cm to S/m
 
     # ds = ds_add_attrs(ds)
 
@@ -275,7 +277,6 @@ def ds_add_attrs(ds):
     ds['C_51'].attrs.update({'units': 'S/m',
                              'long_name': 'Conductivity',
                              'epic_code': 51})
-    ds['C_51'].values = ds['C_51'].values/10  # convert from mS/cm to S/m
 
     ds['SpC_48'].attrs.update({'units': 'mS/cm',
                                'long_name': 'Conductivity',
