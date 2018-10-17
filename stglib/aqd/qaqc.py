@@ -37,6 +37,15 @@ def ds_rename(ds, waves=False):
 
     ds.rename(varnames, inplace=True)
 
+    if waves:
+        for v in ['vel1_1277',
+                  'vel2_1278',
+                  'vel3_1279',
+                  'AGC1_1221',
+                  'AGC2_1222',
+                  'AGC3_1223']:
+            ds[v] = ds[v].expand_dims('depth', axis=-1)
+
     for v in ['avgamp1',
               'avgamp2',
               'avgamp3',
@@ -187,13 +196,18 @@ def set_orientation(VEL, T):
     return VEL, T, T_orig
 
 
-def make_bin_depth(VEL):
+def make_bin_depth(VEL, waves=False):
     """Create bin_depth variable"""
 
     if 'Pressure_ac' in VEL:
-        VEL['bin_depth'] = VEL['Pressure_ac'] - VEL['bindist']
+        pres = 'Pressure_ac'
     else:
-        VEL['bin_depth'] = VEL['Pressure'] - VEL['bindist']
+        pres = 'Pressure'
+
+    if not waves:
+        VEL['bin_depth'] = VEL[pres] - VEL['bindist']
+    else:
+        VEL['bin_depth'] = VEL[pres].mean(dim='sample') - VEL['bindist']
 
     return VEL
 
@@ -274,7 +288,7 @@ def trim_vel(ds, waves=False):
         # find first bin that is all bad values
         # there might be a better way to do this using xarray and named
         # dimensions, but this works for now
-        lastbin = np.argmin(np.all(np.isnan(ds['U']), axis=0) == False)
+        lastbin = np.argmin(np.all(np.isnan(ds['U'].values), axis=0) == False)
 
         # this trims so there are no all-nan rows in the data
         ds = ds.isel(bindist=slice(0, lastbin))
@@ -752,15 +766,17 @@ def ds_add_attrs(ds, waves=False):
         {'standard_name': 'time',
          'axis': 'T'})
 
-    ds['epic_time'].attrs.update(
-        {'units': 'True Julian Day',
-         'type': 'EVEN',
-         'epic_code': 624})
+    if 'epic_time' in ds:
+        ds['epic_time'].attrs.update(
+            {'units': 'True Julian Day',
+             'type': 'EVEN',
+             'epic_code': 624})
 
-    ds['epic_time2'].attrs.update(
-        {'units': 'msec since 0:00 GMT',
-         'type': 'EVEN',
-         'epic_code': 624})
+    if 'epic_time2' in ds:
+        ds['epic_time2'].attrs.update(
+            {'units': 'msec since 0:00 GMT',
+             'type': 'EVEN',
+             'epic_code': 624})
 
     if 'epic_time_2d' in ds:
         ds['epic_time_2d'].attrs = ds['epic_time'].attrs
@@ -838,6 +854,8 @@ def ds_add_attrs(ds, waves=False):
              'long_name': 'Echo Intensity (AGC) Beam 3',
              'generic_name': 'AGC3',
              'epic_code': 1223})
+
+        ds.attrs['COORD_SYSTEM'] = 'GEOGRAPHIC + sample'
 
     ds['P_1'].attrs.update(
         {'units': 'dbar',

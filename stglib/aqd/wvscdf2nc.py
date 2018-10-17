@@ -14,16 +14,17 @@ def cdf_to_nc(cdf_filename,
     ds = qaqc.load_cdf(cdf_filename, atmpres=atmpres)
 
     # Clip data to in/out water times or via good_ens
-    ds = utils.clip_ds(ds)
+    ds = utils.clip_ds(ds, wvs=True)
 
     # Create water_depth variables
-    ds = utils.create_water_depth(ds)
+    # ds = utils.create_water_depth(ds)
+    ds = utils.create_nominal_instrument_depth(ds)
 
     # Create depth variable depending on orientation
     ds, T, T_orig = qaqc.set_orientation(ds, ds['TransMatrix'].values)
 
     # Make bin_depth variable
-    ds = qaqc.make_bin_depth(ds)
+    ds = qaqc.make_bin_depth(ds, waves=True)
 
     # Swap dimensions from bindist to depth
     qaqc.swap_bindist_to_depth(ds)
@@ -46,6 +47,10 @@ def cdf_to_nc(cdf_filename,
         if (var not in ds.coords) and ('time' not in var):
             # cast as float32
             ds = utils.set_var_dtype(ds, var)
+
+    # Need to add lat lon to certain variables
+    for var in ['Hdg_1215', 'Ptch_1216', 'Roll_1217']:
+        ds = utils.add_lat_lon(ds, var)
 
     # Ensure no _FillValue is assigned to coordinates
     ds = utils.ds_coord_no_fillvalue(ds)

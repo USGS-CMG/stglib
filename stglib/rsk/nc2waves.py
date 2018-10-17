@@ -16,9 +16,11 @@ def nc_to_waves(nc_filename):
     for k in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec']:
         ds[k] = spec[k]
 
-    ds = utils.create_water_depth(ds)
+    # ds = utils.create_water_depth(ds)
 
-    ds = ds.drop(['P_1', 'P_1ac', 'sample', 'Depth'])
+    ds = utils.create_water_depth_var(ds)
+
+    ds = ds.drop(['P_1', 'P_1ac', 'sample'])
 
     ds = utils.trim_max_wp(ds)
 
@@ -32,7 +34,7 @@ def nc_to_waves(nc_filename):
     ds = utils.ds_add_attrs(ds)
 
     # Reshape and associate dimensions with lat/lon
-    for var in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec']:
+    for var in ['wp_peak', 'wh_4061', 'wp_4060', 'pspec', 'water_depth']:
         if var in ds:
             ds = utils.add_lat_lon(ds, var)
 
@@ -48,6 +50,6 @@ def nc_to_waves(nc_filename):
             # cast as float32
             ds = utils.set_var_dtype(ds, var)
 
-    ds.to_netcdf(nc_filename)
+    ds.to_netcdf(nc_filename, unlimited_dims=['time'])
 
     return ds

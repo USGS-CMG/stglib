@@ -4,7 +4,7 @@ import numpy as np
 import xarray as xr
 
 
-def make_waves_ds(ds, noise=0.9):
+def make_waves_ds(ds, noise=0.75):
 
     print('Computing waves statistics')
 
@@ -32,7 +32,7 @@ def make_waves_ds(ds, noise=0.9):
                               dims=('time', 'frequency'),
                               coords=(ds['time'], f))
     tailind, noisecutind, fpeakcutind, Kpcutind = zip(
-        *[define_cutoff(f, x, y, noise=0.75) for x, y in
+        *[define_cutoff(f, x, y, noise=noise) for x, y in
             zip(spec['Pxx'].values, spec['Kp'].values)])
     spec['tailind'] = xr.DataArray(np.asarray(tailind), dims='time')
     spec['noisecutind'] = xr.DataArray(np.asarray(noisecutind), dims='time')

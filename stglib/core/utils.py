@@ -12,10 +12,13 @@ import scipy.io as spio
 import pandas as pd
 
 
-def clip_ds(ds):
+def clip_ds(ds, wvs=False):
     """
     Clip an xarray Dataset from metadata, either via good_ens or
-    Deployment_date and Recovery_date
+    Deployment_date and Recovery_date.
+
+    wvs only applies to Aquadopp waves here. It is distinct from waves flag
+    because AQD waves can have a different sampling interval than AQD currents
     """
 
     print('first burst in full file:', ds['time'].min().values)
@@ -23,7 +26,7 @@ def clip_ds(ds):
 
     # clip either by ensemble indices or by the deployment and recovery
     # date specified in metadata
-    if 'good_ens' in ds.attrs:
+    if 'good_ens' in ds.attrs and not wvs:
         # we have good ensemble indices in the metadata
         print('Clipping data using good_ens')
 
@@ -41,6 +44,19 @@ def clip_ds(ds):
         ds = ds.isel(time=goods)
 
         histtext = 'Data clipped using good_ens values of %s . ' % (
+            str(good_ens))
+
+        ds = insert_history(ds, histtext)
+
+    elif 'good_ens_wvs' in ds.attrs and wvs:
+        print('Clipping data using good_ens_wvs')
+        good_ens = ds.attrs['good_ens_wvs']
+
+        goods = np.arange(good_ens[0], good_ens[1])
+
+        ds = ds.isel(time=goods)
+
+        histtext = 'Data clipped using good_ens_wvs values of %s . ' % (
             str(good_ens))
 
         ds = insert_history(ds, histtext)
@@ -112,8 +128,11 @@ def insert_history(ds, histtext):
     return ds
 
 
-def add_epic_history(ds):
-    histtext = 'Processed to EPIC using %s. ' % os.path.basename(sys.argv[0])
+def add_history(ds):
+    if (not 'cf' in ds.attrs) or (ds.attrs['cf'] != '1.6'):
+        histtext = 'Processed to EPIC using %s. ' % os.path.basename(sys.argv[0])
+    elif ds.attrs['cf'] == '1.6':
+        histtext = 'Processed to CF using %s. ' % os.path.basename(sys.argv[0])
 
     return insert_history(ds, histtext)
 
@@ -258,6 +277,9 @@ def ds_add_attrs(ds):
             ds[var].attrs.update({
                 'minimum': ds[var].min().values,
                 'maximum': ds[var].max().values})
+
+    if 'burst' in ds:
+        ds['burst'].encoding['_FillValue'] = 1e35
 
     return ds
 
@@ -421,7 +443,7 @@ def rename_time_2d(nc_filename):
     # Not sure why, but it works this way.
     with netCDF4.Dataset(nc_filename, 'r+') as nc:
         nc.renameVariable('time', 'time_cf')
-        nc.renameVariable('time_2d', 'time_cf_2d')
+        # nc.renameVariable('time_2d', 'time_cf_2d')
         timebak = nc['epic_time_2d'][:]
         nc.renameVariable('epic_time_2d', 'time')
         nc.renameVariable('epic_time2_2d', 'time2')
@@ -509,6 +531,8 @@ def create_2d_time(ds):
                                        dims=('time', 'sample'),
                                        encoding={'_FillValue': None})
 
+    ds = ds.drop('time_2d') # don't need it anymore
+
     return ds
 
 
@@ -548,11 +572,44 @@ def shift_time(ds, timeshift):
             'time offset of %.3f s was adjusted to %.f s for shifting time' %
             (timeshift, int(timeshift)))
 
+    if 'ClockError' in ds.attrs:
+        if ds.attrs['ClockError'] != 0:
+            # note negative on ds.attrs['ClockError']
+            ds['time'] = ds['time'] + np.timedelta64(-ds.attrs['ClockError'], 's')
+            print('Time shifted by %d s from ClockError' % -ds.attrs['ClockError'])
+
+    return ds
+
+
+def create_water_depth_var(ds):
+
+    press = None
+
+    if 'Pressure_ac' in ds:
+        press = 'Pressure_ac'
+    elif 'P_1ac' in ds:
+        press = 'P_1ac'
+    elif 'Pressure' in ds:
+        press = 'Pressure'
+    elif 'P_1' in ds:
+        press = 'P_1'
+
+    if 'sample' in ds.dims:
+        ds['water_depth'] = xr.DataArray(
+            ds[press].squeeze().mean(dim='sample') +
+            ds.attrs['initial_instrument_height'])
+    else:
+        ds['water_depth'] = xr.DataArray(
+            ds[press].squeeze() + ds.attrs['initial_instrument_height'])
+
+    ds['water_depth'].attrs['long_name'] = 'Total water depth'
+    ds['water_depth'].attrs['units'] = 'm'
+
     return ds
 
 
 def create_water_depth(ds):
-    """Create water_depth variable"""
+    """Create WATER_DEPTH attribute"""
 
     press = None
 
@@ -574,7 +631,7 @@ def create_water_depth(ds):
         if press:
             ds.attrs['nominal_instrument_depth'] = (
                 ds[press].squeeze().mean(dim=dims).values)
-            ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+            # ds['water_depth'] = ds.attrs['nominal_instrument_depth']
             wdepth = (
                 ds.attrs['nominal_instrument_depth'] +
                 ds.attrs['initial_instrument_height'])
@@ -591,7 +648,7 @@ def create_water_depth(ds):
             ds.attrs['nominal_instrument_depth'] = (
                 ds.attrs['WATER_DEPTH'] -
                 ds.attrs['initial_instrument_height'])
-        ds['Depth'] = ds.attrs['nominal_instrument_depth']
+        # ds['Depth'] = ds.attrs['nominal_instrument_depth']
         # TODO: why is this being redefined here? Seems redundant
         ds.attrs['WATER_DEPTH'] = wdepth
 
@@ -599,11 +656,19 @@ def create_water_depth(ds):
         ds.attrs['initial_instrument_height'] = (
             ds.attrs['WATER_DEPTH'] -
             ds.attrs['nominal_instrument_depth'])
-        ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+        # ds['water_depth'] = ds.attrs['nominal_instrument_depth']
 
     if 'initial_instrument_height' not in ds.attrs:
         # TODO: do we really want to set to zero?
         ds.attrs['initial_instrument_height'] = 0
+
+    return ds
+
+
+def create_nominal_instrument_depth(ds):
+    if 'nominal_instrument_depth' not in ds.attrs:
+        ds.attrs['nominal_instrument_depth'] = (
+            ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height'])
 
     return ds
 

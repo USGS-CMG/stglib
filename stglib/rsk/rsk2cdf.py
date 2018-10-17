@@ -34,7 +34,7 @@ def rsk_to_xr(metadata):
     Load data from RSK file and generate an xarray Dataset
     """
 
-    rskfile = metadata['basefile'] + '.rsk'
+    rskfile = metadata.pop('basefile') + '.rsk'
 
     ds = xr.Dataset()
 
@@ -121,6 +121,9 @@ def rsk_to_xr(metadata):
     ds['time'] = xr.DataArray(times, dims=('time'), name='time')
 
     ds['sample'] = xr.DataArray(samples, dims=('sample'), name='sample')
+
+    ds['burst'] = xr.DataArray(np.arange(len(times)), dims=('time'),
+                               attrs={'long_name': 'burst number'})
 
     ds['lat'] = xr.DataArray(
         [ds.attrs['latitude']],

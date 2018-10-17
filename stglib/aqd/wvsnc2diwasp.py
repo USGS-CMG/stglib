@@ -54,7 +54,9 @@ def nc_to_diwasp(nc_filename, format='NETCDF3_64BIT'):
                                                 ds['dspec'].values),
                                  dims='time')
 
-    ds = utils.create_water_depth(ds)
+    # ds = utils.create_water_depth(ds)
+
+    ds = utils.create_water_depth_var(ds)
 
     # Remove old variables as we just want to keep the wave statistics
     for v in ['P_1',
@@ -84,6 +86,9 @@ def nc_to_diwasp(nc_filename, format='NETCDF3_64BIT'):
         if v in ds:
             ds = ds.drop(v)
 
+    # remove depth from bin_depth
+    ds['bin_depth'] = ds['bin_depth'].squeeze(dim='depth')
+
     ds = utils.trim_max_wp(ds)
 
     ds = utils.trim_min_wh(ds)
@@ -103,6 +108,10 @@ def nc_to_diwasp(nc_filename, format='NETCDF3_64BIT'):
             ds = utils.add_lat_lon(ds, var)
             # cast as float32
             ds = utils.set_var_dtype(ds, var)
+
+    # remove lat and lon from burst dimension: they are singleton so can
+    # remove them both with one call to squeeze()
+    ds['burst'] = ds['burst'].squeeze()
 
     nc_filename = ds.attrs['filename'] + 'wvs_diwasp-cal.nc'
 

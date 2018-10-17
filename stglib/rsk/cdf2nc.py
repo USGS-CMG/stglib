@@ -17,6 +17,8 @@ def cdf_to_nc(cdf_filename,
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
+    ds = utils.create_nominal_instrument_depth(ds)
+
     if atmpres is not None:
         print("Atmospherically correcting data")
 
@@ -38,10 +40,13 @@ def cdf_to_nc(cdf_filename,
 
     ds = ds_add_attrs(ds)
 
+    ds = ds_add_depth_dim(ds)
+
     # add lat/lon coordinates to each variable
-    for var in ds.data_vars:
-        if 'time' not in var:
-            ds = utils.add_lat_lon(ds, var)
+    # no longer want to do this according to the canonical forms on stellwagen
+    # for var in ds.data_vars:
+    #     if 'time' not in var:
+    #         ds = utils.add_lat_lon(ds, var)
 
     ds = utils.add_min_max(ds)
 
@@ -63,7 +68,7 @@ def cdf_to_nc(cdf_filename,
         print("Writing cleaned/trimmed data to .nc file")
         nc_filename = ds.attrs['filename'] + 'b-cal.nc'
 
-        ds.to_netcdf(nc_filename, format=format)
+        ds.to_netcdf(nc_filename, format=format, unlimited_dims=['time'])
 
         # Rename time variables for EPIC compliance, keeping a time_cf
         # coorindate.
@@ -94,6 +99,22 @@ def cdf_to_nc(cdf_filename,
 #
 #     return ds
 
+def ds_add_depth_dim(ds):
+    print('Creating depth dimension')
+    if 'P_1ac' in ds:
+        p = 'P_1ac'
+    else:
+        p = 'P_1'
+
+    ds['depth'] = xr.DataArray([ds[p].mean(dim=['time', 'sample'])],
+                               dims='depth')
+    ds['depth'].attrs['positive'] = 'down'
+    ds['depth'].attrs['axis'] = 'z'
+    ds['depth'].attrs['units'] = 'm'
+    ds['depth'].attrs['epic_code'] = 3
+
+    return ds
+
 
 def ds_add_attrs(ds):
     # Update attributes for EPIC and STG compliance
@@ -123,7 +144,11 @@ def ds_add_attrs(ds):
         if 'P_1ac_note' in ds.attrs:
             ds['P_1ac'].attrs.update({'note': ds.attrs['P_1ac_note']})
 
+    if 'burst' in ds:
+        ds['burst'].encoding['_FillValue'] = 1e35
+
     ds.attrs['COMPOSITE'] = 0
+    ds.attrs['COORD_SYSTEM'] = 'GEOGRAPHIC + sample'
 
     return ds
 
