@@ -245,8 +245,23 @@ def rotate(u, v, deg):
     return urot, vrot
 
 
-def trim_vel(ds, waves=False):
-    """Trim velocity data depending on specified method"""
+def trim_vel(ds, waves=False, data_vars=['U', 'V', 'W', 'AGC']):
+    """Trim velocity data depending on specified method
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        The xarray Dataset
+    waves: bool, optional
+        Flag to determine whether these are waves data. Default False.
+    data_vars : array_like
+        List of variables to trim. Default ['U', 'V', 'W', 'AGC'].
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset with trimmed data
+    """
 
     if ('trim_method' in ds.attrs and
            ds.attrs['trim_method'].lower() != 'none' and
@@ -264,14 +279,14 @@ def trim_vel(ds, waves=False):
 
         if ds.attrs['trim_method'].lower() == 'water level':
             print('Trimming using water level')
-            for var in ['U', 'V', 'W', 'AGC']:
+            for var in data_vars:
                 ds[var] = ds[var].where(ds['bindist'] < P)
             ds.attrs['history'] = (
                 'Trimmed velocity data using water level. ' +
                 ds.attrs['history'])
         elif ds.attrs['trim_method'].lower() == 'water level sl':
             print('Trimming using water level and sidelobes')
-            for var in ['U', 'V', 'W', 'AGC']:
+            for var in data_vars:
                 ds[var] = ds[var].where(
                     ds['bindist'] <
                     P * np.cos(np.deg2rad(ds.attrs['AQDBeamAngle'])))
@@ -281,14 +296,14 @@ def trim_vel(ds, waves=False):
         elif ds.attrs['trim_method'].lower() == 'bin range':
             print('Trimming using good_bins of %s' %
                 str(ds.attrs['good_bins']))
-            for var in ['U', 'V', 'W', 'AGC']:
+            for var in data_vars:
                 ds[var] = ds[var].isel(bindist=slice(ds.attrs['good_bins'][0],
                                                      ds.attrs['good_bins'][1]))
 
         # find first bin that is all bad values
         # there might be a better way to do this using xarray and named
         # dimensions, but this works for now
-        lastbin = np.argmin(np.all(np.isnan(ds['U'].values), axis=0) == False)
+        lastbin = np.argmin(np.all(np.isnan(ds[data_vars[0]].values), axis=0) == False)
 
         # this trims so there are no all-nan rows in the data
         ds = ds.isel(bindist=slice(0, lastbin))
