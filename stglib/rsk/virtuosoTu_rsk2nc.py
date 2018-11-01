@@ -260,17 +260,16 @@ def virtuosoTu_cdf_to_nc(cdf_filename,
     # this function names as epic_time and epic_time2
     ds = utils.create_epic_times(ds)
     
-    #ds = create_epic_times_as_primary(ds)
-
-    #ds = utils.create_2d_time(ds)
-
     ds = Virtuosods_add_attrs(ds)
+
+    ds = Virtuoso_create_depth_var(ds)
 
     # add lat/lon coordinates to each variable
     for var in ds.data_vars:
         if 'time' not in var:
             ds = utils.add_lat_lon(ds, var)
-            ds = utils.add_depth_scalar(ds, var)
+            ds = Virtuoso_add_depth_coord(ds, var)
+
 
     ds = utils.add_min_max(ds)
 
@@ -278,7 +277,7 @@ def virtuosoTu_cdf_to_nc(cdf_filename,
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
-    ds = utils.add_epic_history(ds)
+    ds = utils.insert_history(ds, "uncalibrated data; ")
 
     ds = Virtuoso_add_delta_t(ds)
     
@@ -347,6 +346,30 @@ def Virtuosods_add_attrs(ds):
 def Virtuoso_add_delta_t(ds):
 
     ds.attrs['DELTA_T'] = int(ds.attrs['sample_interval'])
+
+    return ds
+
+def Virtuoso_create_depth_var(ds):
+
+    depth = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
+    ds['depth'] = xr.DataArray([depth], dims='depth')
+    ds['depth'].attrs['positive'] = 'down'
+    ds['depth'].attrs['axis'] = 'z'
+    ds['depth'].attrs['units'] = 'm'
+    ds['depth'].attrs['epic_code'] = 3
+    ds['depth'].encoding['_FillValue'] = 1e35
+
+    return ds
+
+def Virtuoso_add_depth_coord(ds, var):
+    ds[var] = xr.concat([ds[var]], dim=ds['depth'])
+
+    # Reorder so lat, lon are at the end.
+    dims = [d for d in ds[var].dims if (d != 'depth')]
+    dims.extend(['depth'])
+    dims = tuple(dims)
+
+    ds[var] = ds[var].transpose(*dims)
 
     return ds
 
