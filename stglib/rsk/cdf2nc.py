@@ -54,7 +54,7 @@ def cdf_to_nc(cdf_filename,
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
-    ds = utils.add_epic_history(ds)
+    ds = utils.add_history(ds)
 
     ds = dw_add_delta_t(ds)
 
