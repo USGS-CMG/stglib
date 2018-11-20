@@ -427,11 +427,11 @@ def rename_time(ds):
     # nc['time'][:] = timebak
     # nc.close()
 
-    ds.rename({'time': 'time_cf'}, inplace=True)
-    ds.rename({'epic_time': 'time'}, inplace=True)
-    ds.rename({'epic_time2': 'time2'}, inplace=True)
-    ds.set_coords(['time', 'time2'], inplace=True)
-    ds.swap_dims({'time_cf': 'time'}, inplace=True)
+    ds = ds.rename({'time': 'time_cf'})
+    ds = ds.rename({'epic_time': 'time'})
+    ds = ds.rename({'epic_time2': 'time2'})
+    ds = ds.set_coords(['time', 'time2'])
+    ds = ds.swap_dims({'time_cf': 'time'})
     # output int32 time_cf for THREDDS compatibility
     ds['time_cf'].encoding['dtype'] = 'i4'
 

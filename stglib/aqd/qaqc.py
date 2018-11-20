@@ -35,7 +35,7 @@ def ds_rename(ds, waves=False):
              'AMP2': 'AGC2_1222',
              'AMP3': 'AGC3_1223'})
 
-    ds.rename(varnames, inplace=True)
+    ds = ds.rename(varnames)
 
     if waves:
         for v in ['vel1_1277',
@@ -160,7 +160,7 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
 
 
 def swap_bindist_to_depth(ds):
-    ds.swap_dims({'bindist': 'depth'}, inplace=True)
+    ds = ds.swap_dims({'bindist': 'depth'})
 
 
 def set_orientation(VEL, T):
