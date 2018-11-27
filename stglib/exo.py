@@ -128,7 +128,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     """
 
     # Load raw .cdf data
-    ds = xr.open_dataset(cdf_filename, autoclose=True)
+    ds = xr.open_dataset(cdf_filename).load()
+    ds.close()
 
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
@@ -147,7 +148,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     if atmpres:
         print("Atmospherically correcting data")
 
-        met = xr.open_dataset(atmpres, autoclose=True)
+        met = xr.open_dataset(atmpres).load()
+        met.close()
         # need to save attrs before the subtraction, otherwise they are lost
         attrs = ds['P_1'].attrs
         ds['P_1ac'] = ds['P_1'] - met['atmpres'] - met['atmpres'].offset
@@ -164,7 +166,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = exo_add_delta_t(ds)
 
     # add lat/lon coordinates
-    ds = ds_add_lat_lon(ds)
+    ds = utils.ds_add_lat_lon(ds)
 
     ds = ds_add_attrs(ds)
 
@@ -327,13 +329,6 @@ def ds_add_attrs(ds):
     for var in ds.variables:
         if (var not in ds.coords) and ('time' not in var):
             add_attributes(ds[var], ds.attrs)
-
-    return ds
-
-
-def ds_add_lat_lon(ds):
-    ds['lat'] = xr.DataArray([ds.attrs['latitude']], dims=('lat'), name='lat')
-    ds['lon'] = xr.DataArray([ds.attrs['longitude']], dims=('lon'), name='lon')
 
     return ds
 

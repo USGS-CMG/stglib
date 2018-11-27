@@ -561,6 +561,13 @@ def add_lat_lon(ds, var):
     return ds
 
 
+def ds_add_lat_lon(ds):
+    ds['lat'] = xr.DataArray([ds.attrs['latitude']], dims=('lat'), name='lat')
+    ds['lon'] = xr.DataArray([ds.attrs['longitude']], dims=('lon'), name='lon')
+
+    return ds
+
+
 def shift_time(ds, timeshift):
     """Shift time to middle of burst"""
 
