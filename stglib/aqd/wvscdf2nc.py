@@ -27,8 +27,7 @@ def cdf_to_nc(cdf_filename,
     ds = qaqc.make_bin_depth(ds, waves=True)
 
     # Swap dimensions from bindist to depth
-    qaqc.swap_bindist_to_depth(ds)
-
+    ds = qaqc.swap_bindist_to_depth(ds)
     # Rename DataArrays within Dataset for EPIC compliance
     # and append depth coord to velocities and amplitudes
     ds = qaqc.ds_rename(ds, waves=True)
