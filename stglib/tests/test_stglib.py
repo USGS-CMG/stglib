@@ -47,7 +47,7 @@ class TestTimes(unittest.TestCase):
 
     def test_epic_time_conversion(self):
         difftime = self.bbvcf['time'].values - stglib.utils.epic_to_datetime(
-           self.bbvepic['time'], self.bbvepic['time2']).values
+           self.bbvepic['time'].values, self.bbvepic['time2'].values).values
 
         # values should be equal to at least 1 ms
         assert np.all(difftime <= np.timedelta64(1, 'ms'))
