@@ -12,7 +12,8 @@ def cdf_to_nc(cdf_filename,
     """
 
     # Load raw .cdf data
-    ds = xr.open_dataset(cdf_filename, autoclose=True)
+    ds = xr.open_dataset(cdf_filename).load()
+    ds.close()
 
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
@@ -22,7 +23,8 @@ def cdf_to_nc(cdf_filename,
     if atmpres is not None:
         print("Atmospherically correcting data")
 
-        met = xr.open_dataset(atmpres, autoclose=True)
+        met = xr.open_dataset(atmpres).load()
+        met.close()
         # need to save attrs before the subtraction, otherwise they are lost
         # ds['P_1ac'] = ds['P_1'].copy(deep=True)
         attrs = ds['P_1'].attrs

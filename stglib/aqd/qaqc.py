@@ -66,13 +66,14 @@ def load_cdf(cdf_filename, atmpres=False):
     Load raw .cdf file and, optionally, an atmospheric pressure .cdf file
     """
 
-    ds = xr.open_dataset(cdf_filename, autoclose=True)
+    ds = xr.open_dataset(cdf_filename).load()
+    ds.close()
 
     if atmpres is not False:
-        p = xr.open_dataset(atmpres, autoclose=True)
+        p = xr.open_dataset(atmpres).load()
+        p.close()
         # TODO: check to make sure this data looks OK
-        # need to call load for waves; it's not in memory and throws error
-        ds['Pressure_ac'] = xr.DataArray(ds['Pressure'].load() -
+        ds['Pressure_ac'] = xr.DataArray(ds['Pressure'] -
                                          p['atmpres'] -
                                          p['atmpres'].offset)
 

@@ -456,7 +456,6 @@ def open_time_2d_dataset(filename):
     # to coordinates and variables with the same name, otherwise it raises a
     # MissingDimensionsError
     return xr.open_dataset(filename,
-                           autoclose=True,
                            decode_times=False,
                            drop_variables='time')
 
