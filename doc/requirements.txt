@@ -5,3 +5,4 @@ pandas
 numpy
 netcdf4
 xmltodict
+sphinx-argparse
