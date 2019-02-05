@@ -21,7 +21,7 @@ Raw .cdf to clean .nc
 
 Convert the raw .cdf data into an EPIC-compliant netCDF file with .nc extension using ``runexocdf2nc.py``, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.
 
-runrskcdf2nc.py
+runwxocdf2nc.py
 ---------------
 
 .. argparse::
