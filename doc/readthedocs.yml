@@ -1,2 +1,6 @@
+version: 2
+
+formats: all
+
 conda:
-    file: environment.yml
+    environment: environment.yml
