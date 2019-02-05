@@ -1,0 +1,8 @@
+xarray
+scipy
+matplotlib
+pandas
+numpy
+sqlite3
+netcdf4
+xmltodict
