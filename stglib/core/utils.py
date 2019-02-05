@@ -561,8 +561,21 @@ def add_lat_lon(ds, var):
 
 
 def ds_add_lat_lon(ds):
-    ds['lat'] = xr.DataArray([ds.attrs['latitude']], dims=('lat'), name='lat')
-    ds['lon'] = xr.DataArray([ds.attrs['longitude']], dims=('lon'), name='lon')
+    ds['lat'] = xr.DataArray(
+        [ds.attrs['latitude']],
+        dims=('lat'),
+        name='lat',
+        attrs={'units': 'degree_north',
+               'long_name': 'Latitude',
+               'epic_code': 500})
+
+    ds['lon'] = xr.DataArray(
+        [ds.attrs['longitude']],
+        dims=('lon'),
+        name='lon',
+        attrs={'units': 'degree_east',
+               'long_name': 'Longitude',
+               'epic_code': 502})
 
     return ds
 
