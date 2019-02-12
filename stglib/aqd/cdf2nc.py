@@ -109,7 +109,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
 
 def ds_swap_dims(ds):
-    ds.swap_dims({'bindist': 'depth'}, inplace=True)
+    ds = ds.swap_dims({'bindist': 'depth'})
     # need to swap dims and then reassign bindist to be a normal variable
     # (no longer a coordinate)
     valbak = ds['bindist'].values

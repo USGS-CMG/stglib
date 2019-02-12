@@ -35,7 +35,7 @@ def ds_rename(ds, waves=False):
              'AMP2': 'AGC2_1222',
              'AMP3': 'AGC3_1223'})
 
-    ds.rename(varnames, inplace=True)
+    ds = ds.rename(varnames)
 
     if waves:
         for v in ['vel1_1277',
@@ -66,13 +66,14 @@ def load_cdf(cdf_filename, atmpres=False):
     Load raw .cdf file and, optionally, an atmospheric pressure .cdf file
     """
 
-    ds = xr.open_dataset(cdf_filename, autoclose=True)
+    ds = xr.open_dataset(cdf_filename).load()
+    ds.close()
 
     if atmpres is not False:
-        p = xr.open_dataset(atmpres, autoclose=True)
+        p = xr.open_dataset(atmpres).load()
+        p.close()
         # TODO: check to make sure this data looks OK
-        # need to call load for waves; it's not in memory and throws error
-        ds['Pressure_ac'] = xr.DataArray(ds['Pressure'].load() -
+        ds['Pressure_ac'] = xr.DataArray(ds['Pressure'] -
                                          p['atmpres'] -
                                          p['atmpres'].offset)
 
@@ -160,7 +161,7 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
 
 
 def swap_bindist_to_depth(ds):
-    ds.swap_dims({'bindist': 'depth'}, inplace=True)
+    return ds.swap_dims({'bindist': 'depth'})
 
 
 def set_orientation(VEL, T):
@@ -245,8 +246,23 @@ def rotate(u, v, deg):
     return urot, vrot
 
 
-def trim_vel(ds, waves=False):
-    """Trim velocity data depending on specified method"""
+def trim_vel(ds, waves=False, data_vars=['U', 'V', 'W', 'AGC']):
+    """Trim velocity data depending on specified method
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        The xarray Dataset
+    waves: bool, optional
+        Flag to determine whether these are waves data. Default False.
+    data_vars : array_like
+        List of variables to trim. Default ['U', 'V', 'W', 'AGC'].
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset with trimmed data
+    """
 
     if ('trim_method' in ds.attrs and
            ds.attrs['trim_method'].lower() != 'none' and
@@ -264,14 +280,14 @@ def trim_vel(ds, waves=False):
 
         if ds.attrs['trim_method'].lower() == 'water level':
             print('Trimming using water level')
-            for var in ['U', 'V', 'W', 'AGC']:
+            for var in data_vars:
                 ds[var] = ds[var].where(ds['bindist'] < P)
             ds.attrs['history'] = (
                 'Trimmed velocity data using water level. ' +
                 ds.attrs['history'])
         elif ds.attrs['trim_method'].lower() == 'water level sl':
             print('Trimming using water level and sidelobes')
-            for var in ['U', 'V', 'W', 'AGC']:
+            for var in data_vars:
                 ds[var] = ds[var].where(
                     ds['bindist'] <
                     P * np.cos(np.deg2rad(ds.attrs['AQDBeamAngle'])))
@@ -281,14 +297,14 @@ def trim_vel(ds, waves=False):
         elif ds.attrs['trim_method'].lower() == 'bin range':
             print('Trimming using good_bins of %s' %
                 str(ds.attrs['good_bins']))
-            for var in ['U', 'V', 'W', 'AGC']:
+            for var in data_vars:
                 ds[var] = ds[var].isel(bindist=slice(ds.attrs['good_bins'][0],
                                                      ds.attrs['good_bins'][1]))
 
         # find first bin that is all bad values
         # there might be a better way to do this using xarray and named
         # dimensions, but this works for now
-        lastbin = np.argmin(np.all(np.isnan(ds['U'].values), axis=0) == False)
+        lastbin = np.argmin(np.all(np.isnan(ds[data_vars[0]].values), axis=0) == False)
 
         # this trims so there are no all-nan rows in the data
         ds = ds.isel(bindist=slice(0, lastbin))

@@ -122,9 +122,7 @@ def make_beamdist(iq):
             cells[n, :] = iq[fsdbd][n].values + r * iq[fsdcs][n].values
         iq['cells_' + str(bm)] = xr.DataArray(cells, dims=('time', bdname))
         iq['time_' + str(bm)] = xr.DataArray(time, dims=('time', bdname))
-        iq.set_coords(['cells_' + str(bm),
-                       'time_' + str(bm)],
-                       inplace=True)
+        iq = iq.set_coords(['cells_' + str(bm), 'time_' + str(bm)])
 
     return iq
 

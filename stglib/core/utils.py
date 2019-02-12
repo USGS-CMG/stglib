@@ -427,11 +427,11 @@ def rename_time(ds):
     # nc['time'][:] = timebak
     # nc.close()
 
-    ds.rename({'time': 'time_cf'}, inplace=True)
-    ds.rename({'epic_time': 'time'}, inplace=True)
-    ds.rename({'epic_time2': 'time2'}, inplace=True)
-    ds.set_coords(['time', 'time2'], inplace=True)
-    ds.swap_dims({'time_cf': 'time'}, inplace=True)
+    ds = ds.rename({'time': 'time_cf'})
+    ds = ds.rename({'epic_time': 'time'})
+    ds = ds.rename({'epic_time2': 'time2'})
+    ds = ds.set_coords(['time', 'time2'])
+    ds = ds.swap_dims({'time_cf': 'time'})
     # output int32 time_cf for THREDDS compatibility
     ds['time_cf'].encoding['dtype'] = 'i4'
 
@@ -456,7 +456,6 @@ def open_time_2d_dataset(filename):
     # to coordinates and variables with the same name, otherwise it raises a
     # MissingDimensionsError
     return xr.open_dataset(filename,
-                           autoclose=True,
                            decode_times=False,
                            drop_variables='time')
 
@@ -557,6 +556,26 @@ def add_lat_lon(ds, var):
     dims = tuple(dims)
 
     ds[var] = ds[var].transpose(*dims)
+
+    return ds
+
+
+def ds_add_lat_lon(ds):
+    ds['lat'] = xr.DataArray(
+        [ds.attrs['latitude']],
+        dims=('lat'),
+        name='lat',
+        attrs={'units': 'degree_north',
+               'long_name': 'Latitude',
+               'epic_code': 500})
+
+    ds['lon'] = xr.DataArray(
+        [ds.attrs['longitude']],
+        dims=('lon'),
+        name='lon',
+        attrs={'units': 'degree_east',
+               'long_name': 'Longitude',
+               'epic_code': 502})
 
     return ds
 

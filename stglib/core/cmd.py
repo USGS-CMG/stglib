@@ -108,6 +108,24 @@ def rsknc2waves_parser():
     return parser
 
 
+def hlmcsv2cdf_parser():
+    description = ('Convert HOBO pressure sensor .csv file to raw .cdf format.'
+                   ' Run this script from the directory containing IQ file')
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def hlmcdf2nc_parser():
+    description = 'Convert raw HOBO .cdf format to processed .nc files'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('cdfname', help='raw .CDF filename')
+
+    return parser
+
+
 def exocsv2cdf_parser():
     description = ('Convert EXO .csv file to raw .cdf format. Run this script '
                    'from the directory containing EXO file')
@@ -124,6 +142,24 @@ def exocdf2nc_parser():
     parser.add_argument('cdfname', help='raw .CDF filename')
     parser.add_argument('--atmpres', help=('path to cdf file containing '
                                            'atmopsheric pressure data'))
+
+    return parser
+
+
+def ecolog2cdf_parser():
+    description = ('Convert WET Labs ECO file to raw .cdf format. Run this '
+                   'script from the directory containing ECO file')
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def ecocdf2nc_parser():
+    description = 'Convert raw ECO .cdf format to processed .nc files'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('cdfname', help='raw .CDF filename')
 
     return parser
 
