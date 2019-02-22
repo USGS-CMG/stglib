@@ -1,0 +1,5 @@
+basefile: 'RBRTu_rawdata'
+filename: '111012RBRTu'
+LatLonDatum: 'NAD83'
+initial_instrument_height: 0.4  # meters - estimated!!!
+instrument_type: 'Virtuoso Tu'

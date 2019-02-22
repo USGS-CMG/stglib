@@ -22,7 +22,7 @@ setup(name='stglib',
       license='Public domain',
       classifiers=['Development Status :: 3 - Alpha',
                    'Programming Language :: Python :: 3.6'],
-      # install_requires=['numpy', 'netCDF4', 'xarray'],
+      # install_requires=['numpy', 'netCDF4', 'xarray', 'sqlite3'],
       packages=find_packages(exclude=['doc', 'tests']),
       scripts=['scripts/runaqdhdr2cdf.py',
                'scripts/runaqdcdf2nc.py',
@@ -41,7 +41,9 @@ setup(name='stglib',
                'scripts/runwvsnc2diwasp.py',
                'scripts/runwvsnc2waves.py',
                'scripts/aqdturnaround.py',
-               'scripts/exoturnaround.py'
+               'scripts/exoturnaround.py',
+               'scripts/runRBRTurskcdf2nc.py',
+               'scripts/runRBRTurskrsk2cdf.py'
                ],
       include_package_data=True
      )

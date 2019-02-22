@@ -69,11 +69,11 @@ def wvsnc2waves_parser():
 
     return parser
 
-
+# MM 2/12/2019 removed mention of DWave so any RBR instrument will apply
 def rskrsk2cdf_parser():
-    description = ('Convert raw RBR d|wave files (.rsk) to raw .cdf format. '
+    description = ('Convert raw RBR files (.rsk) to raw .cdf format. '
                    'Run this script from the directory '
-                   'containing d|wave files')
+                   'containing .rsk files')
     parser = argparse.ArgumentParser(description=description)
     gattsarg(parser)
     yamlarg(parser)
@@ -82,7 +82,7 @@ def rskrsk2cdf_parser():
 
 
 def rskcdf2nc_parser():
-    description = ('Convert raw RBR d|wave .cdf format to processed .nc files,'
+    description = ('Convert raw RBR .cdf format to processed .nc files,'
                    ' optionally compensating for atmospheric pressure')
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('cdfname', help='raw .CDF filename')

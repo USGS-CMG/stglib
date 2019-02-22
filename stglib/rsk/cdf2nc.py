@@ -18,7 +18,10 @@ def cdf_to_nc(cdf_filename,
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
-    ds = utils.create_nominal_instrument_depth(ds)
+    if 'instrument_type' in ds.attrs and ds.instrument_type == "Virtuoso Tu":
+        pass
+    else:
+        ds = utils.create_nominal_instrument_depth(ds)
 
     if atmpres is not None:
         print("Atmospherically correcting data")
@@ -38,11 +41,17 @@ def cdf_to_nc(cdf_filename,
 
     ds = utils.create_epic_times(ds)
 
-    ds = utils.create_2d_time(ds)
+    if 'instrument_type' in ds.attrs and ds.instrument_type == "Virtuoso Tu":
+        pass
+    else:
+        ds = utils.create_2d_time(ds)
 
     ds = ds_add_attrs(ds)
 
-    ds = ds_add_depth_dim(ds)
+    if 'instrument_type' in ds.attrs and ds.instrument_type == "Virtuoso Tu":
+        ds = vtu_create_depth_var(ds)
+    else:
+        ds = ds_add_depth_dim(ds)
 
     # add lat/lon coordinates to each variable
     # no longer want to do this according to the canonical forms on stellwagen
@@ -56,7 +65,10 @@ def cdf_to_nc(cdf_filename,
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
-    ds = utils.add_history(ds)
+    if 'instrument_type' in ds.attrs and ds.instrument_type == "Virtuoso Tu":
+        ds = utils.insert_history(ds, "uncalibrated data; ")
+    else:
+        ds = utils.add_history(ds)
 
     ds = dw_add_delta_t(ds)
 
@@ -66,15 +78,31 @@ def cdf_to_nc(cdf_filename,
             ds = utils.set_var_dtype(ds, var)
 
     if writefile:
+
         # Write to .nc file
         print("Writing cleaned/trimmed data to .nc file")
-        nc_filename = ds.attrs['filename'] + 'b-cal.nc'
 
-        ds.to_netcdf(nc_filename, format=format, unlimited_dims=['time'])
+        if 'instrument_type' in ds.attrs and ds.instrument_type == "Virtuoso Tu":
+            # TODO detect, or iterate, through variables in the .cdf file
+            # we will do this when there is a nother non-pressure variant of the data
+            # to work with
+            ds['Turb'] = ds['Turb'].expand_dims(dim=('depth','lat','lon'),axis=(1,2,3)) 
+            ds = utils.rename_time(ds)
+            nc_filename = ds.attrs['filename'] + '-cal.nc'
+            ds.to_netcdf(nc_filename)
+            # TODO specifying the format and/or unlimited_dims here causes
+            # ValueError: could not safely cast array from dtype int64 to int32
+            # non-specfied netCDF format output passes STG QA/QC just fine.
+        else:
+            nc_filename = ds.attrs['filename'] + 'b-cal.nc'
+            ds.to_netcdf(nc_filename, format=format, unlimited_dims=['time'])
 
         # Rename time variables for EPIC compliance, keeping a time_cf
         # coorindate.
-        utils.rename_time_2d(nc_filename)
+        if 'instrument_type' in ds.attrs and ds.instrument_type == "Virtuoso Tu":
+            pass
+        else:
+            utils.rename_time_2d(nc_filename)
 
         print('Done writing netCDF file', nc_filename)
 
@@ -154,8 +182,25 @@ def ds_add_attrs(ds):
 
     return ds
 
+# MM 2/12/2019 we may wish to make the naming of this function more generic, 
+# such as rsk_add_delta_t 
 def dw_add_delta_t(ds):
 
-    ds.attrs['DELTA_T'] = int(ds.attrs['burst_interval'])
+    if 'instrument_type' in ds.attrs and ds.instrument_type == "Virtuoso Tu":
+        ds.attrs['DELTA_T'] = int(ds.attrs['sample_interval'])
+    else:
+        ds.attrs['DELTA_T'] = int(ds.attrs['burst_interval'])
+
+    return ds
+
+def vtu_create_depth_var(ds):
+
+    depth = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
+    ds['depth'] = xr.DataArray([depth], dims='depth')
+    ds['depth'].attrs['positive'] = 'down'
+    ds['depth'].attrs['axis'] = 'z'
+    ds['depth'].attrs['units'] = 'm'
+    ds['depth'].attrs['epic_code'] = 3
+    ds['depth'].encoding['_FillValue'] = 1e35
 
     return ds
