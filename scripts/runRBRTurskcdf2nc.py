@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
-import sys
-sys.path.append('C:\\projects\\python\\stglib')
-sys.path.append('C:\\projects\\python\\xmltodict')
 import stglib
-import argparse
 
 args = stglib.cmd.rskcdf2nc_parser().parse_args()
 

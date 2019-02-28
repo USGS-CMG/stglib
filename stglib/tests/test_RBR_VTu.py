@@ -1,29 +1,11 @@
 import unittest
-import os
-# the following three lines are necessary to run in an environment
-# where stglib is not on the path
-import sys
-filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
-                        '..\\..\\..\\stglib')
-sys.path.append(filepath)
-# xml to dict is a required module in order to import stglib.  
-# As it is not a part of Anaconda's IOOS distribution, 
-# nor is it likely to be, you may need this
-try:
-    filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
-                            '..\\..\\..\\xmltodict')
-    sys.path.append(filepath)  
-except:
-    print('xmldict is not found')
-
 import stglib
 import yaml
 
 class Test_RBR_VTu(unittest.TestCase):
     
     def setUp(self):
-        filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                '..\\..\\examples\\RBRTu_glob_att.txt')
+        filepath = '../../examples/RBRTu_glob_att.txt'
         gatts = stglib.utils.read_globalatts(filepath)
         # these are the most important metadata
         self.assertEqual(gatts['MOORING'],'1110')
@@ -31,8 +13,7 @@ class Test_RBR_VTu(unittest.TestCase):
         self.assertEqual(gatts['latitude'],29.7114)
         self.assertEqual(gatts['longitude'],-81.218633)
         
-        filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                '..\\..\\examples\\RBRTu_config.yaml')
+        filepath = '../../examples/RBRTu_config.yaml'
         with open(filepath) as f:
             config = yaml.safe_load(f)
         self.assertEqual(config['basefile'],'RBRTu_rawdata')
@@ -47,8 +28,7 @@ class Test_RBR_VTu(unittest.TestCase):
             
         # need to adjust metadata for the fact that the data file is stored
         # over in examples, like the other examples
-        self.metadata['basefile'] = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                '..\\..\\examples\\'+self.metadata['basefile'])
+        self.metadata['basefile'] = '../../examples/'+self.metadata['basefile']
         self.ds = stglib.rsk.rsk2cdf.rsk_to_cdf(self.metadata)
         self.assertEqual(float(self.ds['Turb'][int(len(self.ds['Turb'])/2)]),21.066973271097595)
         

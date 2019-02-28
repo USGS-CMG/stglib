@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-import sys
-sys.path.append('C:\\projects\\python\\stglib')
-sys.path.append('C:\\projects\\python\\xmltodict')
 import stglib
 import yaml
 
