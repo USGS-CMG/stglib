@@ -1,8 +1,9 @@
-xarray
-scipy
 matplotlib
-pandas
-numpy
-sqlite
 netcdf4
+numpy
+pandas
+pyyaml
+scipy
+sqlite
+xarray
 xmltodict
