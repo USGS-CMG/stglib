@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from .core import utils
+from . import exo
 
 
 def read_par(filnam, spb=False, skiprows=None, skipfooter=0):
@@ -250,6 +251,20 @@ def eco_qaqc(ds):
     if 'ntu' in ds.attrs['INST_TYPE'].lower():
         for var in ['Turb']:
             ds = trim_max_std(ds, var)
+
+            ds = exo.trim_min(ds, var)
+
+            ds = exo.trim_max(ds, var)
+
+            ds = exo.trim_min_diff(ds, var)
+
+            ds = exo.trim_max_diff(ds, var)
+
+            ds = exo.trim_med_diff(ds, var)
+
+            ds = exo.trim_med_diff_pct(ds, var)
+
+            ds = exo.trim_bad_ens(ds, var)
 
     return ds
 
