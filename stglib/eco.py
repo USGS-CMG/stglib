@@ -273,7 +273,7 @@ def trim_max_std(ds, var):
     if var + '_std_max' in ds.attrs:
         print('%s: Trimming using maximum standard deviation of %f' %
               (var, ds.attrs[var + '_std_max']))
-        ds[var][ds[var] > ds.attrs[var + '_std_max']] = np.nan
+        ds[var][ds['Turb_std'] > ds.attrs[var + '_std_max']] = np.nan
 
         notetxt = ('Values filled where standard deviation greater than %f units. ' %
                    ds.attrs[var + '_std_max'])
