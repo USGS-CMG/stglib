@@ -161,10 +161,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     if 'ntu' in ds.attrs['INST_TYPE'].lower():
         if 'user_ntucal_coeffs' in ds.attrs:
-            ds['Turb'] = xr.DataArray(np.polyval(ds.attrs['user_ntucal_coeffs'], ds['counts'].mean(dim='sample')), dims='time')
+            ds['Turb'] = xr.DataArray(np.polyval(ds.attrs['user_ntucal_coeffs'], ds['counts']), dims=['time', 'sample']).mean(dim='sample')
             ds['Turb'].attrs['units'] = 'NTU'
             ds['Turb'].attrs['long_name'] = 'Turbidity'
-            ds['Turb_std'] = xr.DataArray(np.polyval(ds.attrs['user_ntucal_coeffs'], ds['counts'].std(dim='sample')), dims='time')
+            ds['Turb_std'] = xr.DataArray(np.polyval(ds.attrs['user_ntucal_coeffs'], ds['counts']), dims=['time', 'sample']).std(dim='sample')
             ds['Turb'].attrs['units'] = 'NTU'
             ds['Turb'].attrs['long_name'] = 'Turbidity burst standard deviation'
 
