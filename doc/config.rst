@@ -59,13 +59,25 @@ EXO
 EXO-specific options include:
 
 - ``skiprows``: number of lines to skip in the CSV before the real data begins
-- ``fDOMRFU_max_diff``: maximum point-to-point difference between consecutive values
-- ``C_51_min_diff``: minimum point-to-point difference between consecutive values
-- ``fDOMQSU_max_diff``: each variable has a ``_max_diff`` and ``_min_diff`` option
-- ``SpC_48_min_diff``
-- ``S_41_min_diff``
-- ``Turb_max_diff``
+- ``<VAR>_min``: fill values less than this minimum valid value. Values outside this range will become ``_FillValue``. Substitute your variable for ``<VAR>``, e.g. ``fDOMQSU_min``.
+- ``<VAR>_max``: fill values more than this maximum valid value.
+- ``<VAR>_min_diff``: fill values where data decreases by more than this number of units in a single time step. Should be a negative number.
+- ``<VAR>_max_diff``: fill values where data increases by more than this number of units in a single time step.
+- ``<VAR>_med_diff``: fill values where difference between a 5-point (default) median filter and original values is greater than this number.
+- ``<VAR>_med_diff_pct``: fill values where percent difference between a 5-point (default) median filter and original values is greater than this number.
+- ``<VAR>_bad_ens``: specify bad ensembles that should be set to ``_FillValue``.
+- ``trim_by_salinity``: if ``'true'``, use salinity (``S_41``) as a master variable. Wherever salinity is ``_FillValue``, all other variables will be filled as well. Useful for when the instrument comes out of the water.
 
 .. literalinclude:: ../examples/exo_config.yaml
    :language: yaml
    :linenos:
+
+NTU
+---
+
+NTU-specific options include:
+
+- All the _min, _max, etc. options available to the EXO.
+- ``Turb_std_max``: fill turbidity based on a maximum standard deviation value.
+- ``spb``: samples per burst
+- ``user_ntucal_coeffs``: polynomial coefficients, e.g., ``[9.078E-07, 5.883E-02, -2.899E+00]``.
