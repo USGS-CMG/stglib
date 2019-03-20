@@ -364,7 +364,8 @@ def exo_qaqc(ds):
     Trim EXO data based on metadata
     """
 
-    for var in ['C_51', 'SpC_48', 'S_41', 'Turb', 'fDOMRFU', 'fDOMQSU', 'CHLrfu', 'Fch_906', 'BGAPErfu', 'BGAPE']:
+    # S_41 needs to be first in list for trim_by_salinity()
+    for var in ['S_41', 'C_51', 'SpC_48', 'T_28', 'Turb', 'fDOMRFU', 'fDOMQSU', 'CHLrfu', 'Fch_906', 'BGAPErfu', 'BGAPE', 'OST_62', 'DO', 'pH_159', 'pHmV']:
         ds = trim_min(ds, var)
 
         ds = trim_max(ds, var)
@@ -378,6 +379,8 @@ def exo_qaqc(ds):
         ds = trim_med_diff_pct(ds, var)
 
         ds = trim_bad_ens(ds, var)
+
+        ds = trim_by_salinity(ds, var) # this must come last
 
     return ds
 
@@ -507,6 +510,18 @@ def trim_bad_ens(ds, var):
                 str(ds.attrs[var + '_bad_ens']))
 
             ds = insert_note(ds, var, notetxt)
+
+    return ds
+
+
+def trim_by_salinity(ds, var):
+    if 'trim_by_salinity' in ds.attrs and ds.attrs['trim_by_salinity'].lower() == 'true': # xarray doesn't support writing attributes as booleans
+        print('%s: Trimming using valid salinity threshold' % var)
+        ds[var][ds['S_41'].isnull()] = np.nan
+
+        notetxt = 'Values filled using valid salinity threshold. '
+
+        ds = insert_note(ds, var, notetxt)
 
     return ds
 
