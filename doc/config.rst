@@ -65,8 +65,10 @@ EXO-specific options include:
 - ``<VAR>_max_diff``: fill values where data increases by more than this number of units in a single time step.
 - ``<VAR>_med_diff``: fill values where difference between a 5-point (default) median filter and original values is greater than this number.
 - ``<VAR>_med_diff_pct``: fill values where percent difference between a 5-point (default) median filter and original values is greater than this number.
-- ``<VAR>_bad_ens``: specify bad ensembles that should be set to ``_FillValue``.
+- ``<VAR>_bad_ens``: specify bad ensemble ranges (either numbers or dates) that should be set to ``_FillValue``. If you want multiple ranges, you can do this with additional values in the array. For example, ``Turb_bad_ens: ['2017-09-30 21:15', '2017-10-02 09:30', '2017-10-12 20:45', '2017-10-16 00:30']``. This will set the ranges in late September and early October, and again in mid-October, to ``_FillValue``.
 - ``trim_by_salinity``: if ``'true'``, use salinity (``S_41``) as a master variable. Wherever salinity is ``_FillValue``, all other variables will be filled as well. Useful for when the instrument comes out of the water.
+
+Note that negative numeric values in the YAML config file must be treated with care so as not to be interpreted as strings. If you want the minimum value to be, say, -0.2 units for a particular parameter, you must write this as ``-0.2`` and not ``-.2`` in the config file. The latter format will be interpreted as a string and will cause an error. 
 
 .. literalinclude:: ../examples/exo_config.yaml
    :language: yaml
@@ -77,7 +79,7 @@ NTU
 
 NTU-specific options include:
 
-- All the _min, _max, etc. options available to the EXO.
+- All the _min, _max, _bad_ens, etc. options available to the EXO.
 - ``Turb_std_max``: fill turbidity based on a maximum standard deviation value.
 - ``spb``: samples per burst
 - ``user_ntucal_coeffs``: polynomial coefficients, e.g., ``[9.078E-07, 5.883E-02, -2.899E+00]``.
