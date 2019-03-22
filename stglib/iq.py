@@ -1,8 +1,37 @@
 from __future__ import division, print_function
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import xarray as xr
 import numpy as np
 from . import core
+from .core import utils
+from . import exo
+
+
+def mat_to_cdf(metadata):
+    """
+    Process SonTek IQ .mat data to raw .cdf file
+    """
+
+    basefile = metadata['basefile']
+
+
+    ds = read_iq(basefile + '.mat')
+
+    # write out metadata first, then deal exclusively with xarray attrs
+    ds = utils.write_metadata(ds, metadata)
+
+    del metadata
+
+    ds = utils.create_epic_times(ds)
+
+    # configure file
+    cdf_filename = ds.attrs['filename'] + '-raw.cdf'
+
+    ds.to_netcdf(cdf_filename, unlimited_dims=['time'])
+
+    print('Finished writing data to %s' % cdf_filename)
+
+    return ds
 
 
 def read_iq(filnam):
@@ -45,23 +74,34 @@ def read_iq(filnam):
 
     for k in iqmat:
         if '__' not in k and 'FlowSubData' not in k:
-            print(k, np.shape(iqmat[k]))
+            # print(k, np.shape(iqmat[k]))
             if len(np.ravel(iqmat[k])) == len(ds['time']):
                 ds[k] = xr.DataArray(np.ravel(iqmat[k]), dims='time')
                 if k in iqmat['Data_Units']:
                     ds[k].attrs['units'] = iqmat['Data_Units'][k]
             elif '_2_' in k or '_3_' in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen,:],
-                                     dims=('time', 'beamdist_2_3'))
+                                     dims=('time', 'cell_across'))
+                if k in iqmat['Data_Units']:
+                    ds[k].attrs['units'] = iqmat['Data_Units'][k]
             elif '_0_' in k or '_1_' in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen,:],
-                                     dims=('time', 'beamdist_0_1'))
+                                     dims=('time', 'cell_along'))
+                if k in iqmat['Data_Units']:
+                    ds[k].attrs['units'] = iqmat['Data_Units'][k]
             elif 'FlowData_Vel' in k or 'FlowData_SNR' in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen,:],
                                      dims=('time', 'velbeam'))
+                if k in iqmat['Data_Units']:
+                    ds[k].attrs['units'] = iqmat['Data_Units'][k]
             elif 'FlowData_NoiseLevel' in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen,:],
                                      dims=('time', 'beam'))
+                if k in iqmat['Data_Units']:
+                    ds[k].attrs['units'] = iqmat['Data_Units'][k]
+
+    ds['cell_along'] = np.arange(ds['Profile_0_Vel'].shape[1])
+    ds['cell_across'] = np.arange(ds['Profile_2_Vel'].shape[1])
 
     ds = xr.Dataset(ds)
     for k in iqmat['System_IqSetup']['basicSetup']:
@@ -76,16 +116,47 @@ def read_iq(filnam):
     return xr.decode_cf(ds)
 
 
+def rename_vars(ds):
+
+    # set up dict of instrument -> EPIC variable names
+    varnames = {'Batt': 'Bat_106',
+                'Temp': 'T_28',
+                'Pitch': 'Ptch_1216',
+                'Roll': 'Roll_1217',
+                'Depth': 'D_3',
+                'Pressure': 'P_1'}
+
+    # check to make sure they exist before trying to rename
+    newvars = {}
+    for k in varnames:
+        if k in ds:
+            newvars[k] = varnames[k]
+
+    return ds.rename(newvars)
+
+
+def remove_FlowData(ds):
+
+    newvars = {}
+    for k in ds:
+        newvars[k] = k.replace('FlowData_', '')
+
+    return ds.rename(newvars)
+
+
 def clean_iq(iq):
     """
     Preliminary data cleaning when SNR < 0
     """
 
-    iq['FlowData_Vel_Mean'].values[iq['FlowData_Vel_Mean'] < -214748] = np.nan
-    iq['FlowData_Vel'].values[iq['FlowData_Vel'] == -214748368] = np.nan
+    iq['Vel_Mean'].values[iq['Vel_Mean'] < -214748] = np.nan
+    iq['Vel'].values[iq['Vel'] == -214748368] = np.nan
     for bm in range(4):
         pr = 'Profile_' + str(bm) + '_Vel'
         iq[pr].values[iq[pr] == -214748368] = np.nan
+
+    iq['Flow'][iq['Flow'] < -40] = np.nan
+    iq['Vel_Mean'][np.abs(iq['Vel_Mean']) > 1500] = np.nan
 
     return iq
 
@@ -144,3 +215,130 @@ def make_iq_plots(iq, directory='', savefig=False):
     if savefig:
         plt.savefig(directory + '/iq_stage_vel_flow.pdf')
     plt.show()
+
+
+def cdf_to_nc(cdf_filename):
+    """
+    Load a "raw" .cdf file and generate a processed .nc file
+    """
+
+    # Load raw .cdf data
+    ds = xr.open_dataset(cdf_filename)
+
+    ds = remove_FlowData(ds)
+
+    # Clip data to in/out water times or via good_ens
+    ds = utils.clip_ds(ds)
+
+    ds = clean_iq(ds)
+
+    # assign min/max:
+    ds = utils.add_min_max(ds)
+
+    ds = utils.create_epic_times(ds)
+
+    # ds = eco_add_delta_t(ds)
+
+    # add lat/lon coordinates
+    ds = utils.ds_add_lat_lon(ds)
+
+    ds = rename_vars(ds)
+
+    ds = ds_add_attrs(ds)
+
+    ds = ds.drop(['SampleNumber', 'SampleTime'])
+
+    # add lat/lon coordinates to each variable
+    for var in ds.variables:
+        if (var not in ds.coords) and ('time' not in var):
+            ds = utils.add_lat_lon(ds, var)
+            # cast as float32
+            ds = utils.set_var_dtype(ds, var)
+
+    ds = utils.rename_time(ds)
+
+    dsflow = ds.copy()
+    dsprof = ds.copy()
+
+    dsflow = dsflow.drop([k for k in dsflow if 'Profile_' in k])
+    dsprof = dsprof.drop([k for k in dsprof if 'Profile_' not in k])
+
+    # Write to .nc file
+    print("Writing cleaned/trimmed data to .nc file")
+
+    nc_filename = dsflow.attrs['filename'] + 'flow-a.nc'
+    dsflow.to_netcdf(nc_filename, unlimited_dims=['time'])
+    print('Done writing netCDF file', nc_filename)
+
+    nc_filename = dsprof.attrs['filename'] + 'prof-a.nc'
+    dsprof.to_netcdf(nc_filename)
+    print('Done writing netCDF file', nc_filename)
+
+
+def ds_add_attrs(ds):
+
+    ds.attrs['serial_number'] = ds.attrs['SerialNumber']
+
+    # Update attributes for EPIC and STG compliance
+    ds = utils.ds_coord_no_fillvalue(ds)
+
+    ds['time'].attrs.update({'standard_name': 'time',
+                             'axis': 'T'})
+
+    ds['epic_time'].attrs.update({'units': 'True Julian Day',
+                                  'type': 'EVEN',
+                                  'epic_code': 624})
+
+    ds['epic_time2'].attrs.update({'units': 'msec since 0:00 GMT',
+                                   'type': 'EVEN',
+                                   'epic_code': 624})
+
+    ds['D_3'].attrs.update({'long_name': 'Depth (relative to the top of the instrument)',
+                            'epic_code': 3})
+
+    # descriptions from Sontek-IQ Series User's Manual available at
+    # http://info.xylem.com/sontek-iq-manual.html
+    ds['Stage'].attrs['long_name'] = 'Stage (water depth of the user-defined channel)'
+    ds['Area'].attrs['long_name'] = 'Cross-sectional area of user-defined channel'
+    ds['Flow'].attrs['long_name'] = 'Flow rate (using defined channel geometry)'
+
+    ds['Vel_Mean'].attrs['long_name'] = 'Mean velocity'
+    ds['Volume_Total'].attrs['long_name'] = 'Total water volume (based on all measured flow)'
+    ds['Volume_Positive'].attrs['long_name'] = 'Total volume of water in the positive downstream direction'
+    ds['Volume_Negative'].attrs['long_name'] = 'Total volume of water in the negative upstream direction'
+    ds['Vel'].attrs['long_name'] = 'Velocity'
+    ds['VelXYZ'].attrs['long_name'] = ''
+    ds['VelStd'].attrs['long_name'] = 'Velocity standard deviation'
+    ds['SNR'].attrs['long_name'] = 'Signal-to-noise ratio'
+    ds['NoiseLevel'].attrs['long_name'] = 'Acoustic noise level'
+    ds['Range'].attrs['long_name'] = 'Acoustically measured distance to water surface'
+    ds['T_28'].attrs['long_name'] = 'Water temperature'
+    ds['P_1'].attrs['long_name'] = 'Pressure'
+    ds['PressOffsetAdjust'].attrs['long_name'] = 'Atmospheric pressure adjustment (see SonTek-IQ User\'s Manual for details)'
+    ds['AdjustedPressure'].attrs['long_name'] = 'Measurement with atmospheric pressure removed (see SonTek-IQ User\'s Manual for details)'
+    ds['Bat_106'].attrs['long_name'] = 'Battery voltage'
+    ds['Ptch_1216'].attrs['long_name'] = 'Pitch angle in degrees'
+    ds['Roll_1217'].attrs['long_name'] = 'Roll angle in degrees'
+    ds['VbPercentGood'].attrs['long_name'] = 'Vertical beam percent good'
+    ds['HorizontalSkew'].attrs['long_name'] = 'Horizontal skew'
+    ds['SystemInWater'].attrs['long_name'] = 'Percentage of sample during which instrument was submerged (100% means it was submerged for entire sample)'
+
+    # Profile Variables
+    for n in range(4):
+        ds['Profile_%d_Amp' % n].attrs['long_name'] = 'Beam %d amplitude' % n
+        ds['Profile_%d_VelStd' % n].attrs['long_name'] = 'Beam %d velocity profile standard deviation' % n
+        ds['Profile_%d_Vel' % n].attrs['long_name'] = 'Beam %d velocity profile' % n
+
+    def add_attributes(var, dsattrs):
+        var.attrs.update({
+            'initial_instrument_height': dsattrs['initial_instrument_height'],
+            # 'nominal_instrument_depth': dsattrs['nominal_instrument_depth'],
+            'height_depth_units': 'm',
+            })
+        var.encoding['_FillValue'] = 1e35
+
+    for var in ds.variables:
+        if (var not in ds.coords) and ('time' not in var):
+            add_attributes(ds[var], ds.attrs)
+
+    return ds

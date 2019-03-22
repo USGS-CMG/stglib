@@ -126,6 +126,24 @@ def hlmcdf2nc_parser():
     return parser
 
 
+def iqmat2cdf_parser():
+    description = ('Convert SonTek IQ .mat file to raw .cdf format. Run this '
+                   'script from the directory containing IQ file')
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def iqcdf2nc_parser():
+    description = 'Convert raw SonTek IQ .cdf format to processed .nc files'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('cdfname', help='raw .CDF filename')
+
+    return parser
+
+
 def exocsv2cdf_parser():
     description = ('Convert EXO .csv file to raw .cdf format. Run this script '
                    'from the directory containing EXO file')
