@@ -498,13 +498,11 @@ def make_epic_time2(jd):
 def create_epic_times(ds, waves=False):
     jd = make_jd(ds['time'].to_dataframe().index)
 
-    ds['epic_time'] = xr.DataArray(make_epic_time(jd),
-                                   dims='time',
-                                   encoding={'_FillValue': None})
+    ds['epic_time'] = xr.DataArray(make_epic_time(jd), dims='time')
+    ds['epic_time'].encoding = {'_FillValue': None}
 
-    ds['epic_time2'] = xr.DataArray(make_epic_time2(jd),
-                                    dims='time',
-                                    encoding={'_FillValue': None})
+    ds['epic_time2'] = xr.DataArray(make_epic_time2(jd), dims='time')
+    ds['epic_time2'].encoding={'_FillValue': None}
 
     return ds
 
