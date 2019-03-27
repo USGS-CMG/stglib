@@ -898,10 +898,16 @@ def ds_add_attrs(ds, waves=False):
          'name': 'bin depth'})
 
     if 'P_1ac' in ds:
-        ds['bin_depth'].attrs['note'] = ('Actual depth time series of '
-                                         'velocity bins. Calculated as '
-                                         'corrected pressure (P_1ac) - '
-                                         'bindist.')
+        if waves:
+            ds['bin_depth'].attrs['note'] = ('Actual depth time series of wave '
+                                             'burst bin depths. Calculated as '
+                                             'corrected pressure (P_1ac) - '
+                                             'bindist.')
+        else:
+            ds['bin_depth'].attrs['note'] = ('Actual depth time series of '
+                                             'velocity bins. Calculated as '
+                                             'corrected pressure (P_1ac) - '
+                                             'bindist.')
     else:
         ds['bin_depth'].attrs.update(
             {'note': ('Actual depth time series of velocity bins. Calculated '
