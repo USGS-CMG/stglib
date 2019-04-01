@@ -124,7 +124,8 @@ def rename_vars(ds):
                 'Pitch': 'Ptch_1216',
                 'Roll': 'Roll_1217',
                 'Depth': 'D_3',
-                'Pressure': 'P_1'}
+                'Pressure': 'P_1',
+                'AdjustedPressure': 'P_1ac'}
 
     # check to make sure they exist before trying to rename
     newvars = {}
