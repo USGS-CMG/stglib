@@ -235,6 +235,8 @@ def cdf_to_nc(cdf_filename):
     # assign min/max:
     ds = utils.add_min_max(ds)
 
+    ds = utils.add_start_stop_time(ds)
+
     ds = utils.create_epic_times(ds)
 
     # ds = eco_add_delta_t(ds)
