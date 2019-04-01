@@ -319,7 +319,7 @@ def ds_add_attrs(ds):
     ds['T_28'].attrs['long_name'] = 'Water temperature'
     ds['P_1'].attrs['long_name'] = 'Pressure'
     ds['PressOffsetAdjust'].attrs['long_name'] = 'Atmospheric pressure adjustment (see SonTek-IQ User\'s Manual for details)'
-    ds['AdjustedPressure'].attrs['long_name'] = 'Measurement with atmospheric pressure removed (see SonTek-IQ User\'s Manual for details)'
+    ds['P_1ac'].attrs['long_name'] = 'Measurement with atmospheric pressure removed (see SonTek-IQ User\'s Manual for details)'
     ds['Bat_106'].attrs['long_name'] = 'Battery voltage'
     ds['Ptch_1216'].attrs['long_name'] = 'Pitch angle in degrees'
     ds['Roll_1217'].attrs['long_name'] = 'Roll angle in degrees'
