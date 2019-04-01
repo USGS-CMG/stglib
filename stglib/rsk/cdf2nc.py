@@ -149,7 +149,7 @@ def ds_add_attrs(ds):
     if 'burst' in ds:
         ds['burst'].encoding['_FillValue'] = 1e35
 
-    ds.attrs['COMPOSITE'] = 0
+    ds.attrs['COMPOSITE'] = np.int32(0)
     ds.attrs['COORD_SYSTEM'] = 'GEOGRAPHIC + sample'
 
     return ds

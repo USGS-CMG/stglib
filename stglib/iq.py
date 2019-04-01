@@ -341,4 +341,6 @@ def ds_add_attrs(ds):
         if (var not in ds.coords) and ('time' not in var):
             add_attributes(ds[var], ds.attrs)
 
+    ds.attrs['COMPOSITE'] = np.int32(0)
+
     return ds
