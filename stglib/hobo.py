@@ -101,13 +101,13 @@ def ds_add_attrs(ds):
 
     ds['BPR_915'].attrs.update({'units': 'mbar',
                                 'long_name': 'Barometric pressure',
-                                'epic_code': 106})
+                                'epic_code': 915})
 
     ds = ds.rename({'temp_C': 'T_21'})
 
     ds['T_21'].attrs.update({'units': 'C',
                              'long_name': 'Air temperature',
-                             'epic_code': 28})
+                             'epic_code': 21})
 
     def add_attributes(var, dsattrs):
         var.attrs.update({
