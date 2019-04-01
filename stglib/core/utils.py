@@ -691,6 +691,33 @@ def create_nominal_instrument_depth(ds):
     return ds
 
 
+def no_p_create_depth(ds):
+    # no_p = no pressure sensor
+    depth = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
+    ds['depth'] = xr.DataArray([depth], dims='depth')
+    ds['depth'].attrs['positive'] = 'down'
+    ds['depth'].attrs['axis'] = 'z'
+    ds['depth'].attrs['units'] = 'm'
+    ds['depth'].attrs['epic_code'] = 3
+    ds['depth'].encoding['_FillValue'] = 1e35
+
+    return ds
+
+
+def no_p_add_depth(ds, var):
+    # no_p = no pressure sensor
+    ds[var] = xr.concat([ds[var]], dim=ds['depth'])
+
+    # Reorder so lat, lon are at the end.
+    dims = [d for d in ds[var].dims if (d != 'depth')]
+    dims.extend(['depth'])
+    dims = tuple(dims)
+
+    ds[var] = ds[var].transpose(*dims)
+
+    return ds
+
+
 def add_delta_t(ds):
     deltat = np.asscalar(
         (ds['time'][1] - ds['time'][0]) / np.timedelta64(1, 's'))
