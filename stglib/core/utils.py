@@ -691,6 +691,17 @@ def create_nominal_instrument_depth(ds):
     return ds
 
 
+def add_delta_t(ds):
+    deltat = np.asscalar(
+        (ds['time'][1] - ds['time'][0]) / np.timedelta64(1, 's'))
+    if not deltat.is_integer():
+        warnings.warn('DELTA_T is not an integer; casting as int in attrs')
+
+    ds.attrs['DELTA_T'] = int(deltat)
+
+    return ds
+
+
 def check_valid_metadata(metadata):
     for k in ['initial_instrument_height',
               'orientation']:

@@ -239,7 +239,7 @@ def cdf_to_nc(cdf_filename):
 
     ds = utils.create_epic_times(ds)
 
-    # ds = eco_add_delta_t(ds)
+    ds = utils.add_delta_t(ds)
 
     # add lat/lon coordinates
     ds = utils.ds_add_lat_lon(ds)
