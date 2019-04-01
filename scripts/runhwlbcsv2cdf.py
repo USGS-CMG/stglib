@@ -3,7 +3,7 @@
 import stglib
 import yaml
 
-args = stglib.cmd.hlmcsv2cdf_parser().parse_args()
+args = stglib.cmd.hwlbcsv2cdf_parser().parse_args()
 
 # initialize metadata from the globalatts file
 metadata = stglib.read_globalatts(args.gatts)
