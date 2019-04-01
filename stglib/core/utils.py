@@ -499,10 +499,10 @@ def create_epic_times(ds, waves=False):
     jd = make_jd(ds['time'].to_dataframe().index)
 
     ds['epic_time'] = xr.DataArray(make_epic_time(jd), dims='time')
-    ds['epic_time'].encoding = {'_FillValue': None}
+    ds['epic_time'].encoding['_FillValue'] = None
 
     ds['epic_time2'] = xr.DataArray(make_epic_time2(jd), dims='time')
-    ds['epic_time2'].encoding={'_FillValue': None}
+    ds['epic_time2'].encoding['_FillValue'] = None
 
     return ds
 
@@ -522,11 +522,12 @@ def create_2d_time(ds):
     jd_2d = np.reshape(raveljd, ds['time_2d'].shape)
 
     ds['epic_time_2d'] = xr.DataArray(make_epic_time(jd_2d),
-                                      dims=('time', 'sample'),
-                                      encoding={'_FillValue': None})
+                                      dims=('time', 'sample'))
+    ds['epic_time_2d'].encoding['_FillValue'] = None
+
     ds['epic_time2_2d'] = xr.DataArray(make_epic_time2(jd_2d),
-                                       dims=('time', 'sample'),
-                                       encoding={'_FillValue': None})
+                                       dims=('time', 'sample'))
+    ds['epic_time2_2d'].encoding['_FillValue'] = None
 
     ds = ds.drop('time_2d') # don't need it anymore
 
