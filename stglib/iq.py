@@ -63,8 +63,16 @@ def read_iq(filnam):
                'units': 'microseconds since 2000-01-01 00:00:00',
                'calendar': 'proleptic_gregorian'}, dims='time')
 
-    ds['velbeam'] = xr.DataArray([1, 2, 3, 4], dims='velbeam')
-    ds['beam'] = xr.DataArray([1, 2, 3, 4, 5], dims='beam')
+    ds['velbeam'] = xr.DataArray(
+        [1, 2, 3, 4],
+        dims='velbeam',
+        attrs={'long_name': 'velocity beam number',
+               'units': 'velocity beam id number'})
+    ds['beam'] = xr.DataArray(
+        [1, 2, 3, 4, 5],
+        dims='beam',
+        attrs={'long_name': 'beam number',
+               'units': 'beam id number'})
     # ds['beamdist_0'] = xr.DataArray(beamdist_0, dims='beamdist_0')
     # attrs = {}
 
@@ -78,27 +86,27 @@ def read_iq(filnam):
             if len(np.ravel(iqmat[k])) == len(ds['time']):
                 ds[k] = xr.DataArray(np.ravel(iqmat[k]), dims='time')
                 if k in iqmat['Data_Units']:
-                    ds[k].attrs['units'] = iqmat['Data_Units'][k]
+                    ds[k].attrs['units'] = iqmat['Data_Units'][k].replace("/s"," s-1")
             elif '_2_' in k or '_3_' in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen,:],
                                      dims=('time', 'cell_across'))
                 if k in iqmat['Data_Units']:
-                    ds[k].attrs['units'] = iqmat['Data_Units'][k]
+                    ds[k].attrs['units'] = iqmat['Data_Units'][k].replace("/s"," s-1")
             elif '_0_' in k or '_1_' in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen,:],
                                      dims=('time', 'cell_along'))
                 if k in iqmat['Data_Units']:
-                    ds[k].attrs['units'] = iqmat['Data_Units'][k]
+                    ds[k].attrs['units'] = iqmat['Data_Units'][k].replace("/s"," s-1")
             elif 'FlowData_Vel' in k or 'FlowData_SNR' in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen,:],
                                      dims=('time', 'velbeam'))
                 if k in iqmat['Data_Units']:
-                    ds[k].attrs['units'] = iqmat['Data_Units'][k]
+                    ds[k].attrs['units'] = iqmat['Data_Units'][k].replace("/s"," s-1")
             elif 'FlowData_NoiseLevel' in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen,:],
                                      dims=('time', 'beam'))
                 if k in iqmat['Data_Units']:
-                    ds[k].attrs['units'] = iqmat['Data_Units'][k]
+                    ds[k].attrs['units'] = iqmat['Data_Units'][k].replace("/s"," s-1")
 
     ds['cell_along'] = np.arange(ds['Profile_0_Vel'].shape[1])
     ds['cell_across'] = np.arange(ds['Profile_2_Vel'].shape[1])
