@@ -46,7 +46,7 @@ def prf_to_cdf(metadata):
     # Compute time stamps
     ds = utils.shift_time(ds, ds.attrs['AQDAverageInterval']/2)
 
-    if (not 'cf' in ds.attrs) or (ds.attrs['cf'] != '1.6'):
+    if ('cf' not in ds.attrs) and ('CF' not in ds.attrs) and (str(ds.attrs['cf']) != '1.6') and (str(ds.attrs['CF']) != '1.6'):
         print('about to create epic times')
         ds = utils.create_epic_times(ds)
 
