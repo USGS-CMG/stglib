@@ -88,8 +88,13 @@ def clip_ds(ds, wvs=False):
         # do nothing
         print('Did not clip data; no values specified in metadata')
 
-    print('first burst in trimmed file:', ds['time'].min().values)
-    print('last burst in trimmed file:', ds['time'].max().values)
+    try:
+        print('first burst in trimmed file:', ds['time'].min().values)
+        print('last burst in trimmed file:', ds['time'].max().values)
+    except ValueError as e:
+        raise(ValueError('No valid time values in trimmed dataset. Are you sure you sure you specified '
+               'Deployment and Recovery dates correctly?'))
+
 
     return ds
 
