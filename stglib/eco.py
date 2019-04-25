@@ -166,8 +166,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             ds['Turb'].attrs['units'] = 'NTU'
             ds['Turb'].attrs['long_name'] = 'Turbidity'
             ds['Turb_std'] = xr.DataArray(np.polyval(ds.attrs['user_ntucal_coeffs'], ds['counts']), dims=['time', 'sample']).std(dim='sample')
-            ds['Turb'].attrs['units'] = 'NTU'
-            ds['Turb'].attrs['long_name'] = 'Turbidity burst standard deviation'
+            ds['Turb_std'].attrs['units'] = 'NTU'
+            ds['Turb_std'].attrs['long_name'] = 'Turbidity burst standard deviation'
 
     ds = ds.drop(['counts', 'sample'])
 
