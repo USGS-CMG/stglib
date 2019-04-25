@@ -432,7 +432,9 @@ def rename_time(ds):
     # nc['time'][:] = timebak
     # nc.close()
 
-    if ('cf' not in ds.attrs) and ('CF' not in ds.attrs) and (str(ds.attrs['cf']) != '1.6') and (str(ds.attrs['CF']) != '1.6'):
+    if ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6'):
+        pass
+    else:
         ds = ds.rename({'time': 'time_cf'})
         ds = ds.rename({'epic_time': 'time'})
         ds = ds.rename({'epic_time2': 'time2'})
