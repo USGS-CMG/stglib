@@ -134,10 +134,15 @@ def insert_history(ds, histtext):
 
 
 def add_history(ds):
-    if (not 'cf' in ds.attrs) or (ds.attrs['cf'] != '1.6'):
-        histtext = 'Processed to EPIC using %s. ' % os.path.basename(sys.argv[0])
-    elif ds.attrs['cf'] == '1.6':
-        histtext = 'Processed to CF using %s. ' % os.path.basename(sys.argv[0])
+    if (
+        ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
+        ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
+       ):
+        histtext = 'Processed to CF using {}. '.format(
+            os.path.basename(sys.argv[0]))
+    else:
+        histtext = 'Processed to EPIC using {}. '.format(
+            os.path.basename(sys.argv[0]))
 
     return insert_history(ds, histtext)
 
@@ -432,7 +437,10 @@ def rename_time(ds):
     # nc['time'][:] = timebak
     # nc.close()
 
-    if ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6'):
+    if (
+        ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
+        ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
+       ):
         pass
     else:
         ds = ds.rename({'time': 'time_cf'})

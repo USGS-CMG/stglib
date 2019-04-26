@@ -85,7 +85,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = utils.add_history(VEL)
 
     # Rename time variables for EPIC compliance, keeping a time_cf coorindate.
-    if (not 'cf' in VEL.attrs) or (VEL.attrs['cf'] != '1.6'):
+    if (
+        ('cf' in VEL.attrs and str(VEL.attrs['cf']) == '1.6') or
+        ('CF' in VEL.attrs and str(VEL.attrs['CF']) == '1.6')
+       ):
+        pass
+    else:
         VEL = utils.rename_time(VEL)
 
     for var in VEL.variables:
