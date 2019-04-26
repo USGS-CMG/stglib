@@ -56,7 +56,7 @@ def cdf_to_nc(cdf_filename,
 
     if writefile:
         nc_filename = ds.attrs['filename'] + 'wvsb-cal.nc'
-        ds.to_netcdf(nc_filename, format='NETCDF3_64BIT')
+        ds.to_netcdf(nc_filename, format=format)
         # Rename time variables for EPIC compliance, keeping a time_cf
         # coorindate.
         utils.rename_time_2d(nc_filename)
