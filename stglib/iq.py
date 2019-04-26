@@ -163,9 +163,10 @@ def clean_iq(iq):
     for bm in range(4):
         pr = 'Profile_' + str(bm) + '_Vel'
         iq[pr].values[iq[pr] == -214748368] = np.nan
-
-    iq['Flow'][iq['Flow'] < -40] = np.nan
-    iq['Vel_Mean'][np.abs(iq['Vel_Mean']) > 1500] = np.nan
+        am = 'Profile_' + str(bm) + '_Amp'
+        iq[am].values[iq[am] == 65535] = np.nan
+        st = 'Profile_' + str(bm) + '_VelStd'
+        iq[st].values[iq[st] < 0] = np.nan
 
     return iq
 
