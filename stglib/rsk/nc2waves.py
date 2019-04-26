@@ -41,6 +41,9 @@ def nc_to_waves(nc_filename):
     # assign min/max (need to do this after trimming):
     ds = utils.add_min_max(ds)
 
+    # set back to COORD_SYSTEM GEOGRAPHIC for stats files
+    ds.attrs['COORD_SYSTEM'] = 'GEOGRAPHIC'
+
     nc_filename = ds.attrs['filename'] + 's-a.nc'
 
     ds = utils.rename_time(ds)
