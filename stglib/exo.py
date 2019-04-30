@@ -366,7 +366,23 @@ def exo_qaqc(ds):
     """
 
     # S_41 needs to be first in list for trim_by_salinity()
-    for var in ['S_41', 'C_51', 'SpC_48', 'T_28', 'Turb', 'fDOMRFU', 'fDOMQSU', 'CHLrfu', 'Fch_906', 'BGAPErfu', 'BGAPE', 'OST_62', 'DO', 'pH_159', 'pHmV', 'P_1ac', 'P_1']:
+    for var in ['S_41',
+                'C_51',
+                'SpC_48',
+                'T_28',
+                'Turb',
+                'fDOMRFU',
+                'fDOMQSU',
+                'CHLrfu',
+                'Fch_906',
+                'BGAPErfu',
+                'BGAPE',
+                'OST_62',
+                'DO',
+                'pH_159',
+                'pHmV',
+                'P_1ac',
+                'P_1']:
         ds = trim_min(ds, var)
 
         ds = trim_max(ds, var)
@@ -381,7 +397,7 @@ def exo_qaqc(ds):
 
         ds = trim_bad_ens(ds, var)
 
-        ds = trim_by_salinity(ds, var) # this must come last
+        ds = trim_by_salinity(ds, var)  # this must come last
 
     return ds
 
@@ -516,7 +532,7 @@ def trim_bad_ens(ds, var):
 
 
 def trim_by_salinity(ds, var):
-    if 'trim_by_salinity' in ds.attrs and ds.attrs['trim_by_salinity'].lower() == 'true': # xarray doesn't support writing attributes as booleans
+    if 'trim_by_salinity' in ds.attrs and ds.attrs['trim_by_salinity'].lower() == 'true':  # xarray doesn't support writing attributes as booleans
         if 'trim_by_salinity_exclude' in ds.attrs and var in ds.attrs['trim_by_salinity_exclude']:
             pass
         else:

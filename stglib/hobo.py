@@ -4,6 +4,7 @@ import pandas as pd
 import xarray as xr
 from .core import utils
 
+
 def read_hobo(filnam, skiprows=1, skipfooter=0):
     """Read data from an Onset HOBO pressure sensor .csv file into an xarray
     Dataset.
@@ -22,12 +23,12 @@ def read_hobo(filnam, skiprows=1, skipfooter=0):
     xarray.Dataset
         An xarray Dataset of the HOBO data
     """
-    hobo =  pd.read_csv(filnam,
-                      usecols=[0, 1, 2, 3],
-                      names=['#','datetime','abspres_kPa','temp_C'],
-                      engine='python',
-                      skiprows=skiprows,
-                      skipfooter=skipfooter)
+    hobo = pd.read_csv(filnam,
+                       usecols=[0, 1, 2, 3],
+                       names=['#', 'datetime', 'abspres_kPa', 'temp_C'],
+                       engine='python',
+                       skiprows=skiprows,
+                       skipfooter=skipfooter)
     hobo['time'] = pd.to_datetime(hobo['datetime'])
     hobo['abspres_dbar'] = hobo['abspres_kPa']/10
     hobo.set_index('time', inplace=True)

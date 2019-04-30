@@ -43,7 +43,7 @@ def clip_ds(ds, wvs=False):
 
         ds = ds.isel(time=goods)
 
-        histtext = 'Data clipped using good_ens values of %s . ' % (
+        histtext = 'Data clipped using good_ens values of {} . '.format(
             str(good_ens))
 
         ds = insert_history(ds, histtext)
@@ -56,7 +56,7 @@ def clip_ds(ds, wvs=False):
 
         ds = ds.isel(time=goods)
 
-        histtext = 'Data clipped using good_ens_wvs values of %s . ' % (
+        histtext = 'Data clipped using good_ens_wvs values of {} . '.format(
             str(good_ens))
 
         ds = insert_history(ds, histtext)
@@ -68,7 +68,7 @@ def clip_ds(ds, wvs=False):
         ds = ds.sel(time=slice(ds.attrs['good_dates'][0],
                                ds.attrs['good_dates'][1]))
 
-        histtext = 'Data clipped using good_dates of %s . ' % (
+        histtext = 'Data clipped using good_dates of {} . '.format(
             ds.attrs['good_dates'])
 
         ds = insert_history(ds, histtext)
@@ -79,9 +79,9 @@ def clip_ds(ds, wvs=False):
         ds = ds.sel(time=slice(ds.attrs['Deployment_date'],
                                ds.attrs['Recovery_date']))
 
-        histtext = ('Data clipped using Deployment_date of %s and '
-                    'Recovery_date of %s. ') % (ds.attrs['Deployment_date'],
-                                                ds.attrs['Recovery_date'])
+        histtext = ('Data clipped using Deployment_date of {} and '
+                    'Recovery_date of {}. ').format(
+                    ds.attrs['Deployment_date'], ds.attrs['Recovery_date'])
 
         ds = insert_history(ds, histtext)
     else:
@@ -92,9 +92,9 @@ def clip_ds(ds, wvs=False):
         print('first burst in trimmed file:', ds['time'].min().values)
         print('last burst in trimmed file:', ds['time'].max().values)
     except ValueError as e:
-        raise(ValueError('No valid time values in trimmed dataset. Are you sure you sure you specified '
-               'Deployment and Recovery dates correctly?'))
-
+        raise(ValueError('No valid time values in trimmed dataset. Are you '
+                         'sure you sure you specified Deployment and Recovery '
+                         'dates correctly?'))
 
     return ds
 
@@ -108,7 +108,6 @@ def add_min_max(ds):
     exclude = list(ds.dims)
     [exclude.append(k) for k in ds.variables if 'time' in k]
     exclude.extend(['TIM', 'TransMatrix'])
-
 
     alloweddims = ['time', 'sample', 'depth']
 
@@ -301,8 +300,8 @@ def trim_max_wp(ds):
     """
 
     if 'wp_max' in ds.attrs:
-        print('Trimming using maximum period of %f seconds'
-              % ds.attrs['wp_max'])
+        print('Trimming using maximum period of {} seconds'.format(
+            ds.attrs['wp_max']))
         for var in ['wp_peak', 'wp_4060']:
             ds[var] = ds[var].where(
                     (ds['wp_peak'] < ds.attrs['wp_max']) &
@@ -310,8 +309,8 @@ def trim_max_wp(ds):
                     )
 
         for var in ['wp_peak', 'wp_4060']:
-            notetxt = 'Values filled where wp_peak, wp_4060 >= %f. ' \
-                      % ds.attrs['wp_max']
+            notetxt = 'Values filled where wp_peak, wp_4060 >= {}. '.format(
+                ds.attrs['wp_max'])
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
@@ -328,13 +327,13 @@ def trim_min_wh(ds):
     """
 
     if 'wh_min' in ds.attrs:
-        print('Trimming using minimum wave height of %f m'
-              % ds.attrs['wh_min'])
+        print('Trimming using minimum wave height of {} m'.format(
+            ds.attrs['wh_min']))
         for var in ['wp_peak', 'wh_4061', 'wp_4060']:
             ds[var] = ds[var].where(ds['wh_4061'] > ds.attrs['wh_min'])
 
-            notetxt = 'Values filled where wh_4061 <= %f. ' \
-                      % ds.attrs['wh_min'] + '. '
+            notetxt = 'Values filled where wh_4061 <= {}. '.format(
+                ds.attrs['wh_min'])
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
@@ -351,13 +350,13 @@ def trim_max_wh(ds):
     """
 
     if 'wh_max' in ds.attrs:
-        print('Trimming using maximum wave height of %f m'
-              % ds.attrs['wh_max'])
+        print('Trimming using maximum wave height of {} m'.format(
+            ds.attrs['wh_max']))
         for var in ['wp_peak', 'wh_4061', 'wp_4060']:
             ds[var] = ds[var].where(ds['wh_4061'] < ds.attrs['wh_max'])
 
-            notetxt = 'Values filled where wh_4061 >= %f. ' \
-                      % ds.attrs['wh_max']
+            notetxt = 'Values filled where wh_4061 >= {}. '.format(
+                ds.attrs['wh_max'])
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
@@ -381,8 +380,8 @@ def trim_wp_ratio(ds):
                 ds['wp_peak']/ds['wp_4060'] < ds.attrs['wp_ratio'])
 
         for var in ['wp_peak', 'wp_4060']:
-            notetxt = 'Values filled where wp_peak:wp_4060 >= %f' \
-                      % ds.attrs['wp_ratio'] + '. '
+            notetxt = 'Values filled where wp_peak:wp_4060 >= {}. '.format(
+                ds.attrs['wp_ratio'])
 
             if 'note' in ds[var].attrs:
                 ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
@@ -467,6 +466,7 @@ def rename_time_2d(nc_filename):
     with netCDF4.Dataset(nc_filename, 'r+') as nc:
         nc['time'][:] = timebak
 
+
 def open_time_2d_dataset(filename):
     # need to drop 'time' variable because of xarray limitations related
     # to coordinates and variables with the same name, otherwise it raises a
@@ -545,7 +545,7 @@ def create_2d_time(ds):
                                        dims=('time', 'sample'))
     ds['epic_time2_2d'].encoding['_FillValue'] = None
 
-    ds = ds.drop('time_2d') # don't need it anymore
+    ds = ds.drop('time_2d')  # don't need it anymore
 
     return ds
 
@@ -609,8 +609,10 @@ def shift_time(ds, timeshift):
     if 'ClockError' in ds.attrs:
         if ds.attrs['ClockError'] != 0:
             # note negative on ds.attrs['ClockError']
-            ds['time'] = ds['time'] + np.timedelta64(-ds.attrs['ClockError'], 's')
-            print('Time shifted by %d s from ClockError' % -ds.attrs['ClockError'])
+            ds['time'] = (ds['time'] +
+                          np.timedelta64(-ds.attrs['ClockError'], 's'))
+            print('Time shifted by {:d} s from ClockError'.format(
+                -ds.attrs['ClockError']))
 
     return ds
 

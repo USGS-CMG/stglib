@@ -65,13 +65,13 @@ def read_ntu(filnam, spb=False, skiprows=None, skipfooter=0):
 def read_eco_csv(filnam, names, skiprows=None, skipfooter=0):
 
     return pd.read_csv(filnam,
-                      sep='\t',
-                      names=names,
-                      parse_dates=[['date', 'time']],
-                      infer_datetime_format=True,
-                      engine='python',
-                      skiprows=skiprows,
-                      skipfooter=skipfooter)
+                       sep='\t',
+                       names=names,
+                       parse_dates=[['date', 'time']],
+                       infer_datetime_format=True,
+                       engine='python',
+                       skiprows=skiprows,
+                       skipfooter=skipfooter)
 
 
 def eco_pd_to_xr(df, spb=False):
@@ -158,16 +158,22 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     if 'par' in ds.attrs['INST_TYPE'].lower():
         ds['PAR_905'] = ds.attrs['Im'] * 10 ** ((ds['counts'].mean(dim='sample') - ds.attrs['a0']) / ds.attrs['a1'])
         ds['PAR_905'].attrs['units'] = 'umol m-2 s-1'
-        ds['PAR_905'].attrs['long_name'] = 'Photosynthetically active radiation'
+        ds['PAR_905'].attrs['long_name'] = ('Photosynthetically active '
+                                            'radiation')
 
     if 'ntu' in ds.attrs['INST_TYPE'].lower():
         if 'user_ntucal_coeffs' in ds.attrs:
-            ds['Turb'] = xr.DataArray(np.polyval(ds.attrs['user_ntucal_coeffs'], ds['counts']), dims=['time', 'sample']).mean(dim='sample')
+            ds['Turb'] = xr.DataArray(
+                np.polyval(ds.attrs['user_ntucal_coeffs'], ds['counts']),
+                dims=['time', 'sample']).mean(dim='sample')
             ds['Turb'].attrs['units'] = 'NTU'
             ds['Turb'].attrs['long_name'] = 'Turbidity'
-            ds['Turb_std'] = xr.DataArray(np.polyval(ds.attrs['user_ntucal_coeffs'], ds['counts']), dims=['time', 'sample']).std(dim='sample')
+            ds['Turb_std'] = xr.DataArray(
+                np.polyval(ds.attrs['user_ntucal_coeffs'], ds['counts']),
+                dims=['time', 'sample']).std(dim='sample')
             ds['Turb_std'].attrs['units'] = 'NTU'
-            ds['Turb_std'].attrs['long_name'] = 'Turbidity burst standard deviation'
+            ds['Turb_std'].attrs['long_name'] = ('Turbidity burst standard '
+                                                 'deviation')
 
     ds = ds.drop(['counts', 'sample'])
 
@@ -282,8 +288,8 @@ def trim_max_std(ds, var):
               (var, ds.attrs[var + '_std_max']))
         ds[var][ds['Turb_std'] > ds.attrs[var + '_std_max']] = np.nan
 
-        notetxt = ('Values filled where standard deviation greater than %f units. ' %
-                   ds.attrs[var + '_std_max'])
+        notetxt = ('Values filled where standard deviation greater than %f '
+                   'units. ' % ds.attrs[var + '_std_max'])
 
         ds = insert_note(ds, var, notetxt)
 
