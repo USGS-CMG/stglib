@@ -175,13 +175,13 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # ds = utils.create_water_depth(ds)
     ds = utils.create_nominal_instrument_depth(ds)
 
-    ds = exo_create_depth(ds)
+    ds = utils.no_p_create_depth(ds)
 
     # add lat/lon coordinates to each variable
     for var in ds.variables:
         if (var not in ds.coords) and ('time' not in var):
             ds = utils.add_lat_lon(ds, var)
-            ds = exo_add_depth(ds, var)
+            ds = utils.no_p_add_depth(ds, var)
             # cast as float32
             ds = utils.set_var_dtype(ds, var)
 
@@ -535,32 +535,6 @@ def insert_note(ds, var, notetxt):
         ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
     else:
         ds[var].attrs.update({'note': notetxt})
-
-    return ds
-
-
-def exo_create_depth(ds):
-
-    depth = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
-    ds['depth'] = xr.DataArray([depth], dims='depth')
-    ds['depth'].attrs['positive'] = 'down'
-    ds['depth'].attrs['axis'] = 'z'
-    ds['depth'].attrs['units'] = 'm'
-    ds['depth'].attrs['epic_code'] = 3
-    ds['depth'].encoding['_FillValue'] = 1e35
-
-    return ds
-
-
-def exo_add_depth(ds, var):
-    ds[var] = xr.concat([ds[var]], dim=ds['depth'])
-
-    # Reorder so lat, lon are at the end.
-    dims = [d for d in ds[var].dims if (d != 'depth')]
-    dims.extend(['depth'])
-    dims = tuple(dims)
-
-    ds[var] = ds[var].transpose(*dims)
 
     return ds
 
