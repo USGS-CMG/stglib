@@ -109,8 +109,13 @@ def ds_add_depth_dim(ds):
     else:
         p = 'P_1'
 
-    ds['depth'] = xr.DataArray([ds[p].mean(dim=['time', 'sample'])],
-                               dims='depth')
+    if 'NAVD88_ref' in ds.attrs:
+        ds['depth'] = xr.DataArray([-ds.attrs['NAVD88_ref'] -
+            ds.attrs['initial_instrument_height']], dims='depth')
+        ds['depth'].attrs['VERT_DATUM'] = 'NAVD88'
+    else:
+        ds['depth'] = xr.DataArray([ds[p].mean(dim=['time', 'sample'])],
+                                   dims='depth')
     ds['depth'].attrs['positive'] = 'down'
     ds['depth'].attrs['axis'] = 'z'
     ds['depth'].attrs['units'] = 'm'

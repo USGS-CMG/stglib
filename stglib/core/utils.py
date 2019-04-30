@@ -708,9 +708,15 @@ def create_nominal_instrument_depth(ds):
 
 
 def no_p_create_depth(ds):
-    # no_p = no pressure sensor
-    depth = ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']
-    ds['depth'] = xr.DataArray([depth], dims='depth')
+    # no_p = no pressure sensor. also use for exo
+    if 'NAVD88_ref' in ds.attrs:
+        ds['depth'] = xr.DataArray([-ds.attrs['NAVD88_ref'] -
+            ds.attrs['initial_instrument_height']], dims='depth')
+        ds['depth'].attrs['VERT_DATUM'] = 'NAVD88'
+    else:
+        ds['depth'] = xr.DataArray([ds.attrs['WATER_DEPTH'] -
+            ds.attrs['initial_instrument_height']], dims='depth')
+
     ds['depth'].attrs['positive'] = 'down'
     ds['depth'].attrs['axis'] = 'z'
     ds['depth'].attrs['units'] = 'm'
@@ -721,7 +727,7 @@ def no_p_create_depth(ds):
 
 
 def no_p_add_depth(ds, var):
-    # no_p = no pressure sensor
+    # no_p = no pressure sensor. also use for exo
     ds[var] = xr.concat([ds[var]], dim=ds['depth'])
 
     # Reorder so lat, lon are at the end.
