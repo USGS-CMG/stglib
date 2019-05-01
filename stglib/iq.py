@@ -258,6 +258,8 @@ def cdf_to_nc(cdf_filename, format='NETCDF3_64BIT'):
 
     ds = ds_add_attrs(ds)
 
+    ds = utils.no_p_create_depth(ds)
+
     ds = ds.drop(['SampleNumber', 'SampleTime'])
 
     # add lat/lon coordinates to each variable
