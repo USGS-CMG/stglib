@@ -715,9 +715,14 @@ def no_p_create_depth(ds):
         ds['depth'] = xr.DataArray([-ds.attrs['NAVD88_ref'] -
             ds.attrs['initial_instrument_height']], dims='depth')
         ds['depth'].attrs['VERT_DATUM'] = 'NAVD88'
+        ds['depth'].attrs['NOTE'] = ('Computed as platform depth '
+                                     '[m NAVD88] minus '
+                                     'initial_instrument_height')
     else:
         ds['depth'] = xr.DataArray([ds.attrs['WATER_DEPTH'] -
             ds.attrs['initial_instrument_height']], dims='depth')
+        ds['depth'].attrs['NOTE'] = ('Computed as WATER_DEPTH minus '
+                                     'initial_instrument_height')
 
     ds['depth'].attrs['positive'] = 'down'
     ds['depth'].attrs['axis'] = 'z'
