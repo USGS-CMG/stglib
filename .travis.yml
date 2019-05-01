@@ -3,9 +3,11 @@ notifications:
 
 language: python
 
-python:
-  - "3.5"
-  - "3.6"
+matrix:
+  include:
+  - env: CONDA_ENV=py35
+  - env: CONDA_ENV=py36
+  - env: CONDA_ENV=py37
 
 install:
 
@@ -23,9 +25,11 @@ install:
   - conda info -a
 
   # Replace dep1 dep2 ... with your dependencies
-  - conda env create -n test-environment -f requirements.yml python=$TRAVIS_PYTHON_VERSION 
+  - conda env create -n test-environment -f requirements-$CONDA_ENV.yml
   - source activate test-environment
   - pip install --no-deps -e .
 
 script:
-  python -m unittest discover stglib/tests
+  - which python
+  - python --version
+  - python -m unittest discover stglib/tests
