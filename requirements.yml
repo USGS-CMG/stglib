@@ -1,0 +1,13 @@
+name: test-environment
+channels:
+  - conda-forge
+dependencies:
+  - matplotlib
+  - netcdf4
+  - numpy
+  - pandas
+  - pyyaml
+  - scipy
+  - sqlite
+  - xarray
+  - xmltodict
