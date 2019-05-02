@@ -174,25 +174,24 @@ def set_orientation(VEL, T):
     else:
         presvar = 'Pressure'
 
-    Wdepth = (np.nanmean(VEL[presvar]) +
-              VEL.attrs['transducer_offset_from_bottom'])
+    if 'NAVD88_ref' in VEL.attrs:
+        Wdepth = (-VEL.attrs['NAVD88_ref'] -
+                  VEL.attrs['transducer_offset_from_bottom'])
+    else:
+        Wdepth = np.nanmean(VEL[presvar])
 
     T_orig = T.copy()
 
     if VEL.attrs['orientation'] == 'UP':
         print('User instructed that instrument was pointing UP')
         # try a simpler approach
-        VEL['depth'] = xr.DataArray(Wdepth -
-            (VEL['bindist'] + VEL.attrs['transducer_offset_from_bottom']),
-            dims='bindist')
+        VEL['depth'] = xr.DataArray(Wdepth - VEL['bindist'], dims='bindist')
     elif VEL.attrs['orientation'] == 'DOWN':
         print('User instructed that instrument was pointing DOWN')
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
         # try a simpler approach
-        VEL['depth'] = xr.DataArray(Wdepth -
-            VEL.attrs['transducer_offset_from_bottom'] + VEL['bindist'],
-            dims='bindist')
+        VEL['depth'] = xr.DataArray(Wdepth + VEL['bindist'], dims='bindist')
 
     return VEL, T, T_orig
 
