@@ -5,7 +5,6 @@ language: python
 
 matrix:
   include:
-  - env: CONDA_ENV=py35
   - env: CONDA_ENV=py36
   - env: CONDA_ENV=py37
 
