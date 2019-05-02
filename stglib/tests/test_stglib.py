@@ -77,6 +77,12 @@ class TestAqd(unittest.TestCase):
         self.p = np.expand_dims([0, -5, 5], 1)
         self.r = np.expand_dims([0, 3, -3], 1)
 
+        self.ds = xr.Dataset()
+        self.ds['time'] = xr.DataArray(
+            pd.date_range('2000-01-01 00:00',
+                          '2000-01-30 00:00',
+                          freq='15min'), dims='time')
+
     def test_coord_transform(self):
         # Using Nortek example m-file and compare to Matlab results
         # http://www.nortekusa.com/lib/forum-attachments/coordinate-transformation/view
@@ -162,6 +168,39 @@ class TestAqd(unittest.TestCase):
                              [0.144416971478138, -0.548502906329893, -0.126444850020645]])
 
         np.testing.assert_allclose(result, expected)
+
+    def test_set_orientation(self):
+        depth = 2 + np.sin(
+            np.linspace(0, 2*np.pi, np.shape(self.ds['time'])[0]))
+        bindist = np.array([.3, .4, .5, .6, .7])
+        self.ds['Pressure_ac'] = xr.DataArray(depth, dims='time')
+        self.ds['bindist'] = xr.DataArray(bindist, dims='bindist')
+        self.ds.attrs['transducer_offset_from_bottom'] = 0.15
+
+        self.ds.attrs['orientation'] = 'UP'
+        result, T, T_orig = stglib.aqd.qaqc.set_orientation(self.ds, self.T)
+        np.testing.assert_almost_equal(depth.mean()-bindist,
+                                       result['depth'].values)
+
+        self.ds.attrs['orientation'] = 'DOWN'
+        result, T, T_orig = stglib.aqd.qaqc.set_orientation(self.ds, self.T)
+        np.testing.assert_almost_equal(depth.mean()+bindist,
+                                       result['depth'].values)
+
+        self.ds.attrs['NAVD88_ref'] = -0.87
+        self.ds.attrs['orientation'] = 'UP'
+        result, T, T_orig = stglib.aqd.qaqc.set_orientation(self.ds, self.T)
+        np.testing.assert_almost_equal(
+            -self.ds.attrs['NAVD88_ref']
+            - self.ds.attrs['transducer_offset_from_bottom']
+            - bindist, result['depth'].values)
+
+        self.ds.attrs['orientation'] = 'DOWN'
+        result, T, T_orig = stglib.aqd.qaqc.set_orientation(self.ds, self.T)
+        np.testing.assert_almost_equal(
+            -self.ds.attrs['NAVD88_ref']
+            - self.ds.attrs['transducer_offset_from_bottom']
+            + bindist, result['depth'].values)
 
 
 class TestWavesUtils(unittest.TestCase):
