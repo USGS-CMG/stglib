@@ -102,9 +102,10 @@ def add_delta_t(ds, waves=False):
 
 
 def make_tilt(p, r):
-    return np.array([[math.cos(p), -math.sin(p)*math.sin(r), -math.cos(r)*math.sin(p)],
-                     [0,           math.cos(r),              -math.sin(r)],
-                     [math.sin(p),  math.sin(r)*math.cos(p),  math.cos(p)*math.cos(r)]])
+    return np.array([
+        [math.cos(p), -math.sin(p)*math.sin(r), -math.cos(r)*math.sin(p)],
+        [0,           math.cos(r),              -math.sin(r)],
+        [math.sin(p),  math.sin(r)*math.cos(p),  math.cos(p)*math.cos(r)]])
 
 
 def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
@@ -132,9 +133,9 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
             pp = np.pi * pitch[i] / 180
             rr = np.pi * roll[i] / 180
 
-            H = np.array([[ math.cos(hh), math.sin(hh), 0],
+            H = np.array([[math.cos(hh),  math.sin(hh), 0],
                           [-math.sin(hh), math.cos(hh), 0],
-                          [ 0,          0,          1]])
+                          [0,             0,            1]])
 
             # make tilt matrix
             P = make_tilt(pp, rr)
@@ -143,7 +144,8 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
             R = np.dot(np.dot(H, P), T)
             if cs == 'XYZ':
                 for j in range(M):
-                    vel = np.dot(np.dot(R, np.linalg.inv(T_orig)),
+                    vel = np.dot(
+                        np.dot(R, np.linalg.inv(T_orig)),
                         np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T)
                     u[i, j] = vel[0]
                     v[i, j] = vel[1]
@@ -239,7 +241,7 @@ def magvar_correct(ds):
 
 def rotate(u, v, deg):
     rad = np.deg2rad(deg)
-    urot =  u * np.cos(rad) + v * np.sin(rad)
+    urot = u * np.cos(rad) + v * np.sin(rad)
     vrot = -u * np.sin(rad) + v * np.cos(rad)
 
     return urot, vrot
@@ -264,8 +266,8 @@ def trim_vel(ds, waves=False, data_vars=['U', 'V', 'W', 'AGC']):
     """
 
     if ('trim_method' in ds.attrs and
-           ds.attrs['trim_method'].lower() != 'none' and
-           ds.attrs['trim_method'] is not None):
+            ds.attrs['trim_method'].lower() != 'none' and
+            ds.attrs['trim_method'] is not None):
 
         if 'Pressure_ac' in ds:
             print('Using atmospherically corrected pressure to trim')
@@ -295,7 +297,7 @@ def trim_vel(ds, waves=False, data_vars=['U', 'V', 'W', 'AGC']):
                 ds.attrs['history'])
         elif ds.attrs['trim_method'].lower() == 'bin range':
             print('Trimming using good_bins of %s' %
-                str(ds.attrs['good_bins']))
+                  str(ds.attrs['good_bins']))
             for var in data_vars:
                 ds[var] = ds[var].isel(bindist=slice(ds.attrs['good_bins'][0],
                                                      ds.attrs['good_bins'][1]))
@@ -303,7 +305,8 @@ def trim_vel(ds, waves=False, data_vars=['U', 'V', 'W', 'AGC']):
         # find first bin that is all bad values
         # there might be a better way to do this using xarray and named
         # dimensions, but this works for now
-        lastbin = np.argmin(np.all(np.isnan(ds[data_vars[0]].values), axis=0) == False)
+        lastbin = np.argmin(
+            np.all(np.isnan(ds[data_vars[0]].values), axis=0) == False)
 
         # this trims so there are no all-nan rows in the data
         ds = ds.isel(bindist=slice(0, lastbin))
@@ -898,10 +901,10 @@ def ds_add_attrs(ds, waves=False):
 
     if 'P_1ac' in ds:
         if waves:
-            ds['bin_depth'].attrs['note'] = ('Actual depth time series of wave '
-                                             'burst bin depths. Calculated as '
-                                             'corrected pressure (P_1ac) - '
-                                             'bindist.')
+            ds['bin_depth'].attrs['note'] = ('Actual depth time series of '
+                                             'wave burst bin depths. '
+                                             'Calculated as corrected '
+                                             'pressure (P_1ac) - bindist.')
         else:
             ds['bin_depth'].attrs['note'] = ('Actual depth time series of '
                                              'velocity bins. Calculated as '

@@ -4,6 +4,7 @@ import xarray as xr
 from ..core import utils
 from . import qaqc
 
+
 def cdf_to_nc(cdf_filename, atmpres=False):
     """
     Load a "raw" .cdf file and generate a processed .nc file
@@ -130,15 +131,15 @@ def ds_drop(ds):
     """
 
     todrop = ['VEL1',
-        'VEL2',
-        'VEL3',
-        'AMP1',
-        'AMP2',
-        'AMP3',
-        'TransMatrix',
-        'AnalogInput1',
-        'AnalogInput2',
-        'jd',
-        'Depth']
+              'VEL2',
+              'VEL3',
+              'AMP1',
+              'AMP2',
+              'AMP3',
+              'TransMatrix',
+              'AnalogInput1',
+              'AnalogInput2',
+              'jd',
+              'Depth']
 
     return ds.drop([t for t in todrop if t in ds.variables])
