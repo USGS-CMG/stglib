@@ -1,0 +1,32 @@
+# Based on xarray's appveyor.yml
+
+environment:
+  matrix:
+    - PYTHON: "C:\\Python36-conda64"
+      PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "64"
+      CONDA_ENV: "py36"
+    - PYTHON: "C:\\Python37-conda64"
+      PYTHON_VERSION: "3.7"
+      PYTHON_ARCH: "64"
+      CONDA_ENV: "py37"
+
+install:
+  # Install miniconda Python
+  - "powershell ./ci/install_python.ps1"
+
+  # Prepend newly installed Python to the PATH of this build (this cannot be
+  # done from inside the powershell script as it would require to restart
+  # the parent CMD process).
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+  # install xarray and dependencies
+  - "conda env create --file requirements-%CONDA_ENV%.yml"
+  - "activate test-environment"
+  - "conda list"
+  - "python setup.py install"
+
+build: false
+
+test_script:
+  - "python -m unittest discover stglib/tests"
