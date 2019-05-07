@@ -51,6 +51,9 @@ def cdf_to_nc(cdf_filename,
     #     if 'time' not in var:
     #         ds = utils.add_lat_lon(ds, var)
 
+    # trim by minimum pressure for instruments that go out of water_depth
+    ds = trim_min(ds, 'P_1ac')
+
     ds = utils.add_min_max(ds)
 
     ds = utils.add_start_stop_time(ds)
@@ -81,6 +84,22 @@ def cdf_to_nc(cdf_filename,
 
     # rename time variables after the fact to conform with EPIC/CMG standards
     # utils.rename_time(nc_filename)
+
+    return ds
+
+def trim_min(ds, var):
+    if var + '_min' in ds.attrs:
+        print('%s: Trimming using minimum value of %f' %
+              (var, ds.attrs[var + '_min']))
+        # remove full burst if any of the burst values are less than
+        # the indicated value
+        bads = (ds[var] < ds.attrs[var + '_min']).any(dim='sample')
+        ds[var][bads, :] = np.nan
+
+        notetxt = ('Values filled where less than %f units. ' %
+                   ds.attrs[var + '_min'])
+
+        ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
