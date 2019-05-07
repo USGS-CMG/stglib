@@ -411,7 +411,7 @@ def trim_min(ds, var):
         notetxt = ('Values filled where less than %f units. ' %
                    ds.attrs[var + '_min'])
 
-        ds = insert_note(ds, var, notetxt)
+        ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
@@ -425,7 +425,7 @@ def trim_max(ds, var):
         notetxt = ('Values filled where greater than %f units. ' %
                    ds.attrs[var + '_max'])
 
-        ds = insert_note(ds, var, notetxt)
+        ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
@@ -441,7 +441,7 @@ def trim_min_diff(ds, var):
                    'units in a single time step. ' %
                    ds.attrs[var + '_min_diff'])
 
-        ds = insert_note(ds, var, notetxt)
+        ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
@@ -457,7 +457,7 @@ def trim_max_diff(ds, var):
                    'units in a single time step. ' %
                    ds.attrs[var + '_max_diff'])
 
-        ds = insert_note(ds, var, notetxt)
+        ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
@@ -479,7 +479,7 @@ def trim_med_diff(ds, var):
                    '%f. ' %
                    (kernel_size, ds.attrs[var + '_med_diff']))
 
-        ds = insert_note(ds, var, notetxt)
+        ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
@@ -502,7 +502,7 @@ def trim_med_diff_pct(ds, var):
                    'than %f. ' %
                    (kernel_size, ds.attrs[var + '_med_diff_pct']))
 
-        ds = insert_note(ds, var, notetxt)
+        ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
@@ -526,7 +526,7 @@ def trim_bad_ens(ds, var):
             notetxt = "Data clipped using bad_ens values of %s. " % (
                 str(ds.attrs[var + '_bad_ens']))
 
-            ds = insert_note(ds, var, notetxt)
+            ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
@@ -541,16 +541,7 @@ def trim_by_salinity(ds, var):
 
             notetxt = 'Values filled using valid salinity threshold. '
 
-            ds = insert_note(ds, var, notetxt)
-
-    return ds
-
-
-def insert_note(ds, var, notetxt):
-    if 'note' in ds[var].attrs:
-        ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
-    else:
-        ds[var].attrs.update({'note': notetxt})
+            ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 

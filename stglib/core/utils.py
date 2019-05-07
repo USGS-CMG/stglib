@@ -747,6 +747,15 @@ def no_p_add_depth(ds, var):
     return ds
 
 
+def insert_note(ds, var, notetxt):
+    if 'note' in ds[var].attrs:
+        ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
+    else:
+        ds[var].attrs.update({'note': notetxt})
+
+    return ds
+    
+
 def add_delta_t(ds):
     deltat = np.asscalar(
         (ds['time'][1] - ds['time'][0]) / np.timedelta64(1, 's'))

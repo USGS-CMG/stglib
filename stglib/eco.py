@@ -291,15 +291,6 @@ def trim_max_std(ds, var):
         notetxt = ('Values filled where standard deviation greater than %f '
                    'units. ' % ds.attrs[var + '_std_max'])
 
-        ds = insert_note(ds, var, notetxt)
-
-    return ds
-
-
-def insert_note(ds, var, notetxt):
-    if 'note' in ds[var].attrs:
-        ds[var].attrs['note'] = notetxt + ds[var].attrs['note']
-    else:
-        ds[var].attrs.update({'note': notetxt})
+        ds = utils.insert_note(ds, var, notetxt)
 
     return ds
