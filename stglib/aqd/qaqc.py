@@ -705,49 +705,6 @@ def update_attrs(ds, waves=False):
 
     return ds
 
-    # RAW['AnalogInput1']
-
-    # with Dataset(cdf_filename, 'w', format='NETCDF4', clobber=True) as rg:
-    #
-    #     # write out EPIC metadata
-    #     write_metadata(rg, RAW['instmeta']) #TODO
-    #
-    #     if waves:
-    #         burstid = rg.createVariable('burst', 'i', ('time',), fill_value=False)
-    #         burstid.units = 'count'
-    #         burstid.long_name = 'Record Number'
-    #
-    #
-    #
-    #     if waves:
-    #         AMP1id = rg.createVariable('AMP1', 'f', ('sample', 'time',), fill_value=False)
-    #     else:
-    #         AMP1id = rg.createVariable('AMP1', 'f', ('depth', 'time',), fill_value=False)
-    #
-    # FIXME: add analoginput stuff
-    #     for n in ['1', '2']:
-    #         if 'AnalogInput' + n in metadata:
-    #             Anaid = rg.createVariable('AnalogInput' + n, 'f', ('time',), fill_value=False)
-    #             Anaid.units = 'Volts'
-    #             Anaid.sensor_type = metadata['AnalogInput1']['sensor_type']
-    #             Anaid.sensor_manufacturer = metadata['AnalogInput1']['sensor_manufacturer']
-    #             Anaid.sensor_model = metadata['AnalogInput1']['sensor_model']
-    #             Anaid.serial_number = metadata['AnalogInput1']['serial_number']
-    #
-    #             if 'initial_sensor_height' in metadata['AnalogInput' + n]:
-    #                 # TODO
-    #                 # metadata.AnalogInput1.nominal_sensor_depth = metadata.WATER_DEPTH - metadata.AnalogInput1.initial_sensor_height;
-    #                 # netcdf.putAtt(ncid,Ana1id,'initial_sensor_height',metadata.AnalogInput1.initial_sensor_height);
-    #                 # netcdf.putAtt(ncid,Ana1id,'nominal_sensor_depth',metadata.AnalogInput1.nominal_sensor_depth);
-    #                 continue
-    #             elif 'nominal_sensor_depth' in metadata['AnalogInput' + n]: # TODO: should be another if not elif??
-    #                 # netcdf.putAtt(ncid,Ana1id,'nominal_sensor_depth',metadata.AnalogInput1.nominal_sensor_depth);
-    #                 # metadata.AnalogInput1.initial_sensor_height = metadata.WATER_DEPTH - metadata.AnalogInput1.nominal_sensor_depth;
-    #                 # netcdf.putAtt(ncid,Ana1id,'initial_sensor_height',metadata.AnalogInput1.initial_sensor_height);
-    #                 continue
-    #
-    #         # if isfield(metadata.AnalogInput1,'range'),
-
 
 def ds_add_attrs(ds, waves=False):
     """
