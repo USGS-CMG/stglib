@@ -700,6 +700,77 @@ def check_valid_metadata(metadata):
             raise KeyError(
                 k + ' must be defined, most likely in config.yaml')
 
+def read_samplingrates_burst(ds,conn):
+    '''
+    Reads in sample information from RBR instrument in burst mode
+    '''    
+    # Get samples per burst
+    try:
+        # this seems to be used on older-style databases;
+        # throws error on newer files
+        samplingcount = conn.execute(
+            "select samplingcount from schedules").fetchall()[0][0]
+    except sqlite3.OperationalError:
+        samplingcount = conn.execute(
+            "select samplingcount from wave").fetchall()[0][0]
+    ds.attrs['samples_per_burst'] = samplingcount
+
+    # Get sampling interval
+    try:
+        samplingperiod = conn.execute(
+            "select samplingperiod from schedules").fetchall()[0][0]
+    except sqlite3.OperationalError:
+        samplingperiod = conn.execute(
+            "select samplingperiod from wave").fetchall()[0][0]
+    ds.attrs['sample_interval'] = samplingperiod / 1000
+
+    # Get Repetition interval of sampling 
+    try:
+        repetitionperiod = conn.execute(
+            "select repetitionperiod from schedules").fetchall()[0][0]
+    except sqlite3.OperationalError:
+        repetitionperiod = conn.execute(
+            "select repetitionperiod from wave").fetchall()[0][0]
+        
+    # Convert to seconds        
+    ds.attrs['burst_interval'] = repetitionperiod / 1000
+
+    # Length of bursts in data points
+    ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * \
+        ds.attrs['sample_interval']
+
+    return ds
+
+def read_samplingrates_continuous(ds,conn):
+    '''
+    Reads in sample information from RBR instrument in continuous mode
+    '''
+    try:
+        samplingperiod = conn.execute(
+            "select samplingperiod from schedules").fetchall()[0][0]
+    except sqlite3.OperationalError:
+        samplingperiod = conn.execute(
+            "select samplingperiod from continuous").fetchall()[0][0]
+
+    samplingperiod = samplingperiod / 1000 # convert from ms to sec
+    samplingrate = 1/samplingperiod # convert to rate [Hz]
+    
+    # Set sampling period, [sec]
+    ds.attrs['sample_interval'] = samplingperiod 
+    
+    # Set samples per burst
+    samplingcount = ds.attrs['wave_interval']*samplingrate
+    ds.attrs['samples_per_burst'] = round(samplingcount)
+        
+    # Set burst interval, [sec], USER DEFINED in instrument attr
+    ds.attrs['burst_interval'] = ds.attrs['wave_interval']
+    
+    # Set sample interval
+    ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * \
+        ds.attrs['sample_interval']
+
+    return ds
+
 
 def read_globalatts(fname):
     """
@@ -744,78 +815,6 @@ def loadmat(filename):
     '''
     data = spio.loadmat(filename, struct_as_record=False, squeeze_me=True)
     return _check_keys(data)
-
-def read_samplingrates_continuous(ds,conn):
-    '''
-    Reads in sample information from RBR instrument in continuous mode
-    '''
-    try:
-        samplingperiod = conn.execute(
-            "select samplingperiod from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        samplingperiod = conn.execute(
-            "select samplingperiod from continuous").fetchall()[0][0]
-
-    samplingrate = round(1000/samplingperiod)   #convert from ms to sec
-    samplingperiod = 1./samplingrate     #period from rate (Hz)
-
-    # Set sampling period, [sec]
-    ds.attrs['sample_interval'] = samplingperiod
-    
-    # Set samples per burst
-    samplingcount = ds.attrs['wave_interval']*samplingrate
-    ds.attrs['samples_per_burst'] = samplingcount
-        
-    # Set burst interval, [sec], USER DEFINED in instrument attr
-    ds.attrs['burst_interval'] = ds.attrs['wave_interval']
-    
-    # Set sample interval
-    ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * \
-        ds.attrs['sample_interval']
-
-    return ds
-
-def read_samplingrates_burst(ds,conn):
-    '''
-    Reads in sample information from RBR instrument in burst mode
-    '''    
-    # Get samples per burst
-    try:
-        # this seems to be used on older-style databases;
-        # throws error on newer files
-        samplingcount = conn.execute(
-            "select samplingcount from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        samplingcount = conn.execute(
-            "select samplingcount from wave").fetchall()[0][0]
-    ds.attrs['samples_per_burst'] = samplingcount
-
-    # Get sampling interval
-    try:
-        samplingperiod = conn.execute(
-            "select samplingperiod from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        samplingperiod = conn.execute(
-            "select samplingperiod from wave").fetchall()[0][0]
-    ds.attrs['sample_interval'] = samplingperiod / 1000
-
-    # Get Repetition interval of sampling 
-    try:
-        repetitionperiod = conn.execute(
-            "select repetitionperiod from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        repetitionperiod = conn.execute(
-            "select repetitionperiod from wave").fetchall()[0][0]
-        
-    # Convert to seconds        
-    ds.attrs['burst_interval'] = repetitionperiod / 1000
-
-    # Length of bursts in data points
-    ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * \
-        ds.attrs['sample_interval']
-
-    return ds
-
 
 
 

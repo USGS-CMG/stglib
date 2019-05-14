@@ -44,7 +44,7 @@ def rsk_to_xr(metadata):
            'this may take a while for large datasets') % rskfile)    
 
      #Assume RBRvirtuoso in burst mode if no attrs
-    if 'instrument_type' not in ds.attrs.keys():
+    if 'instrument_type' not in ds.attrs:
         (d, ds) = read_virtuoso_burst(rskfile,ds)    
     # Else, check for duo or virtuoso, duo, and recording mode
     elif ds.attrs['instrument_type'] == 'rbr_duo': 
