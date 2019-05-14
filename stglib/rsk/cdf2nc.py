@@ -132,9 +132,13 @@ def ds_add_depth_dim(ds):
         ds['depth'] = xr.DataArray([-ds.attrs['NAVD88_ref'] -
             ds.attrs['initial_instrument_height']], dims='depth')
         ds['depth'].attrs['VERT_DATUM'] = 'NAVD88'
+        ds['depth'].attrs['NOTE'] = ('Computed as platform depth '
+                                     '[m NAVD88] minus '
+                                     'initial_instrument_height')
     else:
         ds['depth'] = xr.DataArray([ds[p].mean(dim=['time', 'sample'])],
                                    dims='depth')
+        ds['depth'].attrs['NOTE'] = 'Computed as mean of the pressure sensor'
     ds['depth'].attrs['positive'] = 'down'
     ds['depth'].attrs['axis'] = 'z'
     ds['depth'].attrs['units'] = 'm'

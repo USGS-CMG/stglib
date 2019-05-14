@@ -767,6 +767,11 @@ def ds_add_attrs(ds, waves=False):
          'nominal_instrument_depth': ds.attrs['nominal_instrument_depth'],
          'epic_code': 3})
 
+    if 'NAVD88_ref' in ds.attrs:
+        ds['depth'].attrs['VERT_DATUM'] = 'NAVD88'
+        ds['depth'].attrs['NOTE'] = ('Computed as platform depth [m NAVD88] '
+                                     'minus initial_instrument_height')
+
     if not waves:
         ds['u_1205'].attrs.update(
             {'name': 'u',
