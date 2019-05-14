@@ -21,6 +21,9 @@ def nc_to_waves(nc_filename):
     ds = utils.create_water_depth_var(ds)
 
     ds = ds.drop(['P_1', 'P_1ac', 'sample'])
+    
+    if 'T_28' in ds.keys():
+        ds = ds.drop(['T_28'])
 
     ds = utils.trim_max_wp(ds)
 
