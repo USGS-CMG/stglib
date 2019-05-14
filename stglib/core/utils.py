@@ -441,30 +441,49 @@ def rename_time(ds):
 
 
 def rename_time_2d(nc_filename):
-    # Need to do this in two steps after renaming the variable.
-    # Not sure why, but it works this way.
-    with netCDF4.Dataset(nc_filename, 'r+') as nc:
-        nc.renameVariable('time', 'time_cf')
-        # nc.renameVariable('time_2d', 'time_cf_2d')
-        timebak = nc['epic_time_2d'][:]
-        nc.renameVariable('epic_time_2d', 'time')
-        nc.renameVariable('epic_time2_2d', 'time2')
+    if (
+        ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
+        ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
+       ):
+        pass
+    else:
+        # Need to do this in two steps after renaming the variable.
+        # Not sure why, but it works this way.
+        with netCDF4.Dataset(nc_filename, 'r+') as nc:
+            nc.renameVariable('time', 'time_cf')
+            # nc.renameVariable('time_2d', 'time_cf_2d')
+            timebak = nc['epic_time_2d'][:]
+            nc.renameVariable('epic_time_2d', 'time')
+            nc.renameVariable('epic_time2_2d', 'time2')
 
-    with netCDF4.Dataset(nc_filename, 'r+') as nc:
-        nc['time'][:] = timebak
+        with netCDF4.Dataset(nc_filename, 'r+') as nc:
+            nc['time'][:] = timebak
 
 
 def open_time_2d_dataset(filename):
     # need to drop 'time' variable because of xarray limitations related
     # to coordinates and variables with the same name, otherwise it raises a
     # MissingDimensionsError
-    return xr.open_dataset(filename,
-                           decode_times=False,
-                           drop_variables='time')
+    # Check if CF or not, and return the correct dataset
+    with xr.open_dataset(filename,
+                         decode_times=False,
+                         drop_variables='time'):
+        if 'cf' in ds.attrs or 'CF' in ds.attrs:
+            iscf = True
+        else:
+            iscf = False
+
+    if iscf:
+        return xr.open_dataset(filename)
+    else:
+        return xr.open_dataset(filename,
+                               decode_times=False,
+                               drop_variables='time')
 
 
 def epic_to_cf_time(ds):
-    ds['time'] = ds['time_cf']
+    if 'time_cf' in ds:
+        ds['time'] = ds['time_cf']
     for v in ['time_cf', 'time2', 'epic_time', 'epic_time2']:
         if v in ds:
             ds = ds.drop(v)
