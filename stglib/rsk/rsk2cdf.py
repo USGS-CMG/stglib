@@ -53,7 +53,7 @@ def rsk_to_xr(metadata):
             (d, d2, ds) = read_duo_continuous(rskfile,ds)
         elif ds.attrs['recording_type'] == 'burst':
             # Burst
-            (d, d2, ds) = read_duo_continuous(rskfile,ds)
+            (d, d2, ds) = read_duo_burst(rskfile,ds)
         else:
             raise ValueError('recording_type in config file, {:s},  is invalid'.format(ds.attrs['recording_type']))
     elif ds.attrs['instrument_type'] == 'rbr_virtuoso':
@@ -176,35 +176,10 @@ def read_virtuoso_burst(rskfile,ds):
     print("Done fetching pressure data")
     d = np.asarray(data)
         
-            # Get samples per burst
-    try:
-        # this seems to be used on older-style databases;
-        # throws error on newer files
-        samplingcount = conn.execute(
-            "select samplingcount from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        samplingcount = conn.execute(
-            "select samplingcount from wave").fetchall()[0][0]
-    ds.attrs['samples_per_burst'] = samplingcount
+    # Read sampling meta info    
+    ds = utils.read_samplingrates_burst(ds,conn)
 
-    try:
-        samplingperiod = conn.execute(
-            "select samplingperiod from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        samplingperiod = conn.execute(
-            "select samplingperiod from wave").fetchall()[0][0]
-    ds.attrs['sample_interval'] = samplingperiod / 1000
-
-    try:
-        repetitionperiod = conn.execute(
-            "select repetitionperiod from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        repetitionperiod = conn.execute(
-            "select repetitionperiod from wave").fetchall()[0][0]
-    ds.attrs['burst_interval'] = repetitionperiod / 1000
-
-    ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * \
-        ds.attrs['sample_interval']
+    # Get instr meta
     ds.attrs['serial_number'] = str(conn.execute(
         "select serialID from instruments").fetchall()[0][0])
     ds.attrs['INST_TYPE'] = 'RBR Virtuoso d|wave'
@@ -220,36 +195,16 @@ def read_virtuoso_continuous(rskfile,ds): # UNTESTED
     data = conn.fetchall()
     print("Done fetching pressure data")
     d = np.asarray(data)
-    
-    try:
-        samplingperiod = conn.execute(
-            "select samplingperiod from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        samplingperiod = conn.execute(
-            "select samplingperiod from continuous").fetchall()[0][0]
 
-    samplingrate = round(1000/samplingperiod)   #convert from ms to sec
-    samplingperiod = 1./samplingrate     #period from rate (Hz)
-
-    # Set sampling period, [sec]
-    ds.attrs['sample_interval'] = samplingperiod
-    
-    # Set samples per burst
-    samplingcount = ds.attrs['wave_interval']*samplingrate
-    ds.attrs['samples_per_burst'] = samplingcount
-        
-    # Set burst interval, [sec]
-    repetitionperiod = ds.attrs['wave_interval']
-    ds.attrs['burst_interval'] = repetitionperiod
-    
-    # Set sample interval
-    ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * \
-        ds.attrs['sample_interval']
+    # Read sampling meta info    
+    ds = utils.read_samplingrates_continuous(ds,conn)
     
     # Get meta
     ds.attrs['serial_number'] = str(conn.execute(
         "select serialID from instruments").fetchall()[0][0])
     ds.attrs['INST_TYPE'] = 'RBR Virtuoso d|wave'
+    
+    conn.close()
     
     return (d,ds)
 
@@ -269,36 +224,16 @@ def read_duo_continuous(rskfile,ds):
     print("Done fetching temperature data")
     t = np.asarray(data)
     
-    try:
-        samplingperiod = conn.execute(
-            "select samplingperiod from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        samplingperiod = conn.execute(
-            "select samplingperiod from continuous").fetchall()[0][0]
-
-    samplingrate = round(1000/samplingperiod)   #convert from ms to sec
-    samplingperiod = 1./samplingrate     #period from rate (Hz)
-
-    # Set sampling period, [sec]
-    ds.attrs['sample_interval'] = samplingperiod
+    # Read sampling meta info    
+    ds = utils.read_samplingrates_continuous(ds,conn)
     
-    # Set samples per burst
-    samplingcount = ds.attrs['wave_interval']*samplingrate
-    ds.attrs['samples_per_burst'] = samplingcount
-        
-    # Set burst interval, [sec]
-    repetitionperiod = ds.attrs['wave_interval']
-    ds.attrs['burst_interval'] = repetitionperiod
-    
-    # Set sample interval
-    ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * \
-        ds.attrs['sample_interval']
-    
-    # Get meta
+    # Get instr meta
     ds.attrs['serial_number'] = str(conn.execute(
         "select serialID from instruments").fetchall()[0][0])
     ds.attrs['INST_TYPE'] = 'RBR Duo d|wave'
         
+    conn.close()
+    
     return (d,t,ds)
 
 def read_duo_burst(rskfile,ds):
@@ -316,35 +251,10 @@ def read_duo_burst(rskfile,ds):
     print("Done fetching temperature data")
     t = np.asarray(data)
         
-            # Get samples per burst
-    try:
-        # this seems to be used on older-style databases;
-        # throws error on newer files
-        samplingcount = conn.execute(
-            "select samplingcount from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        samplingcount = conn.execute(
-            "select samplingcount from wave").fetchall()[0][0]
-    ds.attrs['samples_per_burst'] = samplingcount
-
-    try:
-        samplingperiod = conn.execute(
-            "select samplingperiod from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        samplingperiod = conn.execute(
-            "select samplingperiod from wave").fetchall()[0][0]
-    ds.attrs['sample_interval'] = samplingperiod / 1000
-
-    try:
-        repetitionperiod = conn.execute(
-            "select repetitionperiod from schedules").fetchall()[0][0]
-    except sqlite3.OperationalError:
-        repetitionperiod = conn.execute(
-            "select repetitionperiod from wave").fetchall()[0][0]
-    ds.attrs['burst_interval'] = repetitionperiod / 1000
-
-    ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * \
-        ds.attrs['sample_interval']
+    # Read sampling meta info    
+    ds = utils.read_samplingrates_burst(ds,conn)
+    
+    # Get instr meta
     ds.attrs['serial_number'] = str(conn.execute(
         "select serialID from instruments").fetchall()[0][0])
     ds.attrs['INST_TYPE'] = 'RBR Virtuoso d|wave'
