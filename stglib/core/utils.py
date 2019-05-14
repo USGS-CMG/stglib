@@ -451,7 +451,7 @@ def rename_time(ds):
     return ds
 
 
-def rename_time_2d(nc_filename):
+def rename_time_2d(nc_filename, ds):
     if (
         ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
         ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
@@ -478,7 +478,7 @@ def open_time_2d_dataset(filename):
     # Check if CF or not, and return the correct dataset
     with xr.open_dataset(filename,
                          decode_times=False,
-                         drop_variables='time'):
+                         drop_variables='time') as ds:
         if 'cf' in ds.attrs or 'CF' in ds.attrs:
             iscf = True
         else:
@@ -794,7 +794,7 @@ def check_valid_metadata(metadata):
 def read_samplingrates_burst(ds,conn):
     '''
     Reads in sample information from RBR instrument in burst mode
-    '''    
+    '''
     # Get samples per burst
     try:
         # this seems to be used on older-style databases;
@@ -815,15 +815,15 @@ def read_samplingrates_burst(ds,conn):
             "select samplingperiod from wave").fetchall()[0][0]
     ds.attrs['sample_interval'] = samplingperiod / 1000
 
-    # Get Repetition interval of sampling 
+    # Get Repetition interval of sampling
     try:
         repetitionperiod = conn.execute(
             "select repetitionperiod from schedules").fetchall()[0][0]
     except sqlite3.OperationalError:
         repetitionperiod = conn.execute(
             "select repetitionperiod from wave").fetchall()[0][0]
-        
-    # Convert to seconds        
+
+    # Convert to seconds
     ds.attrs['burst_interval'] = repetitionperiod / 1000
 
     # Length of bursts in data points
@@ -845,17 +845,17 @@ def read_samplingrates_continuous(ds,conn):
 
     samplingperiod = samplingperiod / 1000 # convert from ms to sec
     samplingrate = 1/samplingperiod # convert to rate [Hz]
-    
+
     # Set sampling period, [sec]
-    ds.attrs['sample_interval'] = samplingperiod 
-    
+    ds.attrs['sample_interval'] = samplingperiod
+
     # Set samples per burst
     samplingcount = ds.attrs['wave_interval']*samplingrate
     ds.attrs['samples_per_burst'] = round(samplingcount)
-        
+
     # Set burst interval, [sec], USER DEFINED in instrument attr
     ds.attrs['burst_interval'] = ds.attrs['wave_interval']
-    
+
     # Set sample interval
     ds.attrs['burst_length'] = ds.attrs['samples_per_burst'] * \
         ds.attrs['sample_interval']

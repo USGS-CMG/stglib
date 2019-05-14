@@ -41,13 +41,13 @@ def rsk_to_xr(metadata):
     ds = utils.write_metadata(ds, metadata)
 
     print(('Loading from sqlite file %s; '
-           'this may take a while for large datasets') % rskfile)    
+           'this may take a while for large datasets') % rskfile)
 
-     #Assume RBRvirtuoso in burst mode if no attrs
+    # Assume RBRvirtuoso in burst mode if no attrs
     if 'instrument_type' not in ds.attrs:
-        (d, ds) = read_virtuoso_burst(rskfile,ds)    
+        (d, ds) = read_virtuoso_burst(rskfile,ds)
     # Else, check for duo or virtuoso, duo, and recording mode
-    elif ds.attrs['instrument_type'] == 'rbr_duo': 
+    elif ds.attrs['instrument_type'] == 'rbr_duo':
         if ds.attrs['recording_type'] == 'continuous':
             # Continuous
             (d, d2, ds) = read_duo_continuous(rskfile,ds)
@@ -67,7 +67,7 @@ def rsk_to_xr(metadata):
             raise ValueError('recording_type in config file, {:s},  is invalid'.format(ds.attrs['recording_type']))
     else:
         raise ValueError('instrument_type in config file, {:s},  is invalid'.format(ds.attrs['instrument_type']))
-            
+
 
     samplingcount = ds.attrs['samples_per_burst']
 
@@ -90,7 +90,7 @@ def rsk_to_xr(metadata):
         )
 
     # If duo, also process temperature
-    if ds.attrs['instrument_type'] == 'rbr_duo':
+    if ('instrument_type' in ds.attrs) and (ds.attrs['instrument_type'] == 'rbr_duo'):
         t = {}
         t['unixtime'] = d2[:, 0].copy()
         t['temp'] = d2[:, 1].copy()
@@ -98,15 +98,15 @@ def rsk_to_xr(metadata):
         sort = np.argsort(t['unixtime'])
         t['unixtime'] = t['unixtime'][sort]
         t['temp'] = t['temp'][sort]
-    
+
         # get indices that end at the end of the final burst
         datlength = t['unixtime'].shape[0] - t['unixtime'].shape[0] % samplingcount
-    
+
         # reshape
         for k in t:
             t[k] = t[k][:datlength].reshape(
                 (int(datlength/samplingcount), samplingcount)
-            )        
+            )
 
 
     times = pd.to_datetime(a['unixtime'][:, 0], unit='ms')
@@ -127,7 +127,7 @@ def rsk_to_xr(metadata):
     ds['P_1'].encoding['_FillValue'] = 1e35
 
     # If duo, also save temp
-    if ds.attrs['instrument_type'] == 'rbr_duo':    
+    if ('instrument_type' in ds.attrs) and (ds.attrs['instrument_type'] == 'rbr_duo'):
         ds['T_28'] = xr.DataArray(
             t['temp'],
             coords=[times, samples],
@@ -170,13 +170,13 @@ def rsk_to_xr(metadata):
 
 def read_virtuoso_burst(rskfile,ds):
     conn = init_connection(rskfile)
-    
+
     conn.execute("SELECT tstamp, channel01 FROM burstdata")
     data = conn.fetchall()
     print("Done fetching pressure data")
     d = np.asarray(data)
-        
-    # Read sampling meta info    
+
+    # Read sampling meta info
     ds = utils.read_samplingrates_burst(ds,conn)
 
     # Get instr meta
@@ -185,7 +185,7 @@ def read_virtuoso_burst(rskfile,ds):
     ds.attrs['INST_TYPE'] = 'RBR Virtuoso d|wave'
 
     conn.close()
-    
+
     return (d,ds)
 
 def read_virtuoso_continuous(rskfile,ds): # UNTESTED
@@ -196,16 +196,16 @@ def read_virtuoso_continuous(rskfile,ds): # UNTESTED
     print("Done fetching pressure data")
     d = np.asarray(data)
 
-    # Read sampling meta info    
+    # Read sampling meta info
     ds = utils.read_samplingrates_continuous(ds,conn)
-    
+
     # Get meta
     ds.attrs['serial_number'] = str(conn.execute(
         "select serialID from instruments").fetchall()[0][0])
     ds.attrs['INST_TYPE'] = 'RBR Virtuoso d|wave'
-    
+
     conn.close()
-    
+
     return (d,ds)
 
 
@@ -223,44 +223,44 @@ def read_duo_continuous(rskfile,ds):
     data = conn.fetchall()
     print("Done fetching temperature data")
     t = np.asarray(data)
-    
-    # Read sampling meta info    
+
+    # Read sampling meta info
     ds = utils.read_samplingrates_continuous(ds,conn)
-    
+
     # Get instr meta
     ds.attrs['serial_number'] = str(conn.execute(
         "select serialID from instruments").fetchall()[0][0])
     ds.attrs['INST_TYPE'] = 'RBR Duo d|wave'
-        
+
     conn.close()
-    
+
     return (d,t,ds)
 
 def read_duo_burst(rskfile,ds):
     conn = init_connection(rskfile)
-    
+
     # First pressure
     conn.execute("SELECT tstamp, channel02 FROM burstdata")
     data = conn.fetchall()
     print("Done fetching pressure data")
     d = np.asarray(data)
-    
+
     # Second load in temprature
     conn.execute("SELECT tstamp, channel01 FROM data")
     data = conn.fetchall()
     print("Done fetching temperature data")
     t = np.asarray(data)
-        
-    # Read sampling meta info    
+
+    # Read sampling meta info
     ds = utils.read_samplingrates_burst(ds,conn)
-    
+
     # Get instr meta
     ds.attrs['serial_number'] = str(conn.execute(
         "select serialID from instruments").fetchall()[0][0])
     ds.attrs['INST_TYPE'] = 'RBR Virtuoso d|wave'
 
     conn.close()
-    
+
     return (d,t,ds)
 
 
