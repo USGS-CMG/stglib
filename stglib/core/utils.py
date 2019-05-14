@@ -423,19 +423,6 @@ def rename_time(ds):
     Rename time variables for EPIC compliance, keeping a time_cf coorindate.
     """
 
-    # nc = netCDF4.Dataset(nc_filename, 'r+')
-    # timebak = nc['epic_time'][:]
-    # nc.renameVariable('time', 'time_cf')
-    # nc.renameVariable('epic_time', 'time')
-    # nc.renameVariable('epic_time2', 'time2')
-    # nc.close()
-    #
-    # # need to do this in two steps after renaming the variable
-    # # not sure why, but it works this way
-    # nc = netCDF4.Dataset(nc_filename, 'r+')
-    # nc['time'][:] = timebak
-    # nc.close()
-
     if (
         ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
         ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
@@ -754,7 +741,7 @@ def insert_note(ds, var, notetxt):
         ds[var].attrs.update({'note': notetxt})
 
     return ds
-    
+
 
 def add_delta_t(ds):
     deltat = np.asscalar(
