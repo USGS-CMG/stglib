@@ -21,8 +21,10 @@ def clip_ds(ds, wvs=False):
     because AQD waves can have a different sampling interval than AQD currents
     """
 
-    print('first burst in full file:', ds['time'].min().values)
-    print('last burst in full file:', ds['time'].max().values)
+    print('first burst in full file: {}, idx {}'.format(
+        ds['time'].min().values, ds['time'].argmin().values))
+    print('last burst in full file: {}, idx {}'.format(
+        ds['time'].max().values, ds['time'].argmax().values))
 
     # clip either by ensemble indices or by the deployment and recovery
     # date specified in metadata
@@ -65,6 +67,14 @@ def clip_ds(ds, wvs=False):
         # clip by start/end dates that are not Deployment_date
         # and Recovery_date
         print('Clipping data using good_dates')
+
+        where = np.where(
+            (ds['time'].values >= np.datetime64(ds.attrs['good_dates'][0])) &
+            (ds['time'].values <= np.datetime64(ds.attrs['good_dates'][1])))[0]
+        print('good_dates[0] {}, idx {}'.format(
+            ds.attrs['good_dates'][0], where.min()))
+        print('good_dates[1] {}, idx {}'.format(
+            ds.attrs['good_dates'][1], where.max()))
         ds = ds.sel(time=slice(ds.attrs['good_dates'][0],
                                ds.attrs['good_dates'][1]))
 
