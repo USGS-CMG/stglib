@@ -12,8 +12,9 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 # used https://github.com/pypa/sampleproject/blob/master/setup.py
 
 setup(name='stglib',
-      version='0.1dev',
-      description='Process oceanographic data',
+      version='0.1.0',
+      description=('Process data from a variety of oceanographic '
+                   'instrumentation'),
       long_description=long_description,
       long_description_content_type='text/markdown',
       author='Dan Nowacki',
