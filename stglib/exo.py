@@ -317,7 +317,7 @@ def ds_add_attrs(ds):
                                   'name': 'Pac',
                                   'long_name': 'Corrected pressure'})
         if 'P_1ac_note' in ds.attrs:
-            ds['P_1ac'].attrs.update({'note': ds.attrs['P_1ac_note']})
+            ds = utils.insert_note(ds, 'P_1ac', ds.attrs['P_1ac_note'] + ' ')
 
     def add_attributes(var, dsattrs):
         var.attrs.update({
@@ -539,9 +539,10 @@ def trim_by_salinity(ds, var):
             print('%s: Trimming using valid salinity threshold' % var)
             ds[var][ds['S_41'].isnull()] = np.nan
 
-            notetxt = 'Values filled using valid salinity threshold. '
+            if var != 'S_41':
+                notetxt = 'Values filled using valid salinity threshold. '
 
-            ds = utils.insert_note(ds, var, notetxt)
+                ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
