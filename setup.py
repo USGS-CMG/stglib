@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
+import versioneer
 
 here = path.abspath(path.dirname(__file__))
 
@@ -12,7 +13,8 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 # used https://github.com/pypa/sampleproject/blob/master/setup.py
 
 setup(name='stglib',
-      version='0.1.0',
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
       description=('Process data from a variety of oceanographic '
                    'instrumentation'),
       long_description=long_description,
