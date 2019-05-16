@@ -745,7 +745,7 @@ def no_p_create_depth(ds):
     ds['depth'].attrs['axis'] = 'z'
     ds['depth'].attrs['units'] = 'm'
     ds['depth'].attrs['epic_code'] = 3
-    ds['depth'].encoding['_FillValue'] = 1e35
+    ds['depth'].encoding['_FillValue'] = None
 
     return ds
 
