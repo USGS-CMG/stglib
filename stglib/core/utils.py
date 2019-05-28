@@ -11,6 +11,7 @@ import numpy as np
 import scipy.io as spio
 import pandas as pd
 import sqlite3
+import stglib
 
 
 def clip_ds(ds, wvs=False):
@@ -414,10 +415,10 @@ def write_metadata(ds, metadata):
 
     f = os.path.basename(inspect.stack()[1][1])
 
-    histtext = ('Processed using ' + f + ' with Python ' +
-                platform.python_version() + ', xarray ' + xr.__version__ +
-                ', NumPy ' + np.__version__ + ', netCDF4 ' +
-                netCDF4.__version__ + '. ')
+    histtext = ('Processed using {} with stglib {}, xarray {}, NumPy {}, '
+                'netCDF4 {}, Python {}. ').format(f, stglib.__version__,
+                xr.__version__, np.__version__, netCDF4.__version__,
+                platform.python_version())
 
     ds = insert_history(ds, histtext)
 
