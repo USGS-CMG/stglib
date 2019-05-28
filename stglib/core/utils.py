@@ -498,6 +498,9 @@ def open_time_2d_dataset(filename):
 def epic_to_cf_time(ds):
     if 'time_cf' in ds:
         ds['time'] = ds['time_cf']
+    else:
+        ds['time'] = epic_to_datetime(ds['time'].values, ds['time2'].values)
+
     for v in ['time_cf', 'time2', 'epic_time', 'epic_time2']:
         if v in ds:
             ds = ds.drop(v)
