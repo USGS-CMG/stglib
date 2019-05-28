@@ -30,7 +30,6 @@ def prf_to_cdf(metadata):
 
     # write out metadata first, then deal exclusively with xarray attrs
     ds = utils.write_metadata(ds, metadata)
-    ds = utils.write_metadata(ds, metadata['instmeta'])
 
     del metadata
     del instmeta

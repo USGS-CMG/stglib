@@ -406,8 +406,10 @@ def write_metadata(ds, metadata):
     """Write out all metadata to CDF file"""
 
     for k in metadata:
-        # don't want to write out instmeta dict, call it separately
-        if k != 'instmeta':
+        # recursively write out instmeta
+        if k == 'instmeta':
+            ds.attrs.update({x: metadata[k][x] for x in metadata[k]})
+        else:
             ds.attrs.update({k: metadata[k]})
 
     f = os.path.basename(inspect.stack()[1][1])
