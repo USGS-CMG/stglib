@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-import xarray as xr
 from ..core import utils, waves
 
 
@@ -21,7 +20,7 @@ def nc_to_waves(nc_filename):
     ds = utils.create_water_depth_var(ds)
 
     ds = ds.drop(['P_1', 'P_1ac', 'sample'])
-    
+
     if 'T_28' in ds.keys():
         ds = ds.drop(['T_28'])
 

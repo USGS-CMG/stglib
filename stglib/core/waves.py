@@ -155,12 +155,13 @@ def define_cutoff(f, Pxx, Kp, noise=0.9):
     """
 
     noisecut = 12*np.mean(Pxx[f >= noise*f[-1]])
-    tmp = np.where(Pxx > noisecut)[0] # Look for above cut-off freqs and take highest
+    # Look for above cut-off freqs and take highest
+    tmp = np.where(Pxx > noisecut)[0]
     if len(tmp) == 0:
         noisecutind = 0
     else:
-        noisecutind = tmp[-1]   
-        
+        noisecutind = tmp[-1]
+
     fpeakcut = 1.1*f[np.argmax(Pxx)]
     fpeakcutind = np.searchsorted(f, fpeakcut)  # cutoff based on 1.1*fp
     Kpcutind = np.argmax(Kp <= 0.1)  # cutoff based on Kp<=0.1

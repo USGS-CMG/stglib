@@ -103,7 +103,7 @@ def clip_ds(ds, wvs=False):
     try:
         print('first burst in trimmed file:', ds['time'].min().values)
         print('last burst in trimmed file:', ds['time'].max().values)
-    except ValueError as e:
+    except ValueError:
         raise(ValueError('No valid time values in trimmed dataset. Are you '
                          'sure you sure you specified Deployment and Recovery '
                          'dates correctly?'))
@@ -416,9 +416,9 @@ def write_metadata(ds, metadata):
     f = os.path.basename(inspect.stack()[1][1])
 
     histtext = ('Processed using {} with stglib {}, xarray {}, NumPy {}, '
-                'netCDF4 {}, Python {}. ').format(f, stglib.__version__,
-                xr.__version__, np.__version__, netCDF4.__version__,
-                platform.python_version())
+                'netCDF4 {}, Python {}. ').format(
+                    f, stglib.__version__, xr.__version__, np.__version__,
+                    netCDF4.__version__, platform.python_version())
 
     ds = insert_history(ds, histtext)
 
@@ -735,15 +735,17 @@ def create_nominal_instrument_depth(ds):
 def no_p_create_depth(ds):
     # no_p = no pressure sensor. also use for exo
     if 'NAVD88_ref' in ds.attrs:
-        ds['depth'] = xr.DataArray([-ds.attrs['NAVD88_ref'] -
-            ds.attrs['initial_instrument_height']], dims='depth')
+        ds['depth'] = xr.DataArray(
+            [-ds.attrs['NAVD88_ref'] - ds.attrs['initial_instrument_height']],
+            dims='depth')
         ds['depth'].attrs['VERT_DATUM'] = 'NAVD88'
         ds['depth'].attrs['NOTE'] = ('Computed as platform depth '
                                      '[m NAVD88] minus '
                                      'initial_instrument_height')
     else:
-        ds['depth'] = xr.DataArray([ds.attrs['WATER_DEPTH'] -
-            ds.attrs['initial_instrument_height']], dims='depth')
+        ds['depth'] = xr.DataArray(
+            [ds.attrs['WATER_DEPTH'] - ds.attrs['initial_instrument_height']],
+            dims='depth')
         ds['depth'].attrs['NOTE'] = ('Computed as WATER_DEPTH minus '
                                      'initial_instrument_height')
 
@@ -797,7 +799,8 @@ def check_valid_metadata(metadata):
             raise KeyError(
                 k + ' must be defined, most likely in config.yaml')
 
-def read_samplingrates_burst(ds,conn):
+
+def read_samplingrates_burst(ds, conn):
     '''
     Reads in sample information from RBR instrument in burst mode
     '''
@@ -838,7 +841,8 @@ def read_samplingrates_burst(ds,conn):
 
     return ds
 
-def read_samplingrates_continuous(ds,conn):
+
+def read_samplingrates_continuous(ds, conn):
     '''
     Reads in sample information from RBR instrument in continuous mode
     '''
@@ -849,8 +853,8 @@ def read_samplingrates_continuous(ds,conn):
         samplingperiod = conn.execute(
             "select samplingperiod from continuous").fetchall()[0][0]
 
-    samplingperiod = samplingperiod / 1000 # convert from ms to sec
-    samplingrate = 1/samplingperiod # convert to rate [Hz]
+    samplingperiod = samplingperiod / 1000  # convert from ms to sec
+    samplingrate = 1 / samplingperiod  # convert to rate [Hz]
 
     # Set sampling period, [sec]
     ds.attrs['sample_interval'] = samplingperiod
@@ -912,7 +916,6 @@ def loadmat(filename):
     '''
     data = spio.loadmat(filename, struct_as_record=False, squeeze_me=True)
     return _check_keys(data)
-
 
 
 def _check_keys(dic):

@@ -87,6 +87,7 @@ def cdf_to_nc(cdf_filename,
 
     return ds
 
+
 def trim_min(ds, var):
     if var + '_min' in ds.attrs:
         print('%s: Trimming using minimum value of %f' %
@@ -121,6 +122,7 @@ def trim_min(ds, var):
 #
 #     return ds
 
+
 def ds_add_depth_dim(ds):
     print('Creating depth dimension')
     if 'P_1ac' in ds:
@@ -129,8 +131,9 @@ def ds_add_depth_dim(ds):
         p = 'P_1'
 
     if 'NAVD88_ref' in ds.attrs:
-        ds['depth'] = xr.DataArray([-ds.attrs['NAVD88_ref'] -
-            ds.attrs['initial_instrument_height']], dims='depth')
+        ds['depth'] = xr.DataArray(
+            [-ds.attrs['NAVD88_ref'] - ds.attrs['initial_instrument_height']],
+            dims='depth')
         ds['depth'].attrs['VERT_DATUM'] = 'NAVD88'
         ds['depth'].attrs['NOTE'] = ('Computed as platform depth '
                                      '[m NAVD88] minus '

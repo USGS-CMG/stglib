@@ -45,29 +45,34 @@ def rsk_to_xr(metadata):
 
     # Assume RBRvirtuoso in burst mode if no attrs
     if 'instrument_type' not in ds.attrs:
-        (d, ds) = read_virtuoso_burst(rskfile,ds)
+        (d, ds) = read_virtuoso_burst(rskfile, ds)
     # Else, check for duo or virtuoso, duo, and recording mode
     elif ds.attrs['instrument_type'] == 'rbr_duo':
         if ds.attrs['recording_type'] == 'continuous':
             # Continuous
-            (d, d2, ds) = read_duo_continuous(rskfile,ds)
+            (d, d2, ds) = read_duo_continuous(rskfile, ds)
         elif ds.attrs['recording_type'] == 'burst':
             # Burst
-            (d, d2, ds) = read_duo_burst(rskfile,ds)
+            (d, d2, ds) = read_duo_burst(rskfile, ds)
         else:
-            raise ValueError('recording_type in config file, {:s},  is invalid'.format(ds.attrs['recording_type']))
+            raise ValueError(
+                'recording_type in config file, {:s}, is invalid'.format(
+                    ds.attrs['recording_type']))
     elif ds.attrs['instrument_type'] == 'rbr_virtuoso':
         if ds.attrs['recording_type'] == 'continuous':
             # Continuous
-            (d, ds) = read_virtuoso_continuous(rskfile,ds)
+            (d, ds) = read_virtuoso_continuous(rskfile, ds)
         elif ds.attrs['recording_type'] == 'burst':
             # Burst
-            (d, ds) = read_virtuoso_burst(rskfile,ds)
+            (d, ds) = read_virtuoso_burst(rskfile, ds)
         else:
-            raise ValueError('recording_type in config file, {:s},  is invalid'.format(ds.attrs['recording_type']))
+            raise ValueError(
+                'recording_type in config file, {:s}, is invalid'.format(
+                    ds.attrs['recording_type']))
     else:
-        raise ValueError('instrument_type in config file, {:s},  is invalid'.format(ds.attrs['instrument_type']))
-
+        raise ValueError(
+            'instrument_type in config file, {:s}, is invalid'.format(
+                ds.attrs['instrument_type']))
 
     samplingcount = ds.attrs['samples_per_burst']
 
@@ -100,14 +105,14 @@ def rsk_to_xr(metadata):
         t['temp'] = t['temp'][sort]
 
         # get indices that end at the end of the final burst
-        datlength = t['unixtime'].shape[0] - t['unixtime'].shape[0] % samplingcount
+        datlength = (t['unixtime'].shape[0] -
+                     t['unixtime'].shape[0] % samplingcount)
 
         # reshape
         for k in t:
             t[k] = t[k][:datlength].reshape(
                 (int(datlength/samplingcount), samplingcount)
             )
-
 
     times = pd.to_datetime(a['unixtime'][:, 0], unit='ms')
     samples = np.arange(samplingcount)
@@ -127,7 +132,7 @@ def rsk_to_xr(metadata):
     ds['P_1'].encoding['_FillValue'] = 1e35
 
     # If duo, also save temp
-    if ('instrument_type' in ds.attrs) and (ds.attrs['instrument_type'] == 'rbr_duo'):
+    if (('instrument_type' in ds.attrs) and (ds.attrs['instrument_type'] == 'rbr_duo')):
         ds['T_28'] = xr.DataArray(
             t['temp'],
             coords=[times, samples],
@@ -168,7 +173,8 @@ def rsk_to_xr(metadata):
 
     return ds
 
-def read_virtuoso_burst(rskfile,ds):
+
+def read_virtuoso_burst(rskfile, ds):
     conn = init_connection(rskfile)
 
     conn.execute("SELECT tstamp, channel01 FROM burstdata")
@@ -177,7 +183,7 @@ def read_virtuoso_burst(rskfile,ds):
     d = np.asarray(data)
 
     # Read sampling meta info
-    ds = utils.read_samplingrates_burst(ds,conn)
+    ds = utils.read_samplingrates_burst(ds, conn)
 
     # Get instr meta
     ds.attrs['serial_number'] = str(conn.execute(
@@ -186,9 +192,10 @@ def read_virtuoso_burst(rskfile,ds):
 
     conn.close()
 
-    return (d,ds)
+    return (d, ds)
 
-def read_virtuoso_continuous(rskfile,ds): # UNTESTED
+
+def read_virtuoso_continuous(rskfile, ds):  # UNTESTED
     conn = init_connection(rskfile)
 
     conn.execute("SELECT tstamp, channel01 FROM data")
@@ -197,7 +204,7 @@ def read_virtuoso_continuous(rskfile,ds): # UNTESTED
     d = np.asarray(data)
 
     # Read sampling meta info
-    ds = utils.read_samplingrates_continuous(ds,conn)
+    ds = utils.read_samplingrates_continuous(ds, conn)
 
     # Get meta
     ds.attrs['serial_number'] = str(conn.execute(
@@ -206,10 +213,10 @@ def read_virtuoso_continuous(rskfile,ds): # UNTESTED
 
     conn.close()
 
-    return (d,ds)
+    return (d, ds)
 
 
-def read_duo_continuous(rskfile,ds):
+def read_duo_continuous(rskfile, ds):
     conn = init_connection(rskfile)
 
     # First load in pressure
@@ -225,7 +232,7 @@ def read_duo_continuous(rskfile,ds):
     t = np.asarray(data)
 
     # Read sampling meta info
-    ds = utils.read_samplingrates_continuous(ds,conn)
+    ds = utils.read_samplingrates_continuous(ds, conn)
 
     # Get instr meta
     ds.attrs['serial_number'] = str(conn.execute(
@@ -234,9 +241,10 @@ def read_duo_continuous(rskfile,ds):
 
     conn.close()
 
-    return (d,t,ds)
+    return (d, t, ds)
 
-def read_duo_burst(rskfile,ds):
+
+def read_duo_burst(rskfile, ds):
     conn = init_connection(rskfile)
 
     # First pressure
@@ -252,7 +260,7 @@ def read_duo_burst(rskfile,ds):
     t = np.asarray(data)
 
     # Read sampling meta info
-    ds = utils.read_samplingrates_burst(ds,conn)
+    ds = utils.read_samplingrates_burst(ds, conn)
 
     # Get instr meta
     ds.attrs['serial_number'] = str(conn.execute(
@@ -261,8 +269,7 @@ def read_duo_burst(rskfile,ds):
 
     conn.close()
 
-    return (d,t,ds)
-
+    return (d, t, ds)
 
     # # TODO: add the following??
     # # {'positive','down';
