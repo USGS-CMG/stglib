@@ -31,4 +31,5 @@ install:
 script:
   - which python
   - python --version
+  - pytest stglib/tests/test_puv_quick.py
   - python -m unittest discover stglib/tests
