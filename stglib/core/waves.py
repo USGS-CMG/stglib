@@ -7,12 +7,16 @@ import matplotlib.pyplot as plt
 def make_waves_ds(ds, noise=0.75):
 
     print('Computing waves statistics')
-
-    f, Pxx = pressure_spectra(ds['P_1ac'].squeeze(),
+    if 'P_1ac' in ds:
+        presvar = 'P_1ac'
+    else:
+        presvar = 'P_1'
+        
+    f, Pxx = pressure_spectra(ds[presvar].squeeze(),
                               fs=1/ds.attrs['sample_interval'])
 
     z = ds.attrs['initial_instrument_height']
-    h = ds['P_1ac'].squeeze().mean(dim='sample') + z
+    h = ds[presvar].squeeze().mean(dim='sample') + z
 
     k = np.asarray(
         [qkfs(2*np.pi*f, x) for x in h.values])
