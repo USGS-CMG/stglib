@@ -212,15 +212,17 @@ def ds_add_attrs(ds):
         'standard_name': 'time',
         'axis': 'T'})
 
-    ds['epic_time'].attrs.update({
-        'units': 'True Julian Day',
-        'type': 'EVEN',
-        'epic_code': 624})
+    if 'epic_time' in ds:
+        ds['epic_time'].attrs.update({
+            'units': 'True Julian Day',
+            'type': 'EVEN',
+            'epic_code': 624})
 
-    ds['epic_time2'].attrs.update({
-        'units': 'msec since 0:00 GMT',
-        'type': 'EVEN',
-        'epic_code': 624})
+    if 'epic_time2' in ds:
+        ds['epic_time2'].attrs.update({
+            'units': 'msec since 0:00 GMT',
+            'type': 'EVEN',
+            'epic_code': 624})
 
     def add_attributes(var, dsattrs):
         var.attrs.update({
@@ -459,6 +461,7 @@ def rename_time_2d(nc_filename, ds):
         ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
         ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
        ):
+        print('not renaming 2D time because CF==1.6')
         pass
     else:
         # Need to do this in two steps after renaming the variable.
