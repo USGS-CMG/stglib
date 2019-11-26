@@ -56,9 +56,16 @@ def wad_to_cdf(metadata, writefile=True):
     ds.attrs['sample_interval'] = 1/fs
     ds.attrs['samples_per_burst'] = ds.attrs['WaveNumberOfSamples']
 
-    ds = utils.create_epic_times(ds, waves=True)
+    if (
+        ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
+        ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
+       ):
+        pass
+    else:
+        print('about to create epic times')
+        ds = utils.create_epic_times(ds, waves=True)
 
-    ds = utils.create_2d_time(ds)
+        ds = utils.create_2d_time(ds)
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
