@@ -27,30 +27,34 @@ def nc_to_waves(nc_filename):
     # ds = utils.create_water_depth(ds)
 
     # Remove old variables as we just want to keep the wave statistics
-    ds = ds.drop(['P_1',
-                  'P_1ac',
-                  'sample',
-                  'Tx_1211',
-                  'vel1_1277',
-                  'vel2_1278',
-                  'vel3_1279',
-                  'U',
-                  'V',
-                  'W',
-                  'avgamp1',
-                  'avgamp2',
-                  'avgamp3',
-                  'AGC1_1221',
-                  'AGC2_1222',
-                  'AGC3_1223',
-                  'TransMatrix',
-                  'nrecs',
-                  'burst',
-                  'soundspeed',
-                  'Battery',
-                  'Hdg_1215',
-                  'Ptch_1216',
-                  'Roll_1217'])
+    keys = ['P_1',
+             'P_1ac',
+             'sample',
+             'Tx_1211',
+             'vel1_1277',
+             'vel2_1278',
+             'vel3_1279',
+             'U',
+             'V',
+             'W',
+             'avgamp1',
+             'avgamp2',
+             'avgamp3',
+             'AGC1_1221',
+             'AGC2_1222',
+             'AGC3_1223',
+             'TransMatrix',
+             'nrecs',
+             'burst',
+             'soundspeed',
+             'Battery',
+             'Hdg_1215',
+             'Ptch_1216',
+             'Roll_1217']
+
+    for k in keys:
+        if k in ds:
+            ds = ds.drop(k)
 
     ds = utils.trim_max_wp(ds)
 
