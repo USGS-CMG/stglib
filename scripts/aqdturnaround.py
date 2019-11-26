@@ -35,6 +35,9 @@ ds['U'] = xr.DataArray(u, dims=('time', 'bindist'))
 ds['V'] = xr.DataArray(v, dims=('time', 'bindist'))
 ds['W'] = xr.DataArray(w, dims=('time', 'bindist'))
 
+ds.attrs['AQDTransMatrix'] = []
+
+ds.to_netcdf(args.basefile + '_turnaround.nc')
 
 plt.figure(figsize=(8.5, 11))
 plt.subplot(4, 1, 1)
