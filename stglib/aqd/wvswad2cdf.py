@@ -134,8 +134,7 @@ def load_wad(ds):
         print('Number of rows read is not a multiple of %d. Truncating data '
               'to last full burst' %
               ds.attrs['WaveNumberOfSamples'])
-        print('')
-        ds = ds.sel(time=ds.time[0:-1])
+        ds = ds.sel(time=ds.time[0:int(np.floor(r / ds.attrs['WaveNumberOfSamples']))])
     nburst = int(np.floor(r/ds.attrs['WaveNumberOfSamples']))
     nsamps = int(nburst * ds.attrs['WaveNumberOfSamples'])
     wavensamps = int(ds.attrs['WaveNumberOfSamples'])
