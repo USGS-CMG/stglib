@@ -1,8 +1,20 @@
 Installation
 ************
 
-For now, the best way to install stglib is to have an environment set up with Anaconda. Within your environment, ``cd`` to the directory containing stglib, and type the following:
+Obtain stglib by cloning the GitHub repo. Change to a directory where you'd like stglib to live and type:
+
+``git clone https://github.com/dnowacki-usgs/stglib.git``
+
+Ensure you have a working Anaconda or `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ installation. After ``cd``ing to the directory containing stglib, type:
+
+``conda env create -n stglib --file requirements-py37.yml``
+
+This will create a Conda environment with the requirements for stglib installed. Activate the stglib environment by typing:
+
+``conda activate stglib``
+
+Then type:
 
 ``pip install -e . --no-deps``
 
-This will not install dependencies that stglib relies on, but these are better managed through Anaconda anyway. If you get errors about missing packages, install them using ``conda install``.
+This will install stglib and you can start processing data!
