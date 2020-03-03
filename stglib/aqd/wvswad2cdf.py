@@ -127,12 +127,18 @@ def load_wad(ds):
 
     r, c = np.shape(WAD)
     print(wadfile + ' has ' + str(r) + ' rows and ' + str(c) + ' columns')
-    if r % ds.attrs['WaveNumberOfSamples']:
+    if 'num_wave_bursts' in ds.attrs: # we can override the number of samples if need be
+        print('Overriding number of samples using attr num_wave_bursts of {}'.format(ds.attrs['num_wave_bursts']))
+        ds = ds.sel(time=ds.time[0:ds.attrs['num_wave_bursts']])
+        nburst = ds.attrs['num_wave_bursts']
+    elif r % ds.attrs['WaveNumberOfSamples']:
         print('Number of rows read is not a multiple of %d. Truncating data '
               'to last full burst' %
               ds.attrs['WaveNumberOfSamples'])
         ds = ds.sel(time=ds.time[0:int(np.floor(r / ds.attrs['WaveNumberOfSamples']))])
-    nburst = int(np.floor(r/ds.attrs['WaveNumberOfSamples']))
+        nburst = int(np.floor(r/ds.attrs['WaveNumberOfSamples']))
+    else:
+        nburst = int(np.floor(r/ds.attrs['WaveNumberOfSamples']))
     nsamps = int(nburst * ds.attrs['WaveNumberOfSamples'])
     wavensamps = int(ds.attrs['WaveNumberOfSamples'])
     print('Metadata reports ' + str(nburst) + ' bursts, ' + str(nsamps) +
