@@ -217,6 +217,8 @@ def ds_add_attrs(ds):
         'standard_name': 'time',
         'axis': 'T'})
 
+    ds['time'].encoding['dtype'] = 'i4'
+
     if 'epic_time' in ds:
         ds['epic_time'].attrs.update({
             'units': 'True Julian Day',
@@ -607,6 +609,7 @@ def ds_add_lat_lon(ds):
         name='lat',
         attrs={'units': 'degree_north',
                'long_name': 'Latitude',
+               'standard_name': 'latitude',
                'epic_code': 500})
 
     ds['lon'] = xr.DataArray(
@@ -615,6 +618,7 @@ def ds_add_lat_lon(ds):
         name='lon',
         attrs={'units': 'degree_east',
                'long_name': 'Longitude',
+               'standard_name': 'longitude',
                'epic_code': 502})
 
     return ds
