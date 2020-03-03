@@ -627,21 +627,25 @@ def ds_add_lat_lon(ds):
 def shift_time(ds, timeshift):
     """Shift time to middle of burst"""
 
-    # shift times to center of ensemble
-    ds['time'] = ds['time'] + np.timedelta64(int(timeshift), 's')
-    print('Time shifted by %.f s' % int(timeshift))
-    if not timeshift.is_integer():
-        warnings.warn(
-            'time offset of %.3f s was adjusted to %.f s for shifting time' %
-            (timeshift, int(timeshift)))
+    if timeshift != 0:
+        # shift times to center of ensemble
+        ds['time'] = ds['time'] + np.timedelta64(int(timeshift), 's')
+        print('Time shifted by %.f s' % int(timeshift))
+        if not timeshift.is_integer():
+            warnings.warn(
+                'time offset of %.3f s was adjusted to %.f s for shifting time' %
+                (timeshift, int(timeshift)))
 
     if 'ClockError' in ds.attrs:
         if ds.attrs['ClockError'] != 0:
             # note negative on ds.attrs['ClockError']
             ds['time'] = (ds['time'] +
                           np.timedelta64(-ds.attrs['ClockError'], 's'))
-            print('Time shifted by {:d} s from ClockError'.format(
-                -ds.attrs['ClockError']))
+
+        histtext = 'Time shifted by {:d} s from ClockError. '.format(
+            -ds.attrs['ClockError'])
+
+        insert_history(ds, histtext)
 
     return ds
 
