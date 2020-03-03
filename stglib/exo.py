@@ -110,7 +110,10 @@ def csv_to_cdf(metadata):
 
     del metadata
 
-    ds = utils.create_epic_times(ds)
+    ds = utils.shift_time(ds, 0)
+
+    if not utils.is_cf(ds):
+        ds = utils.create_epic_times(ds)
 
     # configure file
     cdf_filename = ds.attrs['filename'] + '-raw.cdf'

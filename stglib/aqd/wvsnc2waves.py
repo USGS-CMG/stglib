@@ -6,11 +6,8 @@ from ..core import utils, waves
 def nc_to_waves(nc_filename):
 
     ds = xr.load_dataset(nc_filename, decode_times=False)
-    print(ds.time)
-    if (
-        ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
-        ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
-       ):
+
+    if utils.is_cf(ds):
         for k in ds:
             if '_time' in k:
                 ds = ds.drop(k)

@@ -56,10 +56,7 @@ def wad_to_cdf(metadata, writefile=True):
     ds.attrs['sample_interval'] = 1/fs
     ds.attrs['samples_per_burst'] = ds.attrs['WaveNumberOfSamples']
 
-    if (
-        ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
-        ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
-       ):
+    if utils.is_cf(ds):
         pass
     else:
         print('about to create epic times')

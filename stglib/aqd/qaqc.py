@@ -734,6 +734,9 @@ def ds_add_attrs(ds, waves=False):
 
     ds.attrs['COMPOSITE'] = np.int32(0)
 
+    if utils.is_cf(ds):
+        ds.attrs['featureType'] = 'timeSeriesProfile'
+
     # Update attributes for EPIC and STG compliance
     ds = utils.ds_coord_no_fillvalue(ds)
 

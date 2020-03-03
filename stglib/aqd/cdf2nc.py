@@ -86,10 +86,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = utils.add_history(VEL)
 
     # Rename time variables for EPIC compliance, keeping a time_cf coorindate.
-    if (
-        ('cf' in VEL.attrs and str(VEL.attrs['cf']) == '1.6') or
-        ('CF' in VEL.attrs and str(VEL.attrs['CF']) == '1.6')
-       ):
+    if utils.is_cf(VEL):
         pass
     else:
         VEL = utils.rename_time(VEL)
@@ -104,7 +101,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     else:
         nc_filename = VEL.attrs['filename'] + '-a.nc'
 
-    VEL.to_netcdf(nc_filename, unlimited_dims=['time'])
+    if utils.is_cf(VEL):
+        VEL.to_netcdf(nc_filename,
+                      encoding={'time': {'dtype': 'i4'}})
+    else:
+        VEL.to_netcdf(nc_filename, unlimited_dims=['time'])
 
     print('Done writing netCDF file', nc_filename)
 

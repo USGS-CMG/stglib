@@ -14,6 +14,13 @@ import sqlite3
 import stglib
 
 
+def is_cf(ds):
+    if ('Conventions' in ds.attrs) and (str(ds.attrs['Conventions']) == 'CF-1.6'):
+       return True
+    else:
+       return False
+
+
 def clip_ds(ds, wvs=False):
     """
     Clip an xarray Dataset from metadata, either via good_ens or
@@ -145,11 +152,9 @@ def insert_history(ds, histtext):
 
 
 def add_history(ds):
-    if (
-        ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
-        ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
-       ):
-        histtext = 'Processed to CF using {}. '.format(
+    if is_cf(ds):
+        histtext = 'Processed to {} using {}. '.format(
+            ds.attrs['Conventions'],
             os.path.basename(sys.argv[0]))
     else:
         histtext = 'Processed to EPIC using {}. '.format(
@@ -439,10 +444,7 @@ def rename_time(ds):
     Rename time variables for EPIC compliance, keeping a time_cf coorindate.
     """
 
-    if (
-        ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
-        ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
-       ):
+    if is_cf(ds):
         pass
     else:
         ds = ds.rename({'time': 'time_cf'})
@@ -457,10 +459,7 @@ def rename_time(ds):
 
 
 def rename_time_2d(nc_filename, ds):
-    if (
-        ('cf' in ds.attrs and str(ds.attrs['cf']) == '1.6') or
-        ('CF' in ds.attrs and str(ds.attrs['CF']) == '1.6')
-       ):
+    if is_cf(ds):
         print('not renaming 2D time because CF==1.6')
         pass
     else:
@@ -485,7 +484,7 @@ def open_time_2d_dataset(filename):
     with xr.open_dataset(filename,
                          decode_times=False,
                          drop_variables='time') as ds:
-        if 'cf' in ds.attrs or 'CF' in ds.attrs:
+        if is_cf(ds):
             iscf = True
         else:
             iscf = False
