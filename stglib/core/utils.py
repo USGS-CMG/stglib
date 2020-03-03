@@ -54,7 +54,7 @@ def clip_ds(ds, wvs=False):
 
         ds = ds.isel(time=goods)
 
-        histtext = 'Data clipped using good_ens values of {} . '.format(
+        histtext = 'Data clipped using good_ens values of {}. '.format(
             str(good_ens))
 
         ds = insert_history(ds, histtext)
@@ -67,7 +67,7 @@ def clip_ds(ds, wvs=False):
 
         ds = ds.isel(time=goods)
 
-        histtext = 'Data clipped using good_ens_wvs values of {} . '.format(
+        histtext = 'Data clipped using good_ens_wvs values of {}. '.format(
             str(good_ens))
 
         ds = insert_history(ds, histtext)
@@ -87,7 +87,7 @@ def clip_ds(ds, wvs=False):
         ds = ds.sel(time=slice(ds.attrs['good_dates'][0],
                                ds.attrs['good_dates'][1]))
 
-        histtext = 'Data clipped using good_dates of {} . '.format(
+        histtext = 'Data clipped using good_dates of {}. '.format(
             ds.attrs['good_dates'])
 
         ds = insert_history(ds, histtext)
