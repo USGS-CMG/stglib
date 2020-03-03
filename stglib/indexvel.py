@@ -52,8 +52,13 @@ def parse_qrev_xml(doc, negateq=False):
         [float(dct[n]['Discharge']['Total']['#text']) for n in r])
     adcp['AreaQrev'] = np.asarray(
         [float(dct[n]['Other']['Area']['#text']) for n in r])
+    adcp['Width'] = np.asarray(
+        [float(dct[n]['Other']['Width']['#text']) for n in r])
+    adcp['QoverA'] = np.asarray(
+        [float(dct[n]['Other']['QoverA']['#text']) for n in r])
     adcp['filename'] = np.asarray(
         [dct[n]['Filename']['#text'] for n in r])
+
 
     adcp['time'] = pd.to_datetime(
         np.mean([adcp['starttime'].view('i8'), adcp['endtime'].view('i8')],
@@ -66,6 +71,8 @@ def parse_qrev_xml(doc, negateq=False):
     df = pd.DataFrame(adcp, columns=['time',
                                      'q',
                                      'AreaQrev',
+                                     'Width',
+                                     'QoverA',
                                      'qnegated',
                                      'starttime',
                                      'endtime',
