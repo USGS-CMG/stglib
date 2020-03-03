@@ -10,6 +10,10 @@ environment:
       PYTHON_VERSION: "3.7"
       PYTHON_ARCH: "64"
       CONDA_ENV: "py37"
+    - PYTHON: "C:\\Python38-conda64"
+      PYTHON_VERSION: "3.8"
+      PYTHON_ARCH: "64"
+      CONDA_ENV: "py38"
 
 install:
   # Install miniconda Python
@@ -19,10 +23,10 @@ install:
   # done from inside the powershell script as it would require to restart
   # the parent CMD process).
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  
+
   # Call activate.bat which seems necessary now.
   - CALL "%PYTHON%\\Scripts\\activate.bat"
-  
+
   # install xarray and dependencies
   - "conda env create --file requirements-%CONDA_ENV%.yml"
   - "activate test-environment"

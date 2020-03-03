@@ -7,6 +7,7 @@ matrix:
   include:
   - env: CONDA_ENV=py36
   - env: CONDA_ENV=py37
+  - env: CONDA_ENV=py38
 
 install:
 
