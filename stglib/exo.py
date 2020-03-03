@@ -30,26 +30,38 @@ def read_exo(filnam, skiprows=25, encoding='utf-8'):
         exo = pd.read_csv(filnam,
                           skiprows=skiprows,
                           infer_datetime_format=True,
-                          parse_dates=[['Date (MM/DD/YYYY)',
-                                        'Time (HH:MM:SS)']],
+                          # parse_dates=[['Date (MM/DD/YYYY)',
+                          #               'Time (HH:MM:SS)']],
+                          parse_dates=[[0,1]],
                           encoding=encoding)
     except UnicodeDecodeError:
         exo = pd.read_csv(filnam,
                           skiprows=skiprows,
                           infer_datetime_format=True,
-                          parse_dates=[['Date (MM/DD/YYYY)',
-                                        'Time (HH:MM:SS)']],
+                          # parse_dates=[['Date (MM/DD/YYYY)',
+                          #               'Time (HH:MM:SS)']],
+                          parse_dates=[[0,1]],
                           encoding='mac-roman')
-    except ValueError:
+    except NotImplementedError as e:
+        print((' *** Could not decode file. Try saving the csv file using '
+               'UTF-8 encoding and retrying\n'), e)
+    except ValueError as e:
         print((' *** Could not decode header. '
-               'Have you specified skiprows correctly?'))
-
-    exo.rename(columns={'Date (MM/DD/YYYY)_Time (HH:MM:SS)': 'time'},
-               inplace=True)
+               'Have you specified skiprows correctly?\n'), e)
+    # exo.rename(columns={'Date (MM/DD/YYYY)_Time (HH:MM:SS)': 'time'},
+    #            inplace=True)
+    exo.rename(columns={exo.columns[0]: 'time'}, inplace=True) # rename first column to time.
+    # Need to do this because the format of the date/time header can change between versions
     exo.set_index('time', inplace=True)
     exo.rename(columns=lambda x: x.replace(' ', '_'), inplace=True)
     exo.rename(columns=lambda x: x.replace('/', '_per_'), inplace=True)
-    exo['Press_dbar'] = exo['Press_psi_a'] * 0.689476
+    pvar = None
+    if 'Press_psi_a' in exo.columns:
+        pvar = 'Press_psi_a'
+    elif 'Pressure_psi_a' in exo.columns:
+        pvar = 'Pressure_psi_a'
+    if pvar:
+        exo['Press_dbar'] = exo[pvar] * 0.689476
 
     exo = xr.Dataset(exo)
     hdr = read_exo_header(filnam, encoding=encoding)
@@ -73,17 +85,29 @@ def read_exo(filnam, skiprows=25, encoding='utf-8'):
                 exo[k].attrs['sensor_serial_number'] = (
                     hdr['Wiped CT']['sensor_serial_number'])
         elif 'ODO' in k:
-            exo[k].attrs['sensor_serial_number'] = (
-                hdr['Optical DO']['sensor_serial_number'])
+            try:
+                exo[k].attrs['sensor_serial_number'] = (
+                    hdr['Optical DO']['sensor_serial_number'])
+            except KeyError:
+                exo[k].attrs['sensor_serial_number'] = (
+                    hdr['ODO % sat']['sensor_serial_number'])
         elif 'Turbidity' in k:
-            exo[k].attrs['sensor_serial_number'] = (
-                hdr['Turbidity']['sensor_serial_number'])
+            try:
+                exo[k].attrs['sensor_serial_number'] = (
+                    hdr['Turbidity']['sensor_serial_number'])
+            except KeyError:
+                exo[k].attrs['sensor_serial_number'] = (
+                    hdr['Turbidity NTU']['sensor_serial_number'])
         elif 'pH' in k:
             exo[k].attrs['sensor_serial_number'] = (
                 hdr['pH']['sensor_serial_number'])
         elif 'Press' in k or 'Depth' in k:
-            exo[k].attrs['sensor_serial_number'] = (
-                hdr['Depth Non-Vented 0-10m']['sensor_serial_number'])
+            try:
+                exo[k].attrs['sensor_serial_number'] = (
+                    hdr['Depth Non-Vented 0-10m']['sensor_serial_number'])
+            except KeyError:
+                exo[k].attrs['sensor_serial_number'] = (
+                    hdr['Depth m']['sensor_serial_number'])
 
     return exo
 
@@ -138,15 +162,18 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = utils.clip_ds(ds)
 
     ds = ds_rename_vars(ds)
-    if 'C_51' in ds:
-        ds['C_51'].values = ds['C_51'].values/10  # convert from mS/cm to S/m
 
     # ds = ds_add_attrs(ds)
 
-    ds = ds.drop(['Press_psi_a',
-                  'Site_Name',
-                  'Fault_Code',
-                  'Time_(Fract._Sec)'])
+    for k in ['Press_psi_a',
+              'Pressure_psi_a',
+              'Site_Name',
+              'Fault_Code',
+              'Time_(Fract._Sec)',
+              'TDS_mg_per_L',
+              'TSS_mg_per_L']:
+        if k in ds:
+            ds = ds.drop(k)
 
     if atmpres:
         print("Atmospherically correcting data")
@@ -166,7 +193,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_start_stop_time(ds)
 
-    ds = utils.create_epic_times(ds)
+    if not utils.is_cf(ds):
+        ds = utils.create_epic_times(ds)
 
     ds = exo_add_delta_t(ds)
 
@@ -191,7 +219,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = utils.rename_time(ds)
 
     # No longer report depth
-    ds = ds.drop('Depth_m')
+    if 'Depth_m' in ds:
+        ds = ds.drop('Depth_m')
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
@@ -202,6 +231,13 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
 
 def ds_rename_vars(ds):
+
+    if 'Cond_mS_per_cm' in ds:
+        ds['Cond_mS_per_cm'].values = ds['Cond_mS_per_cm'].values/10  # convert from mS/cm to S/m
+    if 'Cond_µS_per_cm' in ds:
+        ds['Cond_µS_per_cm'].values = ds['Cond_µS_per_cm'].values/10000  # convert from µS/cm to S/m
+    if 'SpCond_µS_per_cm' in ds:
+        ds['SpCond_µS_per_cm'].values = ds['SpCond_µS_per_cm'].values/10  # convert from µS/cm to mS/cm
 
     # set up dict of instrument -> EPIC variable names
     varnames = {'Press_dbar': 'P_1',
@@ -216,7 +252,9 @@ def ds_rename_vars(ds):
                 'Temp_°C': 'T_28',
                 'Temp_∞C': 'T_28',
                 'Cond_mS_per_cm': 'C_51',
+                'Cond_µS_per_cm': 'C_51',
                 'SpCond_mS_per_cm': 'SpC_48',
+                'SpCond_µS_per_cm': 'SpC_48',
                 'Sal_psu': 'S_41',
                 'ODO_%_sat': 'OST_62',
                 'ODO_mg_per_L': 'DO',
@@ -240,41 +278,49 @@ def ds_add_attrs(ds):
     ds['time'].attrs.update({'standard_name': 'time',
                              'axis': 'T'})
 
-    ds['epic_time'].attrs.update({'units': 'True Julian Day',
-                                  'type': 'EVEN',
-                                  'epic_code': 624})
+    if 'epic_time' in ds:
+        ds['epic_time'].attrs.update({'units': 'True Julian Day',
+                                      'type': 'EVEN',
+                                      'epic_code': 624})
 
-    ds['epic_time2'].attrs.update({'units': 'msec since 0:00 GMT',
-                                   'type': 'EVEN',
-                                   'epic_code': 624})
+    if 'epic_time2' in ds:
+        ds['epic_time2'].attrs.update({'units': 'msec since 0:00 GMT',
+                                       'type': 'EVEN',
+                                       'epic_code': 624})
 
     ds['Bat_106'].attrs.update({'units': 'V',
                                 'long_name': 'Battery voltage',
                                 'epic_code': 106})
 
-    ds['fDOMRFU'].attrs.update({
-        'units': 'Relative fluorescence units (RFU)',
-        'long_name': 'Fluorescent dissolved organic matter'})
+    if 'fDOMRFU' in ds:
+        ds['fDOMRFU'].attrs.update({
+            'units': 'Relative fluorescence units (RFU)',
+            'long_name': 'Fluorescent dissolved organic matter'})
 
-    ds['fDOMQSU'].attrs.update({
-        'units': 'Quinine sulfate equivalent units (QSU)',
-        'long_name': 'Fluorescent dissolved organic matter'})
+    if 'fDOMQSU' in ds:
+        ds['fDOMQSU'].attrs.update({
+            'units': 'Quinine sulfate equivalent units (QSU)',
+            'long_name': 'Fluorescent dissolved organic matter'})
 
-    ds['CHLrfu'].attrs.update({
-        'units': 'Relative fluorescence units (RFU)',
-        'long_name': 'Chlorophyll A'})
+    if 'CHLrfu' in ds:
+        ds['CHLrfu'].attrs.update({
+            'units': 'Relative fluorescence units (RFU)',
+            'long_name': 'Chlorophyll A'})
 
-    ds['Fch_906'].attrs.update({'units': 'ug/L',
-                                'long_name': 'Chlorophyll A',
-                                'epic_code': 906})
+    if 'Fch_906' in ds:
+        ds['Fch_906'].attrs.update({'units': 'ug/L',
+                                    'long_name': 'Chlorophyll A',
+                                    'epic_code': 906})
 
-    ds['BGAPErfu'].attrs.update({
-        'units': 'Relative fluorescence units (RFU)',
-        'long_name': 'Blue green algae phycoerythrin'})
+    if 'BGAPErfu' in ds:
+        ds['BGAPErfu'].attrs.update({
+            'units': 'Relative fluorescence units (RFU)',
+            'long_name': 'Blue green algae phycoerythrin'})
 
-    ds['BGAPE'].attrs.update({
-        'units': 'ug/L',
-        'long_name': 'Blue green algae phycoerythrin'})
+    if 'BGAPE' in ds:
+        ds['BGAPE'].attrs.update({
+            'units': 'ug/L',
+            'long_name': 'Blue green algae phycoerythrin'})
 
     ds['T_28'].attrs.update({'units': 'C',
                              'long_name': 'Temperature',
@@ -293,27 +339,28 @@ def ds_add_attrs(ds):
                              'long_name': 'Salinity',
                              'epic_code': 41})
 
-    ds['OST_62'].attrs.update({'units': '%',
-                               'long_name': 'Oxygen percent saturation',
-                               'epic_code': 62})
+    if 'OST_62' in ds:
+        ds['OST_62'].attrs.update({'units': '%',
+                                   'long_name': 'Oxygen percent saturation',
+                                   'epic_code': 62})
 
-    ds['DO'].attrs.update({'units': 'mg/L',
-                           'long_name': 'Dissolved oxygen'})
+    if 'DO' in ds:
+        ds['DO'].attrs.update({'units': 'mg/L',
+                               'long_name': 'Dissolved oxygen'})
 
-    ds['Turb'].attrs.update({'units': 'Nephelometric turbidity units (NTU)',
-                             'long_name': 'Turbidity'})
+    if 'Turb' in ds:
+        ds['Turb'].attrs.update({'units': 'Nephelometric turbidity units (NTU)',
+                                'long_name': 'Turbidity'})
 
     if 'pH_159' in ds.variables:
         ds['pH_159'].attrs.update({'units': '',
                                    'long_name': 'pH',
                                    'epic_code': 159})
 
-    ds['P_1'].attrs.update({'units': 'mV',
-                            'long_name': 'pH'})
-
-    ds['P_1'].attrs.update({'units': 'dbar',
-                            'long_name': 'Pressure',
-                            'epic_code': 1})
+    if 'P_1' in ds:
+        ds['P_1'].attrs.update({'units': 'dbar',
+                                'long_name': 'Pressure',
+                                'epic_code': 1})
 
     if 'P_1ac' in ds:
         ds['P_1ac'].attrs.update({'units': 'dbar',
@@ -338,26 +385,39 @@ def ds_add_attrs(ds):
 
 
 def read_exo_header(filnam, encoding='utf-8'):
-    hdr = pd.read_csv(filnam, skiprows=None, encoding=encoding)
-    hdr = pd.DataFrame(hdr.iloc[:, 0:4])
-    # print(hdr)
     header = {}
-    header['serial_number'] = (
-        hdr[hdr['KOR Export File'] == 'Sonde ID'].values[0][1].split(' ')[1])
-    for var in ['fDOM',
-                'Total Algae BGA-PE',
-                'Wiped CT',
-                'Unknown CT',
-                'Optical DO',
-                'Turbidity',
-                'pH',
-                'Depth Non-Vented 0-10m']:
-        vals = hdr[hdr['KOR Export File'] == var]
-        if not vals.empty:
-            header[var] = {}
-            header[var]['sensor_serial_number'] = vals.values[0][1]
-            header[var]['data_columns'] = (
-                [int(x) for x in vals.values[0][3].split(';')])
+    try:
+        # Old version of KOR export file
+        hdr = pd.read_csv(filnam, skiprows=None, encoding=encoding)
+        hdr = pd.DataFrame(hdr.iloc[:, 0:4])
+        # print(hdr)
+        header['serial_number'] = (
+            hdr[hdr['KOR Export File'] == 'Sonde ID'].values[0][1].split(' ')[1])
+        for var in ['fDOM',
+                    'Total Algae BGA-PE',
+                    'Wiped CT',
+                    'Unknown CT',
+                    'Optical DO',
+                    'Turbidity',
+                    'pH',
+                    'Depth Non-Vented 0-10m']:
+            vals = hdr[hdr['KOR Export File'] == var]
+            if not vals.empty:
+                header[var] = {}
+                header[var]['sensor_serial_number'] = vals.values[0][1]
+                header[var]['data_columns'] = (
+                    [int(x) for x in vals.values[0][3].split(';')])
+    except pd.errors.ParserError as e:
+        # new version of KOR export file
+        hdr = pd.read_csv(filnam, skiprows=4, encoding=encoding)
+        hdr = pd.DataFrame(hdr.iloc[:, 3:-1])
+        header['serial_number'] = 'unknown'
+        row = np.where(hdr.iloc[:,0] == 'SENSOR SERIAL NUMBER:')
+        a = np.vstack([hdr.iloc[row[0]+1,:].values, hdr.iloc[row[0],:].values]).T
+        for v in a:
+            if v[0] != 'Site Name':
+                header[v[0]] = {}
+                header[v[0]]['sensor_serial_number'] = v[1]
 
     return header
 
