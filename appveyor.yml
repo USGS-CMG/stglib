@@ -36,5 +36,4 @@ install:
 build: false
 
 test_script:
-  - "python -m unittest discover stglib/tests"
-  - "pytest stglib/tests/test_puv_quick.py"
+  - "pytest"
