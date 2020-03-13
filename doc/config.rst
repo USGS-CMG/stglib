@@ -25,6 +25,7 @@ Options common to most (all?) instrument config files:
 - ``initial_instrument_height``: elevation of instrument in meters
 - ``initial_instrument_height_note``
 - ``P_1ac_note``: a note on the atmospheric pressure source used
+- ``zeroed_pressure``: a note detailing whether the pressure sensor was zeroed before deployment, and other pertinent details such as date and time of zeroing.
 
 Aquadopp
 --------
@@ -32,7 +33,6 @@ Aquadopp
 Aquadopp-specific options include:
 
 - ``head_rotation``: probably will be ``'horizontal'``
-- ``zeroed_pressure``
 - ``cutoff_ampl``: will probably always be ``0``
 - ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``'bin range'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
 
