@@ -1,0 +1,15 @@
+name: stglib-docs
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - xarray
+  - scipy
+  - matplotlib
+  - pandas
+  - numpy
+  - netcdf4
+  - xmltodict
+  - sphinx-argparse
+  - sphinx_rtd_theme
+  - numpydoc
