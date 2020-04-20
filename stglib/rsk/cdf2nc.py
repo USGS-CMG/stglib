@@ -37,9 +37,13 @@ def cdf_to_nc(cdf_filename,
     #                       ds.attrs['burst_interval'] *
     #                       ds.attrs['sample_interval'] / 2)
 
-    ds = utils.create_epic_times(ds)
+    if utils.is_cf(ds):
+        pass
+    else:
+        print('about to create epic times')
+        ds = utils.create_epic_times(ds)
 
-    ds = utils.create_2d_time(ds)
+        ds = utils.create_2d_time(ds)
 
     ds = ds_add_attrs(ds)
 
@@ -157,13 +161,15 @@ def ds_add_attrs(ds):
     ds['time'].attrs.update({'standard_name': 'time',
                              'axis': 'T'})
 
-    ds['epic_time'].attrs.update({'units': 'True Julian Day',
-                                  'type': 'EVEN',
-                                  'epic_code': 624})
+    if 'epic_time' in ds:
+        ds['epic_time'].attrs.update({'units': 'True Julian Day',
+                                      'type': 'EVEN',
+                                      'epic_code': 624})
 
-    ds['epic_time2'].attrs.update({'units': 'msec since 0:00 GMT',
-                                   'type': 'EVEN',
-                                   'epic_code': 624})
+    if 'epic_time2' in ds:
+        ds['epic_time2'].attrs.update({'units': 'msec since 0:00 GMT',
+                                       'type': 'EVEN',
+                                       'epic_code': 624})
 
     if 'epic_time_2d' in ds:
         ds['epic_time_2d'].attrs = ds['epic_time'].attrs

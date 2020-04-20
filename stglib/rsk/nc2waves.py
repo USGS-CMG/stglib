@@ -4,11 +4,14 @@ from ..core import utils, waves
 
 def nc_to_waves(nc_filename):
 
-    ds = utils.open_time_2d_dataset(nc_filename)
+    ds = utils.open_time_2d_dataset(nc_filename) # this will deal with a cf file, too
 
-    ds = utils.epic_to_cf_time(ds)
+    if utils.is_cf(ds):
+        pass
+    else:
+        ds = utils.epic_to_cf_time(ds)
 
-    ds = utils.create_epic_times(ds)
+        ds = utils.create_epic_times(ds)
 
     spec = waves.make_waves_ds(ds)
 
