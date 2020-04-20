@@ -69,7 +69,7 @@ def wad_to_cdf(metadata, writefile=True):
     ds = qaqc.update_attrs(ds, waves=True)
 
     # need to drop datetime
-    ds = ds.drop('datetime')
+    ds = ds.drop_vars('datetime')
 
     if writefile:
         cdf_filename = ds.attrs['filename'] + 'wvs-raw.cdf'
@@ -113,7 +113,7 @@ def load_whd(metadata):
     ds = xr.Dataset.from_dataframe(WHD)
     ds = ds.rename({'index': 'time'})
     ds['time'] = ds['datetime']
-    ds = ds.drop(['minpressure', 'cellsize', 'nrecs', 'soundspeed'])
+    ds = ds.drop_vars(['minpressure', 'cellsize', 'nrecs', 'soundspeed'])
 
     return ds
 

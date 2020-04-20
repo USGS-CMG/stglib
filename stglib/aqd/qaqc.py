@@ -56,7 +56,7 @@ def ds_rename(ds, waves=False):
               'water_depth',
               'cellpos']:
         if v in ds:
-            ds = ds.drop(v)
+            ds = ds.drop_vars(v)
 
     return ds
 
