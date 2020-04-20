@@ -177,7 +177,10 @@ def rsk_to_xr(metadata):
 def read_virtuoso_burst(rskfile, ds):
     conn = init_connection(rskfile)
 
-    conn.execute("SELECT tstamp, channel01 FROM burstdata")
+    try:
+        conn.execute("SELECT tstamp, channel01 FROM burstdata") # sometimes maybe is case sensitive?
+    except sqlite3.OperationalError:
+        conn.execute("SELECT tstamp, channel01 FROM burstData") # note capital "D"
     data = conn.fetchall()
     print("Done fetching pressure data")
     d = np.asarray(data)
