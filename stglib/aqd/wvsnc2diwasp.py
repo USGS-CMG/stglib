@@ -1,6 +1,8 @@
 from __future__ import division, print_function
-import xarray as xr
+
 import numpy as np
+import xarray as xr
+
 from ..core import utils, waves
 
 

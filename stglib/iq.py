@@ -1,10 +1,11 @@
 from __future__ import division, print_function
+
+import numpy as np
 # import matplotlib.pyplot as plt
 import xarray as xr
-import numpy as np
-from . import core
+
+from . import core, exo
 from .core import utils
-from . import exo
 
 
 def mat_to_cdf(metadata):

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import stglib
 import matplotlib.pyplot as plt
-import xarray as xr
 import numpy as np
+import xarray as xr
+
+import stglib
 
 args = stglib.cmd.exoturnaround_parser().parse_args()
 

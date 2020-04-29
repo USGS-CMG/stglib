@@ -1,8 +1,11 @@
 from __future__ import division, print_function
+
 import sqlite3
+
 import numpy as np
-import xarray as xr
 import pandas as pd
+import xarray as xr
+
 from ..core import utils
 
 

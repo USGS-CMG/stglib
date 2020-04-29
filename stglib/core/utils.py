@@ -1,16 +1,19 @@
 from __future__ import division, print_function
+
 import csv
-import os
-import sys
 import inspect
+import os
 import platform
-import netCDF4
-import warnings
-import xarray as xr
-import numpy as np
-import scipy.io as spio
-import pandas as pd
 import sqlite3
+import sys
+import warnings
+
+import netCDF4
+import numpy as np
+import pandas as pd
+import scipy.io as spio
+import xarray as xr
+
 import stglib
 
 

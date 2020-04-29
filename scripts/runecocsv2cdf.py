@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import stglib
 import yaml
+
+import stglib
 
 args = stglib.cmd.ecolog2cdf_parser().parse_args()
 

@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def read_aquatroll(filnam, skiprows=69, encoding='utf-8', skipfooter=0):

@@ -2,8 +2,9 @@
 #
 # these tests are designed to follow the example here
 # http://doc.pytest.org/en/latest/fixture.html
-import pytest
 from pathlib import Path
+
+import pytest
 
 here = Path(__file__).parent
 

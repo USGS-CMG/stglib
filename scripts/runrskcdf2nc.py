@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import stglib
 import argparse
+
+import stglib
 
 args = stglib.cmd.rskcdf2nc_parser().parse_args()
 

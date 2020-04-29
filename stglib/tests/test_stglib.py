@@ -1,10 +1,11 @@
-import unittest
-import stglib
 import os
-import xarray as xr
+import unittest
+
 import numpy as np
 import pandas as pd
+import xarray as xr
 
+import stglib
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 

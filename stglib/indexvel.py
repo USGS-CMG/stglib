@@ -1,6 +1,7 @@
-from __future__ import print_function, division
-import pandas as pd
+from __future__ import division, print_function
+
 import numpy as np
+import pandas as pd
 import scipy.stats
 import xmltodict
 

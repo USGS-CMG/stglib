@@ -1,8 +1,10 @@
 from __future__ import division, print_function
-import scipy.signal as spsig
-import numpy as np
-import xarray as xr
+
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy.signal as spsig
+import xarray as xr
+
 
 def make_waves_ds(ds, noise=0.75):
 

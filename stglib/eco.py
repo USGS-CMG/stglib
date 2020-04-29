@@ -1,9 +1,11 @@
 from __future__ import division, print_function
+
 import numpy as np
 import pandas as pd
 import xarray as xr
-from .core import utils
+
 from . import exo
+from .core import utils
 
 
 def read_par(filnam, spb=False, skiprows=None, skipfooter=0):

@@ -1,9 +1,12 @@
 from __future__ import division, print_function
+
 import warnings
-import pandas as pd
-import xarray as xr
+
 import numpy as np
+import pandas as pd
 import scipy.signal
+import xarray as xr
+
 from .core import utils
 
 

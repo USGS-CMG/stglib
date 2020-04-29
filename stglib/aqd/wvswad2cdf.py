@@ -1,8 +1,9 @@
 from __future__ import division, print_function
 
+import numpy as np
 import pandas as pd
 import xarray as xr
-import numpy as np
+
 from ..core import utils
 from . import qaqc
 

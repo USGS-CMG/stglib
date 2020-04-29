@@ -1,10 +1,13 @@
 import warnings
-import pandas as pd
-import xarray as xr
+
 import numpy as np
+import pandas as pd
 import scipy.signal
-from .core import utils
+import xarray as xr
+
 from .aqd import qaqc
+from .core import utils
+
 
 def read_argonaut(filbase):
     return pd.read_csv(filnam,
