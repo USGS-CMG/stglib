@@ -8,65 +8,59 @@ import xarray as xr
 
 def make_waves_ds(ds, noise=0.75):
 
-    print('Computing waves statistics')
-    if 'P_1ac' in ds:
-        presvar = 'P_1ac'
+    print("Computing waves statistics")
+    if "P_1ac" in ds:
+        presvar = "P_1ac"
     else:
-        presvar = 'P_1'
-        
-    f, Pxx = pressure_spectra(ds[presvar].squeeze(),
-                              fs=1/ds.attrs['sample_interval'])
+        presvar = "P_1"
 
-    z = ds.attrs['initial_instrument_height']
-    h = ds[presvar].squeeze().mean(dim='sample') + z
+    f, Pxx = pressure_spectra(ds[presvar].squeeze(), fs=1 / ds.attrs["sample_interval"])
 
-    k = np.asarray(
-        [qkfs(2*np.pi*f, x) for x in h.values])
+    z = ds.attrs["initial_instrument_height"]
+    h = ds[presvar].squeeze().mean(dim="sample") + z
+
+    k = np.asarray([qkfs(2 * np.pi * f, x) for x in h.values])
 
     Kp = transfer_function(k, h, z)
     Pnn = elevation_spectra(Pxx, Kp)
 
     spec = xr.Dataset()
 
-    spec['Pnn'] = xr.DataArray(Pnn,
-                               dims=('time', 'frequency'),
-                               coords=(ds['time'], f))
-    spec['Pxx'] = xr.DataArray(Pxx,
-                               dims=('time', 'frequency'),
-                               coords=(ds['time'], f))
-    spec['Kp'] = xr.DataArray(Kp,
-                              dims=('time', 'frequency'),
-                              coords=(ds['time'], f))
+    spec["Pnn"] = xr.DataArray(Pnn, dims=("time", "frequency"), coords=(ds["time"], f))
+    spec["Pxx"] = xr.DataArray(Pxx, dims=("time", "frequency"), coords=(ds["time"], f))
+    spec["Kp"] = xr.DataArray(Kp, dims=("time", "frequency"), coords=(ds["time"], f))
     tailind, noisecutind, fpeakcutind, Kpcutind = zip(
-        *[define_cutoff(f, x, y, noise=noise) for x, y in
-            zip(spec['Pxx'].values, spec['Kp'].values)])
-    spec['tailind'] = xr.DataArray(np.asarray(tailind), dims='time')
-    spec['noisecutind'] = xr.DataArray(np.asarray(noisecutind), dims='time')
-    spec['fpeakcutind'] = xr.DataArray(np.asarray(fpeakcutind), dims='time')
-    spec['Kpcutind'] = xr.DataArray(np.asarray(Kpcutind), dims='time')
-    thetail = [make_tail(
-        spec['frequency'],
-        spec['Pnn'][burst, :],
-        spec['tailind'][burst].values)
-        for burst in range(len(spec['time']))]
-    spec['pspec'] = xr.DataArray(thetail, dims=('time', 'frequency'))
-    spec['m0'] = xr.DataArray(
-        make_moment(spec['frequency'], spec['pspec'], 0),
-        dims='time')
-    spec['m2'] = xr.DataArray(
-        make_moment(spec['frequency'], spec['pspec'], 2),
-        dims='time')
-    spec['wh_4061'] = xr.DataArray(
-        make_Hs(spec['m0']), dims='time')
-    spec['wp_4060'] = xr.DataArray(
-        make_Tm(spec['m0'], spec['m2']), dims='time')
-    spec['wp_peak'] = xr.DataArray(make_Tp(spec['pspec']), dims='time')
-    spec['kh'] = xr.DataArray(k, dims=('time', 'frequency'))
+        *[
+            define_cutoff(f, x, y, noise=noise)
+            for x, y in zip(spec["Pxx"].values, spec["Kp"].values)
+        ]
+    )
+    spec["tailind"] = xr.DataArray(np.asarray(tailind), dims="time")
+    spec["noisecutind"] = xr.DataArray(np.asarray(noisecutind), dims="time")
+    spec["fpeakcutind"] = xr.DataArray(np.asarray(fpeakcutind), dims="time")
+    spec["Kpcutind"] = xr.DataArray(np.asarray(Kpcutind), dims="time")
+    thetail = [
+        make_tail(
+            spec["frequency"], spec["Pnn"][burst, :], spec["tailind"][burst].values
+        )
+        for burst in range(len(spec["time"]))
+    ]
+    spec["pspec"] = xr.DataArray(thetail, dims=("time", "frequency"))
+    spec["m0"] = xr.DataArray(
+        make_moment(spec["frequency"], spec["pspec"], 0), dims="time"
+    )
+    spec["m2"] = xr.DataArray(
+        make_moment(spec["frequency"], spec["pspec"], 2), dims="time"
+    )
+    spec["wh_4061"] = xr.DataArray(make_Hs(spec["m0"]), dims="time")
+    spec["wp_4060"] = xr.DataArray(make_Tm(spec["m0"], spec["m2"]), dims="time")
+    spec["wp_peak"] = xr.DataArray(make_Tp(spec["pspec"]), dims="time")
+    spec["kh"] = xr.DataArray(k, dims=("time", "frequency"))
 
     return spec
 
 
-def pressure_spectra(x, fs=1.0, window='hanning', nperseg=256, **kwargs):
+def pressure_spectra(x, fs=1.0, window="hanning", nperseg=256, **kwargs):
     """Compute pressure spectral density using Welch's method
 
     Parameters
@@ -96,7 +90,7 @@ def pressure_spectra(x, fs=1.0, window='hanning', nperseg=256, **kwargs):
 def elevation_spectra(Pxx, Kp):
     """Compute elevation spectra using linear wave theory and transfer function
     """
-    return Pxx / (Kp**2)
+    return Pxx / (Kp ** 2)
 
 
 def transfer_function(k, h, z):
@@ -116,7 +110,7 @@ def transfer_function(k, h, z):
     Kp : float
         Presssure transfer function
     """
-    Kp = np.cosh(k*z)/np.cosh(k*np.expand_dims(h, 1))
+    Kp = np.cosh(k * z) / np.cosh(k * np.expand_dims(h, 1))
 
     # set Kp nans at 0 frequency to 1
     Kp[np.isnan(k)] = 1
@@ -160,7 +154,7 @@ def define_cutoff(f, Pxx, Kp, noise=0.9):
     http://doi.org/10.4319/lom.2007.5.317
     """
 
-    noisecut = 12*np.mean(Pxx[f >= noise*f[-1]])
+    noisecut = 12 * np.mean(Pxx[f >= noise * f[-1]])
     # Look for above cut-off freqs and take highest
     tmp = np.where(Pxx > noisecut)[0]
     if len(tmp) == 0:
@@ -168,7 +162,7 @@ def define_cutoff(f, Pxx, Kp, noise=0.9):
     else:
         noisecutind = tmp[-1]
 
-    fpeakcut = 1.1*f[np.argmax(Pxx)]
+    fpeakcut = 1.1 * f[np.argmax(Pxx)]
     fpeakcutind = np.searchsorted(f, fpeakcut)  # cutoff based on 1.1*fp
     Kpcutind = np.argmax(Kp <= 0.1)  # cutoff based on Kp<=0.1
 
@@ -210,7 +204,7 @@ def make_tail(f, Pnn, tailind):
     if np.isnan(tailind):
         return np.ones_like(f) * np.nan
     else:
-        tail[ti:] = Pnn[ti] * (f[ti:]/f[ti])**-4
+        tail[ti:] = Pnn[ti] * (f[ti:] / f[ti]) ** -4
         return np.hstack((Pnn[:ti], tail[ti:]))
 
 
@@ -223,7 +217,7 @@ def make_mwd(freqs, dirs, dspec):
     Dnum = np.trapz(np.trapz(Sxsin, x=freqs), x=dirs)
     Ddnom = np.trapz(np.trapz(Sxcos, x=freqs), x=dirs)
 
-    Dm = np.rad2deg(np.arctan(np.abs(Dnum/Ddnom)))
+    Dm = np.rad2deg(np.arctan(np.abs(Dnum / Ddnom)))
 
     Dm[(Dnum > 0) & (Ddnom < 0)] = 180 - Dm[(Dnum > 0) & (Ddnom < 0)]
     Dm[(Dnum < 0) & (Ddnom < 0)] = 180 + Dm[(Dnum < 0) & (Ddnom < 0)]
@@ -234,22 +228,22 @@ def make_mwd(freqs, dirs, dspec):
 
 def make_moment(f, Pnn, n):
     """Compute nth moment (m0, m1, m2, etc.) of power spectra"""
-    return np.trapz(Pnn * f**n, x=f)
+    return np.trapz(Pnn * f ** n, x=f)
 
 
 def make_Hs(m0):
-    return 4*np.sqrt(m0)
+    return 4 * np.sqrt(m0)
 
 
 def make_Tm(m0, m2):
-    return np.sqrt(m0/m2)
+    return np.sqrt(m0 / m2)
 
 
 def make_Tp(Pnn):
     # ensure we don't return 0 frequency as a peak period
-    fp = Pnn['frequency'][Pnn.fillna(0).argmax(dim='frequency')].values
+    fp = Pnn["frequency"][Pnn.fillna(0).argmax(dim="frequency")].values
     fp[fp == 0] = np.nan
-    return 1/fp
+    return 1 / fp
 
 
 def polar2compass(polar):
@@ -285,23 +279,38 @@ def qkfs(omega, h):
     """
 
     g = 9.81
-    x = omega**2 * h / g
+    x = omega ** 2 * h / g
     y = np.sqrt(x) * (x < 1) + x * (x >= 1)
 
     t = np.tanh(y)
-    y = y - ((y*t-x) / (t + y * (1-t**2)))
+    y = y - ((y * t - x) / (t + y * (1 - t ** 2)))
     t = np.tanh(y)
-    y = y - ((y*t-x) / (t + y * (1-t**2)))
+    y = y - ((y * t - x) / (t + y * (1 - t ** 2)))
     t = np.tanh(y)
-    y = y - ((y*t-x) / (t + y * (1-t**2)))
+    y = y - ((y * t - x) / (t + y * (1 - t ** 2)))
 
-    return y/h
+    return y / h
 
 
-def puv_quick(pressure, u, v, depth, height_of_pressure, height_of_velocity, sampling_frequency, fft_length=512,
-              rho=1025., first_frequency_cutoff=1 / 50, infra_gravity_cutoff=0.05, last_frequency_cutoff=1 / 5,
-              fft_window_type='hanning', show_diagnostic_plot=False, check_variances=False, variance_error=0.0,
-              overlap_length='default'):
+def puv_quick(
+    pressure,
+    u,
+    v,
+    depth,
+    height_of_pressure,
+    height_of_velocity,
+    sampling_frequency,
+    fft_length=512,
+    rho=1025.0,
+    first_frequency_cutoff=1 / 50,
+    infra_gravity_cutoff=0.05,
+    last_frequency_cutoff=1 / 5,
+    fft_window_type="hanning",
+    show_diagnostic_plot=False,
+    check_variances=False,
+    variance_error=0.0,
+    overlap_length="default",
+):
     """
     Determine wave heights from pressure, east_velocity, v velocity data
 
@@ -374,8 +383,8 @@ def puv_quick(pressure, u, v, depth, height_of_pressure, height_of_velocity, sam
     """
 
     gravity = 9.81  # m/s^2
-    if fft_window_type is 'hanning':
-        fft_window_type = 'hann'  # this is just the way scipy signal likes it
+    if fft_window_type is "hanning":
+        fft_window_type = "hann"  # this is just the way scipy signal likes it
     if overlap_length is "default":
         overlap_length = int(np.floor(fft_length / 2))
 
@@ -386,19 +395,36 @@ def puv_quick(pressure, u, v, depth, height_of_pressure, height_of_velocity, sam
     # compute wave height from velocities
 
     # Determine velocity spectra for u and v
-    [frequencies, Gpp] = spsig.welch(rho * gravity * pressure, fs=sampling_frequency, window=fft_window_type,
-                                     nperseg=fft_length, noverlap=overlap_length)
+    [frequencies, Gpp] = spsig.welch(
+        rho * gravity * pressure,
+        fs=sampling_frequency,
+        window=fft_window_type,
+        nperseg=fft_length,
+        noverlap=overlap_length,
+    )
 
     df = frequencies[2] - frequencies[1]
-    [_, Guu] = spsig.welch(u, fs=sampling_frequency, window=fft_window_type, nperseg=fft_length,
-                           noverlap=overlap_length)
-    [_, Gvv] = spsig.welch(v, fs=sampling_frequency, window=fft_window_type, nperseg=fft_length,
-                           noverlap=overlap_length)
+    [_, Guu] = spsig.welch(
+        u,
+        fs=sampling_frequency,
+        window=fft_window_type,
+        nperseg=fft_length,
+        noverlap=overlap_length,
+    )
+    [_, Gvv] = spsig.welch(
+        v,
+        fs=sampling_frequency,
+        window=fft_window_type,
+        nperseg=fft_length,
+        noverlap=overlap_length,
+    )
 
     # determine wave number
-    omega = np.array([2 * np.pi * x for x in frequencies])  # omega must be numpy array for qkfs
+    omega = np.array(
+        [2 * np.pi * x for x in frequencies]
+    )  # omega must be numpy array for qkfs
     # catch numpy errors
-    np.seterr(divide='ignore', invalid='ignore')
+    np.seterr(divide="ignore", invalid="ignore")
     k = qkfs(omega, float(depth))  # make sure it is float, or qkfs will bomb
     np.seterr(divide=None, invalid=None)
 
@@ -411,10 +437,14 @@ def puv_quick(pressure, u, v, depth, height_of_pressure, height_of_velocity, sam
     Huv = np.ones(nf)
 
     # change wavenumber at 0 Hz to 1 to avoid divide by zero
-    i = np.array(range(nf))  # this is an index, thus needs to start at first element, in this case 0
+    i = np.array(
+        range(nf)
+    )  # this is an index, thus needs to start at first element, in this case 0
     # for some reason in the MATLAB version CRS tests omega for nans instead of k.
     # Here we test k also because that's where the nans show up
-    if np.isnan(omega[0]) or np.isnan(k[0]) or (omega[0] <= 0):  # 0 Hz is the first element
+    if (
+        np.isnan(omega[0]) or np.isnan(k[0]) or (omega[0] <= 0)
+    ):  # 0 Hz is the first element
         i = i[1:]
         Hp[0] = 1
         Huv[0] = 1
@@ -497,36 +527,60 @@ def puv_quick(pressure, u, v, depth, height_of_pressure, height_of_velocity, sam
         ubhi = 0
 
     ws = {
-        'Hrmsp': Hrmsp,
-        'Hrmsu': Hrmsu,
-        'ubr': ubr,
-        'ubr_check': ubr_check,
-        'omegar': omegar,
-        'Tr': Tr,
-        'Tpp': Tpp,
-        'Tpu': Tpu,
-        'phir': phir,
-        'azr': azr,
-        'ublo': ublo,
-        'ubhi': ubhi,
-        'ubig': ubig,
+        "Hrmsp": Hrmsp,
+        "Hrmsu": Hrmsu,
+        "ubr": ubr,
+        "ubr_check": ubr_check,
+        "omegar": omegar,
+        "Tr": Tr,
+        "Tpp": Tpp,
+        "Tpu": Tpu,
+        "phir": phir,
+        "azr": azr,
+        "ublo": ublo,
+        "ubhi": ubhi,
+        "ubig": ubig,
     }
 
     if check_variances:
-        variance_preserved = test_variances(u, v, pressure, Gpp, Guu, Gvv, df, allowable_error=variance_error)
-        ws['variance_test_passed'] = variance_preserved
+        variance_preserved = test_variances(
+            u, v, pressure, Gpp, Guu, Gvv, df, allowable_error=variance_error
+        )
+        ws["variance_test_passed"] = variance_preserved
 
     if show_diagnostic_plot:
-        fig, ax = plot_spectra(Guu, Gvv, Guv, Gpp, frequencies, first_frequency_cutoff, ff, last_frequency_cutoff, lf,
-                               infra_gravity_cutoff, ig)
-        ws['figure'] = fig
-        ws['axis'] = ax
+        fig, ax = plot_spectra(
+            Guu,
+            Gvv,
+            Guv,
+            Gpp,
+            frequencies,
+            first_frequency_cutoff,
+            ff,
+            last_frequency_cutoff,
+            lf,
+            infra_gravity_cutoff,
+            ig,
+        )
+        ws["figure"] = fig
+        ws["axis"] = ax
 
     return ws
 
 
-def plot_spectra(Guu, Gvv, Guv, Gpp, frequencies, first_frequency_cutoff, ff, last_frequency_cutoff, lf,
-                 infra_gravity_cutoff, ig):
+def plot_spectra(
+    Guu,
+    Gvv,
+    Guv,
+    Gpp,
+    frequencies,
+    first_frequency_cutoff,
+    ff,
+    last_frequency_cutoff,
+    lf,
+    infra_gravity_cutoff,
+    ig,
+):
     """
     internal helper function to plot spectra for diagnostics
 
@@ -542,28 +596,67 @@ def plot_spectra(Guu, Gvv, Guv, Gpp, frequencies, first_frequency_cutoff, ff, la
     """
 
     fig, ax = plt.subplots(2, 1, figsize=(15, 5))
-    ax[0].plot(frequencies, Guv, label='Guv')
-    ax[0].plot(frequencies, Guu, label='Guu')
-    ax[0].plot(frequencies, Gvv, label='Gvv')
+    ax[0].plot(frequencies, Guv, label="Guv")
+    ax[0].plot(frequencies, Guu, label="Guu")
+    ax[0].plot(frequencies, Gvv, label="Gvv")
     ylims = ax[0].get_ylim()
-    ax[0].plot([frequencies[ff], frequencies[ff]], ylims, label='ff = %3.1f s' % (1 / frequencies[ff]))
-    ax[0].plot([frequencies[lf], frequencies[lf]], ylims, label='lf = %3.1f s' % (1 / frequencies[lf]))
-    ax[0].plot([frequencies[ig], frequencies[ig]], ylims, label='ig = %3.1f s' % (1 / frequencies[ig]))
-    plt.text(0.5, 0.9,
-             'first_frequency_cutoff is {} found at #{} = {} Hz'.format(first_frequency_cutoff, ff, frequencies[ff]),
-             transform=ax[0].transAxes)
-    plt.text(0.5, 0.8,
-             'last_frequency_cutoff is {} found at #{} = {} Hz'.format(last_frequency_cutoff, lf, frequencies[lf]),
-             transform=ax[0].transAxes)
-    plt.text(0.5, 0.7,
-             'infra-gravity cutoff is {} found at #{} = {} Hz'.format(infra_gravity_cutoff, ig, frequencies[ig]),
-             transform=ax[0].transAxes)
+    ax[0].plot(
+        [frequencies[ff], frequencies[ff]],
+        ylims,
+        label="ff = %3.1f s" % (1 / frequencies[ff]),
+    )
+    ax[0].plot(
+        [frequencies[lf], frequencies[lf]],
+        ylims,
+        label="lf = %3.1f s" % (1 / frequencies[lf]),
+    )
+    ax[0].plot(
+        [frequencies[ig], frequencies[ig]],
+        ylims,
+        label="ig = %3.1f s" % (1 / frequencies[ig]),
+    )
+    plt.text(
+        0.5,
+        0.9,
+        "first_frequency_cutoff is {} found at #{} = {} Hz".format(
+            first_frequency_cutoff, ff, frequencies[ff]
+        ),
+        transform=ax[0].transAxes,
+    )
+    plt.text(
+        0.5,
+        0.8,
+        "last_frequency_cutoff is {} found at #{} = {} Hz".format(
+            last_frequency_cutoff, lf, frequencies[lf]
+        ),
+        transform=ax[0].transAxes,
+    )
+    plt.text(
+        0.5,
+        0.7,
+        "infra-gravity cutoff is {} found at #{} = {} Hz".format(
+            infra_gravity_cutoff, ig, frequencies[ig]
+        ),
+        transform=ax[0].transAxes,
+    )
     ax[0].legend()
-    ax[1].plot(frequencies, Gpp, label='Gpp')
+    ax[1].plot(frequencies, Gpp, label="Gpp")
     ylims = ax[1].get_ylim()
-    ax[1].plot([frequencies[ff], frequencies[ff]], ylims, label='ff = %3.1f s' % (1 / frequencies[ff]))
-    ax[1].plot([frequencies[lf], frequencies[lf]], ylims, label='lf = %3.1f s' % (1 / frequencies[lf]))
-    ax[1].plot([frequencies[ig], frequencies[ig]], ylims, label='ig = %3.1f s' % (1 / frequencies[ig]))
+    ax[1].plot(
+        [frequencies[ff], frequencies[ff]],
+        ylims,
+        label="ff = %3.1f s" % (1 / frequencies[ff]),
+    )
+    ax[1].plot(
+        [frequencies[lf], frequencies[lf]],
+        ylims,
+        label="lf = %3.1f s" % (1 / frequencies[lf]),
+    )
+    ax[1].plot(
+        [frequencies[ig], frequencies[ig]],
+        ylims,
+        label="ig = %3.1f s" % (1 / frequencies[ig]),
+    )
     ax[1].legend()
     plt.show()
 
@@ -586,30 +679,40 @@ def test_variances(u, v, p, Gpp, Guu, Gvv, df, allowable_error=0.0):
     """
     result = False
 
-    print('These pairs of time-domain and spectral stats should be very close to equal:')
+    print(
+        "These pairs of time-domain and spectral stats should be very close to equal:"
+    )
     varp = np.var(p)
-    varP = np.sum(Gpp*df)
-    print('var(p) {} == sum(Gpp*df) {}'.format(varp, varP))
-    if np.abs((varp-varP)/varp * 100) > allowable_error:
+    varP = np.sum(Gpp * df)
+    print("var(p) {} == sum(Gpp*df) {}".format(varp, varP))
+    if np.abs((varp - varP) / varp * 100) > allowable_error:
         result = False
     varu = np.var(u)
-    varU = np.sum(Guu*df)
-    print('var(u) {} == sum(Guu*df) {}'.format(varu, varU))
-    if np.abs((varu-varU)/varu * 100) > allowable_error:
+    varU = np.sum(Guu * df)
+    print("var(u) {} == sum(Guu*df) {}".format(varu, varU))
+    if np.abs((varu - varU) / varu * 100) > allowable_error:
         result = False
     varv = np.var(v)
-    varV = np.sum(Gvv*df)
-    print('var(v) {} == sum(Gvv*df) {}'.format(varv, varV))
-    if np.abs((varv-varV)/varv * 100) > allowable_error:
+    varV = np.sum(Gvv * df)
+    print("var(v) {} == sum(Gvv*df) {}".format(varv, varV))
+    if np.abs((varv - varV) / varv * 100) > allowable_error:
         result = False
-    print('sqrt(varv) {} == sqrt(mean(v^2) {}'.format(np.sqrt(varv), np.sqrt(np.mean(v**2))))
+    print(
+        "sqrt(varv) {} == sqrt(mean(v^2) {}".format(
+            np.sqrt(varv), np.sqrt(np.mean(v ** 2))
+        )
+    )
     varuv = varu + varv
     varUV = varU + varV
-    print('sqrt(2.*(varu+varv)) {} == '.format(np.sqrt(2.*varuv)) +
-          'np.sqrt(2*(np.sum(Guu*df) + np.sum(Gvv*df))) {}'.format(np.sqrt(2.*varUV)))
-    percent_error = np.abs((np.sqrt(2.*varuv)-np.sqrt(2.*varUV))/np.sqrt(2.*varuv) * 100)
-    print(f'percent_error = {percent_error}')
-    print(f'allowable_error = {allowable_error}')
+    print(
+        "sqrt(2.*(varu+varv)) {} == ".format(np.sqrt(2.0 * varuv))
+        + "np.sqrt(2*(np.sum(Guu*df) + np.sum(Gvv*df))) {}".format(np.sqrt(2.0 * varUV))
+    )
+    percent_error = np.abs(
+        (np.sqrt(2.0 * varuv) - np.sqrt(2.0 * varUV)) / np.sqrt(2.0 * varuv) * 100
+    )
+    print(f"percent_error = {percent_error}")
+    print(f"allowable_error = {allowable_error}")
     # careful here, it seems that one can't test for 0.0 == 0.0 via the variables
     if (allowable_error == 0.0) & (percent_error == 0.0):
         result = True

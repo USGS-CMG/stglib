@@ -22,43 +22,47 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = utils.create_nominal_instrument_depth(VEL)
 
     # Create depth variable depending on orientation
-    VEL, T, T_orig = qaqc.set_orientation(VEL, VEL['TransMatrix'].values)
+    VEL, T, T_orig = qaqc.set_orientation(VEL, VEL["TransMatrix"].values)
 
     # Transform coordinates from, most likely, BEAM to ENU
-    u, v, w = qaqc.coord_transform(VEL['VEL1'].values,
-                                   VEL['VEL2'].values,
-                                   VEL['VEL3'].values,
-                                   VEL['Heading'].values,
-                                   VEL['Pitch'].values,
-                                   VEL['Roll'].values,
-                                   T,
-                                   T_orig,
-                                   VEL.attrs['AQDCoordinateSystem'])
+    u, v, w = qaqc.coord_transform(
+        VEL["VEL1"].values,
+        VEL["VEL2"].values,
+        VEL["VEL3"].values,
+        VEL["Heading"].values,
+        VEL["Pitch"].values,
+        VEL["Roll"].values,
+        T,
+        T_orig,
+        VEL.attrs["AQDCoordinateSystem"],
+    )
 
-    VEL['U'] = xr.DataArray(u, dims=('time', 'bindist'))
-    VEL['V'] = xr.DataArray(v, dims=('time', 'bindist'))
-    VEL['W'] = xr.DataArray(w, dims=('time', 'bindist'))
+    VEL["U"] = xr.DataArray(u, dims=("time", "bindist"))
+    VEL["V"] = xr.DataArray(v, dims=("time", "bindist"))
+    VEL["W"] = xr.DataArray(w, dims=("time", "bindist"))
 
     VEL = qaqc.magvar_correct(VEL)
 
-    VEL['AGC'] = (VEL['AMP1'] + VEL['AMP2'] + VEL['AMP3']) / 3
+    VEL["AGC"] = (VEL["AMP1"] + VEL["AMP2"] + VEL["AMP3"]) / 3
 
     VEL = qaqc.trim_vel(VEL)
 
     VEL = qaqc.make_bin_depth(VEL)
 
     # Reshape and associate dimensions with lat/lon
-    for var in ['U',
-                'V',
-                'W',
-                'AGC',
-                'Pressure',
-                'Temperature',
-                'Heading',
-                'Pitch',
-                'Roll',
-                'bin_depth',
-                'Pressure_ac']:
+    for var in [
+        "U",
+        "V",
+        "W",
+        "AGC",
+        "Pressure",
+        "Temperature",
+        "Heading",
+        "Pitch",
+        "Roll",
+        "bin_depth",
+        "Pressure_ac",
+    ]:
         if var in VEL:
             VEL = utils.add_lat_lon(VEL, var)
 
@@ -93,22 +97,21 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         VEL = utils.rename_time(VEL)
 
     for var in VEL.variables:
-        if (var not in VEL.coords) and ('time' not in var):
+        if (var not in VEL.coords) and ("time" not in var):
             # cast as float32
             VEL = utils.set_var_dtype(VEL, var)
 
-    if 'prefix' in VEL.attrs:
-        nc_filename = VEL.attrs['prefix'] + VEL.attrs['filename'] + '-a.nc'
+    if "prefix" in VEL.attrs:
+        nc_filename = VEL.attrs["prefix"] + VEL.attrs["filename"] + "-a.nc"
     else:
-        nc_filename = VEL.attrs['filename'] + '-a.nc'
+        nc_filename = VEL.attrs["filename"] + "-a.nc"
 
     if utils.is_cf(VEL):
-        VEL.to_netcdf(nc_filename,
-                      encoding={'time': {'dtype': 'i4'}})
+        VEL.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
     else:
-        VEL.to_netcdf(nc_filename, unlimited_dims=['time'])
+        VEL.to_netcdf(nc_filename, unlimited_dims=["time"])
 
-    print('Done writing netCDF file', nc_filename)
+    print("Done writing netCDF file", nc_filename)
 
     return VEL
 
@@ -117,12 +120,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
 
 def ds_swap_dims(ds):
-    ds = ds.swap_dims({'bindist': 'depth'})
+    ds = ds.swap_dims({"bindist": "depth"})
     # need to swap dims and then reassign bindist to be a normal variable
     # (no longer a coordinate)
-    valbak = ds['bindist'].values
-    ds = ds.drop('bindist')
-    ds['bindist'] = xr.DataArray(valbak, dims='depth')
+    valbak = ds["bindist"].values
+    ds = ds.drop("bindist")
+    ds["bindist"] = xr.DataArray(valbak, dims="depth")
 
     return ds
 
@@ -132,16 +135,18 @@ def ds_drop(ds):
     Drop old DataArrays from Dataset that won't make it into the final .nc file
     """
 
-    todrop = ['VEL1',
-              'VEL2',
-              'VEL3',
-              'AMP1',
-              'AMP2',
-              'AMP3',
-              'TransMatrix',
-              'AnalogInput1',
-              'AnalogInput2',
-              'jd',
-              'Depth']
+    todrop = [
+        "VEL1",
+        "VEL2",
+        "VEL3",
+        "AMP1",
+        "AMP2",
+        "AMP3",
+        "TransMatrix",
+        "AnalogInput1",
+        "AnalogInput2",
+        "jd",
+        "Depth",
+    ]
 
     return ds.drop([t for t in todrop if t in ds.variables])

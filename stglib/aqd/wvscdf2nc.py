@@ -6,10 +6,7 @@ from ..core import utils
 from . import qaqc
 
 
-def cdf_to_nc(cdf_filename,
-              atmpres=False,
-              writefile=True,
-              format='NETCDF3_64BIT'):
+def cdf_to_nc(cdf_filename, atmpres=False, writefile=True, format="NETCDF3_64BIT"):
 
     # Load raw .cdf data
     ds = qaqc.load_cdf(cdf_filename, atmpres=atmpres)
@@ -22,7 +19,7 @@ def cdf_to_nc(cdf_filename,
     ds = utils.create_nominal_instrument_depth(ds)
 
     # Create depth variable depending on orientation
-    ds, T, T_orig = qaqc.set_orientation(ds, ds['TransMatrix'].values)
+    ds, T, T_orig = qaqc.set_orientation(ds, ds["TransMatrix"].values)
 
     # Make bin_depth variable
     ds = qaqc.make_bin_depth(ds, waves=True)
@@ -44,24 +41,24 @@ def cdf_to_nc(cdf_filename,
 
     # Cast vars as float32
     for var in ds.variables:
-        if (var not in ds.coords) and ('time' not in var):
+        if (var not in ds.coords) and ("time" not in var):
             # cast as float32
             ds = utils.set_var_dtype(ds, var)
 
     # Need to add lat lon to certain variables
-    for var in ['Hdg_1215', 'Ptch_1216', 'Roll_1217']:
+    for var in ["Hdg_1215", "Ptch_1216", "Roll_1217"]:
         ds = utils.add_lat_lon(ds, var)
 
     # Ensure no _FillValue is assigned to coordinates
     ds = utils.ds_coord_no_fillvalue(ds)
 
     if writefile:
-        nc_filename = ds.attrs['filename'] + 'wvsb-cal.nc'
+        nc_filename = ds.attrs["filename"] + "wvsb-cal.nc"
         ds.to_netcdf(nc_filename, format=format)
         # Rename time variables for EPIC compliance, keeping a time_cf
         # coorindate.
         utils.rename_time_2d(nc_filename, ds)
 
-        print('Done writing netCDF file', nc_filename)
+        print("Done writing netCDF file", nc_filename)
 
     return ds
