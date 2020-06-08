@@ -1,22 +1,17 @@
-import warnings
-
-import numpy as np
 import pandas as pd
-import scipy.signal
 import xarray as xr
 
 from .aqd import qaqc
-from .core import utils
 
 
-def read_argonaut(filbase):
-    return pd.read_csv(
-        filnam,
-        skiprows=skiprows,
-        infer_datetime_format=True,
-        parse_dates=["Date and Time"],
-        encoding=encoding,
-    )
+# def read_argonaut(filbase):
+#     return pd.read_csv(
+#         filnam,
+#         skiprows=skiprows,
+#         infer_datetime_format=True,
+#         parse_dates=["Date and Time"],
+#         encoding=encoding,
+#     )
 
 
 def read_dat_raw(filnam):
@@ -57,7 +52,7 @@ def read_vel(filnam):
     df.set_index("time", inplace=True)
     ds = xr.Dataset(df)
 
-    return df
+    return ds
 
 
 def read_ctl(filnam):
