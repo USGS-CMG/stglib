@@ -292,7 +292,7 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
         elif "Pressure" in ds:
             # FIXME incorporate press_ ac below
             print("Using NON-atmospherically corrected pressure to trim")
-            WL = ds["Pressure"] + ds.attrs["transducer_offset_from_bottom"]
+            # WL = ds["Pressure"] + ds.attrs["transducer_offset_from_bottom"]
             P = ds["Pressure"]
 
         if ds.attrs["trim_method"].lower() == "water level":
@@ -583,20 +583,20 @@ def check_orientation(ds, waves=False):
             ds.attrs["WATER_DEPTH"] - ds.attrs["transducer_offset_from_bottom"]
         ) - bindist
         # TODO: this is never used
-        Depth_NOTE = (
-            "user reports uplooking bin depths = water_depth - "
-            "transducer offset from bottom - bindist"
-        )
+        # Depth_NOTE = (
+        #     "user reports uplooking bin depths = water_depth - "
+        #     "transducer offset from bottom - bindist"
+        # )
     elif ds.attrs["orientation"] == "DOWN":
         print("User instructed that instrument was pointing DOWN")
         depth = (
             ds.attrs["WATER_DEPTH"] - ds.attrs["transducer_offset_from_bottom"]
         ) + bindist
         # TODO: this is never used
-        Depth_NOTE = (
-            "user reports downlooking bin depths = water_depth - "
-            "transducer_offset_from_bottom + bindist"
-        )
+        # Depth_NOTE = (
+        #     "user reports downlooking bin depths = water_depth - "
+        #     "transducer_offset_from_bottom + bindist"
+        # )
 
     if not waves:
         ds["bindist"] = xr.DataArray(bindist, dims=("bindist"), name="bindist")

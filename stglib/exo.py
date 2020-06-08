@@ -461,7 +461,7 @@ def read_exo_header(filnam, encoding="utf-8"):
                 header[var]["data_columns"] = [
                     int(x) for x in vals.values[0][3].split(";")
                 ]
-    except pd.errors.ParserError as e:
+    except pd.errors.ParserError:
         # new version of KOR export file
         hdr = pd.read_csv(filnam, skiprows=4, encoding=encoding)
         hdr = pd.DataFrame(hdr.iloc[:, 3:-1])

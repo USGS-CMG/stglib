@@ -1,11 +1,10 @@
 from __future__ import division, print_function
 
+import matplotlib.pyplot as plt
 import numpy as np
-
-# import matplotlib.pyplot as plt
 import xarray as xr
 
-from . import core, exo
+from . import core
 from .core import utils
 
 

@@ -383,9 +383,9 @@ def puv_quick(
     """
 
     gravity = 9.81  # m/s^2
-    if fft_window_type is "hanning":
+    if fft_window_type == "hanning":
         fft_window_type = "hann"  # this is just the way scipy signal likes it
-    if overlap_length is "default":
+    if overlap_length == "default":
         overlap_length = int(np.floor(fft_length / 2))
 
     pressure = spsig.detrend(pressure)
