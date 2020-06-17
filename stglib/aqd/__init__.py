@@ -1,7 +1,1 @@
-from . import (hdr2cdf,
-               cdf2nc,
-               qaqc,
-               wvswad2cdf,
-               wvscdf2nc,
-               wvsnc2diwasp,
-               wvsnc2waves)
+from . import cdf2nc, hdr2cdf, qaqc, wvscdf2nc, wvsnc2diwasp, wvsnc2waves, wvswad2cdf

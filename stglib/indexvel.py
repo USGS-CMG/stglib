@@ -1,6 +1,7 @@
-from __future__ import print_function, division
-import pandas as pd
+from __future__ import division, print_function
+
 import numpy as np
+import pandas as pd
 import scipy.stats
 import xmltodict
 
@@ -17,7 +18,7 @@ def read_areacomp(filename):
     return pd.read_csv(filename, skiprows=4)
 
 
-def read_qrev_xml(filename, encoding='utf-8'):
+def read_qrev_xml(filename, encoding="utf-8"):
     with open(filename, encoding=encoding) as fd:
         return xmltodict.parse(fd.read())
 
@@ -41,44 +42,43 @@ def parse_qrev_xml(doc, negateq=False):
     """
 
     adcp = {}
-    dct = doc['Channel']['Transect']
+    dct = doc["Channel"]["Transect"]
     r = range(len(dct))
 
-    adcp['starttime'] = pd.to_datetime(
-        [dct[n]['StartDateTime']['#text'] for n in r])
-    adcp['endtime'] = pd.to_datetime(
-        [dct[n]['EndDateTime']['#text'] for n in r])
-    adcp['q'] = np.asarray(
-        [float(dct[n]['Discharge']['Total']['#text']) for n in r])
-    adcp['AreaQrev'] = np.asarray(
-        [float(dct[n]['Other']['Area']['#text']) for n in r])
-    adcp['Width'] = np.asarray(
-        [float(dct[n]['Other']['Width']['#text']) for n in r])
-    adcp['QoverA'] = np.asarray(
-        [float(dct[n]['Other']['QoverA']['#text']) for n in r])
-    adcp['filename'] = np.asarray(
-        [dct[n]['Filename']['#text'] for n in r])
+    adcp["starttime"] = pd.to_datetime([dct[n]["StartDateTime"]["#text"] for n in r])
+    adcp["endtime"] = pd.to_datetime([dct[n]["EndDateTime"]["#text"] for n in r])
+    adcp["q"] = np.asarray([float(dct[n]["Discharge"]["Total"]["#text"]) for n in r])
+    adcp["AreaQrev"] = np.asarray([float(dct[n]["Other"]["Area"]["#text"]) for n in r])
+    adcp["Width"] = np.asarray([float(dct[n]["Other"]["Width"]["#text"]) for n in r])
+    adcp["QoverA"] = np.asarray([float(dct[n]["Other"]["QoverA"]["#text"]) for n in r])
+    adcp["filename"] = np.asarray([dct[n]["Filename"]["#text"] for n in r])
 
+    adcp["time"] = pd.to_datetime(
+        np.mean(
+            [adcp["starttime"].view("i8"), adcp["endtime"].view("i8")], axis=0
+        ).astype("datetime64[ns]")
+    )
 
-    adcp['time'] = pd.to_datetime(
-        np.mean([adcp['starttime'].view('i8'), adcp['endtime'].view('i8')],
-                axis=0).astype('datetime64[ns]'))
-
-    adcp['qnegated'] = negateq
+    adcp["qnegated"] = negateq
     if negateq:
-        adcp['q'] = -adcp['q']
+        adcp["q"] = -adcp["q"]
 
-    df = pd.DataFrame(adcp, columns=['time',
-                                     'q',
-                                     'AreaQrev',
-                                     'Width',
-                                     'QoverA',
-                                     'qnegated',
-                                     'starttime',
-                                     'endtime',
-                                     'filename'])
+    df = pd.DataFrame(
+        adcp,
+        columns=[
+            "time",
+            "q",
+            "AreaQrev",
+            "Width",
+            "QoverA",
+            "qnegated",
+            "starttime",
+            "endtime",
+            "filename",
+        ],
+    )
 
-    return df.set_index('time')
+    return df.set_index("time")
 
 
 def linregress(adcp):
@@ -87,10 +87,12 @@ def linregress(adcp):
     and standard error of the slope. This is just a wrapper around
     `scipy.stats.linregress()`
     """
-    (adcp['slope'],
-     adcp['intercept'],
-     adcp['r_value'],
-     adcp['p_value'],
-     adcp['std_err']) = scipy.stats.linregress(adcp['veli'], adcp['Vca'])
+    (
+        adcp["slope"],
+        adcp["intercept"],
+        adcp["r_value"],
+        adcp["p_value"],
+        adcp["std_err"],
+    ) = scipy.stats.linregress(adcp["veli"], adcp["Vca"])
 
     return adcp

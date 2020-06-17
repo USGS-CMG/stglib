@@ -44,6 +44,7 @@ Currently, this package has at least partial support for:
    indexvel
    turnaround
    code
+   contributing
 
 
 Indices and tables
