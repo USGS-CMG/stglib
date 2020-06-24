@@ -1,24 +1,41 @@
 Installation
 ************
 
-Ensure you have a working Anaconda or `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ installation. Both approaches below require this.
-
-The easy way
-============
+The easy (CHS) way
+==================
 
 Create a Pangeo CHS account.
 
-Create an stglib environment:
+Log in to CHS Pangeo JupyterHub, and edit/create your ``~/.condarc`` file:
 
-``conda create -n stglib``
+  channels:
+    - conda-forge
+    - defaults
+  channel_priority: strict
+  envs_dirs:
+    - /home/jovyan/my-conda-envs
 
-Activate the environment:
+Then create the stglib environment, install stglib, and activate the environment:
 
-``conda activate stglib``
+  conda create -n stglib stglib ipykernel
+  conda activate stglib
 
-Install stglib:
+Now you can start processing data!
 
-``conda install -c conda-forge stglib``
+The easy (local machine) way
+==================
+
+Ensure you have a working Anaconda or `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ installation.
+
+Set your channel priority to conda-forge:
+
+  conda config --add channels conda-forge
+  conda config --set channel_priority strict
+
+Install and activate an stglib environment:
+
+  conda create -n stglib stglib
+  conda activate stglib
 
 Now you can start processing data!
 
