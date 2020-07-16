@@ -96,6 +96,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     else:
         VEL = utils.rename_time(VEL)
 
+    if utils.is_cf(VEL):
+        VEL = utils.add_standard_names(VEL)
+
     for var in VEL.variables:
         if (var not in VEL.coords) and ("time" not in var):
             # cast as float32

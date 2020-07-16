@@ -221,6 +221,32 @@ def ds_coord_no_fillvalue(ds):
     return ds
 
 
+def add_standard_names(ds):
+
+    standard_names = {'Hdg_1215': 'platform_orientation',
+    'Ptch_1216': 'platform_pitch',
+    'Roll_1217': 'platform_roll',
+    'P_1': 'sea_water_pressure',
+    'Tx_1211': 'sea_water_temperature',
+    'P_1ac': 'sea_water_pressure_due_to_sea_water',
+    'u_1205': 'eastward_sea_water_velocity',
+    'v_1206': 'northward_sea_water_velocity',
+    'w_1204': 'upward_sea_water_velocity',
+    # 'AGC_1202'
+    }
+
+    for k in standard_names:
+        if k in ds:
+            if 'standard_name' not in ds[k].attrs:
+                ds[k].attrs['standard_name'] = standard_names[k]
+
+    if 'Tx_1211' in ds:
+        if ds['Tx_1211'].attrs['units'] == 'C':
+            ds['Tx_1211'].attrs['units'] = 'degree_C'
+
+    return ds
+
+
 def ds_add_attrs(ds):
     """
     Add EPIC and other attributes to variables
