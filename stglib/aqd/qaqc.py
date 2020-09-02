@@ -84,7 +84,13 @@ def load_cdf(cdf_filename, atmpres=False):
         p.close()
         # TODO: check to make sure this data looks OK
         ds["Pressure_ac"] = xr.DataArray(
-            ds["Pressure"] - p["atmpres"] - p["atmpres"].offset
+            ds["Pressure"]
+            - p["atmpres"].reindex_like(
+                ds["Pressure"], method="nearest", tolerance="5s"
+            )
+            - p[
+                "atmpres"
+            ].offset  # need to set a tolerance since we can be off by a couple seconds somewhere
         )
 
     return ds
