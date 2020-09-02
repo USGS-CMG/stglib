@@ -76,12 +76,10 @@ def load_cdf(cdf_filename, atmpres=False):
     Load raw .cdf file and, optionally, an atmospheric pressure .cdf file
     """
 
-    ds = xr.open_dataset(cdf_filename).load()
-    ds.close()
+    ds = xr.load_dataset(cdf_filename)
 
     if atmpres is not False:
-        p = xr.open_dataset(atmpres).load()
-        p.close()
+        p = xr.load_dataset(atmpres)
         # TODO: check to make sure this data looks OK
         ds["Pressure_ac"] = xr.DataArray(
             ds["Pressure"]
