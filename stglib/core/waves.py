@@ -110,7 +110,10 @@ def transfer_function(k, h, z):
     Kp : float
         Presssure transfer function
     """
-    Kp = np.cosh(k * z) / np.cosh(k * np.expand_dims(h, 1))
+    if h.ndim == 0:
+        Kp = np.cosh(k * z) / np.cosh(k * h)
+    else:
+        Kp = np.cosh(k * z) / np.cosh(k * np.expand_dims(h, 1))
 
     # set Kp nans at 0 frequency to 1
     Kp[np.isnan(k)] = 1
@@ -465,10 +468,22 @@ def puv_quick(
     Snu = Guv[ff:lf] / (Huv[ff:lf] ** 2)
     fclip = frequencies[ff:lf]
 
+    Kp = transfer_function(k, depth, height_of_pressure)
+    tailind, noisecutind, fpeakcutind, Kpcutind = define_cutoff(frequencies, Gpp, Kp)
+    Snp_tail = make_tail(frequencies, Gpp/Hp**2, tailind)
+
+    Kp_u = transfer_function(k, depth, height_of_velocity)
+    tailind_u, noisecutind_u, fpeakcutind_u, Kpcutind_u = define_cutoff(frequencies, Guv, Kp_u)
+    Snu_tail = make_tail(frequencies, Guv/Huv**2, tailind_u)
+
     # Determine rms wave height (multiply by another sqrt(2) for Hs)
     # Thornton and Guza say Hrms = sqrt(8 mo)
     Hrmsu = 2 * np.sqrt(2 * np.sum(Snu * df))
     Hrmsp = 2 * np.sqrt(2 * np.sum(Snp * df))
+
+    # skip the zero frequency by starting at 1
+    Hrmsu_tail = 2 * np.sqrt(2 * np.sum(Snu_tail[1:] * df))
+    Hrmsp_tail = 2 * np.sqrt(2 * np.sum(Snp_tail[1:] * df))
 
     # These are representative orbital velocities for w-c calculations,
     # according to Madsen (1994) Coastal Engineering 1994, Proc., 24th
@@ -540,6 +555,16 @@ def puv_quick(
         "ublo": ublo,
         "ubhi": ubhi,
         "ubig": ubig,
+        "frequencies": frequencies,
+        "Gpp": Gpp,
+        "Guv": Guv,
+        "Snp": Snp,
+        "Snu": Snu,
+        "Snp_tail": Snp_tail,
+        "Snu_tail": Snu_tail,
+        "Hrmsp_tail": Hrmsp_tail,
+        "Hrmsu_tail": Hrmsu_tail,
+        "fclip": fclip
     }
 
     if check_variances:

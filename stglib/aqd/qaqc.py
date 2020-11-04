@@ -144,6 +144,8 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
         print("Data are in %s coordinates; transforming to Earth " "coordinates" % cs)
 
         for i in range(N):
+            if not i % 200:
+                print("{:.1f}% complete".format(i / N * 100))
             hh = np.pi * (heading[i] - 90) / 180
             pp = np.pi * pitch[i] / 180
             rr = np.pi * roll[i] / 180
