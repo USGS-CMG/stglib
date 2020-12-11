@@ -23,7 +23,7 @@ jobs:
         conda config --set always_yes yes --set changeps1 no
         conda config --add channels conda-forge
         conda env create -n test-environment -f requirements-py38.yml
-        conda activate test-environment
+        source activate test-environment
         pip install --no-deps -e .
     # - name: Lint with flake8
     #   run: |
