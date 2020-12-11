@@ -76,15 +76,19 @@ def load_cdf(cdf_filename, atmpres=False):
     Load raw .cdf file and, optionally, an atmospheric pressure .cdf file
     """
 
-    ds = xr.open_dataset(cdf_filename).load()
-    ds.close()
+    ds = xr.load_dataset(cdf_filename)
 
     if atmpres is not False:
-        p = xr.open_dataset(atmpres).load()
-        p.close()
+        p = xr.load_dataset(atmpres)
         # TODO: check to make sure this data looks OK
         ds["Pressure_ac"] = xr.DataArray(
-            ds["Pressure"] - p["atmpres"] - p["atmpres"].offset
+            ds["Pressure"]
+            - p["atmpres"].reindex_like(
+                ds["Pressure"], method="nearest", tolerance="5s"
+            )
+            - p[
+                "atmpres"
+            ].offset  # need to set a tolerance since we can be off by a couple seconds somewhere
         )
 
     return ds
@@ -140,6 +144,8 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
         print("Data are in %s coordinates; transforming to Earth " "coordinates" % cs)
 
         for i in range(N):
+            if not i % 200:
+                print("{:.1f}% complete".format(i / N * 100))
             hh = np.pi * (heading[i] - 90) / 180
             pp = np.pi * pitch[i] / 180
             rr = np.pi * roll[i] / 180

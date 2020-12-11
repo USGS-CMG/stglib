@@ -1,9 +1,10 @@
 from __future__ import division, print_function
 
 import xarray as xr
+import numpy as np
 
 from ..core import utils, waves
-
+from . import qaqc
 
 def nc_to_waves(nc_filename):
 
@@ -22,6 +23,75 @@ def nc_to_waves(nc_filename):
 
     for k in ["wp_peak", "wh_4061", "wp_4060", "pspec"]:
         ds[k] = spec[k]
+
+    dopuv = False
+    if dopuv:
+        print('Computing PUV')
+        desc = {'Hrmsp': 'Hrms (=Hmo) from pressure',
+                'Hrmsu': 'Hrms from u,v',
+                'ubr': 'Representative orbital velocity amplitude in freq. band ( first_frequency_cutoff <= f <= last_frequency_cutoff ) (m/s)',
+                'omegar': 'Representative orbital velocity (radian frequency)',
+                'Tr': 'Representative orbital velocity period (s)',
+                'Tpp': 'Peak period from pressure (s)',
+                'Tpu': 'Peak period from velocity (s)',
+                'phir': 'Representative orbital velocity direction (angles from x-axis, positive ccw)',
+                'azr': 'Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees)',
+                'ublo': 'ubr in freq. band (f <= first_frequency_cutoff) (m/s)',
+                'ubhi': 'ubr in freq. band (f >= last_frequency_cutoff) (m/s)',
+                'ubig': 'ubr in infra-gravity freq. band (first_frequency_cutoff f <= 1/20) (m/s)'}
+        if ds.attrs["orientation"] != "UP":
+            raise NotImplementedError('PUV currently only works on UP oriented instruments')
+        # only works on UP because we assume T = T_orig
+        # need to pass .values because passing the DataArray is MUCH slower
+        u, v, w = qaqc.coord_transform(ds['vel1_1277'].squeeze().values/1000, ds['vel2_1278'].squeeze().values/1000, ds['vel3_1279'].squeeze().values/1000,
+                                       ds['Hdg_1215'].squeeze().values, ds['Ptch_1216'].squeeze().values, ds['Roll_1217'].squeeze().values,
+                                       ds['TransMatrix'].squeeze().values, ds['TransMatrix'].squeeze().values,
+                                       ds.attrs["AQDCoordinateSystem"])
+        ds['u_1205'] = xr.DataArray(u, dims=('time', 'sample'))
+        ds['v_1206'] = xr.DataArray(v, dims=('time', 'sample'))
+        ds['w_1204'] = xr.DataArray(w, dims=('time', 'sample'))
+        N, M = np.shape(ds['vel1_1277'].squeeze())
+        puvs = {'Hrmsp': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'Hrmsu': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'ubr': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'omegar': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'Tr': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'Tpp': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'Tpu': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'phir': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'azr': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'ublo': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'ubhi': np.full_like(ds['time'].values, np.nan, dtype=float),
+                'ubig': np.full_like(ds['time'].values, np.nan, dtype=float)}
+
+        for n in range(N):
+            if not n % 200:
+                print('{:.1f}% complete'.format(n/N*100))
+            try:
+                puv = waves.puv_quick(ds['P_1'][n,:].values,
+                                      u[n,:],
+                                      v[n,:],
+                                      ds['P_1'][n,:].mean().values+ds.attrs['initial_instrument_height'],
+                                      ds.attrs['initial_instrument_height'],
+                                      ds.attrs['initial_instrument_height']+ds.attrs['center_first_bin'],
+                                      1/ds.attrs['sample_interval'],
+                                      first_frequency_cutoff=1/10,
+                                      last_frequency_cutoff=1/2.5)
+                for k in puvs:
+                    puvs[k][n] = puv[k]
+
+            except AttributeError: # puv_quick will fail on some values and return AttributeError: 'float' object has no attribute 'astype'
+                continue
+
+        for k in puvs:
+            ds['puv_' + k] = xr.DataArray(puvs[k], dims='time')
+            ds['puv_' + k].attrs['description'] = desc[k]
+
+        # add in Hs
+        ds['puv_Hsp'] = np.sqrt(2) * ds['puv_Hrmsp']
+        ds['puv_Hsp'].attrs['description'] = 'Hs computed via sqrt(2) * Hrmsp'
+        ds['puv_Hsu'] = np.sqrt(2) * ds['puv_Hrmsu']
+        ds['puv_Hsu'].attrs['description'] = 'Hs computed via sqrt(2) * Hrmsu'
 
     # ds = utils.create_water_depth(ds)
 
@@ -52,6 +122,9 @@ def nc_to_waves(nc_filename):
         "Ptch_1216",
         "Roll_1217",
     ]
+
+    if dopuv:
+        keys.remove("sample")
 
     for k in keys:
         if k in ds:

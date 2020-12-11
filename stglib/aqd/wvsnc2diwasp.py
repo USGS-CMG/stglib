@@ -14,8 +14,7 @@ def nc_to_diwasp(nc_filename, format="NETCDF3_64BIT"):
 
     ds = utils.create_epic_times(ds)
 
-    mat = xr.open_dataset(ds.attrs["filename"] + "wvs-diwasp.nc").load()
-    mat.close()
+    mat = xr.load_dataset(ds.attrs["filename"] + "wvs-diwasp.nc")
 
     ds["frequency"] = xr.DataArray(mat["frequency"], dims=("frequency"))
 
