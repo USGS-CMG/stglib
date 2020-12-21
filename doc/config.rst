@@ -3,6 +3,17 @@ Configuration files
 
 There are two required configuration files for processing data. Contents of both files will be included as attributes in both the xarray Dataset and the netCDF files.
 
+Transitioning from EPIC to CF Conventions
+=========================================
+
+Historically, data have been released according to NOAA PMEL/EPIC conventions. Today, `CF Conventions <http://cfconventions.org>`_ are used much more frequently, and moving forward most data sets will be released following CF. This is supported within stglib by use of the ``Conventions`` keyword in the instrument configuration file. Setting this to:
+
+::
+
+  Conventions: 'CF-1.6'
+
+(or a later release of the standard) will enable straight-to-CF processing.
+
 Global attributes configuration file
 ====================================
 
