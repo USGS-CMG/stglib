@@ -110,7 +110,7 @@ def transfer_function(k, h, z):
     Kp : float
         Presssure transfer function
     """
-    if h.ndim == 0:
+    if isinstance(h, float) or h.ndim == 0:
         Kp = np.cosh(k * z) / np.cosh(k * h)
     else:
         Kp = np.cosh(k * z) / np.cosh(k * np.expand_dims(h, 1))
