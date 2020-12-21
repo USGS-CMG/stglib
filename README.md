@@ -1,7 +1,7 @@
 # stglib - Process data from a variety of oceanographic instrumentation
 
 [![Documentation Status](https://readthedocs.org/projects/stglib/badge/?version=latest)](http://stglib.readthedocs.io/en/latest/?badge=latest)
-[![Build Status](https://travis-ci.org/dnowacki-usgs/stglib.svg?branch=master)](https://travis-ci.org/dnowacki-usgs/stglib)
+![stglib](https://github.com/dnowacki-usgs/stglib/workflows/stglib/badge.svg)
 [![Build status](https://ci.appveyor.com/api/projects/status/wo806dsxd3lhpict?svg=true)](https://ci.appveyor.com/project/dnowacki-usgs/stglib)
 
 This package contains code to process data from a variety of oceanographic instrumentation, consistent with the procedures of the Sediment Transport Group at the USGS Woods Hole Coastal and Marine Science Center.
