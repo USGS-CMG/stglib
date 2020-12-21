@@ -1,4 +1,4 @@
-name: stglib_test_conda
+name: stglib
 
 on: [push]
 
