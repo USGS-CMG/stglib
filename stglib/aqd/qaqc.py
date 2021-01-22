@@ -250,11 +250,23 @@ def magvar_correct(ds):
 
     print("Rotating heading and horizontal velocities by %f degrees" % magvardeg)
 
-    ds["Heading"] = ds["Heading"] + magvardeg
-    ds["Heading"][ds["Heading"] >= 360] = ds["Heading"][ds["Heading"] >= 360] - 360
-    ds["Heading"][ds["Heading"] < 0] = ds["Heading"][ds["Heading"] < 0] + 360
+    if "Heading" in ds:
+        headvar = "Heading"
+    elif "Hdg" in ds:
+        headvar = "Hdg"
 
-    ds["U"], ds["V"] = rotate(ds["U"], ds["V"], magvardeg)
+    ds[headvar].values = ds[headvar].values + magvardeg
+    ds[headvar].values[ds[headvar].values >= 360] = ds[headvar].values[ds[headvar].values >= 360] - 360
+    ds[headvar].values[ds[headvar].values < 0] = ds[headvar].values[ds[headvar].values < 0] + 360
+
+    if "U" in ds and "V" in ds:
+        uvar = "U"
+        vvar = "V"
+    elif "u_1205" in ds and "v_1206" in ds:
+        uvar = "u_1205"
+        vvar = "v_1206"
+
+    ds[uvar].values, ds[vvar].values = rotate(ds[uvar].values, ds[vvar].values, magvardeg)
 
     return ds
 
