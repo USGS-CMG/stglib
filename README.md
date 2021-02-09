@@ -4,7 +4,7 @@
 ![stglib](https://github.com/dnowacki-usgs/stglib/workflows/stglib/badge.svg)
 [![Build status](https://ci.appveyor.com/api/projects/status/wo806dsxd3lhpict?svg=true)](https://ci.appveyor.com/project/dnowacki-usgs/stglib)
 
-This package contains code to process data from a variety of oceanographic instrumentation, consistent with the procedures of the Sediment Transport Group at the USGS Woods Hole Coastal and Marine Science Center.
+This package contains code to process data from a variety of oceanographic instrumentation, consistent with the procedures of the USGS [Coastal/Marine Hazards and Resources Program](https://marine.usgs.gov) (formerly Coastal and Marine Geology Program).
 
 Currently, this package has at least partial support for:
 
