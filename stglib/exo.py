@@ -91,9 +91,17 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
     # Apply sensor serial numbers to each sensor
     for k in exo.variables:
         if "fDOM" in k:
-            exo[k].attrs["sensor_serial_number"] = hdr["fDOM"]["sensor_serial_number"]
+            if "fDOM" in hdr:
+                hdrvar = "fDOM"
+            elif "fDOM QSU" in hdr:
+                hdrvar = "fDOM QSU"
+            exo[k].attrs["sensor_serial_number"] = hdr[hdrvar]["sensor_serial_number"]
         elif "Chlorophyll" in k or "BGA-PE" in k:
-            exo[k].attrs["sensor_serial_number"] = hdr["Total Algae BGA-PE"][
+            if "Total Algae BGA-PE" in hdr:
+                hdrvar = "Total Algae BGA-PE"
+            elif "BGA PE RFU" in hdr:
+                hdrvar = "BGA PE RFU"
+            exo[k].attrs["sensor_serial_number"] = hdr[hdrvar][
                 "sensor_serial_number"
             ]
         elif "Temp" in k or "Cond" in k or "Sal" in k:
@@ -126,14 +134,17 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
         elif "pH" in k:
             exo[k].attrs["sensor_serial_number"] = hdr["pH"]["sensor_serial_number"]
         elif "Press" in k or "Depth" in k:
-            try:
-                exo[k].attrs["sensor_serial_number"] = hdr["Depth Non-Vented 0-10m"][
-                    "sensor_serial_number"
-                ]
-            except KeyError:
-                exo[k].attrs["sensor_serial_number"] = hdr["Depth m"][
-                    "sensor_serial_number"
-                ]
+            if "Depth Non-Vented 0-10m" in hdr:
+                hdrvar = "Depth Non-Vented 0-10m"
+            elif "Depth m" in hdr:
+                hdrvar = "Depth m"
+            elif "Pressure psi a" in hdr:
+                hdrvar = "Pressure psi a"
+            else:
+                hdrvar = None
+            exo[k].attrs["sensor_serial_number"] = hdr[hdrvar][
+                "sensor_serial_number"
+            ]
 
     return exo
 
