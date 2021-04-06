@@ -101,9 +101,7 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
                 hdrvar = "Total Algae BGA-PE"
             elif "BGA PE RFU" in hdr:
                 hdrvar = "BGA PE RFU"
-            exo[k].attrs["sensor_serial_number"] = hdr[hdrvar][
-                "sensor_serial_number"
-            ]
+            exo[k].attrs["sensor_serial_number"] = hdr[hdrvar]["sensor_serial_number"]
         elif "Temp" in k or "Cond" in k or "Sal" in k:
             if "Unknown CT" in hdr:
                 exo[k].attrs["sensor_serial_number"] = hdr["Unknown CT"][
@@ -142,9 +140,7 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
                 hdrvar = "Pressure psi a"
             else:
                 hdrvar = None
-            exo[k].attrs["sensor_serial_number"] = hdr[hdrvar][
-                "sensor_serial_number"
-            ]
+            exo[k].attrs["sensor_serial_number"] = hdr[hdrvar]["sensor_serial_number"]
 
     return exo
 
@@ -470,7 +466,7 @@ def read_exo_header(filnam, encoding="utf-8"):
                 header[var]["data_columns"] = [
                     int(x) for x in vals.values[0][3].split(";")
                 ]
-    except pd.errors.ParserError:
+    except (pd.errors.ParserError, KeyError):
         # new version of KOR export file
         hdr = pd.read_csv(filnam, skiprows=4, encoding=encoding)
         hdr = pd.DataFrame(hdr.iloc[:, 3:-1])
