@@ -37,6 +37,8 @@ Options common to most (all?) instrument config files:
 - ``initial_instrument_height_note``
 - ``P_1ac_note``: a note on the atmospheric pressure source used
 - ``zeroed_pressure``: a note detailing whether the pressure sensor was zeroed before deployment, and other pertinent details such as date and time of zeroing.
+- ``good_dates``: a list of dates to clip data by instead of the default ``Deployment_date`` and ``Recovery_date``. Example: ``good_dates: ['2021-01-22 18:32', '2021-04-13 19:27'] # first burst looked suspect``
+- ``good_ens``: a list of good indices (based on the raw file, zero-based) to clip the data by. Example: ``good_ens: [10 500]``
 
 Aquadopp
 --------
