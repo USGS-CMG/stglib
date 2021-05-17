@@ -4,7 +4,7 @@ from ..core import utils
 from . import qaqc
 
 
-def cdf_to_nc(cdf_filename, atmpres=False, writefile=True, format="NETCDF3_64BIT"):
+def cdf_to_nc(cdf_filename, atmpres=False, writefile=True): # , format="NETCDF3_64BIT"): # don't think we need to fall back to netcdf3 any more
 
     # Load raw .cdf data
     ds = qaqc.load_cdf(cdf_filename, atmpres=atmpres)
@@ -52,7 +52,7 @@ def cdf_to_nc(cdf_filename, atmpres=False, writefile=True, format="NETCDF3_64BIT
 
     if writefile:
         nc_filename = ds.attrs["filename"] + "wvsb-cal.nc"
-        ds.to_netcdf(nc_filename, format=format)
+        ds.to_netcdf(nc_filename)
         # Rename time variables for EPIC compliance, keeping a time_cf
         # coorindate.
         utils.rename_time_2d(nc_filename, ds)
