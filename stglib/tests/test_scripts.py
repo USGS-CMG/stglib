@@ -4,7 +4,7 @@ import pytest
 
 def exo_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["runexocsv2cdf.py", glob_att, config_yaml],
+        ["python", "../../../scripts/runexocsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -13,7 +13,9 @@ def exo_raw(glob_att, config_yaml):
 
 def exo_nc(nc_file):
     result = subprocess.run(
-        ["runexocdf2nc.py", nc_file], capture_output=True, cwd="stglib/tests/data",
+        ["python", "../../../scripts/runexocdf2nc.py", nc_file],
+        capture_output=True,
+        cwd="stglib/tests/data",
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
