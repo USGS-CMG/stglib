@@ -10,6 +10,9 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v2
+        with:
+          lfs: true
+      - run: git lfs checkout
       - uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: test-environment
