@@ -287,8 +287,11 @@ def ds_rename_vars(ds):
         # capitalization based on Chincoteague names
         "Chlorophyll_RFU": "CHLrfu",
         "Chlorophyll_µg_per_L": "Fch_906",
+        "Chlorophyll_ug_per_L": "Fch_906", #added variable name
         "BGA-PE_RFU": "BGAPErfu",
+        "BGA_PE_RFU": "BGAPErfu", #added variable name
         "BGA-PE_µg_per_L": "BGAPE",
+        "BGA_PE_ug_per_L": "BGAPE", #added variable name
         "Temp_°C": "T_28",
         "Temp_∞C": "T_28",
         "Cond_mS_per_cm": "C_51",
