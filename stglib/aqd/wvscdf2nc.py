@@ -19,6 +19,25 @@ def cdf_to_nc(cdf_filename, atmpres=False, writefile=True): # , format="NETCDF3_
     # Create depth variable depending on orientation
     ds, T, T_orig = qaqc.set_orientation(ds, ds["TransMatrix"].values)
 
+    # Transform coordinates from ENU to BEAM if necessary
+    if ds.attrs["AQDCoordinateSystem"] == "ENU":
+        print("Converting from ENU to BEAM because DIWASP requires BEAM data")
+        u, v, w = qaqc.coord_transform(
+            ds["VEL1"].values,
+            ds["VEL2"].values,
+            ds["VEL3"].values,
+            ds["Heading"].values,
+            ds["Pitch"].values,
+            ds["Roll"].values,
+            T,
+            T_orig,
+            ds.attrs["AQDCoordinateSystem"],
+            out="BEAM"
+        )
+        ds["VEL1"].values = u
+        ds["VEL2"].values = v
+        ds["VEL3"].values = w
+
     # Make bin_depth variable
     ds = qaqc.make_bin_depth(ds, waves=True)
 
