@@ -124,7 +124,7 @@ def make_tilt(p, r):
     )
 
 
-def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
+def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs, out="ENU"):
     """Perform coordinate transformation to ENU"""
 
     N, M = np.shape(vel1)
@@ -133,15 +133,21 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
     v = np.zeros((N, M))
     w = np.zeros((N, M))
 
-    if cs == "ENU":
-        print("Data already in Earth coordinates; doing nothing")
+    if cs == "ENU" and out == "ENU":
+        print(
+            f"Data already in {cs} coordinates and conversion to {out} requested. Doing nothing."
+        )
 
         u = vel1
         v = vel2
         w = vel3
 
-    elif cs == "XYZ" or cs == "BEAM":
-        print("Data are in %s coordinates; transforming to Earth " "coordinates" % cs)
+    elif (
+        (cs == "XYZ" and out == "ENU")
+        or (cs == "BEAM" and out == "ENU")
+        or (cs == "ENU" and out == "BEAM")
+    ):
+        print(f"Data are in {cs} coordinates; transforming to {out} coordinates")
 
         for i in range(N):
             if not i % 200:
@@ -163,7 +169,7 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
 
             # resulting transformation matrix
             R = np.dot(np.dot(H, P), T)
-            if cs == "XYZ":
+            if cs == "XYZ" and out == "ENU":
                 for j in range(M):
                     vel = np.dot(
                         np.dot(R, np.linalg.inv(T_orig)),
@@ -173,12 +179,25 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs):
                     v[i, j] = vel[1]
                     w[i, j] = vel[2]
 
-            elif cs == "BEAM":
+            elif cs == "BEAM" and out == "ENU":
                 for j in range(M):
                     vel = np.dot(R, np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T)
                     u[i, j] = vel[0]
                     v[i, j] = vel[1]
                     w[i, j] = vel[2]
+            elif cs == "ENU" and out == "BEAM":
+                for j in range(M):
+                    vel = np.dot(
+                        np.linalg.inv(R),
+                        np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T,
+                    )
+                    u[i, j] = vel[0]
+                    v[i, j] = vel[1]
+                    w[i, j] = vel[2]
+    else:
+        raise NotImplementedError(
+            f"stglib does not currently input of {cs} and output of {out} coordinates"
+        )
 
     return u, v, w
 

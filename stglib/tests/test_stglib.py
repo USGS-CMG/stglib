@@ -202,6 +202,56 @@ class TestAqd(unittest.TestCase):
 
         np.testing.assert_allclose(result, expected)
 
+    def test_enu_to_beam(self):
+
+        u, v, w = stglib.aqd.qaqc.coord_transform(
+            self.vel1,
+            self.vel2,
+            self.vel3,
+            self.h,
+            self.p,
+            self.r,
+            self.T,
+            self.T_orig,
+            "ENU",
+            out="BEAM",
+        )
+
+        result = np.hstack((u, v, w))
+        expected = np.array(
+            [
+                [-0.205082872928177, -0.530386740331492, -0.282872928176796],
+                [-0.119200507549660, -0.560858435907167, -0.272942923938390],
+                [-0.263060314265879, 0.500555560423395, 0.213656942707165],
+            ]
+        )
+
+        np.testing.assert_allclose(result, expected)
+
+    def test_enu_beam_roundtrip(self):
+
+        u, v, w = stglib.aqd.qaqc.coord_transform(
+            self.vel1,
+            self.vel2,
+            self.vel3,
+            self.h,
+            self.p,
+            self.r,
+            self.T,
+            self.T_orig,
+            "ENU",
+            out="BEAM",
+        )
+
+        v1, v2, v3 = stglib.aqd.qaqc.coord_transform(
+            u, v, w, self.h, self.p, self.r, self.T, self.T_orig, "BEAM"
+        )
+
+        result = np.hstack((v1, v2, v3))
+        expected = np.hstack((self.vel1, self.vel2, self.vel3))
+
+        np.testing.assert_allclose(result, expected)
+
     def test_set_orientation(self):
         depth = 2 + np.sin(np.linspace(0, 2 * np.pi, np.shape(self.ds["time"])[0]))
         bindist = np.array([0.3, 0.4, 0.5, 0.6, 0.7])
