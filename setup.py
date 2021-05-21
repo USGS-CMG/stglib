@@ -44,6 +44,7 @@ setup(
         "scripts/runiqmat2cdf.py",
         "scripts/runiqcdf2nc.py",
         "scripts/runrskrsk2cdf.py",
+        "scripts/runrskcsv2cdf.py",
         "scripts/runrskcdf2nc.py",
         "scripts/runrsknc2waves.py",
         "scripts/runrsknc2diwasp.py",

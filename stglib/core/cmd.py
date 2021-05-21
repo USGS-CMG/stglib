@@ -81,6 +81,19 @@ def wvsnc2waves_parser():
     return parser
 
 
+def rskcsv2cdf_parser():
+    description = (
+        "Convert exported RBR solo csv files to raw .cdf format. "
+        "Run this script from the directory "
+        "containing the files"
+    )
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
 def rskrsk2cdf_parser():
     description = (
         "Convert raw RBR d|wave files (.rsk) to raw .cdf format. "
