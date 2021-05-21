@@ -275,8 +275,12 @@ def magvar_correct(ds):
         headvar = "Hdg"
 
     ds[headvar].values = ds[headvar].values + magvardeg
-    ds[headvar].values[ds[headvar].values >= 360] = ds[headvar].values[ds[headvar].values >= 360] - 360
-    ds[headvar].values[ds[headvar].values < 0] = ds[headvar].values[ds[headvar].values < 0] + 360
+    ds[headvar].values[ds[headvar].values >= 360] = (
+        ds[headvar].values[ds[headvar].values >= 360] - 360
+    )
+    ds[headvar].values[ds[headvar].values < 0] = (
+        ds[headvar].values[ds[headvar].values < 0] + 360
+    )
 
     if "U" in ds and "V" in ds:
         uvar = "U"
@@ -285,7 +289,9 @@ def magvar_correct(ds):
         uvar = "u_1205"
         vvar = "v_1206"
 
-    ds[uvar].values, ds[vvar].values = rotate(ds[uvar].values, ds[vvar].values, magvardeg)
+    ds[uvar].values, ds[vvar].values = rotate(
+        ds[uvar].values, ds[vvar].values, magvardeg
+    )
 
     return ds
 
