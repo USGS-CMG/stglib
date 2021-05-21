@@ -4,9 +4,10 @@ import numpy as np
 import xarray as xr
 
 from ..core import utils
+from .. import exo
 
 
-def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF3_64BIT"):
+def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     """
     Load raw .cdf file, trim, apply QAQC, and save to .nc
     """
@@ -44,7 +45,8 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF3_64BIT"
 
     ds = ds_add_attrs(ds)
 
-    ds = ds_add_depth_dim(ds)
+    if "P_1" in ds:
+        ds = ds_add_depth_dim(ds)
 
     # add lat/lon coordinates to each variable
     # no longer want to do this according to the canonical forms on stellwagen
@@ -54,6 +56,12 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF3_64BIT"
 
     # trim by minimum pressure for instruments that go out of water_depth
     ds = trim_min(ds, "P_1ac")
+
+    if "Turb" in ds:
+        ds = exo.trim_min(ds, "Turb")
+        ds = exo.trim_max(ds, "Turb")
+        ds = exo.trim_min_diff(ds, "Turb")
+        ds = exo.trim_max_diff(ds, "Turb")
 
     ds = utils.add_min_max(ds)
 
@@ -73,7 +81,10 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF3_64BIT"
     if writefile:
         # Write to .nc file
         print("Writing cleaned/trimmed data to .nc file")
-        nc_filename = ds.attrs["filename"] + "b-cal.nc"
+        if "burst" in ds:
+            nc_filename = ds.attrs["filename"] + "b-cal.nc"
+        else:
+            nc_filename = ds.attrs["filename"] + "-a.nc"
 
         ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
 
@@ -184,6 +195,12 @@ def ds_add_attrs(ds):
     if "burst" in ds:
         ds["burst"].encoding["_FillValue"] = 1e35
 
+    if "Turb" in ds:
+        ds["Turb"].attrs.update(
+            {"units": "Nephelometric turbidity units (NTU)", "long_name": "Turbidity"}
+        )
+        ds["Turb"].encoding["_FillValue"] = 1e35
+
     ds.attrs["COMPOSITE"] = np.int32(0)
     ds.attrs["COORD_SYSTEM"] = "GEOGRAPHIC + sample"
 
@@ -192,6 +209,7 @@ def ds_add_attrs(ds):
 
 def dw_add_delta_t(ds):
 
-    ds.attrs["DELTA_T"] = int(ds.attrs["burst_interval"])
+    if "burst_interval" in ds:
+        ds.attrs["DELTA_T"] = int(ds.attrs["burst_interval"])
 
     return ds
