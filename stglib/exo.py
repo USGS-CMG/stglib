@@ -209,6 +209,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         if k in ds:
             ds = ds.drop(k)
 
+    if 'drop_vars' in ds.attrs:
+        for k in ds.attrs['drop_vars']:
+            if k in ds:
+                ds = ds.drop(k)
+
     if atmpres:
         print("Atmospherically correcting data")
 
