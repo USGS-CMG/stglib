@@ -985,6 +985,34 @@ def read_samplingrates_continuous(ds, conn):
     return ds
 
 
+def salinity_from_spcon(spcon):
+    """
+    Derive salinity from specific conductance following
+    Simplified conversions between specific conductance and salinity units for use with data from monitoring stations
+    Interagency Ecological Program Newsletter
+    By: Laurence E. Schemel
+    https://pubs.er.usgs.gov/publication/70174311
+    spcon must be in mS/cm
+    """
+
+    R = spcon / 53.087
+    K1 = 0.0120
+    K2 = -0.2174
+    K3 = 25.3283
+    K4 = 13.7714
+    K5 = -6.4788
+    K6 = 2.5842
+
+    return (
+        K1
+        + K2 * R ** 0.5
+        + K3 * R
+        + K4 * R ** (3 / 2)
+        + K5 * R ** 2
+        + K6 * R ** (5 / 2)
+    )
+
+
 def read_globalatts(fname):
     """
     Read global attributes file (glob_attxxxx.txt) and create metadata
