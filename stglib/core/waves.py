@@ -470,11 +470,13 @@ def puv_quick(
 
     Kp = transfer_function(k, depth, height_of_pressure)
     tailind, noisecutind, fpeakcutind, Kpcutind = define_cutoff(frequencies, Gpp, Kp)
-    Snp_tail = make_tail(frequencies, Gpp/Hp**2, tailind)
+    Snp_tail = make_tail(frequencies, Gpp / Hp ** 2, tailind)
 
     Kp_u = transfer_function(k, depth, height_of_velocity)
-    tailind_u, noisecutind_u, fpeakcutind_u, Kpcutind_u = define_cutoff(frequencies, Guv, Kp_u)
-    Snu_tail = make_tail(frequencies, Guv/Huv**2, tailind_u)
+    tailind_u, noisecutind_u, fpeakcutind_u, Kpcutind_u = define_cutoff(
+        frequencies, Guv, Kp_u
+    )
+    Snu_tail = make_tail(frequencies, Guv / Huv ** 2, tailind_u)
 
     # Determine rms wave height (multiply by another sqrt(2) for Hs)
     # Thornton and Guza say Hrms = sqrt(8 mo)
@@ -564,7 +566,7 @@ def puv_quick(
         "Snu_tail": Snu_tail,
         "Hrmsp_tail": Hrmsp_tail,
         "Hrmsu_tail": Hrmsu_tail,
-        "fclip": fclip
+        "fclip": fclip,
     }
 
     if check_variances:
