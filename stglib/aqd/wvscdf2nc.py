@@ -4,7 +4,9 @@ from ..core import utils
 from . import qaqc
 
 
-def cdf_to_nc(cdf_filename, atmpres=False, writefile=True): # , format="NETCDF3_64BIT"): # don't think we need to fall back to netcdf3 any more
+def cdf_to_nc(
+    cdf_filename, atmpres=False, writefile=True
+):  # , format="NETCDF3_64BIT"): # don't think we need to fall back to netcdf3 any more
 
     # Load raw .cdf data
     ds = qaqc.load_cdf(cdf_filename, atmpres=atmpres)
@@ -21,7 +23,11 @@ def cdf_to_nc(cdf_filename, atmpres=False, writefile=True): # , format="NETCDF3_
 
     # Transform coordinates from ENU to BEAM if necessary
     if "wave_coord_output" in ds.attrs:
-        print("Converting from {} to {} at user request".format(ds.attrs["AQDCoordinateSystem"], ds.attrs["output_wave_coord"]))
+        histtext = "Converting from {} to {} at user request. ".format(
+            ds.attrs["AQDCoordinateSystem"], ds.attrs["wave_coord_output"]
+        )
+        print(histtext)
+        ds = utils.insert_history(ds, histtext)
         u, v, w = qaqc.coord_transform(
             ds["VEL1"].values,
             ds["VEL2"].values,
@@ -32,7 +38,7 @@ def cdf_to_nc(cdf_filename, atmpres=False, writefile=True): # , format="NETCDF3_
             T,
             T_orig,
             ds.attrs["AQDCoordinateSystem"],
-            out=ds.attrs["wave_coord_output"]
+            out=ds.attrs["wave_coord_output"],
         )
         ds["VEL1"].values = u
         ds["VEL2"].values = v

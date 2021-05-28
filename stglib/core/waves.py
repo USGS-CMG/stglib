@@ -470,13 +470,20 @@ def puv_quick(
 
     Kp = transfer_function(k, depth, height_of_pressure)
     tailind, noisecutind, fpeakcutind, Kpcutind = define_cutoff(frequencies, Gpp, Kp)
-    Snp_tail = make_tail(frequencies, Gpp / Hp ** 2, tailind)
+    if np.isnan(tailind):
+        Snp_tail = np.nan
+    else:
+        Snp_tail = make_tail(frequencies, Gpp / Hp ** 2, tailind)
 
     Kp_u = transfer_function(k, depth, height_of_velocity)
     tailind_u, noisecutind_u, fpeakcutind_u, Kpcutind_u = define_cutoff(
         frequencies, Guv, Kp_u
     )
-    Snu_tail = make_tail(frequencies, Guv / Huv ** 2, tailind_u)
+
+    if np.isnan(tailind_u):
+        Snu_tail = np.nan
+    else:
+        Snu_tail = make_tail(frequencies, Guv / Huv ** 2, tailind_u)
 
     # Determine rms wave height (multiply by another sqrt(2) for Hs)
     # Thornton and Guza say Hrms = sqrt(8 mo)
@@ -484,8 +491,14 @@ def puv_quick(
     Hrmsp = 2 * np.sqrt(2 * np.sum(Snp * df))
 
     # skip the zero frequency by starting at 1
-    Hrmsu_tail = 2 * np.sqrt(2 * np.sum(Snu_tail[1:] * df))
-    Hrmsp_tail = 2 * np.sqrt(2 * np.sum(Snp_tail[1:] * df))
+    if np.isnan(tailind_u):
+        Hrmsu_tail = np.nan
+    else:
+        Hrmsu_tail = 2 * np.sqrt(2 * np.sum(Snu_tail[1:] * df))
+    if np.isnan(tailind):
+        Hrmsp_tail = np.nan
+    else:
+        Hrmsp_tail = 2 * np.sqrt(2 * np.sum(Snp_tail[1:] * df))
 
     # These are representative orbital velocities for w-c calculations,
     # according to Madsen (1994) Coastal Engineering 1994, Proc., 24th
@@ -523,9 +536,11 @@ def puv_quick(
     rr = np.corrcoef(u, v)
     ortest = np.sign(rr[1][0])
     phir = np.arctan2(ortest * np.sum(Gvv[ff:lf] * df), np.sum(Guu[ff:lf] * df))
+    phir_tail = np.arctan2(ortest * np.sum(Gvv * df), np.sum(Guu * df))
 
     # convert to degrees; convert to geographic azimuth (0-360, 0=north)
     azr = 90 - (180 / np.pi) * phir
+    azr_tail = 90 - (180 / np.pi) * phir_tail
 
     # Freq. bands for variance contributions
     ig = np.max(np.where(frequencies <= infra_gravity_cutoff))
@@ -560,12 +575,16 @@ def puv_quick(
         "frequencies": frequencies,
         "Gpp": Gpp,
         "Guv": Guv,
+        "Guu": Guu,
+        "Gvv": Gvv,
         "Snp": Snp,
         "Snu": Snu,
         "Snp_tail": Snp_tail,
         "Snu_tail": Snu_tail,
         "Hrmsp_tail": Hrmsp_tail,
         "Hrmsu_tail": Hrmsu_tail,
+        "phir_tail": phir_tail,
+        "azr_tail": azr_tail,
         "fclip": fclip,
     }
 
@@ -747,3 +766,11 @@ def test_variances(u, v, p, Gpp, Guu, Gvv, df, allowable_error=0.0):
         result = True
 
     return result
+
+
+def puv_qaqc(ds):
+    bads = ds["puv_Hrmsu_tail"].isnull()
+    for k in ["puv_phir_tail", "puv_azr_tail"]:
+        ds[k][bads] = np.nan
+
+    return ds
