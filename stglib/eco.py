@@ -134,7 +134,8 @@ def csv_to_cdf(metadata):
 
     del metadata
 
-    ds = utils.create_epic_times(ds)
+    if not utils.is_cf(ds):
+        ds = utils.create_epic_times(ds)
 
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
@@ -200,7 +201,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_start_stop_time(ds)
 
-    ds = utils.create_epic_times(ds)
+    if not utils.is_cf(ds):
+        ds = utils.create_epic_times(ds)
 
     ds = eco_add_delta_t(ds)
 
@@ -245,13 +247,15 @@ def ds_add_attrs(ds):
 
     ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
 
-    ds["epic_time"].attrs.update(
-        {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
-    )
+    if "epic_time" in ds:
+        ds["epic_time"].attrs.update(
+            {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
+        )
 
-    ds["epic_time2"].attrs.update(
-        {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
-    )
+    if "epic_time2" in ds:
+        ds["epic_time2"].attrs.update(
+            {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
+        )
 
     def add_attributes(var, dsattrs):
         var.attrs.update(
