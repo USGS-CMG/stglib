@@ -1,12 +1,29 @@
-WET labs ECO sensors
-********************
+Processing WET Labs ECO data
+****************************
 
-NTUSB
-=====
+Data will generally be processed using a series of run scripts. The first script for each instrument type
+depends on two :doc:`configuration files </config>`.
 
-Currently this module supports reading the text file saved from the terminal program used to interface with the instrument into an xarray ``Dataset`` using :py:meth:`~stglib.eco.read_ntu`.
+Instrument data to raw .cdf
+===========================
 
-PAR
-===
+Convert from  tab-delimited log file to a raw netCDF file with .cdf extension using ``runecocsv2cdf.py``.
 
-Currently this module supports reading the text file saved from the terminal program used to interface with the instrument into an xarray ``Dataset`` using :py:meth:`~stglib.eco.read_par`.
+runecocsv2cdf.py
+----------------
+
+.. argparse::
+   :ref: stglib.core.cmd.ecocsv2cdf_parser
+   :prog: runecocsv2cdf.py
+
+Raw .cdf to clean .nc
+=====================
+
+Convert the raw .cdf data into an EPIC- or CF-compliant netCDF file with .nc extension using ``runecocdf2nc.py``.
+
+runecocdf2nc.py
+---------------
+
+.. argparse::
+   :ref: stglib.core.cmd.ecocdf2nc_parser
+   :prog: runecocdf2nc.py
