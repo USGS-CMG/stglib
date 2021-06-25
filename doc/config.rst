@@ -61,6 +61,7 @@ d|wave-specific options include:
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
+- ``<VAR>_min``: fill values less than this minimum valid value. Values outside this range will become ``_FillValue``. Substitute your variable for ``<VAR>``, e.g. ``P_1ac_min``. Only works for ``P_1`` and ``P_1ac``. Useful for trimming by minimum pressure for instruments that go dry on some tidal cycles. Any data within the burst less than the threshold will result in the full burst being filled.
 
 .. literalinclude:: ../examples/dw_config.yaml
    :language: yaml
@@ -88,8 +89,8 @@ Note that negative numeric values in the YAML config file must be treated with c
    :language: yaml
    :linenos:
 
-NTU
----
+WET Labs ECO NTU
+----------------
 
 NTU-specific options include:
 
