@@ -366,9 +366,10 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
         # there might be a better way to do this using xarray and named
         # dimensions, but this works for now
         lastbin = np.argmin(np.all(np.isnan(ds[data_vars[0]].values), axis=0) == False)
-
+        
+        if not lastbin == 0:
         # this trims so there are no all-nan rows in the data
-        ds = ds.isel(bindist=slice(0, lastbin))
+            ds = ds.isel(bindist=slice(0, lastbin))
 
         # TODO: need to add histcomment
 
