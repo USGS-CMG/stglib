@@ -7,7 +7,9 @@ import xarray as xr
 from .core import utils
 
 
-def read_hobo(filnam, skiprows=1, skipfooter=0):
+def read_hobo(
+    filnam, skiprows=1, skipfooter=0, names=["#", "datetime", "abspres_kPa", "temp_C"]
+):
     """Read data from an Onset HOBO pressure sensor .csv file into an xarray
     Dataset.
 
@@ -27,14 +29,15 @@ def read_hobo(filnam, skiprows=1, skipfooter=0):
     """
     hobo = pd.read_csv(
         filnam,
-        usecols=[0, 1, 2, 3],
-        names=["#", "datetime", "abspres_kPa", "temp_C"],
+        usecols=np.arange(len(names)),
+        names=names,
         engine="python",
         skiprows=skiprows,
         skipfooter=skipfooter,
     )
     hobo["time"] = pd.to_datetime(hobo["datetime"])
-    hobo["abspres_dbar"] = hobo["abspres_kPa"] / 10
+    if "abspres_kPa" in hobo:
+        hobo["abspres_dbar"] = hobo["abspres_kPa"] / 10
     hobo.set_index("time", inplace=True)
 
     return xr.Dataset(hobo)
@@ -48,6 +51,8 @@ def csv_to_cdf(metadata):
     basefile = metadata["basefile"]
 
     kwargs = {"skiprows": metadata["skiprows"], "skipfooter": metadata["skipfooter"]}
+    if "names" in metadata:
+        kwargs["names"] = metadata["names"]
     try:
         ds = read_hobo(basefile + ".csv", **kwargs)
     except UnicodeDecodeError:
@@ -62,7 +67,10 @@ def csv_to_cdf(metadata):
 
     del metadata
 
-    ds = utils.create_epic_times(ds)
+    ds = utils.shift_time(ds, 0)
+
+    if not utils.is_cf(ds):
+        ds = utils.create_epic_times(ds)
 
     ds = drop_vars(ds)
 
@@ -79,7 +87,8 @@ def csv_to_cdf(metadata):
 
 
 def drop_vars(ds):
-    return ds.drop(["#", "datetime", "abspres_kPa"])
+    todrop = ["#", "datetime", "abspres_kPa"]
+    return ds.drop([x for x in todrop if x in ds])
 
 
 def ds_add_attrs(ds):
@@ -89,28 +98,92 @@ def ds_add_attrs(ds):
 
     ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
 
-    ds["epic_time"].attrs.update(
-        {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
-    )
+    if not utils.is_cf(ds):
+        ds["epic_time"].attrs.update(
+            {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
+        )
 
-    ds["epic_time2"].attrs.update(
-        {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
-    )
+        ds["epic_time2"].attrs.update(
+            {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
+        )
 
-    ds = ds.rename({"abspres_dbar": "BPR_915"})
+    if "abspres_dbar" in ds:
+        ds = ds.rename({"abspres_dbar": "BPR_915"})
 
-    # convert decibar to millibar
-    ds["BPR_915"] = ds["BPR_915"] * 100
+        # convert decibar to millibar
+        ds["BPR_915"] = ds["BPR_915"] * 100
 
-    ds["BPR_915"].attrs.update(
-        {"units": "mbar", "long_name": "Barometric pressure", "epic_code": 915}
-    )
+        ds["BPR_915"].attrs.update(
+            {"units": "mbar", "long_name": "Barometric pressure", "epic_code": 915}
+        )
 
-    ds = ds.rename({"temp_C": "T_21"})
+    if "temp_C" in ds:
+        ds = ds.rename({"temp_C": "T_28"})
 
-    ds["T_21"].attrs.update(
-        {"units": "C", "long_name": "Air temperature", "epic_code": 21}
-    )
+        ds["T_28"].attrs.update(
+            {
+                "units": "C",
+                "long_name": "Temperature",
+                "epic_code": 28,
+                "standard_name": "sea_water_temperature",
+            }
+        )
+
+    if "condlo_uScm" in ds:
+        ds = ds.rename({"condlo_uScm": "SpC_48_lo"})
+
+        ds["SpC_48_lo"].values = (
+            ds["SpC_48_lo"].values / 1000
+        )  # convert from µS/cm to mS/cm
+
+        ds["SpC_48_lo"].attrs.update(
+            {
+                "units": "mS/cm",
+                "long_name": "Conductivity",
+                "comment": "Temperature compensated to 25 °C; low range",
+                "epic_code": 48,
+                "standard_name": "sea_water_electrical_conductivity",
+            }
+        )
+
+        ds["S_41_lo"] = utils.salinity_from_spcon(ds["SpC_48_lo"])
+
+        ds["S_41_lo"].attrs.update(
+            {
+                "units": "1e-3",
+                "long_name": "Salinity; low range",
+                "epic_code": 41,
+                "standard_name": "sea_water_salinity",
+            }
+        )
+
+    if "condhi_uScm" in ds:
+        ds = ds.rename({"condhi_uScm": "SpC_48_hi"})
+
+        ds["SpC_48_hi"].values = (
+            ds["SpC_48_hi"].values / 1000
+        )  # convert from µS/cm to mS/cm
+
+        ds["SpC_48_hi"].attrs.update(
+            {
+                "units": "mS/cm",
+                "long_name": "Conductivity",
+                "comment": "Temperature compensated to 25 °C; high range",
+                "epic_code": 48,
+                "standard_name": "sea_water_electrical_conductivity",
+            }
+        )
+
+        ds["S_41_hi"] = utils.salinity_from_spcon(ds["SpC_48_hi"])
+
+        ds["S_41_hi"].attrs.update(
+            {
+                "units": "1e-3",
+                "long_name": "Salinity; high range",
+                "epic_code": 41,
+                "standard_name": "sea_water_salinity",
+            }
+        )
 
     def add_attributes(var, dsattrs):
         var.attrs.update(
@@ -158,7 +231,8 @@ def cdf_to_nc(cdf_filename):
 
     ds = utils.add_start_stop_time(ds)
 
-    ds = utils.create_epic_times(ds)
+    if not utils.is_cf(ds):
+        ds = utils.create_epic_times(ds)
 
     ds = utils.add_delta_t(ds)
 
