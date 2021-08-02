@@ -4,7 +4,7 @@ Installation
 The easy (CHS) way
 ==================
 
-Create a Pangeo CHS account.
+`Create a Pangeo CHS account <https://taskmgr.chs.usgs.gov/servicedesk/customer/portal/10/create/251>`_.
 
 Log in to CHS Pangeo JupyterHub, and edit/create your ``~/.condarc`` file:
 
