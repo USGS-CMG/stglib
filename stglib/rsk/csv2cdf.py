@@ -2,13 +2,14 @@ import pandas as pd
 
 from ..core import utils
 
+
 def csv_to_cdf(metadata):
 
     basefile = metadata["basefile"]
 
-    df = pd.read_csv(basefile + '.txt', infer_datetime_format=True)
+    df = pd.read_csv(basefile + ".txt", infer_datetime_format=True)
 
-    df = df.rename(columns={'Time': 'time'}).set_index('time')
+    df = df.rename(columns={"Time": "time"}).set_index("time")
 
     ds = df.to_xarray()
 
@@ -17,10 +18,10 @@ def csv_to_cdf(metadata):
 
     del metadata
 
-    ds['time'] = pd.DatetimeIndex(ds["time"])
+    ds["time"] = pd.DatetimeIndex(ds["time"])
 
     if "Turbidity" in ds:
-        ds = ds.rename({'Turbidity': 'Turb'})
+        ds = ds.rename({"Turbidity": "Turb"})
 
         ds["Turb"].attrs.update(
             {"units": "Nephelometric turbidity units (NTU)", "long_name": "Turbidity"}

@@ -209,8 +209,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         if k in ds:
             ds = ds.drop(k)
 
-    if 'drop_vars' in ds.attrs:
-        for k in ds.attrs['drop_vars']:
+    if "drop_vars" in ds.attrs:
+        for k in ds.attrs["drop_vars"]:
             if k in ds:
                 ds = ds.drop(k)
 
@@ -292,11 +292,11 @@ def ds_rename_vars(ds):
         # capitalization based on Chincoteague names
         "Chlorophyll_RFU": "CHLrfu",
         "Chlorophyll_µg_per_L": "Fch_906",
-        "Chlorophyll_ug_per_L": "Fch_906", #added variable name
+        "Chlorophyll_ug_per_L": "Fch_906",  # added variable name
         "BGA-PE_RFU": "BGAPErfu",
-        "BGA_PE_RFU": "BGAPErfu", #added variable name
+        "BGA_PE_RFU": "BGAPErfu",  # added variable name
         "BGA-PE_µg_per_L": "BGAPE",
-        "BGA_PE_ug_per_L": "BGAPE", #added variable name
+        "BGA_PE_ug_per_L": "BGAPE",  # added variable name
         "Temp_°C": "T_28",
         "Temp_∞C": "T_28",
         "Cond_mS_per_cm": "C_51",
@@ -537,7 +537,7 @@ def exo_qaqc(ds):
 def trim_min(ds, var):
     if var + "_min" in ds.attrs:
         print("%s: Trimming using minimum value of %f" % (var, ds.attrs[var + "_min"]))
-        ds[var][ds[var] < ds.attrs[var + "_min"]] = np.nan
+        ds[var] = ds[var].where(ds[var] >= ds.attrs[var + "_min"])
 
         notetxt = "Values filled where less than %f units. " % ds.attrs[var + "_min"]
 
@@ -549,7 +549,7 @@ def trim_min(ds, var):
 def trim_max(ds, var):
     if var + "_max" in ds.attrs:
         print("%s: Trimming using maximum value of %f" % (var, ds.attrs[var + "_max"]))
-        ds[var][ds[var] > ds.attrs[var + "_max"]] = np.nan
+        ds[var] = ds[var].where(ds[var] <= ds.attrs[var + "_max"])
 
         notetxt = "Values filled where greater than %f units. " % ds.attrs[var + "_max"]
 
