@@ -52,6 +52,8 @@ setup(
         "scripts/runecocdf2nc.py",
         "scripts/runexocsv2cdf.py",
         "scripts/runexocdf2nc.py",
+        "scripts/runtrollcsv2cdf.py",
+        "scripts/runtrollcdf2nc.py",
         "scripts/runwvswad2cdf.py",
         "scripts/runwvscdf2nc.py",
         "scripts/runwvsnc2diwasp.py",

@@ -200,6 +200,26 @@ def exocdf2nc_parser():
     return parser
 
 
+def trollcsv2cdf_parser():
+    description = (
+        "Convert Aqua TROLL .csv file to raw .cdf format. Run this script "
+        "from the directory containing .csv file"
+    )
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def trollcdf2nc_parser():
+    description = "Convert raw Aqua TROLL .cdf format to processed .nc files"
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("cdfname", help="raw .CDF filename")
+
+    return parser
+
+
 def ecolog2cdf_parser():
     description = (
         "Convert WET Labs ECO file to raw .cdf format. Run this "

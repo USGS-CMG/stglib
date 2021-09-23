@@ -1,5 +1,142 @@
 import numpy as np
 import pandas as pd
+import xarray as xr
+
+from .core import utils
+
+
+def csv_to_cdf(metadata):
+    """
+    Process Aqua TROLL .csv file to a raw .cdf file
+    """
+
+    basefile = metadata["basefile"]
+
+    try:
+        df = read_aquatroll(
+            basefile + ".csv",
+            skiprows=metadata["skiprows"],
+            encoding="utf-8",
+            skipfooter=metadata["skipfooter"],
+        )
+    except UnicodeDecodeError:
+        # try reading as Mac OS Western for old versions of Mac Excel
+        df = read_aquatroll(
+            basefile + ".csv",
+            skiprows=metadata["skiprows"],
+            encoding="mac-roman",
+            skipfooter=metadata["skipfooter"],
+        )
+
+    ds = df_to_ds(df)
+
+    metadata.pop("skiprows")
+    metadata.pop("skipfooter")
+
+    # write out metadata first, then deal exclusively with xarray attrs
+    ds = utils.write_metadata(ds, metadata)
+
+    del metadata
+
+    ds = troll_shift_time(ds)
+
+    if not utils.is_cf(ds):
+        ds = utils.create_epic_times(ds)
+
+    # configure file
+    cdf_filename = ds.attrs["filename"] + "-raw.cdf"
+
+    ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
+
+    print("Finished writing data to %s" % cdf_filename)
+
+    return ds
+
+
+def cdf_to_nc(cdf_filename):
+    """
+    Load a "raw" .cdf file and generate a processed .nc file
+    """
+
+    # Load raw .cdf data
+    ds = xr.load_dataset(cdf_filename)
+
+    # Clip data to in/out water times or via good_ens
+    ds = utils.clip_ds(ds)
+
+    # ds = ds_rename_vars(ds)
+    #
+    # # ds = ds_add_attrs(ds)
+    #
+    # for k in [
+    #     "Press_psi_a",
+    #     "Pressure_psi_a",
+    #     "Site_Name",
+    #     "Fault_Code",
+    #     "Time_(Fract._Sec)",
+    #     "TDS_mg_per_L",
+    #     "TSS_mg_per_L",
+    # ]:
+    #     if k in ds:
+    #         ds = ds.drop(k)
+    #
+    # if "drop_vars" in ds.attrs:
+    #     for k in ds.attrs["drop_vars"]:
+    #         if k in ds:
+    #             ds = ds.drop(k)
+    #
+    # if atmpres:
+    #     print("Atmospherically correcting data")
+    #
+    #     met = xr.load_dataset(atmpres)
+    #     # need to save attrs before the subtraction, otherwise they are lost
+    #     attrs = ds["P_1"].attrs
+    #     ds["P_1ac"] = ds["P_1"] - met["atmpres"] - met["atmpres"].offset
+    #     print("Correcting using offset of %f" % met["atmpres"].offset)
+    #     ds["P_1ac"].attrs = attrs
+    #
+    # ds = exo_qaqc(ds)
+    #
+    # # assign min/max:
+    # ds = utils.add_min_max(ds)
+    #
+    # ds = utils.add_start_stop_time(ds)
+    #
+    # if not utils.is_cf(ds):
+    #     ds = utils.create_epic_times(ds)
+    #
+    # ds = exo_add_delta_t(ds)
+    #
+    # # add lat/lon coordinates
+    # ds = utils.ds_add_lat_lon(ds)
+    #
+    # ds = ds_add_attrs(ds)
+    #
+    # # ds = utils.create_water_depth(ds)
+    # ds = utils.create_nominal_instrument_depth(ds)
+    #
+    # ds = utils.no_p_create_depth(ds)
+    #
+    # # add lat/lon coordinates to each variable
+    # for var in ds.variables:
+    #     if (var not in ds.coords) and ("time" not in var):
+    #         ds = utils.add_lat_lon(ds, var)
+    #         ds = utils.no_p_add_depth(ds, var)
+    #         # cast as float32
+    #         ds = utils.set_var_dtype(ds, var)
+    #
+    # ds = utils.rename_time(ds)
+    #
+    # # No longer report depth
+    # if "Depth_m" in ds:
+    #     ds = ds.drop("Depth_m")
+    #
+    # # Write to .nc file
+    # print("Writing cleaned/trimmed data to .nc file")
+    # nc_filename = ds.attrs["filename"] + "-a.nc"
+    #
+    # ds.to_netcdf(nc_filename, unlimited_dims=["time"])
+    # print("Done writing netCDF file", nc_filename)
 
 
 def read_aquatroll(filnam, skiprows=69, encoding="utf-8", skipfooter=0):
@@ -14,6 +151,26 @@ def read_aquatroll(filnam, skiprows=69, encoding="utf-8", skipfooter=0):
 
     df.columns = df.columns.str.strip()
 
+    md = get_metadata(filnam, encoding=encoding)
+
+    df.attrs["type"] = md["ss"]
+    df.attrs["sample_interval"] = f"{md['si']} {md['siu']}"
+    df.attrs["samples_averaged"] = md["sa"]
+    df.attrs["serial_number"] = md["sn"]
+    df.attrs["INST_TYPE"] = md["de"]
+
+    df.rename(
+        columns={
+            "Temperature (C)": "temperature",
+            "Actual Conductivity (µS/cm)": "conductivity",
+            "Pressure (kPa)": "pressure",
+            "Pressure (PSI)": "pressure",
+            "Date and Time (UTC)": "time",
+            "Date and Time": "time",
+        },
+        inplace=True,
+    )
+
     return df
 
 
@@ -24,6 +181,76 @@ def read_aquatroll_header(filnam, encoding="utf-8"):
                 # remove commas and only return the value,
                 # not the 'Time Zone: ' part
                 return line.replace(",", "").strip()[11:]
+
+
+def troll_shift_time(ds):
+    # remove time offsets which appear to be caused by errors in the sensor
+    for second in [1, 2, 5, 9, 45]:
+        change = ds["time"].dt.second == second
+        ds["time"].values[change] = ds["time"].values[change] - pd.Timedelta(
+            f"{second}s"
+        )
+
+    # once we have this, see if this is a linear average sampling and if so, shift by that value divided by two
+    if ds.attrs["type"] == "Linear Average":
+        if ds.attrs["sample_interval"].split(" ")[1] != "secs":
+            raise NotImplementedError(
+                f"Can only shift time by seconds, not {ds.attrs['sample_interval'].split(' ')[1]}"
+            )
+        toshift = (
+            ds.attrs["samples_averaged"]
+            / float(ds.attrs["sample_interval"].split(" ")[0])
+            / 2
+        )
+        ds = utils.shift_time(ds, toshift)
+
+    return ds
+
+
+def get_metadata(filnam, encoding="utf-8"):
+    md = {}
+    md["sn"] = 0
+    md["ss"] = ""
+    md["si"] = 0
+    md["siu"] = ""
+    md["sa"] = 0
+    with open(filnam, encoding=encoding) as f:
+        for line in f.readlines():
+            if "Device," in line:
+                cleanline = line.rstrip().split(",")
+                md["de"] = cleanline[1]
+            if "Serial Number," in line:
+                cleanline = line.rstrip().split(",")
+                md["sn"] = cleanline[1]
+            if "Type," in line:
+                cleanline = line.rstrip().split(",")
+                md["ss"] = cleanline[2]
+            if "Sample Interval," in line:
+                cleanline = line.rstrip().split(",")
+                md["si"] = float(cleanline[2])
+                md["siu"] = cleanline[3]
+            if "Samples Averaged," in line:
+                cleanline = line.rstrip().split(",")
+                md["sa"] = float(cleanline[2])
+
+    return md
+
+
+def df_to_ds(df):
+    df = df.set_index("time")
+    print(df.attrs)
+
+    ds = df.to_xarray()
+    for k in df.attrs:
+        ds.attrs[k] = df.attrs[k]
+
+    for k in ds:
+        if "Unnamed" in k:
+            ds = ds.drop(k)
+        if "Seconds" in k:
+            ds = ds.drop(k)
+
+    return ds
 
 
 def compute_g(φ, H):
