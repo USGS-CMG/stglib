@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.6
+  - compliance-checker
   - matplotlib-base
   - netcdf4
   - numpy

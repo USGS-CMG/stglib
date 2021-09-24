@@ -1,7 +1,9 @@
-matplotlib
+compliance-checker
+matplotlib-base
 netcdf4
 numpy
 pandas
+pytest
 pyyaml
 scipy
 sqlite
