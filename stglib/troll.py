@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
+import warnings
 
 from .core import utils
 
@@ -116,6 +117,10 @@ def cdf_to_nc(cdf_filename):
 
 
 def read_aquatroll(filnam, skiprows=69, encoding="utf-8", skipfooter=0):
+
+    # so we don't get fallback parser warnings when specifying skipfooter
+    warnings.filterwarnings("ignore", category=pd.errors.ParserWarning)
+
     df = pd.read_csv(
         filnam,
         skiprows=skiprows,
