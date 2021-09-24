@@ -66,49 +66,31 @@ def cdf_to_nc(cdf_filename):
 
     # ds = ds_rename_vars(ds)
     #
-    # # ds = ds_add_attrs(ds)
-    #
-    # for k in [
-    #     "Press_psi_a",
-    #     "Pressure_psi_a",
-    #     "Site_Name",
-    #     "Fault_Code",
-    #     "Time_(Fract._Sec)",
-    #     "TDS_mg_per_L",
-    #     "TSS_mg_per_L",
-    # ]:
-    #     if k in ds:
-    #         ds = ds.drop(k)
     #
     # if "drop_vars" in ds.attrs:
     #     for k in ds.attrs["drop_vars"]:
     #         if k in ds:
     #             ds = ds.drop(k)
     #
-    # if atmpres:
-    #     print("Atmospherically correcting data")
-    #
-    #     met = xr.load_dataset(atmpres)
-    #     # need to save attrs before the subtraction, otherwise they are lost
-    #     attrs = ds["P_1"].attrs
-    #     ds["P_1ac"] = ds["P_1"] - met["atmpres"] - met["atmpres"].offset
-    #     print("Correcting using offset of %f" % met["atmpres"].offset)
-    #     ds["P_1ac"].attrs = attrs
-    #
+
+    ds = compute_depth(ds)
+
+    if "elev_offset" in ds.attrs:
+        ds["waterlevel"] = ds["depth"] + ds.attrs["elev_offset"]
+
+    ds = ds_add_attrs(ds)
+
     # ds = exo_qaqc(ds)
     #
-    # # assign min/max:
-    # ds = utils.add_min_max(ds)
-    #
-    # ds = utils.add_start_stop_time(ds)
-    #
-    # if not utils.is_cf(ds):
-    #     ds = utils.create_epic_times(ds)
-    #
-    # ds = exo_add_delta_t(ds)
-    #
-    # # add lat/lon coordinates
-    # ds = utils.ds_add_lat_lon(ds)
+    # assign min/max:
+    ds = utils.add_min_max(ds)
+
+    ds = utils.add_start_stop_time(ds)
+
+    ds = add_delta_t(ds)
+
+    # add lat/lon coordinates
+    ds = utils.ds_add_lat_lon(ds)
     #
     # ds = ds_add_attrs(ds)
     #
@@ -124,19 +106,13 @@ def cdf_to_nc(cdf_filename):
     #         ds = utils.no_p_add_depth(ds, var)
     #         # cast as float32
     #         ds = utils.set_var_dtype(ds, var)
-    #
-    # ds = utils.rename_time(ds)
-    #
-    # # No longer report depth
-    # if "Depth_m" in ds:
-    #     ds = ds.drop("Depth_m")
-    #
-    # # Write to .nc file
-    # print("Writing cleaned/trimmed data to .nc file")
-    # nc_filename = ds.attrs["filename"] + "-a.nc"
-    #
-    # ds.to_netcdf(nc_filename, unlimited_dims=["time"])
-    # print("Done writing netCDF file", nc_filename)
+
+    # Write to .nc file
+    print("Writing cleaned/trimmed data to .nc file")
+    nc_filename = ds.attrs["filename"] + "-a.nc"
+
+    ds.to_netcdf(nc_filename, unlimited_dims=["time"])
+    print("Done writing netCDF file", nc_filename)
 
 
 def read_aquatroll(filnam, skiprows=69, encoding="utf-8", skipfooter=0):
@@ -183,9 +159,17 @@ def read_aquatroll_header(filnam, encoding="utf-8"):
                 return line.replace(",", "").strip()[11:]
 
 
+def compute_depth(ds):
+    ds["salinity"] = compute_S(ds["temperature"], ds["conductivity"])
+    ds["density"] = compute_density(ds["temperature"], ds["salinity"])
+    ds["g"] = xr.ones_like(ds["density"]) * compute_g(np.deg2rad(48), 0)
+    ds["depth"] = ds["pressure"] / ds["density"] / ds["g"]
+    return ds
+
+
 def troll_shift_time(ds):
     # remove time offsets which appear to be caused by errors in the sensor
-    for second in [1, 2, 5, 9, 45]:
+    for second in [1, 2, 5, 9, 15, 45]:
         change = ds["time"].dt.second == second
         ds["time"].values[change] = ds["time"].values[change] - pd.Timedelta(
             f"{second}s"
@@ -249,6 +233,60 @@ def df_to_ds(df):
             ds = ds.drop(k)
         if "Seconds" in k:
             ds = ds.drop(k)
+
+    return ds
+
+
+def add_delta_t(ds):
+    deltat = np.asscalar((ds["time"][1] - ds["time"][0]) / np.timedelta64(1, "s"))
+    if not deltat.is_integer():
+        warnings.warn("DELTA_T is not an integer; casting as int in attrs")
+
+    ds.attrs["DELTA_T"] = int(deltat)
+
+    return ds
+
+
+def ds_add_attrs(ds):
+    ds.attrs["institution"] = "U.S. Geological Survey"
+
+    ds["time"].attrs["standard_name"] = "time"
+    ds["time"].attrs["axis"] = "T"
+    ds["time"].encoding = {"dtype": "int32"}
+
+    ds["temperature"].attrs["units"] = "degree_C"
+    ds["temperature"].attrs["standard_name"] = "sea_water_temperature"
+
+    ds["conductivity"].attrs["standard_name"] = "sea_water_electrical_conductivity"
+    ds["conductivity"].attrs["units"] = "uS cm-1"
+
+    ds["salinity"].attrs["standard_name"] = "sea_water_practical_salinity"
+    ds["salinity"].attrs["units"] = "1"
+
+    ds["pressure"].attrs["long_name"] = "Pressure of water at pressure transducer"
+    ds["pressure"].attrs["units"] = "kilopascal"
+
+    ds["waterlevel"].attrs["long_name"] = "Water level relative to NAVD88"
+    ds["waterlevel"].attrs["units"] = "m"
+    ds["waterlevel"].attrs[
+        "standard_name"
+    ] = "sea_surface_height_above_geopotential_datum"
+
+    if "g" in ds:
+        ds["g"].attrs["long_name"] = "Gravitational acceleration"
+        ds["g"].attrs["units"] = "m s-2"
+
+    if "density" in ds:
+        ds["density"].attrs["standard_name"] = "sea_water_density"
+        ds["density"].attrs["units"] = "kg m-3"
+
+    if "depth" in ds:
+        ds["depth"].attrs["standard_name"] = "depth"
+        ds["depth"].attrs[
+            "long_name"
+        ] = "Depth of pressure transducer below water surface"
+        ds["depth"].attrs["units"] = "m"
+        ds["depth"].attrs["positive"] = "down"
 
     return ds
 
