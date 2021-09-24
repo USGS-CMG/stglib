@@ -4,6 +4,7 @@ import xarray as xr
 import warnings
 
 from .core import utils
+from . import exo
 
 
 def csv_to_cdf(metadata):
@@ -65,15 +66,6 @@ def cdf_to_nc(cdf_filename):
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
-    # ds = ds_rename_vars(ds)
-    #
-    #
-    # if "drop_vars" in ds.attrs:
-    #     for k in ds.attrs["drop_vars"]:
-    #         if k in ds:
-    #             ds = ds.drop(k)
-    #
-
     ds = compute_depth(ds)
 
     if "elev_offset" in ds.attrs:
@@ -81,9 +73,10 @@ def cdf_to_nc(cdf_filename):
 
     ds = ds_add_attrs(ds)
 
-    # ds = exo_qaqc(ds)
-    #
-    # assign min/max:
+    ds = ds_rename_vars(ds)
+
+    ds = exo.exo_qaqc(ds)
+
     ds = utils.add_min_max(ds)
 
     ds = utils.add_start_stop_time(ds)
@@ -163,6 +156,19 @@ def read_aquatroll_header(filnam, encoding="utf-8"):
                 # not the 'Time Zone: ' part
                 return line.replace(",", "").strip()[11:]
 
+def ds_rename_vars(ds):
+    varnames = {"pressure": "P_1ac",
+                "temperature": "T_28",
+                "conductivity": "C_51"
+                }
+
+    # check to make sure they exist before trying to rename
+    newvars = {}
+    for k in varnames:
+        if k in ds:
+            newvars[k] = varnames[k]
+
+    return ds.rename(newvars)
 
 def compute_depth(ds):
     ds["salinity"] = compute_S(ds["temperature"], ds["conductivity"])
@@ -227,7 +233,6 @@ def get_metadata(filnam, encoding="utf-8"):
 
 def df_to_ds(df):
     df = df.set_index("time")
-    print(df.attrs)
 
     ds = df.to_xarray()
     for k in df.attrs:
