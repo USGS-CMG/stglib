@@ -51,16 +51,12 @@ def clip_ds(ds, wvs=False):
         print("Clipping data using good_ens")
 
         # so we can deal with multiple good_ens ranges, or just a single range
-        if np.ndim(ds.attrs["good_ens"]) == 1:
-            good_ens = [ds.attrs["good_ens"]]
-        else:
-            good_ens = ds.attrs["good_ens"]
-
+        good_ens = ds.attrs["good_ens"]
         goods = []
-        for x in good_ens:
-            goods.append(np.arange(x[0], x[1]))
-        goods = np.hstack(goods)
 
+        for n in range(0, len(good_ens), 2):
+            goods.append(np.arange(good_ens[n], good_ens[n+1]))
+        goods = np.hstack(goods)
         ds = ds.isel(time=goods)
 
         histtext = "Data clipped using good_ens values of {}. ".format(str(good_ens))
