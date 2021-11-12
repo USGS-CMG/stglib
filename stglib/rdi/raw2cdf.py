@@ -29,7 +29,7 @@ def raw_to_cdf(metadata):
     ds["time"] = xr.DataArray(pd.DatetimeIndex(alldata["time"]), dims="time")
     ds["bindist"] = xr.DataArray(alldata["bindist"], dims="bindist")
     for k in alldata:
-        if k is "time" or k is "bindist" or k is "FLeader":
+        if k in ["time", "bindist", "FLeader"]:
             continue
         if alldata[k].ndim == 1 and alldata[k] != []:
             ds[k] = xr.DataArray(alldata[k], dims="time")
