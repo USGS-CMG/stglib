@@ -50,13 +50,13 @@ Now you can start processing data!
 If you want to contribute to stglib development
 ===============================================
 
-Obtain stglib by cloning the GitHub repo. Change to a directory where you'd like stglib to live and type:
+Set up conda-forge channel priority as above. Obtain stglib by cloning the GitHub repo. Change to a directory where you'd like stglib to live and type:
 
-``git clone https://github.com/dnowacki-usgs/stglib.git``
+``git clone https://github.com/USGS-CMG/stglib.git``
 
 After ``cd``ing to the directory containing stglib, type:
 
-``conda env create -n stglib --file requirements-py37.yml``
+``conda env create -n stglib --file requirements.yml``
 
 This will create a Conda environment with the requirements for stglib installed. Activate the stglib environment by typing:
 
