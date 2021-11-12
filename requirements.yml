@@ -1,0 +1,16 @@
+name: test-environment
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - compliance-checker
+  - matplotlib-base
+  - netcdf4
+  - numpy
+  - pandas
+  - pytest
+  - pyyaml
+  - scipy
+  - sqlite
+  - xarray
+  - xmltodict
