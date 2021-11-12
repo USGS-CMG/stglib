@@ -495,8 +495,7 @@ def exo_qaqc(ds):
     Trim EXO data based on metadata
     """
 
-    # S_41 needs to be first in list for trim_by_salinity()
-    for var in [
+    varlist = [
         "S_41",
         "C_51",
         "SpC_48",
@@ -514,7 +513,11 @@ def exo_qaqc(ds):
         "pHmV",
         "P_1ac",
         "P_1",
-    ]:
+    ]
+
+    [varlist.append(k) for k in ds.data_vars if k not in varlist]
+
+    for var in varlist:
         ds = trim_min(ds, var)
 
         ds = trim_max(ds, var)
@@ -529,7 +532,8 @@ def exo_qaqc(ds):
 
         ds = trim_bad_ens(ds, var)
 
-        ds = trim_by_salinity(ds, var)  # this must come last
+    for var in varlist:
+        ds = trim_by_any(ds, var)  # re-run and trim by other variables as necessary
 
     return ds
 
@@ -679,6 +683,7 @@ def trim_by_salinity(ds, var):
     if (
         "trim_by_salinity" in ds.attrs
         and ds.attrs["trim_by_salinity"].lower() == "true"
+        and var in ds
     ):  # xarray doesn't support writing attributes as booleans
         if (
             "trim_by_salinity_exclude" in ds.attrs
@@ -693,6 +698,31 @@ def trim_by_salinity(ds, var):
                 notetxt = "Values filled using valid salinity threshold. "
 
                 ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
+def trim_by_any(ds, var):
+    attrlist = []
+    for a in ds.attrs:
+        if "trim_by" in a:
+            attrlist.append(a)
+
+    for a in attrlist:
+        if (
+            a in ds.attrs and ds.attrs[a].lower() == "true" and var in ds
+        ):  # xarray doesn't support writing attributes as booleans
+            if f"{a}_exclude" in ds.attrs and var in ds.attrs[f"{a}_exclude"]:
+                pass
+            else:
+                trimvar = a.split("trim_by_")[-1]
+                print(f"{var}: Trimming using valid {trimvar} threshold")
+                ds[var][ds[trimvar].isnull()] = np.nan
+
+                if var != trimvar:
+                    notetxt = f"Values filled using valid {trimvar} threshold. "
+
+                    ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
