@@ -75,6 +75,8 @@ def cdf_to_nc(cdf_filename):
 
     ds = ds_rename_vars(ds)
 
+    ds = ds_drop_vars(ds)
+
     ds = exo.exo_qaqc(ds)
 
     ds = utils.add_min_max(ds)
@@ -159,7 +161,8 @@ def read_aquatroll_header(filnam, encoding="utf-8"):
 def ds_rename_vars(ds):
     varnames = {"pressure": "P_1ac",
                 "temperature": "T_28",
-                "conductivity": "C_51"
+                "conductivity": "C_51",
+                "salinity": "S_41"
                 }
 
     # check to make sure they exist before trying to rename
@@ -169,6 +172,17 @@ def ds_rename_vars(ds):
             newvars[k] = varnames[k]
 
     return ds.rename(newvars)
+
+def ds_drop_vars(ds):
+    varnames = {"g", "density"}
+
+    # check to make sure they exist before trying to drop
+    newvars = []
+    for k in varnames:
+        if k in ds:
+            newvars.append(k)
+
+    return ds.drop(newvars)
 
 def compute_depth(ds):
     ds["salinity"] = compute_S(ds["temperature"], ds["conductivity"])
