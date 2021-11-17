@@ -154,8 +154,8 @@ def rsk_to_xr(metadata):
                 "epic_code": 28,
                 "serial_number": ds.attrs["serial_number"],
             },
-            encoding={"_FillValue": 1e35},
         )
+        ds["T_28"].encoding["_FillValue"] = 1e35
 
     ds["time"] = xr.DataArray(times, dims=("time"), name="time")
 
