@@ -50,7 +50,6 @@ def csv_to_cdf(metadata):
     # Set burst interval, [sec], USER DEFINED in instrument attr
     # for continuous mode sampling
     if "wave_interval" in ds.attrs:
-        print("in wave interval code")
         ds.attrs["sample_interval"] = int(meta["sampling"]["period"]) / 1000
         ds.attrs["sample_mode"] = meta["sampling"]["mode"]
         ds.attrs["samples_per_burst"] = ds.attrs["wave_interval"] / ds.attrs["sample_interval"]

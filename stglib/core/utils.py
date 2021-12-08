@@ -55,7 +55,7 @@ def clip_ds(ds, wvs=False):
         goods = []
 
         for n in range(0, len(good_ens), 2):
-            goods.append(np.arange(good_ens[n], good_ens[n+1]))
+            goods.append(np.arange(good_ens[n], good_ens[n + 1]))
         goods = np.hstack(goods)
         ds = ds.isel(time=goods)
 
@@ -279,15 +279,30 @@ def ds_add_attrs(ds):
         var.encoding["_FillValue"] = 1e35
 
     ds["wp_peak"].attrs.update(
-        {"long_name": "Dominant (peak) wave period", "units": "s", "epic_code": 4063}
+        {
+            "long_name": "Dominant (peak) wave period",
+            "units": "s",
+            "epic_code": 4063,
+            "standard_name": "sea_surface_wave_period_at_variance_spectral_density_maximum",
+        }
     )
 
     ds["wp_4060"].attrs.update(
-        {"long_name": "Average wave period", "units": "s", "epic_code": 4060}
+        {
+            "long_name": "Average wave period",
+            "units": "s",
+            "epic_code": 4060,
+            "standard_name": "sea_surface_wave_mean_period_from_variance_spectral_density_second_frequency_moment",
+        }
     )
 
     ds["wh_4061"].attrs.update(
-        {"long_name": "Significant wave height", "units": "m", "epic_code": 4061}
+        {
+            "long_name": "Significant wave height",
+            "units": "m",
+            "epic_code": 4061,
+            "standard_name": "sea_surface_wave_significant_height",
+        }
     )
 
     ds["pspec"].attrs.update(
@@ -295,6 +310,7 @@ def ds_add_attrs(ds):
             "long_name": "Pressure derived non-directional wave energy spectrum",
             "units": "m^2/Hz",
             "note": "Use caution: all spectra are provisional",
+            "standard_name": "sea_surface_wave_variance_spectral_density",
         }
     )
 
