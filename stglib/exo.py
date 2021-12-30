@@ -120,15 +120,18 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
                 exo[k].attrs["sensor_serial_number"] = hdr["ODO % sat"][
                     "sensor_serial_number"
                 ]
-        elif "Turbidity" in k:
-            try:
-                exo[k].attrs["sensor_serial_number"] = hdr["Turbidity"][
-                    "sensor_serial_number"
-                ]
-            except KeyError:
-                exo[k].attrs["sensor_serial_number"] = hdr["Turbidity NTU"][
-                    "sensor_serial_number"
-                ]
+        elif k == "Turbidity":
+            exo[k].attrs["sensor_serial_number"] = hdr["Turbidity"][
+                "sensor_serial_number"
+            ]
+        elif k == "Turbidity NTU":
+            exo[k].attrs["sensor_serial_number"] = hdr["Turbidity NTU"][
+                "sensor_serial_number"
+            ]
+        elif k == "Turbidity FNU":
+            exo[k].attrs["sensor_serial_number"] = hdr["Turbidity FNU"][
+                "sensor_serial_number"
+            ]
         elif "pH" in k:
             exo[k].attrs["sensor_serial_number"] = hdr["pH"]["sensor_serial_number"]
         elif "Press" in k or "Depth" in k:
@@ -307,6 +310,7 @@ def ds_rename_vars(ds):
         "ODO_%_sat": "OST_62",
         "ODO_mg_per_L": "DO",
         "Turbidity_NTU": "Turb",
+        "Turbidity_FNU": "Turb_FNU",
         "pH": "pH_159",
         "pH_mV": "pHmV",
     }
@@ -413,6 +417,11 @@ def ds_add_attrs(ds):
     if "Turb" in ds:
         ds["Turb"].attrs.update(
             {"units": "Nephelometric turbidity units (NTU)", "long_name": "Turbidity"}
+        )
+
+    if "Turb_FNU" in ds:
+        ds["Turb_FNU"].attrs.update(
+            {"units": "Formazin nephelometric units (FNU)", "long_name": "Turbidity"}
         )
 
     if "pH_159" in ds.variables:
