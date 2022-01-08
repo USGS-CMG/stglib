@@ -158,12 +158,14 @@ def read_aquatroll_header(filnam, encoding="utf-8"):
                 # not the 'Time Zone: ' part
                 return line.replace(",", "").strip()[11:]
 
+
 def ds_rename_vars(ds):
-    varnames = {"pressure": "P_1ac",
-                "temperature": "T_28",
-                "conductivity": "C_51",
-                "salinity": "S_41"
-                }
+    varnames = {
+        "pressure": "P_1ac",
+        "temperature": "T_28",
+        "conductivity": "C_51",
+        "salinity": "S_41",
+    }
 
     # check to make sure they exist before trying to rename
     newvars = {}
@@ -172,6 +174,7 @@ def ds_rename_vars(ds):
             newvars[k] = varnames[k]
 
     return ds.rename(newvars)
+
 
 def ds_drop_vars(ds):
     varnames = {"g", "density"}
@@ -183,6 +186,7 @@ def ds_drop_vars(ds):
             newvars.append(k)
 
     return ds.drop(newvars)
+
 
 def compute_depth(ds):
     ds["salinity"] = compute_S(ds["temperature"], ds["conductivity"])

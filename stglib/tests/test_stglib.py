@@ -22,7 +22,9 @@ class TestGlobalAttributes(unittest.TestCase):
 class TestIq(unittest.TestCase):
     def setUp(self):
         self.ds = xr.Dataset()
-        self.fdvm = np.random.rand(5,)
+        self.fdvm = np.random.rand(
+            5,
+        )
         self.fdv = np.random.rand(5, 4)
         self.ds["FlowData_Vel_Mean"] = xr.DataArray(self.fdvm)
         self.ds["FlowData_Vel"] = xr.DataArray(self.fdv)

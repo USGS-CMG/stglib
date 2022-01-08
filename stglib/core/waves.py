@@ -88,8 +88,7 @@ def pressure_spectra(x, fs=1.0, window="hanning", nperseg=256, **kwargs):
 
 
 def elevation_spectra(Pxx, Kp):
-    """Compute elevation spectra using linear wave theory and transfer function
-    """
+    """Compute elevation spectra using linear wave theory and transfer function"""
     return Pxx / (Kp ** 2)
 
 

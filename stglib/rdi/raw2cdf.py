@@ -57,19 +57,19 @@ def raw_to_cdf(metadata):
         ds[varname].attrs["units"] = "mm s-1"
         ds[varname].attrs["long_name"] = f"Beam {i+1} velocity"
         ds[varname].attrs["epic_code"] = 1277 + i
-        ds[varname].encoding["dtype"] = 'i2'
+        ds[varname].encoding["dtype"] = "i2"
 
         varname = "cor%d" % (i + 1)
         ds[varname].attrs["units"] = "counts"
         ds[varname].attrs["long_name"] = "Beam %d correlation" % (i + 1)
         ds[varname].attrs["epic_code"] = 1285 + i
-        ds[varname].encoding['dtype'] = 'u2'
+        ds[varname].encoding["dtype"] = "u2"
 
         varname = "att%d" % (i + 1)
         ds[varname].attrs["units"] = "counts"
         ds[varname].attrs["epic_code"] = 1281 + i
         ds[varname].attrs["long_name"] = "ADCP attenuation of beam %d" % (i + 1)
-        ds[varname].encoding['dtype'] = 'u2'
+        ds[varname].encoding["dtype"] = "u2"
 
         varname = "PGd%d" % (i + 1)
         if varname in ds:
@@ -80,7 +80,7 @@ def raw_to_cdf(metadata):
         varname = "EWD%d" % (i + 1)
         ds[varname].attrs["units"] = "binary flag"
         ds[varname].attrs["long_name"] = "Error Status Word %d" % (i + 1)
-        ds[varname].encoding["dtype"] = 'u2'
+        ds[varname].encoding["dtype"] = "u2"
 
     # varobj = cdf.createVariable('Hdg', 'f4', ('time',), fill_value=floatfill)
     ds["Hdg"].attrs["units"] = "hundredths of degrees"
@@ -114,7 +114,7 @@ def raw_to_cdf(metadata):
     # varobj = cdf.createVariable('sv', 'f4', ('time',), fill_value=floatfill)
     ds["sv"].attrs["units"] = "m s-1"
     ds["sv"].attrs["standard_name"] = "speed_of_sound_in_sea_water"
-    ds["sv"].encoding["dtype"] = 'u2'
+    ds["sv"].encoding["dtype"] = "u2"
 
     # varobj = cdf.createVariable('HdgSTD', 'f4', ('time',), fill_value=floatfill)
     ds["HdgSTD"].attrs["units"] = "degrees"
@@ -177,15 +177,15 @@ def raw_to_cdf(metadata):
         # varobj = cdf.createVariable("vel5", 'f4', ('time', 'depth'), fill_value=floatfill)
         ds["vel5"].attrs["units"] = "mm s-1"
         ds["vel5"].attrs["long_name"] = "Beam 5 velocity (mm s-1)"
-        ds["vel5"].encoding["dtype"] = 'i2'
+        ds["vel5"].encoding["dtype"] = "i2"
 
         ds["cor5"].attrs["units"] = "counts"
         ds["cor5"].attrs["long_name"] = "Beam 5 correlation"
-        ds["cor5"].encoding["dtype"] = 'u2'
+        ds["cor5"].encoding["dtype"] = "u2"
 
         ds["att5"].attrs["units"] = "counts"
         ds["att5"].attrs["long_name"] = "ADCP attenuation of beam 5"
-        ds["att5"].encoding["dtype"] = 'u2'
+        ds["att5"].encoding["dtype"] = "u2"
 
     # add FLeader attrs
     for k in alldata["FLeader"]:
@@ -193,7 +193,7 @@ def raw_to_cdf(metadata):
             # print(f'adding {k}')
             ds.attrs[f"RDI_{k}"] = alldata["FLeader"][k]
         else:
-            print(f'*** warning {k} already in global attributes ***')
+            print(f"*** warning {k} already in global attributes ***")
 
     # configure file
     if "prefix" in ds.attrs:

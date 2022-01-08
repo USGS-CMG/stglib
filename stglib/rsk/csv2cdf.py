@@ -25,7 +25,7 @@ def csv_to_cdf(metadata):
 
     ds["time"] = pd.DatetimeIndex(ds["time"])
 
-    ds.attrs["serial_number"] = meta["instrument"]['serial']
+    ds.attrs["serial_number"] = meta["instrument"]["serial"]
 
     for k in ds.data_vars:
         if " " in k:
@@ -38,7 +38,7 @@ def csv_to_cdf(metadata):
             {"units": "Nephelometric turbidity units (NTU)", "long_name": "Turbidity"}
         )
 
-    if "Pressure"in ds:
+    if "Pressure" in ds:
         ds = ds.rename({"Pressure": "P_1"})
 
     if "Sea_pressure" in ds:
@@ -52,20 +52,27 @@ def csv_to_cdf(metadata):
     if "wave_interval" in ds.attrs:
         ds.attrs["sample_interval"] = int(meta["sampling"]["period"]) / 1000
         ds.attrs["sample_mode"] = meta["sampling"]["mode"]
-        ds.attrs["samples_per_burst"] = ds.attrs["wave_interval"] / ds.attrs["sample_interval"]
+        ds.attrs["samples_per_burst"] = (
+            ds.attrs["wave_interval"] / ds.attrs["sample_interval"]
+        )
         ds.attrs["burst_interval"] = ds.attrs["wave_interval"]
         ds.attrs["burst_length"] = (
             ds.attrs["samples_per_burst"] * ds.attrs["sample_interval"]
         )
         r = np.shape(ds.P_1)[0]
         if r % ds.attrs["wave_interval"]:
-            print("Number of rows is not a multiple of wave_interval; truncating to last full burst")
-            mod = r % ds.attrs["wave_interval"]
-            ds = ds.sel(
-                time=ds.time[0 : -mod]
+            print(
+                "Number of rows is not a multiple of wave_interval; truncating to last full burst"
             )
-        ds["timenew"] = xr.DataArray(ds.time[0::int(ds.attrs["wave_interval"])].values, dims='timenew')
-        ds["P_1"] = xr.DataArray(np.reshape(ds.P_1.values, (-1, int(ds.attrs["wave_interval"]))), dims=['timenew', 'sample'])
+            mod = r % ds.attrs["wave_interval"]
+            ds = ds.sel(time=ds.time[0:-mod])
+        ds["timenew"] = xr.DataArray(
+            ds.time[0 :: int(ds.attrs["wave_interval"])].values, dims="timenew"
+        )
+        ds["P_1"] = xr.DataArray(
+            np.reshape(ds.P_1.values, (-1, int(ds.attrs["wave_interval"]))),
+            dims=["timenew", "sample"],
+        )
         ds = ds.rename({"time": "timeold"})
         ds = ds.rename({"timenew": "time"})
         ds = ds.drop("timeold")

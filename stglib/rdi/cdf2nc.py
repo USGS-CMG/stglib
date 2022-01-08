@@ -220,7 +220,7 @@ def create_depth(ds):
     elif presvar is not None:
         Wdepth = np.nanmean(ds[presvar])
     else:
-        Wdepth = ds.attrs['nominal_instrument_depth']
+        Wdepth = ds.attrs["nominal_instrument_depth"]
 
     if ds.attrs["orientation"] == "UP":
         print("User instructed that instrument was pointing UP")
@@ -234,6 +234,7 @@ def create_depth(ds):
     #     VEL["depth"] = xr.DataArray(Wdepth + VEL["bindist"], dims="bindist")
 
     return ds
+
 
 def ds_swap_dims(ds):
     ds = ds.swap_dims({"bindist": "depth"})
