@@ -3,7 +3,7 @@ from __future__ import division, print_function
 import xarray as xr
 
 from ..core import utils
-from . import qaqc
+from . import aqdutils
 
 
 def cdf_to_nc(cdf_filename, atmpres=False):
@@ -12,7 +12,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     """
 
     # Load raw .cdf data
-    VEL = qaqc.load_cdf(cdf_filename, atmpres=atmpres)
+    VEL = aqdutils.load_cdf(cdf_filename, atmpres=atmpres)
 
     # Clip data to in/out water times or via good_ens
     VEL = utils.clip_ds(VEL)
@@ -22,10 +22,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = utils.create_nominal_instrument_depth(VEL)
 
     # Create depth variable depending on orientation
-    VEL, T, T_orig = qaqc.set_orientation(VEL, VEL["TransMatrix"].values)
+    VEL, T, T_orig = aqdutils.set_orientation(VEL, VEL["TransMatrix"].values)
 
     # Transform coordinates from, most likely, BEAM to ENU
-    u, v, w = qaqc.coord_transform(
+    u, v, w = aqdutils.coord_transform(
         VEL["VEL1"].values,
         VEL["VEL2"].values,
         VEL["VEL3"].values,
@@ -41,13 +41,13 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL["V"] = xr.DataArray(v, dims=("time", "bindist"))
     VEL["W"] = xr.DataArray(w, dims=("time", "bindist"))
 
-    VEL = qaqc.magvar_correct(VEL)
+    VEL = aqdutils.magvar_correct(VEL)
 
     VEL["AGC"] = (VEL["AMP1"] + VEL["AMP2"] + VEL["AMP3"]) / 3
 
-    VEL = qaqc.trim_vel(VEL)
+    VEL = aqdutils.trim_vel(VEL)
 
-    VEL = qaqc.make_bin_depth(VEL)
+    VEL = aqdutils.make_bin_depth(VEL)
 
     # Reshape and associate dimensions with lat/lon
     for var in [
@@ -70,19 +70,19 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = ds_swap_dims(VEL)
 
     # Rename DataArrays for EPIC compliance
-    VEL = qaqc.ds_rename(VEL)
+    VEL = aqdutils.ds_rename(VEL)
 
     # Drop non-EPIC variables
     VEL = ds_drop(VEL)
 
     # Add EPIC and CMG attributes
-    VEL = qaqc.ds_add_attrs(VEL)
+    VEL = aqdutils.ds_add_attrs(VEL)
 
     # Add min/max values
     VEL = utils.add_min_max(VEL)
 
     # Add DELTA_T for EPIC compliance
-    VEL = qaqc.add_delta_t(VEL)
+    VEL = aqdutils.add_delta_t(VEL)
 
     # Add start_time and stop_time attrs
     VEL = utils.add_start_stop_time(VEL)

@@ -4,7 +4,7 @@ import pandas as pd
 import xarray as xr
 
 from ..core import utils
-from . import qaqc
+from . import aqdutils
 
 
 def prf_to_cdf(metadata):
@@ -21,7 +21,7 @@ def prf_to_cdf(metadata):
     utils.check_valid_metadata(metadata)
 
     # get instrument metadata from the HDR file
-    instmeta = qaqc.read_aqd_hdr(basefile)
+    instmeta = aqdutils.read_aqd_hdr(basefile)
 
     metadata["instmeta"] = instmeta
 
@@ -37,9 +37,9 @@ def prf_to_cdf(metadata):
     del instmeta
 
     # Deal with metadata peculiarities
-    ds = qaqc.check_attrs(ds)
+    ds = aqdutils.check_attrs(ds)
 
-    ds = qaqc.check_orientation(ds)
+    ds = aqdutils.check_orientation(ds)
 
     # Load amplitude and velocity data
     ds = load_amp_vel(ds, basefile)
@@ -59,7 +59,7 @@ def prf_to_cdf(metadata):
     else:
         cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
-    ds = qaqc.update_attrs(ds)
+    ds = aqdutils.update_attrs(ds)
 
     # need to drop datetime
     ds = ds.drop("datetime")
@@ -81,7 +81,7 @@ def load_sen(basefile):
         header=None,
         delim_whitespace=True,
         parse_dates={"datetime": [2, 0, 1, 3, 4, 5]},
-        date_parser=qaqc.date_parser,
+        date_parser=aqdutils.date_parser,
         usecols=[0, 1, 2, 3, 4, 5, 8, 10, 11, 12, 13, 14, 15, 16],
     )
 

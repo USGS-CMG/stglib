@@ -8,7 +8,7 @@ import stglib
 
 args = stglib.cmd.aqdturnaround_parser().parse_args()
 
-meta = stglib.aqd.qaqc.read_aqd_hdr(args.basefile)
+meta = stglib.aqd.aqdutils.read_aqd_hdr(args.basefile)
 
 ds = stglib.aqd.hdr2cdf.load_sen(args.basefile)
 
@@ -22,7 +22,7 @@ if args.orientation == "DOWN":
     T[1, :] = -T[1, :]
     T[2, :] = -T[2, :]
 
-u, v, w = stglib.aqd.qaqc.coord_transform(
+u, v, w = stglib.aqd.aqdutils.coord_transform(
     ds["VEL1"].values,
     ds["VEL2"].values,
     ds["VEL3"].values,

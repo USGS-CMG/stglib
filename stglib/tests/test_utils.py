@@ -10,28 +10,28 @@ import stglib
 class TestUtils(unittest.TestCase):
     def test_rotate(self):
         expected = (-np.sqrt(2) / 2, np.sqrt(2) / 2)
-        result = stglib.aqd.qaqc.rotate(0, 1, -45)
+        result = stglib.aqd.aqdutils.rotate(0, 1, -45)
         np.testing.assert_almost_equal(expected, result)
 
         expected = (np.sqrt(2) / 2, np.sqrt(2) / 2)
-        result = stglib.aqd.qaqc.rotate(0, 1, 45)
+        result = stglib.aqd.aqdutils.rotate(0, 1, 45)
         np.testing.assert_almost_equal(expected, result)
         print(expected, result)
 
         expected = (1, 0)
-        result = stglib.aqd.qaqc.rotate(0, 1, 90)
+        result = stglib.aqd.aqdutils.rotate(0, 1, 90)
         np.testing.assert_almost_equal(expected, result)
 
         expected = (np.sqrt(2) / 2, -np.sqrt(2) / 2)
-        result = stglib.aqd.qaqc.rotate(0, 1, 135)
+        result = stglib.aqd.aqdutils.rotate(0, 1, 135)
         np.testing.assert_almost_equal(expected, result)
 
         expected = (0, -1)
-        result = stglib.aqd.qaqc.rotate(0, 1, 180)
+        result = stglib.aqd.aqdutils.rotate(0, 1, 180)
         np.testing.assert_almost_equal(expected, result)
 
         expected = (-1, 0)
-        result = stglib.aqd.qaqc.rotate(0, 1, 270)
+        result = stglib.aqd.aqdutils.rotate(0, 1, 270)
         np.testing.assert_almost_equal(expected, result)
 
 

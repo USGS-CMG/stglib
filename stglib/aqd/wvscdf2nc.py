@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 
 from ..core import utils
-from . import qaqc
+from . import aqdutils
 
 
 def cdf_to_nc(
@@ -9,7 +9,7 @@ def cdf_to_nc(
 ):  # , format="NETCDF3_64BIT"): # don't think we need to fall back to netcdf3 any more
 
     # Load raw .cdf data
-    ds = qaqc.load_cdf(cdf_filename, atmpres=atmpres)
+    ds = aqdutils.load_cdf(cdf_filename, atmpres=atmpres)
 
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds, wvs=True)
@@ -19,7 +19,7 @@ def cdf_to_nc(
     ds = utils.create_nominal_instrument_depth(ds)
 
     # Create depth variable depending on orientation
-    ds, T, T_orig = qaqc.set_orientation(ds, ds["TransMatrix"].values)
+    ds, T, T_orig = aqdutils.set_orientation(ds, ds["TransMatrix"].values)
 
     # Transform coordinates from ENU to BEAM if necessary
     if "wave_coord_output" in ds.attrs:
@@ -28,7 +28,7 @@ def cdf_to_nc(
         )
         print(histtext)
         ds = utils.insert_history(ds, histtext)
-        u, v, w = qaqc.coord_transform(
+        u, v, w = aqdutils.coord_transform(
             ds["VEL1"].values,
             ds["VEL2"].values,
             ds["VEL3"].values,
@@ -45,19 +45,19 @@ def cdf_to_nc(
         ds["VEL3"].values = w
 
     # Make bin_depth variable
-    ds = qaqc.make_bin_depth(ds, waves=True)
+    ds = aqdutils.make_bin_depth(ds, waves=True)
 
     # Swap dimensions from bindist to depth
-    ds = qaqc.swap_bindist_to_depth(ds)
+    ds = aqdutils.swap_bindist_to_depth(ds)
     # Rename DataArrays within Dataset for EPIC compliance
     # and append depth coord to velocities and amplitudes
-    ds = qaqc.ds_rename(ds, waves=True)
+    ds = aqdutils.ds_rename(ds, waves=True)
 
     # add EPIC and CMG attributes, set _FillValue
-    ds = qaqc.ds_add_attrs(ds, waves=True)
+    ds = aqdutils.ds_add_attrs(ds, waves=True)
 
     # Add DELTA_T for EPIC compliance
-    ds = qaqc.add_delta_t(ds, waves=True)
+    ds = aqdutils.add_delta_t(ds, waves=True)
 
     # Add minimum and maximum attributes
     ds = utils.add_min_max(ds)

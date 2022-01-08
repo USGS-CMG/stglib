@@ -96,7 +96,7 @@ class TestAqd(unittest.TestCase):
         # Using Nortek example m-file and compare to Matlab results
         # http://www.nortekusa.com/lib/forum-attachments/coordinate-transformation/view
 
-        u, v, w = stglib.aqd.qaqc.coord_transform(
+        u, v, w = stglib.aqd.aqdutils.coord_transform(
             self.vel1,
             self.vel2,
             self.vel3,
@@ -125,7 +125,7 @@ class TestAqd(unittest.TestCase):
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
 
-        u, v, w = stglib.aqd.qaqc.coord_transform(
+        u, v, w = stglib.aqd.aqdutils.coord_transform(
             self.vel1,
             self.vel2,
             self.vel3,
@@ -150,7 +150,7 @@ class TestAqd(unittest.TestCase):
 
     def test_xyz_to_enu(self):
 
-        u, v, w = stglib.aqd.qaqc.coord_transform(
+        u, v, w = stglib.aqd.aqdutils.coord_transform(
             self.vel1,
             self.vel2,
             self.vel3,
@@ -179,7 +179,7 @@ class TestAqd(unittest.TestCase):
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
 
-        u, v, w = stglib.aqd.qaqc.coord_transform(
+        u, v, w = stglib.aqd.aqdutils.coord_transform(
             self.vel1,
             self.vel2,
             self.vel3,
@@ -204,7 +204,7 @@ class TestAqd(unittest.TestCase):
 
     def test_enu_to_beam(self):
 
-        u, v, w = stglib.aqd.qaqc.coord_transform(
+        u, v, w = stglib.aqd.aqdutils.coord_transform(
             self.vel1,
             self.vel2,
             self.vel3,
@@ -230,7 +230,7 @@ class TestAqd(unittest.TestCase):
 
     def test_enu_beam_roundtrip(self):
 
-        u, v, w = stglib.aqd.qaqc.coord_transform(
+        u, v, w = stglib.aqd.aqdutils.coord_transform(
             self.vel1,
             self.vel2,
             self.vel3,
@@ -243,7 +243,7 @@ class TestAqd(unittest.TestCase):
             out="BEAM",
         )
 
-        v1, v2, v3 = stglib.aqd.qaqc.coord_transform(
+        v1, v2, v3 = stglib.aqd.aqdutils.coord_transform(
             u, v, w, self.h, self.p, self.r, self.T, self.T_orig, "BEAM"
         )
 
@@ -260,16 +260,16 @@ class TestAqd(unittest.TestCase):
         self.ds.attrs["transducer_offset_from_bottom"] = 0.15
 
         self.ds.attrs["orientation"] = "UP"
-        result, T, T_orig = stglib.aqd.qaqc.set_orientation(self.ds, self.T)
+        result, T, T_orig = stglib.aqd.aqdutils.set_orientation(self.ds, self.T)
         np.testing.assert_almost_equal(depth.mean() - bindist, result["depth"].values)
 
         self.ds.attrs["orientation"] = "DOWN"
-        result, T, T_orig = stglib.aqd.qaqc.set_orientation(self.ds, self.T)
+        result, T, T_orig = stglib.aqd.aqdutils.set_orientation(self.ds, self.T)
         np.testing.assert_almost_equal(depth.mean() + bindist, result["depth"].values)
 
         self.ds.attrs["NAVD88_ref"] = -0.87
         self.ds.attrs["orientation"] = "UP"
-        result, T, T_orig = stglib.aqd.qaqc.set_orientation(self.ds, self.T)
+        result, T, T_orig = stglib.aqd.aqdutils.set_orientation(self.ds, self.T)
         np.testing.assert_almost_equal(
             -self.ds.attrs["NAVD88_ref"]
             - self.ds.attrs["transducer_offset_from_bottom"]
@@ -278,7 +278,7 @@ class TestAqd(unittest.TestCase):
         )
 
         self.ds.attrs["orientation"] = "DOWN"
-        result, T, T_orig = stglib.aqd.qaqc.set_orientation(self.ds, self.T)
+        result, T, T_orig = stglib.aqd.aqdutils.set_orientation(self.ds, self.T)
         np.testing.assert_almost_equal(
             -self.ds.attrs["NAVD88_ref"]
             - self.ds.attrs["transducer_offset_from_bottom"]

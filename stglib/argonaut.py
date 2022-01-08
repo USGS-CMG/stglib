@@ -1,7 +1,7 @@
 import pandas as pd
 import xarray as xr
 
-from .aqd import qaqc
+from .aqd import aqdutils
 
 
 # def read_argonaut(filbase):
@@ -19,7 +19,7 @@ def read_dat_raw(filnam):
         filnam,
         delim_whitespace=True,
         parse_dates={"time": ["Year", "Month", "Day", "Hour", "Minute", "Second"]},
-        date_parser=qaqc.date_parser,
+        date_parser=aqdutils.date_parser,
     )
     df.set_index("time", inplace=True)
     return df
@@ -43,7 +43,7 @@ def read_vel_snr_std(filbase):
                      delim_whitespace=True,
                      header=[0,1],
                      parse_dates=[[1,2,3,4,5,6]],
-                     date_parser=qaqc.date_parser)
+                     date_parser=aqdutils.date_parser)
 
     df = rename_columns(df)
     df.set_index('time',inplace=True)
@@ -77,7 +77,7 @@ def read_vel_snr_std(filbase):
                       delim_whitespace=True,
                       header=[0,1],
                       parse_dates=[[1,2,3,4,5,6]],
-                      date_parser=qaqc.date_parser)
+                      date_parser=aqdutils.date_parser)
 
     snr = rename_columns(snr)
 
@@ -88,7 +88,7 @@ def read_vel_snr_std(filbase):
                       delim_whitespace=True,
                       header=[0,1],
                       parse_dates=[[1,2,3,4,5,6]],
-                      date_parser=qaqc.date_parser)
+                      date_parser=aqdutils.date_parser)
 
     std = rename_columns(std)
 
@@ -113,4 +113,4 @@ def read_ctl(filnam):
 
 
 # parse_dates={'datetime': [2, 0, 1, 3, 4, 5]},
-# date_parser=qaqc.date_parser,
+# date_parser=aqdutils.date_parser,

@@ -4,7 +4,7 @@ import xarray as xr
 import numpy as np
 
 from ..core import utils, waves
-from . import qaqc
+from . import aqdutils
 
 
 def nc_to_waves(nc_filename):
@@ -70,7 +70,7 @@ def nc_to_waves(nc_filename):
             )
         # only works on UP because we assume T = T_orig
         # need to pass .values because passing the DataArray is MUCH slower
-        u, v, w = qaqc.coord_transform(
+        u, v, w = aqdutils.coord_transform(
             ds["vel1_1277"].squeeze().values / 1000,
             ds["vel2_1278"].squeeze().values / 1000,
             ds["vel3_1279"].squeeze().values / 1000,

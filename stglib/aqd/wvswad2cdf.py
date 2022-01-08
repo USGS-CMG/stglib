@@ -5,7 +5,7 @@ import pandas as pd
 import xarray as xr
 
 from ..core import utils
-from . import qaqc
+from . import aqdutils
 
 
 def wad_to_cdf(metadata, writefile=True):
@@ -28,7 +28,7 @@ def wad_to_cdf(metadata, writefile=True):
     basefile = metadata["basefile"]
 
     # get instrument metadata from the HDR file
-    instmeta = qaqc.read_aqd_hdr(basefile)
+    instmeta = aqdutils.read_aqd_hdr(basefile)
 
     metadata["instmeta"] = instmeta
 
@@ -44,13 +44,13 @@ def wad_to_cdf(metadata, writefile=True):
     ds = load_wad(ds)
 
     # Deal with metadata peculiarities
-    ds = qaqc.check_attrs(ds, waves=True)
+    ds = aqdutils.check_attrs(ds, waves=True)
 
     ds.attrs["center_first_bin"] = ds["cellpos"][0].values
 
     print("BIN SIZE:", ds.attrs["bin_size"])
 
-    ds = qaqc.check_orientation(ds, waves=True)
+    ds = aqdutils.check_orientation(ds, waves=True)
 
     # Compute time stamps
     fs = float(ds.attrs["WaveSampleRate"].split()[0])
@@ -67,7 +67,7 @@ def wad_to_cdf(metadata, writefile=True):
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
-    ds = qaqc.update_attrs(ds, waves=True)
+    ds = aqdutils.update_attrs(ds, waves=True)
 
     # need to drop datetime
     ds = ds.drop_vars("datetime")
@@ -90,7 +90,7 @@ def load_whd(metadata):
         header=None,
         delim_whitespace=True,
         parse_dates={"datetime": [2, 0, 1, 3, 4, 5]},
-        date_parser=qaqc.date_parser,
+        date_parser=aqdutils.date_parser,
         usecols=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20],
     )
 
