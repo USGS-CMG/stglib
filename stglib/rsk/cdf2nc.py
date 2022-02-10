@@ -86,8 +86,8 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
             ds = utils.set_var_dtype(ds, var)
 
     # if we are dealing with continuous instruments, drop sample since it is a singleton dimension
-    if len(ds['sample'] == 1):
-        ds = ds.squeeze(dim='sample')
+    if len(ds["sample"]) == 1:
+        ds = ds.squeeze(dim="sample")
 
     if writefile:
         # Write to .nc file
