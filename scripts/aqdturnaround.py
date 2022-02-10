@@ -103,6 +103,22 @@ for sp in [2, 3, 4]:
     )
 plt.savefig(args.basefile + "_aqd_velocity_ts.png")
 
+
+plt.figure(figsize=(8.5, 11))
+plt.subplot(4, 1, 1)
+ds["Temperature"].plot()
+plt.title(args.basefile)
+
+plt.subplot(4, 1, 2)
+ds["Battery"].plot()
+
+plt.subplot(4, 1, 3)
+ds["AnalogInput1"].plot()
+
+plt.subplot(4, 1, 4)
+ds["AnalogInput2"].plot()
+plt.savefig(args.basefile + "_aqd_sensor_ts2.png")
+
 # plt.figure(figsize=(11,9))
 # sp = plt.subplot(1, 1, 1, projection='polar')
 # sp.set_theta_zero_location('N')
