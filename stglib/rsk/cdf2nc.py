@@ -27,7 +27,13 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         # need to save attrs before the subtraction, otherwise they are lost
         # ds['P_1ac'] = ds['P_1'].copy(deep=True)
         attrs = ds["P_1"].attrs
-        ds["P_1ac"] = ds["P_1"] - met["atmpres"] - met["atmpres"].offset
+        ds["P_1ac"] = (
+            ds["P_1"]
+            - met["atmpres"].reindex_like(
+                ds["P_1"], method="nearest", tolerance="10min"
+            )
+            - met["atmpres"].offset
+        )
         print("Correcting using offset of %f" % met["atmpres"].offset)
         ds["P_1ac"].attrs = attrs
 
