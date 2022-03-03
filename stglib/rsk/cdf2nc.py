@@ -20,6 +20,9 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
 
     ds = utils.create_nominal_instrument_depth(ds)
 
+    # remove pressure anomalies
+    ds = remove_large_hourly_p1_amp(ds)
+
     if atmpres is not None:
         print("Atmospherically correcting data")
 
@@ -123,6 +126,22 @@ def trim_min(ds, var):
 
         ds = utils.insert_note(ds, var, notetxt)
 
+    return ds
+
+def remove_large_hourly_p1_amp(ds, max_pressure_amplitude=1.5):
+    """
+    This function checks for large pressure amplitude in each hour.
+    If the amplitude is larger than the max_pressure_amplitude
+    then the pressure for the entire hour is set to nan.
+    """
+    p = ds['P_1']
+    p = p.to_numpy()
+    n, m = p.shape
+    for i in range(n):
+        p_mean = np.mean(p[i,:])
+        calc_amplitude = np.max(np.abs(p[i,:] - p_mean))
+        if calc_amplitude > max_pressure_amplitude:
+            ds['P_1'][i,:] = np.nan
     return ds
 
 
