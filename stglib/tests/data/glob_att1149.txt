@@ -1,0 +1,25 @@
+    SciPi; C. Sherwood
+    PROJECT; USGS Coastal and Marine Geology Program
+    EXPERIMENT; DUNEX
+    DESCRIPTION; Pea Island National Wildlife Refuge, NC
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.6
+    MOORING; 1149
+    WATER_DEPTH; 0
+    WATER_DEPTH_NOTE; Sensor is located above ground.
+    latitude; 35.677777
+    longitude; -75.48042
+    magnetic_variation; -11.04
+    Deployment_date; 2021-09-13 14:00
+    Recovery_date; 2021-10-24 19:51
+    DATA_CMNT; No magnetic variation recorded, used data from IGRF model via ngdc.noaa.gov. 
+    platform_type; pole
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; North Atlantic Ocean
+    VAR_FILL; 1.e+35
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov
