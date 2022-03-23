@@ -1,9 +1,3 @@
-basefile: 'Dunex_2021-09-13'
-filename: '1149wxt'
-LatLonDatum: NAD83
-skiprows: 7
-RTK_elevation_NAVD88: 9.2241
-initial_instrument_height: 2.447
-initial_instrument_height_note: sensor above ground
-dir_offset: 0
-dir_offset_note: 'No wind direction correction needed.'
+version https://git-lfs.github.com/spec/v1
+oid sha256:a23d702f25c33afed9b47924bcc932d129645856bd244dcb30bcaa66e4e8d61d
+size 271
