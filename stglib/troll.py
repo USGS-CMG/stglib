@@ -320,6 +320,7 @@ def ds_add_attrs(ds):
 
 
 def compute_g(φ, H):
+    """https://in-situ.com/uk/pub/media/support/documents/Aqua-TROLL-200-Measurement-Methodology-Tech-Note.pdf"""
     return (
         9.780356 * (1 + 0.0052885 * np.sin(φ) ** 2 - 0.0000059 * np.sin(2 * φ) ** 2)
         - 0.003086 * H
@@ -327,6 +328,7 @@ def compute_g(φ, H):
 
 
 def compute_Rt(T, AC):
+    """https://in-situ.com/uk/pub/media/support/documents/Aqua-TROLL-200-Measurement-Methodology-Tech-Note.pdf"""
     r0 = 29752.63
     r2 = 3.429338
     r1 = 830.5102
@@ -335,18 +337,36 @@ def compute_Rt(T, AC):
 
 
 def compute_X(Rt):
+    """https://in-situ.com/uk/pub/media/support/documents/Aqua-TROLL-200-Measurement-Methodology-Tech-Note.pdf"""
     return 400 * Rt
 
 
 def compute_Y(Rt):
+    """https://in-situ.com/uk/pub/media/support/documents/Aqua-TROLL-200-Measurement-Methodology-Tech-Note.pdf"""
     return 100 * Rt
 
 
 def f(T):
+    """https://in-situ.com/uk/pub/media/support/documents/Aqua-TROLL-200-Measurement-Methodology-Tech-Note.pdf"""
     return (T - 15) / (1 + 0.0162 * (T - 15))
 
 
 def compute_S(T, AC):
+    """Compute salinity from temperature and actual conductivity
+
+    Parameters
+    ----------
+    T : float
+        Temperature, degrees C
+    AC: float
+        Actual conductivity, microSiemens/cm
+
+    Returns
+    -------
+    float
+        Salinity
+
+    https://in-situ.com/uk/pub/media/support/documents/Aqua-TROLL-200-Measurement-Methodology-Tech-Note.pdf"""
     a0 = 0.0080
     b0 = 0.0005
     a1 = -0.1692
@@ -385,6 +405,7 @@ def compute_S(T, AC):
 
 
 def compute_density(T, S):
+    """https://in-situ.com/uk/pub/media/support/documents/Aqua-TROLL-200-Measurement-Methodology-Tech-Note.pdf"""
     ρ0 = (
         999.842594
         + 0.06793952 * T
