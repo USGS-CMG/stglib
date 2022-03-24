@@ -293,3 +293,21 @@ def exoturnaround_parser():
     )
 
     return parser
+
+def wxtcsv2cdf_parser():
+    description = (
+        "Convert Vaisala WXT met .csv file to raw .cdf format. Run this script "
+        "from the directory containing Vaisala .csv file"
+    )
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+def wxtcdf2nc_parser():
+    description = "Convert raw Vaisala WXT .cdf format to processed .nc files"
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("cdfname", help="raw .CDF filename")
+
+    return parser
