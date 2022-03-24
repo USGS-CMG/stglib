@@ -24,6 +24,32 @@ def is_cf(ds):
         return False
 
 
+def check_compliance(nc_file):
+    from compliance_checker.runner import ComplianceChecker, CheckSuite
+
+    check_suite = CheckSuite()
+    check_suite.load_all_available_checkers()
+
+    checker_names = ["cf:1.6"]
+    verbose = 1
+    criteria = "normal"
+    output_filename = nc_file + ".cfcheck.txt"
+    output_format = "text"
+
+    print(
+        f"*** Checking CF compliance. Please view contents of {output_filename} for any compliance issues."
+    )
+
+    return_value, errors = ComplianceChecker.run_checker(
+        nc_file,
+        checker_names,
+        verbose,
+        criteria,
+        output_filename=output_filename,
+        output_format=output_format,
+    )
+
+
 def clip_ds(ds, wvs=False):
     """
     Clip an xarray Dataset from metadata, either via good_ens or

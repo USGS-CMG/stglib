@@ -111,6 +111,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     if utils.is_cf(VEL):
         VEL.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+        utils.check_compliance(nc_filename)
     else:
         VEL.to_netcdf(nc_filename, unlimited_dims=["time"])
 
