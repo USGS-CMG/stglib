@@ -65,6 +65,16 @@ Onset HOBO
 
   stglib.hobo.read_hobo
 
+Vaisala Weather Transmitter WXT
+===============================
+
+.. autosummary::
+  :toctree: generated/
+
+  stglib.wxt.read_wxt
+  stglib.wxt.csv_to_cdf
+  stglib.wxt.cdf_to_nc
+
 QRev
 ====
 

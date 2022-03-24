@@ -22,6 +22,7 @@ Currently, this package has at least partial support for:
 - SonTek IQ flow monitors
 - WET labs sensors, including ECO NTUSB and ECO PAR
 - Onset HOBO pressure sensors
+- Vaisala Weather Transmitter WXT sensors
 - Moving-boat ADCP data processed using QRev_, for use in index-velocity computation
 
 .. _QRev: https://hydroacoustics.usgs.gov/movingboat/QRev.shtml
