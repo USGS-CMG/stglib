@@ -294,6 +294,7 @@ def exoturnaround_parser():
 
     return parser
 
+
 def wxtcsv2cdf_parser():
     description = (
         "Convert Vaisala WXT met .csv file to raw .cdf format. Run this script "
@@ -304,6 +305,7 @@ def wxtcsv2cdf_parser():
     yamlarg(parser)
 
     return parser
+
 
 def wxtcdf2nc_parser():
     description = "Convert raw Vaisala WXT .cdf format to processed .nc files"
