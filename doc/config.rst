@@ -98,3 +98,12 @@ NTU-specific options include:
 - ``Turb_std_max``: fill turbidity based on a maximum standard deviation value.
 - ``spb``: samples per burst
 - ``user_ntucal_coeffs``: polynomial coefficients, e.g., ``[9.078E-07, 5.883E-02, -2.899E+00]``.
+
+Vaisala WXT536
+--------------
+
+WXT-specific options include:
+
+- ``RTK_elevation_NAVD88``: RTK elevation of the sensor referenced to NAVD88 in meters.
+- ``dir_offset``: a direction offset in degrees from magnetic north to be applied if the sensor was not pointing toward magnetic north.
+- ``dir_offset_note``: a note about the direction offset being used.
