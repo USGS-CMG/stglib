@@ -13,7 +13,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     """
 
     # Load raw .cdf data
-    ds = xr.load_dataset(cdf_filename)
+    ds = open_raw_cdf(cdf_filename)
 
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
@@ -108,6 +108,14 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     # rename time variables after the fact to conform with EPIC/CMG standards
     # utils.rename_time(nc_filename)
 
+    return ds
+
+
+def open_raw_cdf(cdf_filename):
+    ds = xr.load_dataset(cdf_filename)
+    ds.time.encoding.pop(
+        "units"
+    )  # remove units in case we change and we can use larger time steps
     return ds
 
 
