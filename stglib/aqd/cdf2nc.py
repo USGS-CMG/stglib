@@ -109,6 +109,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     else:
         nc_filename = VEL.attrs["filename"] + "-a.nc"
 
+    print(VEL)
+
     if utils.is_cf(VEL):
         VEL.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
         utils.check_compliance(nc_filename)
@@ -124,12 +126,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
 
 def ds_swap_dims(ds):
-    ds = ds.swap_dims({"bindist": "depth"})
+    ds = ds.swap_dims({"bindist": "G"})
     # need to swap dims and then reassign bindist to be a normal variable
     # (no longer a coordinate)
     valbak = ds["bindist"].values
     ds = ds.drop("bindist")
-    ds["bindist"] = xr.DataArray(valbak, dims="depth")
+    ds["bindist"] = xr.DataArray(valbak, dims="z")
 
     return ds
 

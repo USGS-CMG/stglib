@@ -208,7 +208,7 @@ def swap_bindist_to_depth(ds):
 
 def set_orientation(VEL, T):
     """
-    Create depth variable depending on instrument orientation
+    Create z variable depending on instrument orientation
     """
 
     if "Pressure_ac" in VEL:
@@ -217,22 +217,29 @@ def set_orientation(VEL, T):
         presvar = "Pressure"
 
     if "NAVD88_ref" in VEL.attrs:
-        Wdepth = -VEL.attrs["NAVD88_ref"] - VEL.attrs["transducer_offset_from_bottom"]
+        # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
+        elev = VEL.attrs["NAVD88_ref"] + VEL.attrs['initial_instrument_height']
     else:
-        Wdepth = np.nanmean(VEL[presvar])
+        # if we don't have NAVD88 elevations, reference to mean sea level
+        elev = -np.nanmean(VEL[presvar])
 
     T_orig = T.copy()
+
+    print(elev)
+    print(VEL['bindist'])
 
     if VEL.attrs["orientation"] == "UP":
         print("User instructed that instrument was pointing UP")
         # try a simpler approach
-        VEL["depth"] = xr.DataArray(Wdepth - VEL["bindist"], dims="bindist")
+        print(VEL)
+        print(VEL["z"])
+        VEL["z"] = xr.DataArray(elev + VEL["bindist"].values, dims="z")
     elif VEL.attrs["orientation"] == "DOWN":
         print("User instructed that instrument was pointing DOWN")
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
         # try a simpler approach
-        VEL["depth"] = xr.DataArray(Wdepth + VEL["bindist"], dims="bindist")
+        VEL["z"] = xr.DataArray(elev - VEL["bindist"].values, dims="z")
 
     return VEL, T, T_orig
 
@@ -623,9 +630,7 @@ def check_orientation(ds, waves=False):
         # depth, or distance below surface, is a positive number below the
         # surface, negative above the surface, for CMG purposes and consistency
         # with ADCP
-        depth = (
-            ds.attrs["WATER_DEPTH"] - ds.attrs["transducer_offset_from_bottom"]
-        ) - bindist
+        z = ds.attrs["transducer_offset_from_bottom"] + bindist
         # TODO: this is never used
         # Depth_NOTE = (
         #     "user reports uplooking bin depths = water_depth - "
@@ -633,9 +638,7 @@ def check_orientation(ds, waves=False):
         # )
     elif ds.attrs["orientation"] == "DOWN":
         print("User instructed that instrument was pointing DOWN")
-        depth = (
-            ds.attrs["WATER_DEPTH"] - ds.attrs["transducer_offset_from_bottom"]
-        ) + bindist
+        z = ds.attrs["transducer_offset_from_bottom"] - bindist
         # TODO: this is never used
         # Depth_NOTE = (
         #     "user reports downlooking bin depths = water_depth - "
@@ -644,10 +647,10 @@ def check_orientation(ds, waves=False):
 
     if not waves:
         ds["bindist"] = xr.DataArray(bindist, dims=("bindist"), name="bindist")
-        ds["depth"] = xr.DataArray(depth, dims=("bindist"), name="depth")
+        ds["z"] = xr.DataArray(z, dims="z")
     else:
         ds["bindist"] = xr.DataArray([bindist], dims=("bindist"), name="bindist")
-        ds["depth"] = xr.DataArray([depth], dims=("bindist"), name="depth")
+        ds["z"] = xr.DataArray([z], dims="z")
 
     return ds
 
@@ -768,16 +771,16 @@ def update_attrs(ds, waves=False):
         }
     )
 
-    ds["depth"].attrs.update(
-        {
-            "units": "m",
-            "long_name": "mean water depth",
-            "bin_size": ds.attrs["bin_size"],
-            "center_first_bin": ds.attrs["center_first_bin"],
-            "bin_count": ds.attrs["bin_count"],
-            "transducer_offset_from_bottom": ds.attrs["transducer_offset_from_bottom"],
-        }
-    )
+    # ds["depth"].attrs.update(
+    #     {
+    #         "units": "m",
+    #         "long_name": "mean water depth",
+    #         "bin_size": ds.attrs["bin_size"],
+    #         "center_first_bin": ds.attrs["center_first_bin"],
+    #         "bin_count": ds.attrs["bin_count"],
+    #         "transducer_offset_from_bottom": ds.attrs["transducer_offset_from_bottom"],
+    #     }
+    # )
 
     ds["TransMatrix"].attrs["long_name"] = "Transformation Matrix " "for this Aquadopp"
     if waves:
@@ -854,23 +857,23 @@ def ds_add_attrs(ds, waves=False):
         ds["epic_time2_2d"].attrs = ds["epic_time2"].attrs
         ds["epic_time2_2d"].attrs["type"] = "UNEVEN"
 
-    ds["depth"].attrs.update(
-        {
-            "units": "m",
-            "long_name": "mean water depth",
-            "initial_instrument_height": ds.attrs["initial_instrument_height"],
-            "nominal_instrument_depth": ds.attrs["nominal_instrument_depth"],
-            "epic_code": 3,
-        }
-    )
+    # ds["depth"].attrs.update(
+    #     {
+    #         "units": "m",
+    #         "long_name": "mean water depth",
+    #         "initial_instrument_height": ds.attrs["initial_instrument_height"],
+    #         "nominal_instrument_depth": ds.attrs["nominal_instrument_depth"],
+    #         "epic_code": 3,
+    #     }
+    # )
 
-    if "NAVD88_ref" in ds.attrs:
-        ds["depth"].attrs["VERT_DATUM"] = "NAVD88"
-        ds["depth"].attrs["NOTE"] = (
-            "Computed as platform depth [m NAVD88] "
-            "- initial_instrument_height - bin "
-            "distance from transducer"
-        )
+    # if "NAVD88_ref" in ds.attrs:
+    #     ds["depth"].attrs["VERT_DATUM"] = "NAVD88"
+    #     ds["depth"].attrs["NOTE"] = (
+    #         "Computed as platform depth [m NAVD88] "
+    #         "- initial_instrument_height - bin "
+    #         "distance from transducer"
+    #     )
 
     if not waves:
         ds["u_1205"].attrs.update(
