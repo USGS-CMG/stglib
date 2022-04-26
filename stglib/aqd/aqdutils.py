@@ -718,7 +718,7 @@ def update_attrs(ds, waves=False):
     for n in [1, 2, 3]:
         ds["VEL" + str(n)].attrs.update(
             {
-                "units": "cm/s",
+                "units": "m s-1",
                 "Type": "scalar",
                 "transducer_offset_from_bottom": ds.attrs[
                     "transducer_offset_from_bottom"
@@ -797,7 +797,7 @@ def ds_add_attrs(ds, waves=False):
     def add_vel_attributes(vel, dsattrs):
         vel.attrs.update(
             {
-                "units": "cm/s",
+                "units": "m s-1",
                 "data_cmnt": (
                     "Velocity in shallowest bin is often suspect and "
                     "should be used with caution"

@@ -128,9 +128,7 @@ def load_amp_vel(RAW, basefile):
 
         vfile = basefile + ".v" + str(n)
         v = pd.read_csv(vfile, header=None, delim_whitespace=True)
-        # convert m/s to cm/s
-        RAW["VEL" + str(n)] = xr.DataArray(
-            v * 100, dims=("time", "bindist"), coords=coords
-        )
+
+        RAW["VEL" + str(n)] = xr.DataArray(v, dims=("time", "bindist"), coords=coords)
 
     return RAW
