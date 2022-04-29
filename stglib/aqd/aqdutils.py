@@ -221,28 +221,28 @@ def set_orientation(VEL, T):
 
     if "NAVD88_ref" in VEL.attrs:
         # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
-        elev = VEL.attrs["NAVD88_ref"] + VEL.attrs['initial_instrument_height']
+        elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["initial_instrument_height"]
     else:
         # if we don't have NAVD88 elevations, reference to mean sea level
         elev = -np.nanmean(VEL[presvar])
 
     T_orig = T.copy()
 
-    print(elev)
-    print(VEL['bindist'])
-
     if VEL.attrs["orientation"] == "UP":
         print("User instructed that instrument was pointing UP")
-        # try a simpler approach
-        print(VEL)
-        print(VEL["z"])
+
         VEL["z"] = xr.DataArray(elev + VEL["bindist"].values, dims="z")
+
     elif VEL.attrs["orientation"] == "DOWN":
         print("User instructed that instrument was pointing DOWN")
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
-        # try a simpler approach
+
         VEL["z"] = xr.DataArray(elev - VEL["bindist"].values, dims="z")
+
+    VEL["z"].attrs["standard_name"] = "height"
+    VEL["z"].attrs["units"] = "m"
+    VEL["z"].attrs["positive"] = "up"
 
     return VEL, T, T_orig
 
@@ -650,10 +650,10 @@ def check_orientation(ds, waves=False):
 
     if not waves:
         ds["bindist"] = xr.DataArray(bindist, dims=("bindist"), name="bindist")
-        ds["z"] = xr.DataArray(z, dims="z")
+        # ds["z"] = xr.DataArray(z, dims="z")
     else:
         ds["bindist"] = xr.DataArray([bindist], dims=("bindist"), name="bindist")
-        ds["z"] = xr.DataArray([z], dims="z")
+        # ds["z"] = xr.DataArray([z], dims="z")
 
     return ds
 
