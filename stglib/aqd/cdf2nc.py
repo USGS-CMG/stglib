@@ -111,7 +111,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     if utils.is_cf(VEL):
         VEL.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
-        utils.check_compliance(nc_filename)
+        utils.check_compliance(nc_filename, checker_names=["cf:1.6"])
     else:
         VEL.to_netcdf(nc_filename, unlimited_dims=["time"])
 
@@ -152,5 +152,11 @@ def ds_drop(ds):
         "jd",
         "Depth",
     ]
+
+    if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"] == "true"):
+        todrop.remove("AnalogInput1")
+
+    if ("AnalogInput2" in ds.attrs) and (ds.attrs["AnalogInput2"] == "true"):
+        todrop.remove("AnalogInput2")
 
     return ds.drop([t for t in todrop if t in ds.variables])
