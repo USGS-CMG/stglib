@@ -273,19 +273,19 @@ class TestAqd(unittest.TestCase):
         self.ds.attrs["orientation"] = "UP"
         result, T, T_orig = stglib.aqd.aqdutils.set_orientation(self.ds, self.T)
         np.testing.assert_almost_equal(
-            -self.ds.attrs["NAVD88_ref"]
-            - self.ds.attrs["transducer_offset_from_bottom"]
-            - bindist,
-            result["depth"].values,
+            self.ds.attrs["NAVD88_ref"]
+            + self.ds.attrs["transducer_offset_from_bottom"]
+            + bindist,
+            result["z"].values,
         )
 
         self.ds.attrs["orientation"] = "DOWN"
         result, T, T_orig = stglib.aqd.aqdutils.set_orientation(self.ds, self.T)
         np.testing.assert_almost_equal(
-            -self.ds.attrs["NAVD88_ref"]
-            - self.ds.attrs["transducer_offset_from_bottom"]
-            + bindist,
-            result["depth"].values,
+            self.ds.attrs["NAVD88_ref"]
+            + self.ds.attrs["transducer_offset_from_bottom"]
+            - bindist,
+            result["z"].values,
         )
 
 

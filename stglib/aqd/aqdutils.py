@@ -221,10 +221,12 @@ def set_orientation(VEL, T):
 
     if "NAVD88_ref" in VEL.attrs:
         # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
-        elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["initial_instrument_height"]
+        elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
+        long_name = "height relative to NAVD88"
     else:
         # if we don't have NAVD88 elevations, reference to mean sea level
         elev = -np.nanmean(VEL[presvar])
+        long_name = "height relative to mean sea level"
 
     T_orig = T.copy()
 
@@ -232,6 +234,9 @@ def set_orientation(VEL, T):
         print("User instructed that instrument was pointing UP")
 
         VEL["z"] = xr.DataArray(elev + VEL["bindist"].values, dims="z")
+        VEL["depth"] = xr.DataArray(
+            np.nanmean(VEL[presvar]) - VEL["bindist"].values, dims="depth"
+        )
 
     elif VEL.attrs["orientation"] == "DOWN":
         print("User instructed that instrument was pointing DOWN")
@@ -239,10 +244,20 @@ def set_orientation(VEL, T):
         T[2, :] = -T[2, :]
 
         VEL["z"] = xr.DataArray(elev - VEL["bindist"].values, dims="z")
+        VEL["depth"] = xr.DataArray(
+            np.nanmean(VEL[presvar]) + VEL["bindist"].values, dims="depth"
+        )
 
     VEL["z"].attrs["standard_name"] = "height"
     VEL["z"].attrs["units"] = "m"
     VEL["z"].attrs["positive"] = "up"
+    VEL["z"].attrs["axis"] = "Z"
+    VEL["z"].attrs["long_name"] = long_name
+
+    VEL["depth"].attrs["standard_name"] = "depth"
+    VEL["depth"].attrs["units"] = "m"
+    VEL["depth"].attrs["positive"] = "down"
+    VEL["depth"].attrs["long_name"] = "vertical distance below mean sea level"
 
     return VEL, T, T_orig
 
