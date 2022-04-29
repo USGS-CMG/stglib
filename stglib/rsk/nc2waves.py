@@ -49,8 +49,6 @@ def nc_to_waves(nc_filename):
 
     nc_filename = ds.attrs["filename"] + "s-a.nc"
 
-    ds = utils.rename_time(ds)
-
     for var in ds.data_vars:
         if "time" not in var:
             # cast as float32

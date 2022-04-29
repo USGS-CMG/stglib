@@ -124,8 +124,6 @@ def nc_to_diwasp(nc_filename, format="NETCDF3_64BIT"):
 
     nc_filename = ds.attrs["filename"] + "wvs_diwasp-cal.nc"
 
-    ds = utils.rename_time(ds)
-
     print("Writing to netCDF")
 
     ds.to_netcdf(nc_filename, format=format)

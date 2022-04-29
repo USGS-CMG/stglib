@@ -22,8 +22,6 @@ def mat_to_cdf(metadata):
 
     del metadata
 
-    ds = utils.create_epic_times(ds)
-
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
@@ -253,8 +251,6 @@ def cdf_to_nc(cdf_filename, format="NETCDF3_64BIT"):
 
     ds = utils.add_start_stop_time(ds)
 
-    ds = utils.create_epic_times(ds)
-
     ds = utils.add_delta_t(ds)
 
     # add lat/lon coordinates
@@ -275,8 +271,6 @@ def cdf_to_nc(cdf_filename, format="NETCDF3_64BIT"):
             # cast as float32
             ds = utils.set_var_dtype(ds, var)
 
-    ds = utils.rename_time(ds)
-
     dsflow = ds.copy()
     dsprof = ds.copy()
 
@@ -288,10 +282,12 @@ def cdf_to_nc(cdf_filename, format="NETCDF3_64BIT"):
 
     nc_filename = dsflow.attrs["filename"] + "flow-a.nc"
     dsflow.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
+    utils.check_compliance(nc_filename)
     print("Done writing netCDF file", nc_filename)
 
     nc_filename = dsprof.attrs["filename"] + "prof-a.nc"
     dsprof.to_netcdf(nc_filename, format=format)
+    utils.check_compliance(nc_filename)
     print("Done writing netCDF file", nc_filename)
 
 
@@ -305,13 +301,15 @@ def ds_add_attrs(ds):
 
     ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
 
-    ds["epic_time"].attrs.update(
-        {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
-    )
+    if "epic_time" in ds:
+        ds["epic_time"].attrs.update(
+            {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
+        )
 
-    ds["epic_time2"].attrs.update(
-        {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
-    )
+    if "epic_time2" in ds:
+        ds["epic_time2"].attrs.update(
+            {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
+        )
 
     ds["D_3"].attrs.update(
         {"long_name": "Depth (relative to the top of the instrument)", "epic_code": 3}
@@ -349,6 +347,11 @@ def ds_add_attrs(ds):
     ] = "Measurement with atmospheric pressure removed (see SonTek-IQ User's Manual for details)"
     ds["Bat_106"].attrs["long_name"] = "Battery voltage"
     ds["Ptch_1216"].attrs["long_name"] = "Pitch angle in degrees"
+    # to be UDUNITS compatible
+    if ds["Ptch_1216"].attrs["units"] == "deg":
+        ds["Ptch_1216"].attrs["units"] = "degree"
+    if ds["Roll_1217"].attrs["units"] == "deg":
+        ds["Roll_1217"].attrs["units"] = "degree"
     ds["Roll_1217"].attrs["long_name"] = "Roll angle in degrees"
     ds["VbPercentGood"].attrs["long_name"] = "Vertical beam percent good"
     ds["HorizontalSkew"].attrs["long_name"] = "Horizontal skew"

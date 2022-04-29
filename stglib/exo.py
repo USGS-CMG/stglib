@@ -172,9 +172,6 @@ def csv_to_cdf(metadata):
 
     ds = utils.shift_time(ds, 0)
 
-    if not utils.is_cf(ds):
-        ds = utils.create_epic_times(ds)
-
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
@@ -237,9 +234,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_start_stop_time(ds)
 
-    if not utils.is_cf(ds):
-        ds = utils.create_epic_times(ds)
-
     ds = exo_add_delta_t(ds)
 
     # add lat/lon coordinates
@@ -259,8 +253,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             ds = utils.no_p_add_depth(ds, var)
             # cast as float32
             ds = utils.set_var_dtype(ds, var)
-
-    ds = utils.rename_time(ds)
 
     # No longer report depth
     if "Depth_m" in ds:

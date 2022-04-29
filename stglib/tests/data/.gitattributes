@@ -18,3 +18,6 @@ aqd1118A_config.yaml filter=lfs diff=lfs merge=lfs -text
 Dunex_2021-09-13.csv filter=lfs diff=lfs merge=lfs -text
 glob_att1149.txt filter=lfs diff=lfs merge=lfs -text
 wxt1149_config.yaml filter=lfs diff=lfs merge=lfs -text
+config_1097C.yaml filter=lfs diff=lfs merge=lfs -text
+glob_att1097C.txt filter=lfs diff=lfs merge=lfs -text
+1097CIQ_20171214_125948.mat filter=lfs diff=lfs merge=lfs -text

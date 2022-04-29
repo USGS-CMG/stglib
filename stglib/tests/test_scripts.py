@@ -71,3 +71,26 @@ def wxt_nc(nc_file):
 def test_wxt():
     wxt_raw("glob_att1149.txt", "wxt1149_config.yaml")
     wxt_nc("1149wxt-raw.cdf")
+
+
+def iq_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        ["python", "../../../scripts/runiqmat2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def iq_nc(nc_file):
+    result = subprocess.run(
+        ["python", "../../../scripts/runiqcdf2nc.py", nc_file],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def test_iq():
+    iq_raw("glob_att1097C.txt", "config_1097C.yaml")
+    iq_nc("1118ABaqd-raw.cdf")

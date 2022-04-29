@@ -171,12 +171,6 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # Add history showing file used
     VEL = utils.add_history(VEL)
 
-    # Rename time variables for EPIC compliance, keeping a time_cf coorindate.
-    if utils.is_cf(VEL):
-        pass
-    else:
-        VEL = utils.rename_time(VEL)
-
     if utils.is_cf(VEL):
         VEL = utils.add_standard_names(VEL)
 
