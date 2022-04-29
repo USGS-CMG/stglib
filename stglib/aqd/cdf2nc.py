@@ -2,6 +2,7 @@ from __future__ import division, print_function
 
 import xarray as xr
 
+from .. import exo
 from ..core import utils
 from . import aqdutils
 
@@ -72,11 +73,18 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Rename DataArrays for EPIC compliance
     VEL = aqdutils.ds_rename(VEL)
 
-    # Drop non-EPIC variables
+    # Drop unused variables
     VEL = ds_drop(VEL)
 
     # Add EPIC and CMG attributes
     VEL = aqdutils.ds_add_attrs(VEL)
+
+    # should function this
+    for var in VEL.data_vars:
+        VEL = exo.trim_max_diff(VEL, var)
+        VEL = exo.trim_min_diff(VEL, var)
+        VEL = exo.trim_min(VEL, var)
+        VEL = exo.trim_max(VEL, var)
 
     # Add min/max values
     VEL = utils.add_min_max(VEL)
