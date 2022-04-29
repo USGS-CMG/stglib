@@ -24,13 +24,12 @@ def is_cf(ds):
         return False
 
 
-def check_compliance(nc_file):
+def check_compliance(nc_file, checker_names=["cf:1.6"]):
     from compliance_checker.runner import ComplianceChecker, CheckSuite
 
     check_suite = CheckSuite()
     check_suite.load_all_available_checkers()
 
-    checker_names = ["cf:1.6"]
     verbose = 1
     criteria = "normal"
     output_filename = nc_file + ".cfcheck.txt"
@@ -266,6 +265,19 @@ def add_standard_names(ds):
     if "Tx_1211" in ds:
         if ds["Tx_1211"].attrs["units"] == "C":
             ds["Tx_1211"].attrs["units"] = "degree_C"
+
+    if "AnalogInput1" in ds:
+        for v in ["standard_name", "long_name", "units"]:
+            if f"AnalogInput1_{v}" in ds.attrs:
+                ds["AnalogInput1"].attrs[v] = ds.attrs[f"AnalogInput1_{v}"]
+
+    ds["feature_type_instance"] = xr.DataArray(
+        [f"{ds.attrs['MOORING']}aqd"], dims="feature_type_instance"
+    )
+    ds["feature_type_instance"].attrs["cf_role"] = "timeseries_id"
+
+    for k in ds.data_vars:
+        ds[k].attrs["coverage_content_type"] = "physicalMeasurement"
 
     return ds
 

@@ -2,6 +2,7 @@ from __future__ import division, print_function
 
 import xarray as xr
 
+from .. import exo
 from ..core import utils
 from . import aqdutils
 
@@ -50,21 +51,22 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = aqdutils.make_bin_depth(VEL)
 
     # Reshape and associate dimensions with lat/lon
-    for var in [
-        "U",
-        "V",
-        "W",
-        "AGC",
-        "Pressure",
-        "Temperature",
-        "Heading",
-        "Pitch",
-        "Roll",
-        "bin_depth",
-        "Pressure_ac",
-    ]:
-        if var in VEL:
-            VEL = utils.add_lat_lon(VEL, var)
+    # DJN no longer doing this 2022-03-31
+    # for var in [
+    #     "U",
+    #     "V",
+    #     "W",
+    #     "AGC",
+    #     "Pressure",
+    #     "Temperature",
+    #     "Heading",
+    #     "Pitch",
+    #     "Roll",
+    #     "bin_depth",
+    #     "Pressure_ac",
+    # ]:
+    #     if var in VEL:
+    #         VEL = utils.add_lat_lon(VEL, var)
 
     # swap_dims from bindist to depth
     VEL = ds_swap_dims(VEL)
@@ -72,11 +74,18 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Rename DataArrays for EPIC compliance
     VEL = aqdutils.ds_rename(VEL)
 
-    # Drop non-EPIC variables
+    # Drop unused variables
     VEL = ds_drop(VEL)
 
     # Add EPIC and CMG attributes
     VEL = aqdutils.ds_add_attrs(VEL)
+
+    # should function this
+    for var in VEL.data_vars:
+        VEL = exo.trim_max_diff(VEL, var)
+        VEL = exo.trim_min_diff(VEL, var)
+        VEL = exo.trim_min(VEL, var)
+        VEL = exo.trim_max(VEL, var)
 
     # Add min/max values
     VEL = utils.add_min_max(VEL)
@@ -113,7 +122,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     if utils.is_cf(VEL):
         VEL.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
-        utils.check_compliance(nc_filename)
+        utils.check_compliance(nc_filename, checker_names=["cf:1.6"])
     else:
         VEL.to_netcdf(nc_filename, unlimited_dims=["time"])
 
@@ -154,5 +163,11 @@ def ds_drop(ds):
         "jd",
         "Depth",
     ]
+
+    if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"] == "true"):
+        todrop.remove("AnalogInput1")
+
+    if ("AnalogInput2" in ds.attrs) and (ds.attrs["AnalogInput2"] == "true"):
+        todrop.remove("AnalogInput2")
 
     return ds.drop([t for t in todrop if t in ds.variables])

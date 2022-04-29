@@ -69,6 +69,9 @@ def cdf_to_nc(cdf_filename):
 
     # Load raw .cdf data
     ds = xr.open_dataset(cdf_filename)
+    ds.time.encoding.pop(
+        "units"
+    )  # remove units in case we change and we can use larger time steps
 
     # Get rid of unneeded variables
     for k in [
