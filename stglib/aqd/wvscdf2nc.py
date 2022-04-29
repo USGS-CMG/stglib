@@ -69,8 +69,8 @@ def cdf_to_nc(
             ds = utils.set_var_dtype(ds, var)
 
     # Need to add lat lon to certain variables
-    for var in ["Hdg_1215", "Ptch_1216", "Roll_1217"]:
-        ds = utils.add_lat_lon(ds, var)
+    # for var in ["Hdg_1215", "Ptch_1216", "Roll_1217"]:
+    #     ds = utils.add_lat_lon(ds, var)
 
     # Ensure no _FillValue is assigned to coordinates
     ds = utils.ds_coord_no_fillvalue(ds)

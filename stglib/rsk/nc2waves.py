@@ -39,10 +39,10 @@ def nc_to_waves(nc_filename):
     ds = utils.ds_add_attrs(ds)
 
     # Reshape and associate dimensions with lat/lon
-    if not utils.is_cf:
-        for var in ["wp_peak", "wh_4061", "wp_4060", "pspec", "water_depth"]:
-            if var in ds:
-                ds = utils.add_lat_lon(ds, var)
+    # if not utils.is_cf:
+    #     for var in ["wp_peak", "wh_4061", "wp_4060", "pspec", "water_depth"]:
+    #         if var in ds:
+    #             ds = utils.add_lat_lon(ds, var)
 
     # assign min/max (need to do this after trimming):
     ds = utils.add_min_max(ds)

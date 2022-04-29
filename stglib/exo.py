@@ -249,7 +249,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # add lat/lon coordinates to each variable
     for var in ds.variables:
         if (var not in ds.coords) and ("time" not in var):
-            ds = utils.add_lat_lon(ds, var)
+            # ds = utils.add_lat_lon(ds, var)
             ds = utils.no_p_add_depth(ds, var)
             # cast as float32
             ds = utils.set_var_dtype(ds, var)
