@@ -88,9 +88,9 @@ def iq_nc(nc_file):
         capture_output=True,
         cwd="stglib/tests/data",
     )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
 def test_iq():
     iq_raw("glob_att1097C.txt", "config_1097C.yaml")
-    iq_nc("1118ABaqd-raw.cdf")
+    iq_nc("10971Ciq-raw.cdf")
