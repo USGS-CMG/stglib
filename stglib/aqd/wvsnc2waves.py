@@ -5,6 +5,7 @@ import numpy as np
 
 from ..core import utils, waves
 from . import aqdutils
+from tqdm import tqdm
 
 
 def nc_to_waves(nc_filename):
@@ -105,9 +106,7 @@ def nc_to_waves(nc_filename):
         }
 
         print("Running puv_quick")
-        for n in range(N):
-            if not n % 200:
-                print("{:.1f}% complete".format(n / N * 100))
+        for n in tqdm(range(N)):
             try:
                 puv = waves.puv_quick(
                     ds["P_1ac"][n, :].values,

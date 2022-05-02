@@ -7,5 +7,6 @@ pytest
 pyyaml
 scipy
 sqlite
+tqdm
 xarray
 xmltodict

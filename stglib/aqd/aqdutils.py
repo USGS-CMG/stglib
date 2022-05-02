@@ -6,6 +6,7 @@ import numpy as np
 import xarray as xr
 
 from ..core import utils
+from tqdm import tqdm
 
 
 def ds_rename(ds, waves=False):
@@ -152,9 +153,7 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs, out="
     ):
         print(f"Data are in {cs} coordinates; transforming to {out} coordinates")
 
-        for i in range(N):
-            if not i % 200:
-                print("{:.1f}% complete".format(i / N * 100))
+        for i in tqdm(range(N)):
             hh = np.pi * (heading[i] - 90) / 180
             pp = np.pi * pitch[i] / 180
             rr = np.pi * roll[i] / 180
