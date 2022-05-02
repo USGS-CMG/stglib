@@ -86,7 +86,7 @@ def cdf_to_nc(cdf_filename):
 
     ds = utils.add_start_stop_time(ds)
 
-    ds = add_delta_t(ds)
+    ds = utils.add_delta_t(ds)
 
     # add lat/lon coordinates
     ds = utils.ds_add_lat_lon(ds)
@@ -264,16 +264,6 @@ def df_to_ds(df):
             ds = ds.drop(k)
         if "Seconds" in k:
             ds = ds.drop(k)
-
-    return ds
-
-
-def add_delta_t(ds):
-    deltat = np.asscalar((ds["time"][1] - ds["time"][0]) / np.timedelta64(1, "s"))
-    if not deltat.is_integer():
-        warnings.warn("DELTA_T is not an integer; casting as int in attrs")
-
-    ds.attrs["DELTA_T"] = int(deltat)
 
     return ds
 

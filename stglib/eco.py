@@ -198,7 +198,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_start_stop_time(ds)
 
-    ds = eco_add_delta_t(ds)
+    ds = utils.add_delta_t(ds)
 
     # add lat/lon coordinates
     ds = utils.ds_add_lat_lon(ds)
@@ -221,16 +221,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds.to_netcdf(nc_filename, unlimited_dims=["time"])
     print("Done writing netCDF file", nc_filename)
-
-
-def eco_add_delta_t(ds):
-    deltat = np.asscalar((ds["time"][1] - ds["time"][0]) / np.timedelta64(1, "s"))
-    if not deltat.is_integer():
-        warnings.warn("DELTA_T is not an integer; casting as int in attrs")
-
-    ds.attrs["DELTA_T"] = int(deltat)
-
-    return ds
 
 
 def ds_add_attrs(ds):
