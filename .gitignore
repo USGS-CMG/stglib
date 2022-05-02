@@ -3,6 +3,7 @@ __pycache__
 dist
 stglib.egg-info
 .cache
+.DS_Store
 
 # Sphinx
 doc/_build
