@@ -394,7 +394,9 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
 
         if not lastbin == 0:
             # this trims so there are no all-nan rows in the data
-            ds = ds.isel(bindist=slice(0, lastbin))
+            ds = ds.isel(
+                bindist=slice(0, lastbin), z=slice(0, lastbin), depth=slice(0, lastbin)
+            )
 
         # TODO: need to add histcomment
 
