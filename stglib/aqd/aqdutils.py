@@ -223,9 +223,9 @@ def set_orientation(VEL, T):
         elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
         long_name = "height relative to NAVD88"
     else:
-        # if we don't have NAVD88 elevations, reference to mean sea level
-        elev = -np.nanmean(VEL[presvar])
-        long_name = "height relative to mean sea level"
+        # if we don't have NAVD88 elevations, reference to sea-bed elevation
+        elev = VEL.attrs["transducer_offset_from_bottom"]
+        long_name = "height relative to sea bed"
 
     T_orig = T.copy()
 
