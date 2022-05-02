@@ -68,12 +68,12 @@ def read_iq(filnam):
     ds["velbeam"] = xr.DataArray(
         [1, 2, 3, 4],
         dims="velbeam",
-        attrs={"long_name": "velocity beam number", "units": "velocity beam id number"},
+        attrs={"long_name": "velocity beam number", "units": "1"},
     )
     ds["beam"] = xr.DataArray(
         [1, 2, 3, 4, 5],
         dims="beam",
-        attrs={"long_name": "beam number", "units": "beam id number"},
+        attrs={"long_name": "beam number", "units": "1"},
     )
     # ds['beamdist_0'] = xr.DataArray(beamdist_0, dims='beamdist_0')
     # attrs = {}
@@ -121,7 +121,7 @@ def read_iq(filnam):
         ds.attrs[k] = iqmat["System_Id"][k]
     for k in iqmat["System_IqState"]:
         if "spare" not in k:
-            ds.attrs[k] = iqmat["System_IqState"][k]
+            ds.attrs[k.replace("[", "_").replace("]", "_")] = iqmat["System_IqState"][k]
 
     return xr.decode_cf(ds)
 
