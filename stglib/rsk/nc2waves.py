@@ -55,5 +55,7 @@ def nc_to_waves(nc_filename):
             ds = utils.set_var_dtype(ds, var)
 
     ds.to_netcdf(nc_filename, unlimited_dims=["time"])
+    utils.check_compliance(nc_filename)
+    print("Done writing netCDF file", nc_filename)
 
     return ds

@@ -168,9 +168,10 @@ def ds_add_depth_dim(ds):
         ds["depth"] = xr.DataArray([ds[p].mean(dim=["time", "sample"])], dims="depth")
         ds["depth"].attrs["NOTE"] = "Computed as mean of the pressure sensor"
     ds["depth"].attrs["positive"] = "down"
-    ds["depth"].attrs["axis"] = "z"
+    ds["depth"].attrs["axis"] = "Z"
     ds["depth"].attrs["units"] = "m"
     ds["depth"].attrs["epic_code"] = 3
+    ds["depth"].attrs["standard_name"] = "depth"
 
     return ds
 
@@ -180,6 +181,7 @@ def ds_add_attrs(ds):
     ds = utils.ds_coord_no_fillvalue(ds)
 
     ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
+    ds["time"].encoding["dtype"] = "i4"
 
     if "epic_time" in ds:
         ds["epic_time"].attrs.update(
@@ -196,9 +198,19 @@ def ds_add_attrs(ds):
     if "epic_time2_2d" in ds:
         ds["epic_time2_2d"].attrs = ds["epic_time2"].attrs
 
+    if "P_1" in ds:
+        ds["P_1"].attrs["standard_name"] = "sea_water_pressure"
+        ds["P_1"].attrs["units"] = "dbar"
+        ds["P_1"].attrs["long_name"] = "Uncorrected pressure"
+
     if "P_1ac" in ds:
         ds["P_1ac"].attrs.update(
-            {"units": "dbar", "name": "Pac", "long_name": "Corrected pressure"}
+            {
+                "units": "dbar",
+                "name": "Pac",
+                "long_name": "Pressure corrected for changes in atmospheric pressure",
+                "standard_name": "sea_water_pressure_due_to_sea_water",
+            }
         )
         ds["P_1ac"].encoding["_FillValue"] = 1e35
         if "P_1ac_note" in ds.attrs:
@@ -213,8 +225,9 @@ def ds_add_attrs(ds):
         )
         ds["Turb"].encoding["_FillValue"] = 1e35
 
-    ds.attrs["COMPOSITE"] = np.int32(0)
-    ds.attrs["COORD_SYSTEM"] = "GEOGRAPHIC + sample"
+    if not utils.is_cf(ds):
+        ds.attrs["COMPOSITE"] = np.int32(0)
+        ds.attrs["COORD_SYSTEM"] = "GEOGRAPHIC + sample"
 
     return ds
 
