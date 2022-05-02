@@ -78,7 +78,7 @@ def cdf_to_nc(
     if writefile:
         nc_filename = ds.attrs["filename"] + "wvsb-cal.nc"
         ds.to_netcdf(nc_filename)
-
+        utils.check_compliance(nc_filename)
         print("Done writing netCDF file", nc_filename)
 
     return ds
