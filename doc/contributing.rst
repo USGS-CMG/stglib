@@ -338,8 +338,8 @@ Testing With Continuous Integration
 We use continuous integration testing, which evaluates the code each time
 code is ``pushed`` to github.
 
-The *stglib* test suite consists of the files in ``stglib/tests/``, and are run automatically at
-`Travis CI <https://travis-ci.org/dnowacki-usgs/stglib>`__,
+The *stglib* test suite consists of the files in ``stglib/tests/``, and are run automatically by
+`GitHub Actions <https://github.com/USGS-CMG/stglib/actions>`__,
 a continuous integration service, once your pull request is submitted.
 
 You may wish to run tests on your local branch before pushing to github or submitting the pull request.

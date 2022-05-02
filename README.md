@@ -2,7 +2,6 @@
 
 [![Documentation Status](https://readthedocs.org/projects/stglib/badge/?version=latest)](http://stglib.readthedocs.io/en/latest/?badge=latest)
 ![stglib](https://github.com/dnowacki-usgs/stglib/workflows/stglib/badge.svg)
-[![Build status](https://ci.appveyor.com/api/projects/status/wo806dsxd3lhpict?svg=true)](https://ci.appveyor.com/project/dnowacki-usgs/stglib)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/stglib/badges/version.svg)](https://anaconda.org/conda-forge/stglib)
 
 This package contains code to process data from a variety of oceanographic instrumentation, consistent with the procedures of the USGS [Coastal/Marine Hazards and Resources Program](https://marine.usgs.gov) (formerly Coastal and Marine Geology Program).
