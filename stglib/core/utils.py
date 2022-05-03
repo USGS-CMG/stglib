@@ -884,6 +884,52 @@ def create_nominal_instrument_depth(ds):
     return ds
 
 
+def create_z(ds):
+    # create z for exo
+    if "NAVD88_ref" in ds.attrs:
+        ds["z"] = xr.DataArray(
+            [ds.attrs["NAVD88_ref"] + ds.attrs["initial_instrument_height"]],
+            dims="z",
+        )
+    else:
+        ds["z"] = xr.DataArray(
+            [ds.attrs["initial_instrument_height"]],
+            dims="z",
+        )
+    ds["z"].attrs["positive"] = "up"
+    ds["z"].attrs["axis"] = "Z"
+    ds["z"].attrs["units"] = "m"
+    ds["z"].attrs["standard_name"] = "height"
+
+    if "P_1ac" in ds:
+        presvar = np.nanmean(ds["P_1ac"])
+    elif "P_1" in ds:
+        presvar = np.nanmean(ds["P_1"])
+    else:
+        presvar = [ds.attrs["WATER_DEPTH"]]
+
+    ds["depth"] = xr.DataArray(presvar, dims="depth")
+    ds["depth"].attrs["positive"] = "down"
+    ds["depth"].attrs["units"] = "m"
+    ds["depth"].attrs["standard_name"] = "depth"
+
+    return ds
+
+
+def add_z_if_no_pressure(ds, var):
+    # no_p = no pressure sensor. also use for exo
+    attrsbak = ds["z"].attrs
+    ds[var] = ds[var].expand_dims("z")
+    # reorder so z at end
+    dims = [d for d in ds[var].dims if (d != "z")]
+    dims.extend(["z"])
+    dims = tuple(dims)
+    ds[var] = ds[var].transpose(*dims)
+    ds["z"].attrs = attrsbak
+
+    return ds
+
+
 def no_p_create_depth(ds):
     # no_p = no pressure sensor. also use for exo
     if "NAVD88_ref" in ds.attrs:

@@ -249,15 +249,16 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # ds = utils.create_water_depth(ds)
     ds = utils.create_nominal_instrument_depth(ds)
 
-    ds = utils.no_p_create_depth(ds)
+    ds = utils.create_z(ds)
 
     # add lat/lon coordinates to each variable
     for var in ds.variables:
         if (var not in ds.coords) and ("time" not in var):
             # ds = utils.add_lat_lon(ds, var)
-            ds = utils.no_p_add_depth(ds, var)
+            # ds = utils.no_p_add_depth(ds, var)
+            ds = utils.add_z_if_no_pressure(ds, var)
             # cast as float32
-            ds = utils.set_var_dtype(ds, var)
+            # ds = utils.set_var_dtype(ds, var)
 
     # No longer report depth
     if "Depth_m" in ds:
