@@ -3,6 +3,7 @@ matplotlib-base
 netcdf4
 numpy
 pandas
+pre-commit
 pytest
 pyyaml
 scipy
