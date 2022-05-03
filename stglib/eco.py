@@ -177,14 +177,19 @@ def cdf_to_nc(cdf_filename, atmpres=False):
                 np.polyval(ds.attrs["user_ntucal_coeffs"], ds["counts"]),
                 dims=["time", "sample"],
             ).mean(dim="sample")
-            ds["Turb"].attrs["units"] = "NTU"
-            ds["Turb"].attrs["long_name"] = "Turbidity"
+            ds["Turb"].attrs["units"] = "1"
+            ds["Turb"].attrs["long_name"] = "Turbidity (NTU)"
+            ds["Turb"].attrs["standard_name"] = "sea_water_turbidity"
             ds["Turb_std"] = xr.DataArray(
                 np.polyval(ds.attrs["user_ntucal_coeffs"], ds["counts"]),
                 dims=["time", "sample"],
             ).std(dim="sample")
-            ds["Turb_std"].attrs["units"] = "NTU"
-            ds["Turb_std"].attrs["long_name"] = "Turbidity burst standard " "deviation"
+            ds["Turb_std"].attrs["units"] = "1"
+            ds["Turb_std"].attrs[
+                "long_name"
+            ] = "Turbidity burst standard deviation (NTU)"
+            ds["Turb_std"].attrs["standard_name"] = "sea_water_turbidity"
+            ds["Turb_std"].attrs["cell_methods"] = "time: standard_deviation"
 
     ds = ds.drop(["counts", "sample"])
 
@@ -205,21 +210,24 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = ds_add_attrs(ds)
 
-    ds = utils.no_p_create_depth(ds)
+    ds = utils.create_z(ds)
 
     # add lat/lon coordinates to each variable
     for var in ds.variables:
         if (var not in ds.coords) and ("time" not in var):
             # ds = utils.add_lat_lon(ds, var)
-            ds = utils.no_p_add_depth(ds, var)
+            # ds = utils.no_p_add_depth(ds, var)
+            ds = utils.add_z_if_no_pressure(ds, var)
             # cast as float32
-            ds = utils.set_var_dtype(ds, var)
+            # ds = utils.set_var_dtype(ds, var)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
     nc_filename = ds.attrs["filename"] + "-a.nc"
 
-    ds.to_netcdf(nc_filename, unlimited_dims=["time"])
+    ds.to_netcdf(
+        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+    )
     utils.check_compliance(nc_filename)
     print("Done writing netCDF file", nc_filename)
 
