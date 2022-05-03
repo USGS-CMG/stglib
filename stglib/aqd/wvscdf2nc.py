@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 from ..core import utils
 from . import aqdutils
 

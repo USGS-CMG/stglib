@@ -1,14 +1,9 @@
-from __future__ import division, print_function
-
-import warnings
-
-import numpy as np
 import pandas as pd
 import xarray as xr
 
 from .core import utils
 
-# Read WXT
+
 def read_wxt(filnam, skiprows=7, encoding="utf-8"):
     """Read data from a Vaisala WXT met .csv file into an xarray
     Dataset.
