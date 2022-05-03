@@ -208,6 +208,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         "Time_(Fract._Sec)",
         "TDS_mg_per_L",
         "TSS_mg_per_L",
+        "Wiper_Position_volt",
+        "Cable_Pwr_V",
+        # https://www.ysi.com/file%20library/documents/manuals/exo-user-manual-web.pdf
+        # nLF_Cond_µS_per_cm: "This convention is typically used in German markets." pp. 85
+        "nLF_Cond_µS_per_cm",
     ]:
         if k in ds:
             ds = ds.drop(k)
@@ -381,10 +386,22 @@ def ds_add_attrs(ds):
             {"units": "ug/L", "long_name": "Blue green algae phycoerythrin"}
         )
 
-    ds["T_28"].attrs.update({"units": "C", "long_name": "Temperature", "epic_code": 28})
+    ds["T_28"].attrs.update(
+        {
+            "units": "degree_C",
+            "long_name": "Temperature",
+            "epic_code": 28,
+            "standard_name": "sea_water_temperature",
+        }
+    )
 
     ds["C_51"].attrs.update(
-        {"units": "S/m", "long_name": "Conductivity", "epic_code": 51}
+        {
+            "units": "S/m",
+            "long_name": "Conductivity",
+            "epic_code": 51,
+            "standard_name": "sea_water_electrical_conductivity",
+        }
     )
 
     ds["SpC_48"].attrs.update(
@@ -393,6 +410,7 @@ def ds_add_attrs(ds):
             "long_name": "Conductivity",
             "comment": "Temperature compensated to 25 °C",
             "epic_code": 48,
+            "standard_name": "sea_water_electrical_conductivity",
         }
     )
 
@@ -401,25 +419,45 @@ def ds_add_attrs(ds):
             "units": "Practical salinity units (PSU)",
             "long_name": "Salinity",
             "epic_code": 41,
+            "standard_name": "sea_water_salinity",
         }
     )
 
     if "OST_62" in ds:
         ds["OST_62"].attrs.update(
-            {"units": "%", "long_name": "Oxygen percent saturation", "epic_code": 62}
+            {
+                "units": "%",
+                "long_name": "Oxygen percent saturation",
+                "epic_code": 62,
+                "standard_name": "fractional_saturation_of_oxygen_in_sea_water",
+            }
         )
 
     if "DO" in ds:
-        ds["DO"].attrs.update({"units": "mg/L", "long_name": "Dissolved oxygen"})
+        ds["DO"].attrs.update(
+            {
+                "units": "mg/L",
+                "long_name": "Dissolved oxygen",
+                "standard_name": "mass_concentration_of_oxygen_in_sea_water",
+            }
+        )
 
     if "Turb" in ds:
         ds["Turb"].attrs.update(
-            {"units": "Nephelometric turbidity units (NTU)", "long_name": "Turbidity"}
+            {
+                "units": "Nephelometric turbidity units (NTU)",
+                "long_name": "Turbidity",
+                "standard_name": "sea_water_turbidity",
+            }
         )
 
     if "Turb_FNU" in ds:
         ds["Turb_FNU"].attrs.update(
-            {"units": "Formazin nephelometric units (FNU)", "long_name": "Turbidity"}
+            {
+                "units": "Formazin nephelometric units (FNU)",
+                "long_name": "Turbidity",
+                "standard_name": "sea_water_turbidity",
+            }
         )
 
     if "pH_159" in ds.variables:
@@ -427,12 +465,22 @@ def ds_add_attrs(ds):
 
     if "P_1" in ds:
         ds["P_1"].attrs.update(
-            {"units": "dbar", "long_name": "Pressure", "epic_code": 1}
+            {
+                "units": "dbar",
+                "long_name": "Pressure",
+                "epic_code": 1,
+                "standard_name": "sea_water_pressure",
+            }
         )
 
     if "P_1ac" in ds:
         ds["P_1ac"].attrs.update(
-            {"units": "dbar", "name": "Pac", "long_name": "Corrected pressure"}
+            {
+                "units": "dbar",
+                "name": "Pac",
+                "long_name": "Corrected pressure",
+                "standard_name": "sea_water_pressure_due_to_sea_water",
+            }
         )
         if "P_1ac_note" in ds.attrs:
             ds = utils.insert_note(ds, "P_1ac", ds.attrs["P_1ac_note"] + " ")
