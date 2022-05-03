@@ -906,9 +906,9 @@ def create_z(ds):
     elif "P_1" in ds:
         presvar = np.nanmean(ds["P_1"])
     else:
-        presvar = [ds.attrs["WATER_DEPTH"]]
+        presvar = ds.attrs["WATER_DEPTH"]
 
-    ds["depth"] = xr.DataArray(presvar, dims="depth")
+    ds["depth"] = xr.DataArray([presvar], dims="depth")
     ds["depth"].attrs["positive"] = "down"
     ds["depth"].attrs["units"] = "m"
     ds["depth"].attrs["standard_name"] = "depth"
