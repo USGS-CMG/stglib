@@ -889,11 +889,26 @@ def create_z(ds):
             [ds.attrs["NAVD88_ref"] + ds.attrs["initial_instrument_height"]],
             dims="z",
         )
+        ds["z"].attrs["geopotential_datum_name"] = "NAVD88"
+        ds["z"].attrs["long_name"] = "height relative to NAVD88"
+    elif "height_above_geopotential_datum" in ds.attrs:
+        ds["z"] = xr.DataArray(
+            [
+                ds.attrs["height_above_geopotential_datum"]
+                + ds.attrs["initial_instrument_height"]
+            ],
+            dims="z",
+        )
+        ds["z"].attrs["geopotential_datum_name"] = ds.attrs["geopotential_datum_name"]
+        ds["z"].attrs[
+            "long_name"
+        ] = "height relative to {VEL.attrs['geopotential_datum_name']}"
     else:
         ds["z"] = xr.DataArray(
             [ds.attrs["initial_instrument_height"]],
             dims="z",
         )
+        ds["z"].attrs["long_name"] = "height relative to sea bed"
     ds["z"].attrs["positive"] = "up"
     ds["z"].attrs["axis"] = "Z"
     ds["z"].attrs["units"] = "m"
@@ -910,6 +925,7 @@ def create_z(ds):
     ds["depth"].attrs["positive"] = "down"
     ds["depth"].attrs["units"] = "m"
     ds["depth"].attrs["standard_name"] = "depth"
+    ds["depth"].attrs["long_name"] = "depth below mean sea level"
 
     return ds
 
@@ -1099,10 +1115,10 @@ def salinity_from_spcon(spcon):
 
     return (
         K1
-        + K2 * R ** 0.5
+        + K2 * R**0.5
         + K3 * R
         + K4 * R ** (3 / 2)
-        + K5 * R ** 2
+        + K5 * R**2
         + K6 * R ** (5 / 2)
     )
 
