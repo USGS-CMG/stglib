@@ -314,6 +314,15 @@ There are tools you can use to ensure a consistent code format:
 - `mypy <http://mypy-lang.org/>`_ for static type checking on `type hints
   <https://docs.python.org/3/library/typing.html>`_
 
+We highly recommend that you setup `pre-commit hooks <https://pre-commit.com/>`_
+to automatically run all the above tools every time you make a git commit. This
+can be done by running::
+
+   pre-commit install
+
+from the root of the xarray repository. You can skip the pre-commit checks
+with ``git commit --no-verify``.
+
 Integrated development environments also help with code formatting:
 
  - `spyder <https://www.spyder-ide.org/>`_  installed by ``conda install spyder``
