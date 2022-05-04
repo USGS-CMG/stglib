@@ -216,6 +216,8 @@ def set_orientation(VEL, T):
     else:
         presvar = "Pressure"
 
+    geopotential_datum_name = None
+
     if "NAVD88_ref" in VEL.attrs or "NAVD88_elevation_ref" in VEL.attrs:
         # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
         if "NAVD88_ref" in VEL.attrs:
