@@ -21,3 +21,6 @@ wxt1149_config.yaml filter=lfs diff=lfs merge=lfs -text
 config_1097C.yaml filter=lfs diff=lfs merge=lfs -text
 glob_att1097C.txt filter=lfs diff=lfs merge=lfs -text
 1097CIQ_20171214_125948.mat filter=lfs diff=lfs merge=lfs -text
+11032Decn_config.yaml filter=lfs diff=lfs merge=lfs -text
+1103D_ntu507.log filter=lfs diff=lfs merge=lfs -text
+glob_att1103D.txt filter=lfs diff=lfs merge=lfs -text

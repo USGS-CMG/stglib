@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 import math
 
 import numpy as np
@@ -218,10 +216,24 @@ def set_orientation(VEL, T):
     else:
         presvar = "Pressure"
 
-    if "NAVD88_ref" in VEL.attrs:
+    if "NAVD88_ref" in VEL.attrs or "NAVD88_elevation_ref" in VEL.attrs:
         # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
-        elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
+        if "NAVD88_ref" in VEL.attrs:
+            elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
+        elif "NAVD88_elevation_ref" in VEL.attrs:
+            elev = (
+                VEL.attrs["NAVD88_elevation_ref"]
+                + VEL.attrs["transducer_offset_from_bottom"]
+            )
         long_name = "height relative to NAVD88"
+        geopotential_datum_name = "NAVD88"
+    elif "height_above_geopotential_datum" in VEL.attrs:
+        elev = (
+            VEL.attrs["height_above_geopotential_datum"]
+            + VEL.attrs["transducer_offset_from_bottom"]
+        )
+        long_name = f"height relative to {VEL.attrs['geopotential_datum_name']}"
+        geopotential_datum_name = VEL.attrs["geopotential_datum_name"]
     else:
         # if we don't have NAVD88 elevations, reference to sea-bed elevation
         elev = VEL.attrs["transducer_offset_from_bottom"]
@@ -252,11 +264,13 @@ def set_orientation(VEL, T):
     VEL["z"].attrs["positive"] = "up"
     VEL["z"].attrs["axis"] = "Z"
     VEL["z"].attrs["long_name"] = long_name
+    if geopotential_datum_name:
+        VEL["z"].attrs["geopotential_datum_name"] = geopotential_datum_name
 
     VEL["depth"].attrs["standard_name"] = "depth"
     VEL["depth"].attrs["units"] = "m"
     VEL["depth"].attrs["positive"] = "down"
-    VEL["depth"].attrs["long_name"] = "vertical distance below mean sea level"
+    VEL["depth"].attrs["long_name"] = "depth below mean sea level"
 
     return VEL, T, T_orig
 

@@ -1,7 +1,3 @@
-from __future__ import division, print_function
-
-import warnings
-
 import numpy as np
 import pandas as pd
 import scipy.signal
