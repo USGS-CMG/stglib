@@ -638,52 +638,21 @@ def check_attrs(ds, waves=False):
     return ds
 
 
-def check_orientation(ds, waves=False):
+def create_bindist(ds, waves=False):
     """Check instrument orientation and create variables that depend on this"""
 
-    print("Insrument orientation:", ds.attrs["orientation"])
-    print("Center_first_bin = %f" % ds.attrs["center_first_bin"])
+    print("Instrument orientation:", ds.attrs["orientation"])
+    print("center_first_bin = %f" % ds.attrs["center_first_bin"])
     print("bin_size = %f" % ds.attrs["bin_size"])
     print("bin_count = %f" % ds.attrs["bin_count"])
-    # TODO: these values are already in the HDR file...
-    if not waves:
-        bindist = np.linspace(
-            ds.attrs["center_first_bin"],
-            (
-                ds.attrs["center_first_bin"]
-                + ((ds.attrs["bin_count"] - 1) * ds.attrs["bin_size"])
-            ),
-            num=ds.attrs["bin_count"],
-        )
-    else:
-        bindist = ds["cellpos"][0]
-
-    if ds.attrs["orientation"] == "UP":
-        print("User instructed that instrument was pointing UP")
-        # depth, or distance below surface, is a positive number below the
-        # surface, negative above the surface, for CMG purposes and consistency
-        # with ADCP
-        z = ds.attrs["transducer_offset_from_bottom"] + bindist
-        # TODO: this is never used
-        # Depth_NOTE = (
-        #     "user reports uplooking bin depths = water_depth - "
-        #     "transducer offset from bottom - bindist"
-        # )
-    elif ds.attrs["orientation"] == "DOWN":
-        print("User instructed that instrument was pointing DOWN")
-        z = ds.attrs["transducer_offset_from_bottom"] - bindist
-        # TODO: this is never used
-        # Depth_NOTE = (
-        #     "user reports downlooking bin depths = water_depth - "
-        #     "transducer_offset_from_bottom + bindist"
-        # )
+    print(f"AQDCCD = {ds.attrs['AQDCCD']}")
 
     if not waves:
-        ds["bindist"] = xr.DataArray(bindist, dims=("bindist"), name="bindist")
-        # ds["z"] = xr.DataArray(z, dims="z")
+        bindist = ds.attrs["AQDCCD"]
     else:
-        ds["bindist"] = xr.DataArray([bindist], dims=("bindist"), name="bindist")
-        # ds["z"] = xr.DataArray([z], dims="z")
+        bindist = [ds["cellpos"][0]]
+
+    ds["bindist"] = xr.DataArray(bindist, dims=("bindist"), name="bindist")
 
     return ds
 
