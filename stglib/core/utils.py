@@ -1101,10 +1101,10 @@ def salinity_from_spcon(spcon):
 
     return (
         K1
-        + K2 * R ** 0.5
+        + K2 * R**0.5
         + K3 * R
         + K4 * R ** (3 / 2)
-        + K5 * R ** 2
+        + K5 * R**2
         + K6 * R ** (5 / 2)
     )
 
