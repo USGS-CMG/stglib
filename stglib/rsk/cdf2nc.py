@@ -187,6 +187,8 @@ def ds_add_attrs(ds):
 
     if "sample" in ds:
         ds["sample"].encoding["dtype"] = "i4"
+        ds["sample"].attrs["long_name"] = "sample number"
+        ds["sample"].attrs["units"] = "1"
 
     if "epic_time" in ds:
         ds["epic_time"].attrs.update(
