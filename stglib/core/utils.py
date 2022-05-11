@@ -309,9 +309,10 @@ def ds_add_attrs(ds):
                 "initial_instrument_height": dsattrs["initial_instrument_height"],
                 "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
                 "height_depth_units": "m",
-                "sensor_type": dsattrs["INST_TYPE"],
             }
         )
+        if "INST_TYPE" in dsattrs:
+            var.attrs["sensor_type"] = dsattrs["INST_TYPE"]
         var.encoding["_FillValue"] = 1e35
 
     ds["wp_peak"].attrs.update(
@@ -539,6 +540,11 @@ def write_metadata(ds, metadata):
             ds.attrs.update({x: metadata[k][x] for x in metadata[k]})
         else:
             ds.attrs.update({k: metadata[k]})
+
+    for v in ["Deployment_date", "Recovery_date"]:
+        if v in ds.attrs:
+            # look for errant quotes in dates
+            ds.attrs[v] = ds.attrs[v].replace('"', "")
 
     f = os.path.basename(inspect.stack()[1][1])
 
