@@ -134,34 +134,39 @@ def csv_to_cdf(metadata):
         ds = xr.merge([ds, dsburst])
         # dsburst.attrs = ds.attrs
 
-    # Set burst interval, [sec], USER DEFINED in instrument attr
-    # for continuous mode sampling
+    # Set burst interval, [sec], USER DEFINED in instrument attr for continuous mode sampling
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
-        ds.attrs["samples_per_burst"] = (
+        # wave_interval is [sec] interval for wave statistics for continuous data
+        ds.attrs["samples_per_burst"] = int(
             ds.attrs["wave_interval"] / ds.attrs["sample_interval"]
         )
+        # burst_interval is equivalent to wave_interval [sec]
         ds.attrs["burst_interval"] = ds.attrs["wave_interval"]
         # burst_length is the number of data points in the burst
         ds.attrs["burst_length"] = ds.attrs["samples_per_burst"]
         r = np.shape(ds.P_1)[0]
-        if r % ds.attrs["wave_interval"]:
+        if r % ds.attrs["samples_per_burst"]:
             print(
-                "Number of rows is not a multiple of wave_interval; truncating to last full burst"
+                "Number of rows is not a multiple of samples_per_burst; truncating to last full burst"
             )
-            mod = r % ds.attrs["wave_interval"]
+            mod = r % ds.attrs["samples_per_burst"]
             ds = ds.sel(time=ds.time[0:-mod])
         ds["timenew"] = xr.DataArray(
-            ds.time[0 :: int(ds.attrs["wave_interval"])].values, dims="timenew"
+            ds.time[0 :: int(ds.attrs["samples_per_burst"])].values, dims="timenew"
         )
+        attrsbak = ds["P_1"].attrs
         ds["P_1"] = xr.DataArray(
-            np.reshape(ds.P_1.values, (-1, int(ds.attrs["wave_interval"]))),
+            np.reshape(ds["P_1"].values, (-1, int(ds.attrs["samples_per_burst"]))),
             dims=["timenew", "sample"],
         )
+        ds["P_1"].attrs = attrsbak
         ds = ds.rename({"time": "timeold"})
         ds = ds.rename({"timenew": "time"})
         ds = ds.drop("timeold")
 
     ds = utils.shift_time(ds, 0)
+
+    print(ds.attrs)
 
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
