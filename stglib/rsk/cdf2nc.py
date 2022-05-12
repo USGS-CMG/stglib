@@ -167,7 +167,7 @@ def ds_add_depth_dim(ds):
         dim = ["time"]
         if "sample" in ds:
             dim.append("sample")
-        ds["depth"] = xr.DataArray([ds[p].mean(dim=dim)], dims="depth")
+        ds["depth"] = xr.DataArray(np.atleast_1d(ds[p].mean(dim=dim)), dims="depth")
         ds["depth"].attrs["NOTE"] = "Computed as mean of the pressure sensor"
     ds["depth"].attrs["positive"] = "down"
     ds["depth"].attrs["axis"] = "Z"
