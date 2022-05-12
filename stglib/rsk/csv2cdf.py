@@ -132,7 +132,6 @@ def csv_to_cdf(metadata):
         # drop the burst average value to replae with burst data
         ds = ds.drop("P_1")
         ds = xr.merge([ds, dsburst])
-        # dsburst.attrs = ds.attrs
 
     # Set burst interval, [sec], USER DEFINED in instrument attr for continuous mode sampling
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
@@ -189,5 +188,4 @@ def get_metadata(ds, var, meta, field="dataheader"):
             else:
                 ds[var].attrs[v] = dh[thisname][v]
 
-    # print(ds[var])
     return ds
