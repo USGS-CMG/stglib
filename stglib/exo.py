@@ -209,6 +209,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         # https://www.ysi.com/file%20library/documents/manuals/exo-user-manual-web.pdf
         # nLF_Cond_µS_per_cm: "This convention is typically used in German markets." pp. 85
         "nLF_Cond_µS_per_cm",
+        "Vertical_Position_m",
     ]:
         if k in ds:
             ds = ds.drop(k)
