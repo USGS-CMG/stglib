@@ -141,9 +141,8 @@ def csv_to_cdf(metadata):
             ds.attrs["wave_interval"] / ds.attrs["sample_interval"]
         )
         ds.attrs["burst_interval"] = ds.attrs["wave_interval"]
-        ds.attrs["burst_length"] = (
-            ds.attrs["samples_per_burst"] * ds.attrs["sample_interval"]
-        )
+        # burst_length is the number of data points in the burst
+        ds.attrs["burst_length"] = ds.attrs["samples_per_burst"]
         r = np.shape(ds.P_1)[0]
         if r % ds.attrs["wave_interval"]:
             print(

@@ -1060,9 +1060,7 @@ def read_samplingrates_burst(ds, conn):
     ds.attrs["burst_interval"] = repetitionperiod / 1000
 
     # Length of bursts in data points
-    ds.attrs["burst_length"] = (
-        ds.attrs["samples_per_burst"] * ds.attrs["sample_interval"]
-    )
+    ds.attrs["burst_length"] = ds.attrs["samples_per_burst"]
 
     return ds
 
@@ -1094,9 +1092,7 @@ def read_samplingrates_continuous(ds, conn):
     ds.attrs["burst_interval"] = ds.attrs["wave_interval"]
 
     # Set sample interval
-    ds.attrs["burst_length"] = (
-        ds.attrs["samples_per_burst"] * ds.attrs["sample_interval"]
-    )
+    ds.attrs["burst_length"] = ds.attrs["samples_per_burst"]
 
     return ds
 
