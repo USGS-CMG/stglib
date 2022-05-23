@@ -63,18 +63,24 @@ def cdf_to_nc(cdf_filename):
     
     # calculate bin height
     ds = calc_bin_height(ds)
-    
+
+    #ds.to_netcdf('ea400_check.nc') #5/20/22 - used to check vars
+
     # calculate corrected altitude (distance to bed/b_range) with adjusted sound speed 
     ds = calc_cor_brange(ds) #12/23/21
     
     # calculate corrected bin height (on NAVD88 datum) with adjusted sound speed
     ds = calc_cor_bin_height(ds) #12/23/21
 
-    ds = utils.create_z_bindist(ds)
+    ds = calc_seabed_elev(ds) #5/20/22
+ 
+    ds = utils.create_z_bindist(ds) #5/20/22 - added new def to stglib.utils to create z for profile
+
+    #ds.to_netcdf('ea400_check.nc') #5/20/22 - used to check vars
     
     # swap bin dim with bin_height
-    #ds = ds.swap_dims({"bins":"bin_height"})
-    ds = ds.swap_dims({"bins":"z"}) #
+    #ds = ds.swap_dims({"bins":"bin_height"}) #5/20/22
+    ds = ds_swap_dims(ds) #5/20/22 - use new def to swap vert dim to z
 
     #rename variables
     ds = ds_rename_vars(ds)
@@ -90,14 +96,14 @@ def cdf_to_nc(cdf_filename):
             ds = ds.drop_vars(k)
    
     #remove lat/lon dims 12/23/21
-    #add lat/lons as coordinates
+    #5/20/22- add lat/lons as coordinates
     ds = utils.ds_add_lat_lon(ds)
             
     # add attributes to each variable
     ds = ds_add_attrs(ds)
     
     # assign min/max 
-    ds = utils.add_min_max(ds)
+    #ds = utils.add_min_max(ds)
 
     #add metadata to global atts
     ds = utils.add_start_stop_time(ds)
@@ -116,8 +122,11 @@ def cdf_to_nc(cdf_filename):
 
     nc_filename = ds.attrs["filename"] + "-a.nc"
 
+    #ds.to_netcdf(nc_filename, unlimited_dims=["time"],encoding={'time': {'dtype': 'int32'}}) #5/20/22- save time as int32
     ds.to_netcdf(nc_filename, unlimited_dims=["time"])
-    print("Done writing burst averaged netCDF file", nc_filename);
+    utils.check_compliance(nc_filename) #5/20/22
+
+    print("Done writing burst averaged netCDF file", nc_filename)
     
             
     return ds
@@ -221,7 +230,8 @@ def load_log_point(basefile, metadata):
     n = metadata['instmeta']['Bin_count']
     for k in point:
         if 'Time' not in k:
-            point[k] = point[k].reshape((-1,samples)).astype(np.float32) #12/23/21
+            #point[k] = point[k].reshape((-1,samples)).astype(np.float32) #12/23/21
+            point[k] = point[k].reshape((-1,samples))
                    
     time = point['TimeUTC'][::samples]
     ds = xr.Dataset()
@@ -251,7 +261,8 @@ def load_log_profile(ds, basefile):
     #reshape profile data
     samples = ds.Pulses_in_series_num
     n = ds.Bin_count
-    profile = np.array(profile, dtype = 'float32') 
+    #profile = np.array(profile, dtype = 'float32')
+    profile = np.array(profile) 
     profile = profile.reshape((-1,samples,n))
     ds['Counts'] = xr.DataArray(
         profile, dims=('time', 'sample', 'bins'), coords = [ds["time"], ds["sample"],ds["bins"]])
@@ -291,7 +302,7 @@ def ds_add_attrs(ds): #12/23/21
     
     ds["sample"].attrs.update({"units": "sample number", "long_name": "Sample in burst"})
     
-    ds["burst"].attrs.update({"long_name": "Burst number","generic_name":"record", "epic_code": "1207", "coverage_content_type": "physicalMeasurement"})
+    ds["burst"].attrs.update({"units": "burst number","long_name": "Burst number","generic_name":"record", "epic_code": "1207", "coverage_content_type": "physicalMeasurement"})
     
     ds["Tx_1211"].attrs.update({"units": "degree_C", "long_name": "Instrument Internal Temperature", "standard_name": "sea_water_temperature", "epic_code":"1211"})
     
@@ -310,11 +321,11 @@ def ds_add_attrs(ds): #12/23/21
                 "sensor_type": "ECHOLOGGER EA400",
             }
         )
-    for var in ds.variables: #12/29/21
-        if ds[var].dtype == 'float32':
-            ds[var].encoding["_FillValue"] = 1e35
-        elif ds[var].dtype == 'int32':
-            ds[var].encoding["_FillValue"] = -2147483648
+    #for var in ds.variables: #12/29/21 : 5/20/22 - remove
+        #if ds[var].dtype == 'float32':
+        #    ds[var].encoding["_FillValue"] = 1e35
+        #elif ds[var].dtype == 'int32':
+        #    ds[var].encoding["_FillValue"] = -2147483648
     
     #don't include all attributes for coordinates that are also variables
     for var in ds.variables:
@@ -338,18 +349,18 @@ def calc_bin_height(ds): #12/23/21
         (((ds.attrs["Bin_count"] - 1) * ds.attrs["Bin_size_m"])  #deleted ds.attrs["Bin_size_m"] +
         + (ds.attrs["Bin_size_m"] / 2)),
         num=ds.attrs["Bin_count"],
-        dtype = 'float32'
-    ), dims='bins')
+        #dtype = 'float32' #5/20/22 - remove setting dtype
+        ), dims='bins')
     
     print("Calculating center of bin height from seafloor as: initial intrument height - bin(center) distance from transducer")
     
-    if ds.attrs["orientation"] == "down":
+    if ds.attrs["orientation"] == "down" or ds.attrs["orientation"] == "DOWN" :
     
         ds['bin_height'] = ds.attrs["initial_instrument_height"] - ds['bindist'] #get bin distance referenced from sea floor 
         
         math_sign = '-'
         
-    elif ds.attrs["orientation"] == "up":
+    elif ds.attrs["orientation"] == "up" or ds.attrs["orientation"] == "UP":
         
         ds['bin_height'] = ds.attrs["initial_instrument_height"] + ds['bindist'] #get bin distance referenced from sea floor
         
@@ -364,7 +375,7 @@ def calc_bin_height(ds): #12/23/21
     
     return ds
 
-def calc_cor_brange(ds):
+def calc_cor_brange(ds): #5/20/22 - remove seabed_elev from this def create new one
     print("Correcting distance to bed (brange) using adjusted sound speed")
     #here the brange is still called Altitude_m but variable name will change to brange later in code
     
@@ -403,7 +414,63 @@ def calc_cor_brange(ds):
     
     #ds['seabed_elevation'].attrs.update({"units": "m", "long_name":"seafloor height referenced to %s datum" % ds.attrs["VerticalDatum"],"standard_name": "height_above_geopotential_datum",
     #"note": "Corrected brange from adjusted sound speed and referenced to %s datum" % ds.attrs["VerticalDatum"]})
+
+    return ds
+
+def calc_seabed_elev(ds): #added 5/20/22
     
+    histtext = "add seabed_elevation using speed of sound corrected brange and ref datum"
+    ds = utils.insert_history(ds, histtext)
+    
+    if "NAVD88_ref" in ds.attrs:
+        ds.attrs["geopotential_datum_name"]="NAVD88"
+
+        print("Calculating seabed elevation on %s datum" % ds.attrs["geopotential_datum_name"])
+    
+        if ds.attrs["orientation"] == "DOWN" or ds.attrs["orientation"] == 'down':
+        
+            ds['seabed_elevation'] = xr.DataArray(ds.attrs["NAVD88_ref"]+(ds.brange * -1) + ds.attrs["initial_instrument_height"])
+
+        elif ds.attrs["orientation"] == "UP" or ds.attrs["orientation"] == 'up':
+        
+            ds['seabed_elevation'] = xr.DataArray(ds.attrs["NAVD88_ref"]+ds.brange+ ds.attrs["initial_instrument_height"])
+
+               
+    elif "height_above_geopotential_datum" in ds.attrs:
+        print("Calculating seabed elevation on %s datum" % ds.attrs["geopotential_datum_name"])
+    
+        if ds.attrs["orientation"] == "DOWN" or ds.attrs["orientation"] == 'down':
+        
+            ds['seabed_elevation'] = xr.DataArray(ds.attrs["height_above_geopotential_datum"] + (ds.brange * -1) + ds.attrs["initial_instrument_height"])
+
+        elif ds.attrs["orientation"] == "UP" or ds.attrs["orientation"] == 'up':
+        
+            ds['seabed_elevation'] = xr.DataArray(ds.attrs["height_above_geopotential_datum"] + ds.brange + ds.attrs["initial_instrument_height"])
+
+    else:
+
+        ds.attrs["geopotential_datum_name"]="LMSL"
+        print("Calculating seabed elevation on %s datum" % ds.attrs["geopotential_datum_name"])
+    
+        if ds.attrs["orientation"] == "DOWN" or ds.attrs["orientation"] == 'down':
+        
+            ds['seabed_elevation'] = xr.DataArray(ds.attrs["WATER_DEPTH"] + ds.brange - ds.attrs["initial_instrument_height"])
+
+        if ds.attrs["orientation"] == "UP" or ds.attrs["orientation"] == 'up':
+        
+            ds['seabed_elevation'] = xr.DataArray(ds.attrs["WATER_DEPTH"] + (ds.brange*-1) + ds.attrs["initial_instrument_height"])
+
+          
+    if "height_above_geopotential_datum" or "NAVD88_ref" in ds.attrs:
+        ds['seabed_elevation'].attrs.update({"units": "m", "long_name":"seafloor height referenced to %s datum" % ds.attrs["geopotential_datum_name"],
+        "standard_name": "height_above_geopotential_datum","positive": "up",
+        "note": "Corrected brange from adjusted sound speed and referenced to %s datum" % ds.attrs["geopotential_datum_name"]})
+
+    elif ds.attrs["geopotential_datum_name"] == "LMSL":
+        ds['seabed_elevation'].attrs.update({"units": "m", "long_name":"sea floor depth referenced to %s datum" % ds.attrs["geopotential_datum_name"],
+        "standard_name": "sea_floor_depth_below_mean_sea_level","positive": "down",
+        "note": "Corrected brange from adjusted sound speed and referenced to %s datum" % ds.attrs["geopotential_datum_name"]})
+
     return ds
 
 def calc_cor_bin_height(ds):
@@ -423,10 +490,22 @@ def calc_cor_bin_height(ds):
 def average_burst(ds):
     ds = ds.mean('sample', skipna = True, keep_attrs = True) #take mean across 'sample' dim
     ds['burst'] = ds.burst.astype(dtype = 'int32') #need to retype to int32 bc np/xarray changes int to float when averaging
-    for var in ds.variables:
-        if ds[var].dtype == 'float32':
-            ds[var].encoding["_FillValue"] = 1e35
-        elif ds[var].dtype == 'int32':
-            ds[var].encoding["_FillValue"] = -2147483648
+   #5/20/22 - remove specified fill values
+   # for var in ds.variables:
+   #     if ds[var].dtype == 'float32':
+   #         ds[var].encoding["_FillValue"] = 1e35
+   #     elif ds[var].dtype == 'int32':
+   #         ds[var].encoding["_FillValue"] = -2147483648
             
+    return ds
+
+def ds_swap_dims(ds): #5/20/22 def to swap vert dim to z
+    # need to preserve z attrs because swap_dims will remove them
+    attrsbak = ds["z"].attrs
+    for v in ds.data_vars:
+        if "bins" in ds[v].coords:
+            ds[v] = ds[v].swap_dims({"bins": "z"})
+
+    ds["z"].attrs = attrsbak
+
     return ds
