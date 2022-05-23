@@ -897,6 +897,7 @@ def create_z(ds):
         )
         ds["z"].attrs["geopotential_datum_name"] = "NAVD88"
         ds["z"].attrs["long_name"] = "height relative to NAVD88"
+
     elif "height_above_geopotential_datum" in ds.attrs:
         ds["z"] = xr.DataArray(
             [
@@ -925,9 +926,87 @@ def create_z(ds):
     elif "P_1" in ds:
         presvar = np.nanmean(ds["P_1"])
     else:
-        presvar = ds.attrs["WATER_DEPTH"]
+        presvar = ds.attrs["WATER_DEPTH"]-ds.attrs["initial_instrument_height"]
 
+    
     ds["depth"] = xr.DataArray([presvar], dims="depth")
+    ds["depth"].attrs["positive"] = "down"
+    ds["depth"].attrs["units"] = "m"
+    ds["depth"].attrs["standard_name"] = "depth"
+    ds["depth"].attrs["long_name"] = "depth below mean sea level"
+
+    return ds
+
+
+def create_z_bindist(ds):
+    # create z for exo
+    if "NAVD88_ref" in ds.attrs:
+        if ds.attrs["orientation"] == "DOWN":
+            ds["z"] = xr.DataArray(
+                ds.attrs["NAVD88_ref"] + ds.attrs["initial_instrument_height"]-ds["bindist"].values,
+                dims="z"
+            )
+
+        elif ds.attrs["orientation"] == "UP":
+            ds["z"] = xr.DataArray(
+                ds.attrs["NAVD88_ref"] + ds.attrs["initial_instrument_height"]+ds["bindist"].values,
+                dims="z"
+            )
+        
+        ds["z"].attrs["geopotential_datum_name"] = "NAVD88"
+        ds["z"].attrs["long_name"] = "height relative to NAVD88"
+    
+    elif "height_above_geopotential_datum" in ds.attrs:
+        if ds.attrs["orientation"] == "DOWN":
+            #blank lines
+            #
+            #
+            ds["z"] = xr.DataArray(ds.attrs["height_above_geopotential_datum"]
+                    + ds.attrs["initial_instrument_height"]-ds["bindist"].values,
+                dims="z")
+        elif ds.attrs["orientation"] == "UP":
+            ds["z"] = xr.DataArray(
+                ds.attrs["height_above_geopotential_datum"]
+                    + ds.attrs["initial_instrument_height"]+ds["bindist"].values,
+                dims="z"
+            )
+        ds["z"].attrs["geopotential_datum_name"] = ds.attrs["geopotential_datum_name"]
+        ds["z"].attrs["long_name"] = "height relative to %s" % ds.attrs['geopotential_datum_name']
+    else:
+        if ds.attrs["orientation"] == "DOWN":
+            ds["z"] = xr.DataArray(
+                ds.attrs["initial_instrument_height"]-ds["bindist"].values,
+                dims="z"
+            )
+        elif ds.attrs["orientation"] == "UP":
+            ds["z"] = xr.DataArray(
+                ds.attrs["initial_instrument_height"]+ds["bindist"].values,
+                dims="z"
+            )
+        ds["z"].attrs["long_name"] = "height_above_seabed"
+
+    ds["z"].attrs["positive"] = "up"
+    ds["z"].attrs["axis"] = "Z"
+    ds["z"].attrs["units"] = "m"
+    ds["z"].attrs["standard_name"] = "height"
+
+    if ds.attrs["orientation"] == "DOWN":           
+        if "P_1ac" in ds:
+            presvar = np.nanmean(ds["P_1ac"])+ds["bindist"].values
+        elif "P_1" in ds:
+            presvar = np.nanmean(ds["P_1"])+ds["bindist"].values
+        else:
+            presvar = ds.attrs["WATER_DEPTH"]+ds["bindist"].values
+
+    elif ds.attrs["orientation"] == "UP":
+        if "P_1ac" in ds:
+            presvar = np.nanmean(ds["P_1ac"])-ds["bindist"].values
+        elif "P_1" in ds:
+            presvar = np.nanmean(ds["P_1"])-ds["bindist"].values
+        else:
+            presvar = ds.attrs["WATER_DEPTH"]-ds["bindist"].values
+
+    ds["depth"] = xr.DataArray(presvar, dims="depth")
     ds["depth"].attrs["positive"] = "down"
     ds["depth"].attrs["units"] = "m"
     ds["depth"].attrs["standard_name"] = "depth"
