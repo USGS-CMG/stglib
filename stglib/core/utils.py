@@ -313,7 +313,7 @@ def ds_add_attrs(ds):
         )
         if "INST_TYPE" in dsattrs:
             var.attrs["sensor_type"] = dsattrs["INST_TYPE"]
-        var.encoding["_FillValue"] = 1e35
+        # var.encoding["_FillValue"] = 1e35
 
     ds["wp_peak"].attrs.update(
         {
@@ -427,8 +427,8 @@ def ds_add_attrs(ds):
                 {"minimum": ds[var].min().values, "maximum": ds[var].max().values}
             )
 
-    if "burst" in ds:
-        ds["burst"].encoding["_FillValue"] = 1e35
+    # if "burst" in ds:
+    #     ds["burst"].encoding["_FillValue"] = 1e35
 
     return ds
 

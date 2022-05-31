@@ -137,7 +137,7 @@ def rsk_to_xr(metadata):
             "serial_number": ds.attrs["serial_number"],
         },
     )
-    ds["P_1"].encoding["_FillValue"] = 1e35
+    # ds["P_1"].encoding["_FillValue"] = 1e35
 
     # If duo, also save temp
     if ("instrument_type" in ds.attrs) and (ds.attrs["instrument_type"] == "rbr_duo"):
@@ -153,7 +153,7 @@ def rsk_to_xr(metadata):
                 "serial_number": ds.attrs["serial_number"],
             },
         )
-        ds["T_28"].encoding["_FillValue"] = 1e35
+        # ds["T_28"].encoding["_FillValue"] = 1e35
 
     ds["time"] = xr.DataArray(times, dims=("time"), name="time")
 
