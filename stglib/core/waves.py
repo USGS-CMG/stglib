@@ -87,7 +87,7 @@ def pressure_spectra(x, fs=1.0, window="hanning", nperseg=256, **kwargs):
 
 def elevation_spectra(Pxx, Kp):
     """Compute elevation spectra using linear wave theory and transfer function"""
-    return Pxx / (Kp ** 2)
+    return Pxx / (Kp**2)
 
 
 def transfer_function(k, h, z):
@@ -228,7 +228,7 @@ def make_mwd(freqs, dirs, dspec):
 
 def make_moment(f, Pnn, n):
     """Compute nth moment (m0, m1, m2, etc.) of power spectra"""
-    return np.trapz(Pnn * f ** n, x=f)
+    return np.trapz(Pnn * f**n, x=f)
 
 
 def make_Hs(m0):
@@ -279,15 +279,15 @@ def qkfs(omega, h):
     """
 
     g = 9.81
-    x = omega ** 2 * h / g
+    x = omega**2 * h / g
     y = np.sqrt(x) * (x < 1) + x * (x >= 1)
 
     t = np.tanh(y)
-    y = y - ((y * t - x) / (t + y * (1 - t ** 2)))
+    y = y - ((y * t - x) / (t + y * (1 - t**2)))
     t = np.tanh(y)
-    y = y - ((y * t - x) / (t + y * (1 - t ** 2)))
+    y = y - ((y * t - x) / (t + y * (1 - t**2)))
     t = np.tanh(y)
-    y = y - ((y * t - x) / (t + y * (1 - t ** 2)))
+    y = y - ((y * t - x) / (t + y * (1 - t**2)))
 
     return y / h
 
@@ -470,7 +470,7 @@ def puv_quick(
     if np.isnan(tailind):
         Snp_tail = np.nan
     else:
-        Snp_tail = make_tail(frequencies, Gpp / Hp ** 2, tailind)
+        Snp_tail = make_tail(frequencies, Gpp / Hp**2, tailind)
 
     Kp_u = transfer_function(k, depth, height_of_velocity)
     tailind_u, noisecutind_u, fpeakcutind_u, Kpcutind_u = define_cutoff(
@@ -480,7 +480,7 @@ def puv_quick(
     if np.isnan(tailind_u):
         Snu_tail = np.nan
     else:
-        Snu_tail = make_tail(frequencies, Guv / Huv ** 2, tailind_u)
+        Snu_tail = make_tail(frequencies, Guv / Huv**2, tailind_u)
 
     # Determine rms wave height (multiply by another sqrt(2) for Hs)
     # Thornton and Guza say Hrms = sqrt(8 mo)
@@ -742,7 +742,7 @@ def test_variances(u, v, p, Gpp, Guu, Gvv, df, allowable_error=0.0):
         result = False
     print(
         "sqrt(varv) {} == sqrt(mean(v^2) {}".format(
-            np.sqrt(varv), np.sqrt(np.mean(v ** 2))
+            np.sqrt(varv), np.sqrt(np.mean(v**2))
         )
     )
     varuv = varu + varv
