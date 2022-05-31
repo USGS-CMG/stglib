@@ -7,14 +7,14 @@ depends on two :doc:`configuration files </config>`.
 Instrument data to raw .cdf
 ===========================
 
-Convert from .rsk binary to a raw netCDF file with .cdf extension using ``runrskrsk2cdf.py``.
+Convert from .rsk binary to a raw netCDF file with .cdf extension. The recommended approach is to export to text (.zip) format (File -> Export -> Text (*.zip)) from the Ruskin software. Then use ``runrskcsv2cdf.py``.
 
-runrskrsk2cdf.py
+runrskcsv2cdf.py
 ----------------
 
 .. argparse::
-   :ref: stglib.core.cmd.rskrsk2cdf_parser
-   :prog: runrskrsk2cdf.py
+   :ref: stglib.core.cmd.rskcsv2cdf_parser
+   :prog: runrskcsv2cdf.py
 
 Raw .cdf to clean .nc
 =====================

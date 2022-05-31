@@ -75,6 +75,10 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
         pvar = "Press_psi_a"
     elif "Pressure_psi_a" in exo.columns:
         pvar = "Pressure_psi_a"
+    else:
+        print(
+            "*** Could not find pressure (Press_psi_a, Pressure_psi_a) in source data file. Have you exported pressure if this instrument was equipped with a pressure sensor?"
+        )
     if pvar:
         exo["Press_dbar"] = exo[pvar] * 0.689476
 
