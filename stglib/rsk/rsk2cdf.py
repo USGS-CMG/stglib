@@ -5,12 +5,19 @@ import pandas as pd
 import xarray as xr
 
 from ..core import utils
+import warnings
 
 
 def rsk_to_cdf(metadata):
     """
     Main function to load data from RSK file and save to raw .CDF
     """
+
+    warnings.warn(
+        "The use of rsk_to_cdf is deprecated. Use csv_to_cdf instead. Refer to the stglib documentation for more details.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     ds = rsk_to_xr(metadata)
 
