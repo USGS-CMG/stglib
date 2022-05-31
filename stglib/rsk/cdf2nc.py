@@ -84,8 +84,9 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
             ds = utils.set_var_dtype(ds, var)
 
     # if we are dealing with continuous instruments, drop sample since it is a singleton dimension
-    if len(ds["sample"]) == 1:
-        ds = ds.squeeze(dim="sample")
+    if "sample" in ds:
+        if len(ds["sample"]) == 1:
+            ds = ds.squeeze(dim="sample")
 
     if writefile:
         # Write to .nc file
@@ -163,7 +164,10 @@ def ds_add_depth_dim(ds):
             "initial_instrument_height"
         )
     else:
-        ds["depth"] = xr.DataArray([ds[p].mean(dim=["time", "sample"])], dims="depth")
+        dim = ["time"]
+        if "sample" in ds:
+            dim.append("sample")
+        ds["depth"] = xr.DataArray(np.atleast_1d(ds[p].mean(dim=dim)), dims="depth")
         ds["depth"].attrs["NOTE"] = "Computed as mean of the pressure sensor"
     ds["depth"].attrs["positive"] = "down"
     ds["depth"].attrs["axis"] = "Z"
@@ -180,6 +184,11 @@ def ds_add_attrs(ds):
 
     ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
     ds["time"].encoding["dtype"] = "i4"
+
+    if "sample" in ds:
+        ds["sample"].encoding["dtype"] = "i4"
+        ds["sample"].attrs["long_name"] = "sample number"
+        ds["sample"].attrs["units"] = "1"
 
     if "epic_time" in ds:
         ds["epic_time"].attrs.update(
@@ -198,13 +207,11 @@ def ds_add_attrs(ds):
 
     if "P_1" in ds:
         ds["P_1"].attrs["standard_name"] = "sea_water_pressure"
-        ds["P_1"].attrs["units"] = "dbar"
         ds["P_1"].attrs["long_name"] = "Uncorrected pressure"
 
     if "P_1ac" in ds:
         ds["P_1ac"].attrs.update(
             {
-                "units": "dbar",
                 "name": "Pac",
                 "long_name": "Pressure corrected for changes in atmospheric pressure",
                 "standard_name": "sea_water_pressure_due_to_sea_water",
@@ -215,13 +222,32 @@ def ds_add_attrs(ds):
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
     if "burst" in ds:
+        ds["burst"].attrs["units"] = "1"
         ds["burst"].encoding["_FillValue"] = 1e35
+        ds["burst"].attrs["long_name"] = "Burst number"
 
     if "Turb" in ds:
         ds["Turb"].attrs.update(
-            {"units": "Nephelometric turbidity units (NTU)", "long_name": "Turbidity"}
+            {"long_name": "Turbidity (NTU)", "standard_name": "sea_water_turbidity"}
         )
         ds["Turb"].encoding["_FillValue"] = 1e35
+
+    if "T_28" in ds:
+        ds["T_28"].attrs.update({"standard_name": "sea_water_temperature"})
+
+    if "S_41" in ds:
+        ds["S_41"].attrs.update({"standard_name": "sea_water_salinity"})
+
+    if "C_51" in ds:
+        ds["C_51"].attrs.update({"standard_name": "sea_water_electrical_conductivity"})
+
+    if "SpC_48" in ds:
+        ds["SpC_48"].attrs.update(
+            {
+                "standard_name": "sea_water_electrical_conductivity",
+                "comment": "Temperature compensated to 25 °C",
+            }
+        )
 
     if not utils.is_cf(ds):
         ds.attrs["COMPOSITE"] = np.int32(0)
