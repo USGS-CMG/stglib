@@ -41,7 +41,8 @@ def log_to_cdf(metadata):
     else:
         cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
-    ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    ds['time']=ds['time'].astype('datetime64[s]')
+    ds.to_netcdf(cdf_filename, unlimited_dims=["time"],encoding={'time': {'dtype': 'i4'}})
 
     print("Finished writing data to %s" % cdf_filename)
     
@@ -114,7 +115,7 @@ def cdf_to_nc(cdf_filename):
     print("Writing cleaned/trimmed burst data and averaged burst data to .nc file")
     nc_filename = ds.attrs["filename"] + "b-cal.nc"
 
-    ds.to_netcdf(nc_filename, unlimited_dims=["time"])
+    ds.to_netcdf(nc_filename, unlimited_dims=["time"],encoding={'time': {'dtype': 'i4'}})
     print("Done writing netCDF file", nc_filename)
     
     # Average busrt and write to -a.nc file 12/23/21
@@ -122,8 +123,9 @@ def cdf_to_nc(cdf_filename):
 
     nc_filename = ds.attrs["filename"] + "-a.nc"
 
-    #ds.to_netcdf(nc_filename, unlimited_dims=["time"],encoding={'time': {'dtype': 'int32'}}) #5/20/22- save time as int32
-    ds.to_netcdf(nc_filename, unlimited_dims=["time"])
+    #ds['time']=ds['time'].astype('datetime64[s]')
+    ds.to_netcdf(nc_filename, unlimited_dims=["time"],encoding={'time': {'dtype': 'i4'}}) #5/20/22- save time as int32
+    
     utils.check_compliance(nc_filename) #5/20/22
 
     print("Done writing burst averaged netCDF file", nc_filename)
