@@ -5,12 +5,19 @@ import pandas as pd
 import xarray as xr
 
 from ..core import utils
+import warnings
 
 
 def rsk_to_cdf(metadata):
     """
     Main function to load data from RSK file and save to raw .CDF
     """
+
+    warnings.warn(
+        "The use of rsk_to_cdf is deprecated. Use csv_to_cdf instead. Refer to the stglib documentation for more details.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     ds = rsk_to_xr(metadata)
 
@@ -137,7 +144,7 @@ def rsk_to_xr(metadata):
             "serial_number": ds.attrs["serial_number"],
         },
     )
-    ds["P_1"].encoding["_FillValue"] = 1e35
+    # ds["P_1"].encoding["_FillValue"] = 1e35
 
     # If duo, also save temp
     if ("instrument_type" in ds.attrs) and (ds.attrs["instrument_type"] == "rbr_duo"):
@@ -153,7 +160,7 @@ def rsk_to_xr(metadata):
                 "serial_number": ds.attrs["serial_number"],
             },
         )
-        ds["T_28"].encoding["_FillValue"] = 1e35
+        # ds["T_28"].encoding["_FillValue"] = 1e35
 
     ds["time"] = xr.DataArray(times, dims=("time"), name="time")
 

@@ -48,7 +48,7 @@ def wad_to_cdf(metadata, writefile=True):
 
     print("BIN SIZE:", ds.attrs["bin_size"])
 
-    ds = aqdutils.check_orientation(ds, waves=True)
+    ds = aqdutils.create_bindist(ds, waves=True)
 
     # Compute time stamps
     fs = float(ds.attrs["WaveSampleRate"].split()[0])

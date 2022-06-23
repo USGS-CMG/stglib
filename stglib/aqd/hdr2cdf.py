@@ -37,7 +37,7 @@ def prf_to_cdf(metadata):
     # Deal with metadata peculiarities
     ds = aqdutils.check_attrs(ds)
 
-    ds = aqdutils.check_orientation(ds)
+    ds = aqdutils.create_bindist(ds)
 
     # Load amplitude and velocity data
     ds = load_amp_vel(ds, basefile)
