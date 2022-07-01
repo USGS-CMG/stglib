@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import yaml
-
 import stglib
+
 
 args = stglib.cmd.eofelog2cdf_parser().parse_args()
 
