@@ -17,20 +17,38 @@ def log_to_cdf(metadata):
     utils.check_valid_metadata(metadata)
     
     # get instrument metadata from the LOG file
-    instmeta = read_ea_instmet(basefile + ".log")
+    # Assume ea400 in burst mode if no attrs
+    if "instrument_type" not in metadata or metadata["instrument_type"] == "ea":
+        if "instrument_type" not in metadata:
+            print("instrument_type not specified assumed to be type == ea")
+            metadata["instrument_type"]="ea"
+
+        instmeta = read_ea_instmet(basefile + ".log")
+        metadata["instmeta"] = instmeta
+        print("Loading LOG file")
+        # load point sensor data (temp, altitude, pitch, roll, ping #, sample #)     
+        ds = load_ea_point(basefile + ".log", metadata)
     
-    metadata["instmeta"] = instmeta
+        ds = utils.write_metadata(ds, metadata)
     
-    print("Loading LOG file")
-    
-    # load point sensor data (temp, altitude, pitch, roll, ping #, sample #)     
-    ds = load_log_point(basefile + ".log", metadata)
-    
-    ds = utils.write_metadata(ds, metadata)
-    
-    #load profile sensor data (counts)
-    ds = load_log_profile(ds, basefile + ".log")
-    
+        #load profile sensor data (counts)
+        ds = load_ea_profile(ds, basefile + ".log")
+
+    # Else, check for aa400
+    elif metadata["instrument_type"] == "aa":
+        instmeta = read_aa_instmet(basefile + ".log")
+        metadata["instmeta"] = instmeta
+        print("Loading LOG file")
+        # load point sensor data (temp, altitude, ping #)     
+        ds = load_aa_point(basefile + ".log", metadata)
+        ds = utils.write_metadata(ds, metadata)
+    else:
+        raise ValueError(
+        "instrument_type in config file, {:s}, is invalid".format(
+            metadata["instrument_type"]
+            )
+        )
+
     ds = utils.shift_time(ds, 0)
     
     # configure file
@@ -62,8 +80,9 @@ def cdf_to_nc(cdf_filename):
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
     
-    # calculate bin height
-    ds = calc_bin_height(ds)
+    # calculate bin height for profiling echologger (i.e. type == ea)
+    if "bins" in ds:
+        calc_bin_height(ds)
 
     #ds.to_netcdf('ea400_check.nc') #5/20/22 - used to check vars
 
@@ -71,11 +90,15 @@ def cdf_to_nc(cdf_filename):
     ds = calc_cor_brange(ds) #12/23/21
     
     # calculate corrected bin height (on NAVD88 datum) with adjusted sound speed
-    ds = calc_cor_bin_height(ds) #12/23/21
+    if "bins" in ds:
+        ds = calc_cor_bin_height(ds) #12/23/21
 
     ds = calc_seabed_elev(ds) #5/20/22
  
-    ds = utils.create_z_bindist(ds) #5/20/22 - added new def to stglib.utils to create z for profile
+    if "bins" in ds:
+        ds = utils.create_z_bindist(ds) #5/20/22 - added new def to stglib.utils to create z for profile
+    else:
+        ds = utils.create_z(ds)
 
     #ds.to_netcdf('ea400_check.nc') #5/20/22 - used to check vars
     
@@ -140,44 +163,62 @@ def read_ea_instmet(basefile):
         row = ""
         while "##DataStart" not in row:
             row = f.readline().rstrip()
+            dat = row.split()
             if "#DeviceID" in row:
-                instmeta['DeviceID'] = row[10:]
+                #instmeta['DeviceID'] = row[10:]
+                instmeta['DeviceID'] = dat[1]
             elif "#NSamples" in row:
-                instmeta['Bin_count'] = int(row[10:])
+                #instmeta['Bin_count'] = int(row[10:])
+                instmeta['Bin_count'] = int(dat[1])
             elif "#Resolution,m" in row:
-                instmeta['Bin_size_m'] = float(row[15:])
+                #instmeta['Bin_size_m'] = float(row[15:])
+                instmeta['Bin_size_m'] = float(dat[1])
             elif "#SoundSpeed,mps" in row:
-                instmeta['SoundSpeed_mps'] = float(row[16:])
+                #instmeta['SoundSpeed_mps'] = float(row[16:])
+                instmeta['SoundSpeed_mps'] = float(dat[1])
             elif "#Tx_Frequency,Hz" in row:
-                instmeta['Tx_Frequency_Hz'] = float(row[17:])
+                #instmeta['Tx_Frequency_Hz'] = float(row[17:])
+                instmeta['Tx_Frequency_Hz'] = float(dat[1])
             elif "#Range,m" in row:
-                instmeta['Range_m'] = float(row[12:])
+                #instmeta['Range_m'] = float(row[12:])
+                instmeta['Range_m'] = float(dat[1])
             elif "#Pulse period,sec" in row:
-                instmeta['Pulse_period_sec'] = float(row[19:])  
+                #instmeta['Pulse_period_sec'] = float(row[19:])
+                instmeta['Pulse_period_sec'] = float(dat[2])  
             elif "#Pulses in series,num" in row:
-                instmeta['Pulses_in_series_num'] = int(row[23:])
+                #instmeta['Pulses_in_series_num'] = int(row[23:])
+                instmeta['Pulses_in_series_num'] = int(dat[3])
             elif "#Interval between series,sec" in row:
-                instmeta['Interval_between_series_sec'] = float(row[30:])
+                #instmeta['Interval_between_series_sec'] = float(row[30:])
+                instmeta['Interval_between_series_sec'] = float(dat[3])
             elif "#Threshold,%" in row:
-                instmeta['Threshold_%'] = int(row[15:])
+                #instmeta['Threshold_%'] = int(row[15:])
+                instmeta['Threshold_%'] = int(dat[1])
             elif "#Offset,m" in row:
-                instmeta['Offset_m'] = float(row[12:])
+                #instmeta['Offset_m'] = float(row[12:])
+                instmeta['Offset_m'] = float(dat[1])
             elif "#Deadzone,m" in row:
-                instmeta['Deadzone_m'] = float(row[13:])
+                #instmeta['Deadzone_m'] = float(row[13:])
+                instmeta['Deadzone_m'] = float(dat[1])
             elif "#PulseLength,uks" in row:
-                instmeta['PulseLength_uks'] = float(row[17:])
+                #instmeta['PulseLength_microsec'] = float(row[17:])
+                instmeta['PulseLength_microsec'] = float(dat[1])
             elif "#TVG_Gain,dB" in row:
-                instmeta['TVG_Gain_dB'] = float(row[14:])
+                #instmeta['TVG_Gain_dB'] = float(row[14:])
+                instmeta['TVG_Gain_dB'] = float(dat[1])
             elif "#TVG_Slope,dB/km" in row:
-                instmeta['TVG_Slope_dBkm'] = float(row[17:])
+                #instmeta['TVG_Slope_dBkm'] = float(row[17:])
+                instmeta['TVG_Slope_dBkm'] = float(dat[1])
             elif "#TVG_Mode" in row:
-                instmeta['TVG_Mode'] = int(row[11:])
+                #instmeta['TVG_Mode'] = int(row[11:])
+                instmeta['TVG_Mode'] = int(dat[1])
             elif "#OutputMode" in row:
-                instmeta['OutputMode'] = int(row[11:])
+                #instmeta['OutputMode'] = int(row[11:])
+                instmeta['OutputMode'] = int(dat[1])
                 
     return instmeta
 
-def load_log_point(basefile, metadata):
+def load_ea_point(basefile, metadata):
     with open(basefile, 'r') as f:
     
         data = f.read().splitlines()
@@ -193,23 +234,32 @@ def load_log_point(basefile, metadata):
         Roll_deg = []
         Pitch_deg = []
 
-        for row in data:    
+        for row in data:  
+            dat = row.split()  
             if "#TimeLocal" in row:
-                TimeLocal.append(row[11:])        
+                #TimeLocal.append(row[11:])
+                TimeLocal.append(dat[1]+" "+dat[2])        
             elif "#TimeUTC" in row:
-                TimeUTC.append(row[11:])    #12/23/21
+                #TimeUTC.append(row[11:])    #12/23/21
+                TimeUTC.append(dat[1]+" "+dat[2])
             elif "#Ping  " in row:
-                Ping.append(float(row[8:])) 
+                #Ping.append(float(row[8:]))
+                Ping.append(float(dat[1])) 
             elif "#Ping num in series" in row:
-                Ping_num_in_series.append(float(row[21:]))
+                #Ping_num_in_series.append(float(row[21:]))
+                Ping_num_in_series.append(float(dat[4]))
             elif "#Altitude,m" in row:
-                Altitude_m.append(float(row[15:]))
+                #Altitude_m.append(float(row[15:]))
+                Altitude_m.append(float(dat[1]))
             elif "#Temperature" in row:
-                Temperature_C.append(float(row[18:]))
+                #Temperature_C.append(float(row[18:]))
+                Temperature_C.append(float(dat[1]))
             elif "#Pitch,deg" in row:
-                Pitch_deg.append(float(row[11:])) 
+                #Pitch_deg.append(float(row[11:]))
+                Pitch_deg.append(float(dat[1])) 
             elif "#Roll,deg" in row:
-                Roll_deg.append(float(row[10:]))
+                #Roll_deg.append(float(row[10:]))
+                Roll_deg.append(float(dat[1]))
                 
     #Add lists to point dictionary         
     point['TimeLocal'] = TimeLocal
@@ -248,7 +298,7 @@ def load_log_point(basefile, metadata):
             
     return ds
 
-def load_log_profile(ds, basefile):
+def load_ea_profile(ds, basefile):
     
     profile = []
 
@@ -285,7 +335,8 @@ def ds_rename_vars(ds):
         "Temperature_C": "Tx_1211", #12/23/21
         "Pitch_deg": "Ptch_1216",
         "Roll_deg": "Roll_1217",
-        "Counts": "AGC_1202"
+        "Counts": "AGC_1202",
+        "AmplitudeFS": "AMP_723"
     }
     
     # check to make sure they exist before trying to rename
@@ -308,21 +359,35 @@ def ds_add_attrs(ds): #12/23/21
     
     ds["Tx_1211"].attrs.update({"units": "degree_C", "long_name": "Instrument Internal Temperature", "standard_name": "sea_water_temperature", "epic_code":"1211"})
     
-    ds["AGC_1202"].attrs.update({"units": "counts", "long_name": "Average Echo Intensity", "generic_name" : "AGC", "epic_code":"1202"})
+    if "ea" in ds.attrs["instrument_type"]:
+        ds["AGC_1202"].attrs.update({"units": "counts", "long_name": "Average Echo Intensity", "generic_name" : "AGC", "epic_code":"1202"})
     
-    ds["Ptch_1216"].attrs.update({"units": "degrees", "long_name": "Instrument Pitch", "standard_name": "platform_pitch", "epic_code": "1216"})
+        ds["Ptch_1216"].attrs.update({"units": "degrees", "long_name": "Instrument Pitch", "standard_name": "platform_pitch", "epic_code": "1216"})
     
-    ds["Roll_1217"].attrs.update({"units": "degrees", "long_name": "Instrument Roll", "standard_name": "platform_roll", "epic_code":"1217"})
+        ds["Roll_1217"].attrs.update({"units": "degrees", "long_name": "Instrument Roll", "standard_name": "platform_roll", "epic_code":"1217"})
+
+    if "aa" in ds.attrs["insturment_type"]:
+        ds["AMP_723"].attrs.update({"units": "percent full scale", "long_name": "Acoustic Signal Amplitude", "epic_code":"723"})
 
     #add initial height information and fill values to variabels
     def add_attributes(var, dsattrs):
-        var.attrs.update(
-            {
-                "initial_instrument_height": dsattrs["initial_instrument_height"],
-                "height_depth_units": "m",
-                "sensor_type": "ECHOLOGGER EA400",
-            }
-        )
+        if "ea" in dsattrs["instrument_type"]:
+            var.attrs.update(
+                {
+                    "initial_instrument_height": dsattrs["initial_instrument_height"],
+                    "height_depth_units": "m",
+                    "sensor_type": "ECHOLOGGER EA400",
+                }
+            )
+        elif "aa" in dsattrs["instrument_type"]:
+            var.attrs.update(
+                {
+                    "initial_instrument_height": dsattrs["initial_instrument_height"],
+                    "height_depth_units": "m",
+                    "sensor_type": "ECHOLOGGER AA400",
+                }
+            )
+
     #for var in ds.variables: #12/29/21 : 5/20/22 - remove
         #if ds[var].dtype == 'float32':
         #    ds[var].encoding["_FillValue"] = 1e35
@@ -511,3 +576,119 @@ def ds_swap_dims(ds): #5/20/22 def to swap vert dim to z
     ds["z"].attrs = attrsbak
 
     return ds
+
+def read_aa_instmet(basefile):
+    with open(basefile, 'r') as f:
+    
+        instmeta = {}
+        row = ""
+        while "   Date       Time" not in row:
+                row = f.readline().rstrip()
+                dat = row.split()
+                if " Device" in row:
+                    #instmeta['DeviceID'] = row[12:19]
+                    instmeta['DeviceID'] = dat[2]
+                elif "- range" in row:
+                    #instmeta['Range_m'] = float(row[14:19])/1000
+                    instmeta['Range_m'] = float(dat[3])/1000
+                elif "- interval" in row:
+                    #instmeta['Interval_between_series_sec'] = float(row[14:19])
+                    instmeta['Interval_between_series_sec'] = float(dat[3])
+                elif "- series" in row:
+                    #instmeta['Pulses_in_series_num'] = int(row[14:19])
+                    instmeta['Pulses_in_series_num'] = int(dat[3])
+                elif "- threshold" in row:
+                    #instmeta['Threshold_%'] = int(row[14:19])
+                    instmeta['Threshold_%'] = int(dat[3])
+                elif "- offset" in row:
+                    #instmeta['Offset_m'] = float(row[14:19])/1000
+                    instmeta['Offset_m'] = float(dat[3])/1000
+                elif "- deadzone" in row:
+                    #instmeta['Deadzone_m'] = float(row[14:19])/1000
+                    instmeta['Deadzone_m'] = float(dat[3])/1000  
+                elif "- txlength" in row:
+                    #instmeta['PulseLength_microsec'] = int(row[14:19])
+                    instmeta['PulseLength_microsec'] = int(dat[3])
+                elif "- amplitude" in row:
+                    #instmeta['Amplitude_Threshold_%'] = int(row[14:19])
+                    instmeta['Amplitude_Threshold_%'] = int(dat[3])
+                elif "-" and "sampling"  in row:
+                    #instmeta['Sampling_rate_Hz'] = int(row[14:19])
+                    instmeta['Sampling_rate_Hz'] = int(dat[3])
+                elif "Total Number of Series" in row:
+                    #instmeta['NSeries'] = int(row[33:])
+                    instmeta['NSeries'] = int(dat[5])
+                elif "Total Number of Records" in row:
+                    #instmeta['NRecords'] = int(row[33:])
+                    instmeta['NRecords'] = int(dat[5])
+    return instmeta
+    
+def load_aa_point(basefile, metadata):
+    with open(basefile, 'r') as f:
+        
+        if "skiprows" in metadata:
+            for k in np.arange(0,metadata["skiprows"]):
+                line=f.readline()
+
+        else:
+            line=""
+            while "   Date       Time" not in line:
+                line=f.readline()
+            line=f.readline()
+
+        data = f.read().splitlines()
+    
+        point = {}
+
+        TimeUTC=[]
+        Ping = []
+        Altitude_m = []
+        Temperature_C = []
+        Battery_mV=[]
+        AmplitudeFS=[]
+        #Amplitude80=[]
+        #Median15=[]
+        
+        for row in data: 
+            dat=np.array(row.split())
+            TimeUTC.append(dat[0]+" "+dat[1])
+            Ping.append(dat[2])
+            Altitude_m.append(dat[3])
+            Temperature_C.append(dat[4])
+            Battery_mV.append(dat[5])
+            AmplitudeFS.append(dat[6])
+               
+    #Add lists to point dictionary         
+    #point['TimeLocal'] = TimeLocal
+    point['TimeUTC'] = TimeUTC
+    point['Ping'] = Ping
+    #point['Ping_num_in_series'] = Ping_num_in_series
+    point['Altitude_m'] = Altitude_m
+    point['Temperature_C'] = Temperature_C
+    point['Battery_mV']=Battery_mV
+    #point['Pitch_deg'] = Pitch_deg
+    #point['Roll_deg'] =  Roll_deg
+    
+    for k in point:
+        point[k] = np.array(point[k])
+        
+    point['TimeUTC'] = pd.to_datetime(point['TimeUTC'])
+    
+    #reshape point data
+    samples = metadata['instmeta']['Pulses_in_series_num']
+    
+    for k in point:
+        if 'Time' not in k:
+            #point[k] = point[k].reshape((-1,samples)).astype(np.float32) #12/23/21
+            point[k] = point[k].reshape((-1,samples))
+                   
+    time = point['TimeUTC'][::samples]
+    ds = xr.Dataset()
+    ds['time'] = xr.DataArray(time, dims='time')
+    ds['sample'] = xr.DataArray(np.arange(0,samples), dims='sample')
+    #add dimensions to variables
+    for k in point:
+        if 'Time' not in k:
+            ds[k] = xr.DataArray(point[k], dims=('time', 'sample'))
+            
+    return ds    
