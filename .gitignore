@@ -8,3 +8,6 @@ stglib.egg-info
 # Sphinx
 doc/_build
 doc/generated
+
+stglib/ea400.py
+
