@@ -165,8 +165,8 @@ def read_ea_instmet(basefile):
             row = f.readline().rstrip()
             dat = row.split()
             if "#DeviceID" in row:
-                #instmeta['DeviceID'] = row[10:]
-                instmeta['DeviceID'] = dat[1]
+                instmeta['DeviceID'] = row[10:]
+                instmeta['serial_number'] = dat[1]
             elif "#NSamples" in row:
                 #instmeta['Bin_count'] = int(row[10:])
                 instmeta['Bin_count'] = int(dat[1])
@@ -366,7 +366,7 @@ def ds_add_attrs(ds): #12/23/21
     
         ds["Roll_1217"].attrs.update({"units": "degrees", "long_name": "Instrument Roll", "standard_name": "platform_roll", "epic_code":"1217"})
 
-    if "aa" in ds.attrs["insturment_type"]:
+    if "aa" in ds.attrs["instrument_type"]:
         ds["AMP_723"].attrs.update({"units": "percent full scale", "long_name": "Acoustic Signal Amplitude", "epic_code":"723"})
 
     #add initial height information and fill values to variabels
@@ -528,7 +528,12 @@ def calc_seabed_elev(ds): #added 5/20/22
             ds['seabed_elevation'] = xr.DataArray(ds.attrs["WATER_DEPTH"] + (ds.brange*-1) + ds.attrs["initial_instrument_height"])
 
           
-    if "height_above_geopotential_datum" or "NAVD88_ref" in ds.attrs:
+    if "height_above_geopotential_datum" in ds.attrs:
+        ds['seabed_elevation'].attrs.update({"units": "m", "long_name":"seafloor height referenced to %s datum" % ds.attrs["geopotential_datum_name"],
+        "standard_name": "height_above_geopotential_datum","positive": "up",
+        "note": "Corrected brange from adjusted sound speed and referenced to %s datum" % ds.attrs["geopotential_datum_name"]})
+
+    elif "NAVD88_ref" in ds.attrs:
         ds['seabed_elevation'].attrs.update({"units": "m", "long_name":"seafloor height referenced to %s datum" % ds.attrs["geopotential_datum_name"],
         "standard_name": "height_above_geopotential_datum","positive": "up",
         "note": "Corrected brange from adjusted sound speed and referenced to %s datum" % ds.attrs["geopotential_datum_name"]})
@@ -621,6 +626,8 @@ def read_aa_instmet(basefile):
                 elif "Total Number of Records" in row:
                     #instmeta['NRecords'] = int(row[33:])
                     instmeta['NRecords'] = int(dat[5])
+
+    instmeta['SoundSpeed_mps']=1500 #aa400 fixed speed of sound value
     return instmeta
     
 def load_aa_point(basefile, metadata):
@@ -652,11 +659,11 @@ def load_aa_point(basefile, metadata):
         for row in data: 
             dat=np.array(row.split())
             TimeUTC.append(dat[0]+" "+dat[1])
-            Ping.append(dat[2])
-            Altitude_m.append(dat[3])
-            Temperature_C.append(dat[4])
-            Battery_mV.append(dat[5])
-            AmplitudeFS.append(dat[6])
+            Ping.append(float(dat[2]))
+            Altitude_m.append(float(dat[3])/1000)
+            Temperature_C.append(float(dat[4]))
+            Battery_mV.append(float(dat[5]))
+            AmplitudeFS.append(float(dat[6]))
                
     #Add lists to point dictionary         
     #point['TimeLocal'] = TimeLocal
@@ -668,6 +675,7 @@ def load_aa_point(basefile, metadata):
     point['Battery_mV']=Battery_mV
     #point['Pitch_deg'] = Pitch_deg
     #point['Roll_deg'] =  Roll_deg
+    point['AmplitudeFS']=AmplitudeFS
     
     for k in point:
         point[k] = np.array(point[k])
