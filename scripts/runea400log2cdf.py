@@ -4,7 +4,7 @@ import yaml
 
 import stglib
 
-args = stglib.cmd.ea400log2cdf_parser().parse_args()
+args = stglib.cmd.eofelog2cdf_parser().parse_args()
 
 # initialize metadata from the globalatts file
 metadata = stglib.read_globalatts(args.gatts)
@@ -16,4 +16,4 @@ with open(args.config) as f:
 for k in config:
     metadata[k] = config[k]
 
-RAW = stglib.ea400.log_to_cdf(metadata)
+RAW = stglib.eofe.log_to_cdf(metadata)
