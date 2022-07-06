@@ -22,7 +22,7 @@ def is_cf(ds):
         return False
 
 
-def check_compliance(nc_file, checker_names=["cf:1.6"]):
+def check_compliance(nc_file, conventions="CF-1.6"):
     from compliance_checker.runner import ComplianceChecker, CheckSuite
 
     check_suite = CheckSuite()
@@ -32,6 +32,7 @@ def check_compliance(nc_file, checker_names=["cf:1.6"]):
     criteria = "normal"
     output_filename = nc_file + ".cfcheck.txt"
     output_format = "text"
+    checker_names = [conventions.lower().replace("-", ":")]
 
     print(
         f"*** Checking CF compliance. Please view contents of {output_filename} for any compliance issues."

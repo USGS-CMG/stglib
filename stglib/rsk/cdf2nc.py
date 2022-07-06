@@ -97,7 +97,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
             nc_filename = ds.attrs["filename"] + "-a.nc"
 
         ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
-        utils.check_compliance(nc_filename)
+        utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
         print("Done writing netCDF file", nc_filename)
 
     return ds
