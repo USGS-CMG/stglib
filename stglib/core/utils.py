@@ -1119,6 +1119,14 @@ def salinity_from_spcon(spcon):
     )
 
 
+def check_valid_globalatts_metadata(metadata):
+    for k in ["WATER_DEPTH", "latitude", "longitude", "MOORING"]:
+        if k not in metadata:
+            raise KeyError(
+                f"{k} must be defined, most likely in global attributes file"
+            )
+
+
 def read_globalatts(fname):
     """
     Read global attributes file (glob_attxxxx.txt) and create metadata

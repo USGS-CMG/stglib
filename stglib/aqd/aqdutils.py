@@ -1123,7 +1123,13 @@ def ds_add_attrs(ds, waves=False):
     return ds
 
 
-def check_valid_metadata(metadata):
-    for k in ["initial_instrument_height", "orientation"]:
+def check_valid_config_metadata(metadata):
+    for k in [
+        "initial_instrument_height",
+        "orientation",
+        "basefile",
+        "filename",
+        "Conventions",
+    ]:
         if k not in metadata:
-            raise KeyError(k + " must be defined, most likely in config.yaml")
+            raise KeyError(f"{k} must be defined, most likely in config.yaml")
