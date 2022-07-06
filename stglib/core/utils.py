@@ -1005,7 +1005,7 @@ def insert_note(ds, var, notetxt):
 
 
 def add_delta_t(ds):
-    deltat = np.asscalar((ds["time"][1] - ds["time"][0]) / np.timedelta64(1, "s"))
+    deltat = ((ds["time"][1] - ds["time"][0]) / np.timedelta64(1, "s")).item()
     if not deltat.is_integer():
         warnings.warn("DELTA_T is not an integer; casting as int in attrs")
 
