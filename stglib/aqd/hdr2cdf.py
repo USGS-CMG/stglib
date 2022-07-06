@@ -16,7 +16,7 @@ def prf_to_cdf(metadata):
     if "prefix" in metadata:
         basefile = metadata["prefix"] + basefile
 
-    utils.check_valid_metadata(metadata)
+    aqdutils.check_valid_metadata(metadata)
 
     # get instrument metadata from the HDR file
     instmeta = aqdutils.read_aqd_hdr(basefile)

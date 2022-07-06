@@ -1121,3 +1121,9 @@ def ds_add_attrs(ds, waves=False):
         add_attributes(ds[v], ds.attrs)
 
     return ds
+
+
+def check_valid_metadata(metadata):
+    for k in ["initial_instrument_height", "orientation"]:
+        if k not in metadata:
+            raise KeyError(k + " must be defined, most likely in config.yaml")

@@ -1014,12 +1014,6 @@ def add_delta_t(ds):
     return ds
 
 
-def check_valid_metadata(metadata):
-    for k in ["initial_instrument_height", "orientation"]:
-        if k not in metadata:
-            raise KeyError(k + " must be defined, most likely in config.yaml")
-
-
 def read_samplingrates_burst(ds, conn):
     """
     Reads in sample information from RBR instrument in burst mode
