@@ -58,12 +58,12 @@ def clip_ds(ds, wvs=False):
 
     print(
         "first burst in full file: {}, idx {}".format(
-            ds["time"].min().values, ds["time"].argmin().values
+            ds["time"].min().values, np.argmin(ds["time"].values)
         )
     )
     print(
         "last burst in full file: {}, idx {}".format(
-            ds["time"].max().values, ds["time"].argmax().values
+            ds["time"].max().values, np.argmax(ds["time"].values)
         )
     )
 
