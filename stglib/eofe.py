@@ -115,6 +115,7 @@ def cdf_to_nc(cdf_filename):
         "ping",
         "ping_num_in_series",
         "Altitude_m",
+        "Battery_mV",
     ]:
         if k in ds:
             ds = ds.drop_vars(k)
@@ -126,9 +127,7 @@ def cdf_to_nc(cdf_filename):
     # add attributes to each variable
     ds = ds_add_attrs(ds)
     
-    # assign min/max 
-    #ds = utils.add_min_max(ds)
-
+    
     #add metadata to global atts
     ds = utils.add_start_stop_time(ds)
     ds = utils.add_delta_t(ds)
@@ -143,6 +142,9 @@ def cdf_to_nc(cdf_filename):
     
     # Average busrt and write to -a.nc file 12/23/21
     ds = average_burst(ds)
+
+    # assign min/max 
+    ds = utils.add_min_max(ds)
 
     nc_filename = ds.attrs["filename"] + "-a.nc"
 
@@ -168,52 +170,36 @@ def read_ea_instmet(basefile):
                 instmeta['DeviceID'] = row[10:]
                 instmeta['serial_number'] = dat[1]
             elif "#NSamples" in row:
-                #instmeta['Bin_count'] = int(row[10:])
                 instmeta['Bin_count'] = int(dat[1])
             elif "#Resolution,m" in row:
-                #instmeta['Bin_size_m'] = float(row[15:])
                 instmeta['Bin_size_m'] = float(dat[1])
             elif "#SoundSpeed,mps" in row:
-                #instmeta['SoundSpeed_mps'] = float(row[16:])
                 instmeta['SoundSpeed_mps'] = float(dat[1])
             elif "#Tx_Frequency,Hz" in row:
-                #instmeta['Tx_Frequency_Hz'] = float(row[17:])
                 instmeta['Tx_Frequency_Hz'] = float(dat[1])
             elif "#Range,m" in row:
-                #instmeta['Range_m'] = float(row[12:])
                 instmeta['Range_m'] = float(dat[1])
             elif "#Pulse period,sec" in row:
-                #instmeta['Pulse_period_sec'] = float(row[19:])
                 instmeta['Pulse_period_sec'] = float(dat[2])  
             elif "#Pulses in series,num" in row:
-                #instmeta['Pulses_in_series_num'] = int(row[23:])
                 instmeta['Pulses_in_series_num'] = int(dat[3])
             elif "#Interval between series,sec" in row:
-                #instmeta['Interval_between_series_sec'] = float(row[30:])
                 instmeta['Interval_between_series_sec'] = float(dat[3])
             elif "#Threshold,%" in row:
-                #instmeta['Threshold_%'] = int(row[15:])
-                instmeta['Threshold_%'] = int(dat[1])
+                instmeta['Threshold_percent'] = int(dat[1])
             elif "#Offset,m" in row:
-                #instmeta['Offset_m'] = float(row[12:])
                 instmeta['Offset_m'] = float(dat[1])
             elif "#Deadzone,m" in row:
-                #instmeta['Deadzone_m'] = float(row[13:])
                 instmeta['Deadzone_m'] = float(dat[1])
             elif "#PulseLength,uks" in row:
-                #instmeta['PulseLength_microsec'] = float(row[17:])
                 instmeta['PulseLength_microsec'] = float(dat[1])
             elif "#TVG_Gain,dB" in row:
-                #instmeta['TVG_Gain_dB'] = float(row[14:])
                 instmeta['TVG_Gain_dB'] = float(dat[1])
             elif "#TVG_Slope,dB/km" in row:
-                #instmeta['TVG_Slope_dBkm'] = float(row[17:])
                 instmeta['TVG_Slope_dBkm'] = float(dat[1])
             elif "#TVG_Mode" in row:
-                #instmeta['TVG_Mode'] = int(row[11:])
                 instmeta['TVG_Mode'] = int(dat[1])
             elif "#OutputMode" in row:
-                #instmeta['OutputMode'] = int(row[11:])
                 instmeta['OutputMode'] = int(dat[1])
                 
     return instmeta
@@ -237,28 +223,20 @@ def load_ea_point(basefile, metadata):
         for row in data:  
             dat = row.split()  
             if "#TimeLocal" in row:
-                #TimeLocal.append(row[11:])
-                TimeLocal.append(dat[1]+" "+dat[2])        
+               TimeLocal.append(dat[1]+" "+dat[2])        
             elif "#TimeUTC" in row:
-                #TimeUTC.append(row[11:])    #12/23/21
                 TimeUTC.append(dat[1]+" "+dat[2])
             elif "#Ping  " in row:
-                #Ping.append(float(row[8:]))
                 Ping.append(float(dat[1])) 
             elif "#Ping num in series" in row:
-                #Ping_num_in_series.append(float(row[21:]))
                 Ping_num_in_series.append(float(dat[4]))
             elif "#Altitude,m" in row:
-                #Altitude_m.append(float(row[15:]))
                 Altitude_m.append(float(dat[1]))
             elif "#Temperature" in row:
-                #Temperature_C.append(float(row[18:]))
                 Temperature_C.append(float(dat[1]))
             elif "#Pitch,deg" in row:
-                #Pitch_deg.append(float(row[11:]))
                 Pitch_deg.append(float(dat[1])) 
             elif "#Roll,deg" in row:
-                #Roll_deg.append(float(row[10:]))
                 Roll_deg.append(float(dat[1]))
                 
     #Add lists to point dictionary         
@@ -282,7 +260,6 @@ def load_ea_point(basefile, metadata):
     n = metadata['instmeta']['Bin_count']
     for k in point:
         if 'Time' not in k:
-            #point[k] = point[k].reshape((-1,samples)).astype(np.float32) #12/23/21
             point[k] = point[k].reshape((-1,samples))
                    
     time = point['TimeUTC'][::samples]
@@ -313,7 +290,6 @@ def load_ea_profile(ds, basefile):
     #reshape profile data
     samples = ds.Pulses_in_series_num
     n = ds.Bin_count
-    #profile = np.array(profile, dtype = 'float32')
     profile = np.array(profile) 
     profile = profile.reshape((-1,samples,n))
     ds['Counts'] = xr.DataArray(
@@ -353,9 +329,9 @@ def ds_add_attrs(ds): #12/23/21
 
     ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
     
-    ds["sample"].attrs.update({"units": "sample number", "long_name": "Sample in burst"})
+    ds["sample"].attrs.update({"units": "1", "long_name": "Sample in burst"})
     
-    ds["burst"].attrs.update({"units": "burst number","long_name": "Burst number","generic_name":"record", "epic_code": "1207", "coverage_content_type": "physicalMeasurement"})
+    ds["burst"].attrs.update({"units": "1","long_name": "Burst number","generic_name":"record", "epic_code": "1207", "coverage_content_type": "physicalMeasurement"})
     
     ds["Tx_1211"].attrs.update({"units": "degree_C", "long_name": "Instrument Internal Temperature", "standard_name": "sea_water_temperature", "epic_code":"1211"})
     
@@ -387,12 +363,6 @@ def ds_add_attrs(ds): #12/23/21
                     "sensor_type": "ECHOLOGGER AA400",
                 }
             )
-
-    #for var in ds.variables: #12/29/21 : 5/20/22 - remove
-        #if ds[var].dtype == 'float32':
-        #    ds[var].encoding["_FillValue"] = 1e35
-        #elif ds[var].dtype == 'int32':
-        #    ds[var].encoding["_FillValue"] = -2147483648
     
     #don't include all attributes for coordinates that are also variables
     for var in ds.variables:
@@ -416,7 +386,6 @@ def calc_bin_height(ds): #12/23/21
         (((ds.attrs["Bin_count"] - 1) * ds.attrs["Bin_size_m"])  #deleted ds.attrs["Bin_size_m"] +
         + (ds.attrs["Bin_size_m"] / 2)),
         num=ds.attrs["Bin_count"],
-        #dtype = 'float32' #5/20/22 - remove setting dtype
         ), dims='bins')
     
     print("Calculating center of bin height from seafloor as: initial intrument height - bin(center) distance from transducer")
@@ -440,6 +409,10 @@ def calc_bin_height(ds): #12/23/21
     ds["bin_height"].attrs.update({"units": "m", "long_name": "bin(center) distance from seafloor", "positive": "up",
     "note": "Distance is along profile from seafloor to center of bin. Calculated as initial instrument height %s bin(center) distance from transducer based on 1500 m/s sound vel." % math_sign})
     
+    #round to mm
+    ds["bindist"]=ds["bindist"].round(3)
+    ds["bin_height"]=ds["bin_height"].round(3)
+
     return ds
 
 def calc_cor_brange(ds): #5/20/22 - remove seabed_elev from this def create new one
@@ -452,36 +425,15 @@ def calc_cor_brange(ds): #5/20/22 - remove seabed_elev from this def create new 
     
     #seawater.svel(s,t,p); s = average salinity (psu) from exo, t = temp (c) from altimeter, p = approximate pressure (db) calculated from Altitude_m
     soundspd = sw.svel(ds.attrs["average_salinity"],ds.Temperature_C,ds.Altitude_m)
-    ds['brange'] = xr.DataArray(time_sec * soundspd)
+    ds['brange'] = xr.DataArray(time_sec * soundspd).round(3) #round brange to mm
     
     histtext = "Adjusted sound velocity calculated using svel(s,t,p) from seawater toolbox (https://pythonhosted.org/seawater/eos80.html#seawater.eos80.svel). Svel inputs: Salinity (s) from average salinity of %s PSU, temperature (t) from ea400 internal temperature measurements, pressure (p) from raw ea400 altitude measurements. "
     
     ds = utils.insert_history(ds, histtext)
-    
-    #print("Calculating seabead elevation on %s datum" % ds.attrs["VerticalDatum"])
-    
-    #if ds.attrs["orientation"] == "down" and ds.attrs["rtk_measurement_point"] == "opposite":
         
-    #    ds['seabed_elevation'] = xr.DataArray((ds.brange * -1) + ds.attrs["initial_instrument_height_rtk"] -.26)
-        
-    #elif ds.attrs["orientation"] == "down" and ds.attrs["rtk_measurement_point"] == "transducer":
-        
-    #    ds['seabed_elevation'] = xr.DataArray((ds.brange * -1) + ds.attrs["initial_instrument_height_rtk"])
-            
-    #elif ds.attrs["orientation"] == "up" and ds.attrs["rtk_measurement_point"] == "opposite":
-    #
-    #    ds['seabed_elevation'] = xr.DataArray((ds.brange) + ds.attrs["initial_instrument_height_rtk"] +.26)
-        
-    #elif ds.attrs["orientation"] == "up" and ds.attrs["rtk_measurement_point"] == "transducer":
-        
-    #    ds['seabed_elevation'] = xr.DataArray((ds.brange) + ds.attrs["initial_instrument_height_rtk"])
-    
     ds['brange'].attrs.update({"units": "m", "long_name": "sensor range to boundary", "standard_name": "height_above_sea_floor",
     "note": "Calculated using adjusted speed of sound"})
     
-    #ds['seabed_elevation'].attrs.update({"units": "m", "long_name":"seafloor height referenced to %s datum" % ds.attrs["VerticalDatum"],"standard_name": "height_above_geopotential_datum",
-    #"note": "Corrected brange from adjusted sound speed and referenced to %s datum" % ds.attrs["VerticalDatum"]})
-
     return ds
 
 def calc_seabed_elev(ds): #added 5/20/22
@@ -528,12 +480,7 @@ def calc_seabed_elev(ds): #added 5/20/22
             ds['seabed_elevation'] = xr.DataArray(ds.attrs["WATER_DEPTH"] + (ds.brange*-1) + ds.attrs["initial_instrument_height"])
 
           
-    if "height_above_geopotential_datum" in ds.attrs:
-        ds['seabed_elevation'].attrs.update({"units": "m", "long_name":"seafloor height referenced to %s datum" % ds.attrs["geopotential_datum_name"],
-        "standard_name": "height_above_geopotential_datum","positive": "up",
-        "note": "Corrected brange from adjusted sound speed and referenced to %s datum" % ds.attrs["geopotential_datum_name"]})
-
-    elif "NAVD88_ref" in ds.attrs:
+    if "height_above_geopotential_datum" in ds.attrs or "NAVD88_ref" in ds.attrs:
         ds['seabed_elevation'].attrs.update({"units": "m", "long_name":"seafloor height referenced to %s datum" % ds.attrs["geopotential_datum_name"],
         "standard_name": "height_above_geopotential_datum","positive": "up",
         "note": "Corrected brange from adjusted sound speed and referenced to %s datum" % ds.attrs["geopotential_datum_name"]})
@@ -542,6 +489,8 @@ def calc_seabed_elev(ds): #added 5/20/22
         ds['seabed_elevation'].attrs.update({"units": "m", "long_name":"sea floor depth referenced to %s datum" % ds.attrs["geopotential_datum_name"],
         "standard_name": "sea_floor_depth_below_mean_sea_level","positive": "down",
         "note": "Corrected brange from adjusted sound speed and referenced to %s datum" % ds.attrs["geopotential_datum_name"]})
+
+    ds["seabed_elevation"]=ds["seabed_elevation"].round(3) #round seabed_elevation to mm
 
     return ds
 
@@ -557,17 +506,22 @@ def calc_cor_bin_height(ds):
     ds['cor_bin_height'].attrs.update({"units": "m", "long_name": "corrected bin(center) distance from seafloor",
     "positive": "up", "note": "Distance is along profile from seafloor to center of bin based on adjusted sound vel."})
     
+    #round to mm
+    ds['cor_bin_height']=ds['cor_bin_height'].round(3)
+
     return ds
 
 def average_burst(ds):
     ds = ds.mean('sample', skipna = True, keep_attrs = True) #take mean across 'sample' dim
     ds['burst'] = ds.burst.astype(dtype = 'int32') #need to retype to int32 bc np/xarray changes int to float when averaging
-   #5/20/22 - remove specified fill values
-   # for var in ds.variables:
-   #     if ds[var].dtype == 'float32':
-   #         ds[var].encoding["_FillValue"] = 1e35
-   #     elif ds[var].dtype == 'int32':
-   #         ds[var].encoding["_FillValue"] = -2147483648
+    
+    #round brange and seabed_elevation to 3 decimal places (mm)
+    if "brange" in ds:
+        ds["brange"]=ds["brange"].round(3)
+
+    if "seabed_elevation" in ds:
+        ds["seabed_elevation"]=ds["seabed_elevation"].round(3)
+
             
     return ds
 
@@ -591,40 +545,28 @@ def read_aa_instmet(basefile):
                 row = f.readline().rstrip()
                 dat = row.split()
                 if " Device" in row:
-                    #instmeta['DeviceID'] = row[12:19]
                     instmeta['DeviceID'] = dat[2]
                 elif "- range" in row:
-                    #instmeta['Range_m'] = float(row[14:19])/1000
                     instmeta['Range_m'] = float(dat[3])/1000
                 elif "- interval" in row:
-                    #instmeta['Interval_between_series_sec'] = float(row[14:19])
                     instmeta['Interval_between_series_sec'] = float(dat[3])
                 elif "- series" in row:
-                    #instmeta['Pulses_in_series_num'] = int(row[14:19])
                     instmeta['Pulses_in_series_num'] = int(dat[3])
                 elif "- threshold" in row:
-                    #instmeta['Threshold_%'] = int(row[14:19])
-                    instmeta['Threshold_%'] = int(dat[3])
+                   instmeta['Threshold_%'] = int(dat[3])
                 elif "- offset" in row:
-                    #instmeta['Offset_m'] = float(row[14:19])/1000
                     instmeta['Offset_m'] = float(dat[3])/1000
                 elif "- deadzone" in row:
-                    #instmeta['Deadzone_m'] = float(row[14:19])/1000
                     instmeta['Deadzone_m'] = float(dat[3])/1000  
                 elif "- txlength" in row:
-                    #instmeta['PulseLength_microsec'] = int(row[14:19])
                     instmeta['PulseLength_microsec'] = int(dat[3])
                 elif "- amplitude" in row:
-                    #instmeta['Amplitude_Threshold_%'] = int(row[14:19])
                     instmeta['Amplitude_Threshold_%'] = int(dat[3])
                 elif "-" and "sampling"  in row:
-                    #instmeta['Sampling_rate_Hz'] = int(row[14:19])
                     instmeta['Sampling_rate_Hz'] = int(dat[3])
                 elif "Total Number of Series" in row:
-                    #instmeta['NSeries'] = int(row[33:])
                     instmeta['NSeries'] = int(dat[5])
                 elif "Total Number of Records" in row:
-                    #instmeta['NRecords'] = int(row[33:])
                     instmeta['NRecords'] = int(dat[5])
 
     instmeta['SoundSpeed_mps']=1500 #aa400 fixed speed of sound value
@@ -653,9 +595,7 @@ def load_aa_point(basefile, metadata):
         Temperature_C = []
         Battery_mV=[]
         AmplitudeFS=[]
-        #Amplitude80=[]
-        #Median15=[]
-        
+                
         for row in data: 
             dat=np.array(row.split())
             TimeUTC.append(dat[0]+" "+dat[1])
@@ -666,15 +606,11 @@ def load_aa_point(basefile, metadata):
             AmplitudeFS.append(float(dat[6]))
                
     #Add lists to point dictionary         
-    #point['TimeLocal'] = TimeLocal
     point['TimeUTC'] = TimeUTC
     point['Ping'] = Ping
-    #point['Ping_num_in_series'] = Ping_num_in_series
     point['Altitude_m'] = Altitude_m
     point['Temperature_C'] = Temperature_C
     point['Battery_mV']=Battery_mV
-    #point['Pitch_deg'] = Pitch_deg
-    #point['Roll_deg'] =  Roll_deg
     point['AmplitudeFS']=AmplitudeFS
     
     for k in point:
@@ -687,7 +623,6 @@ def load_aa_point(basefile, metadata):
     
     for k in point:
         if 'Time' not in k:
-            #point[k] = point[k].reshape((-1,samples)).astype(np.float32) #12/23/21
             point[k] = point[k].reshape((-1,samples))
                    
     time = point['TimeUTC'][::samples]

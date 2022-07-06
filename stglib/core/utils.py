@@ -158,7 +158,7 @@ def add_min_max(ds):
     [exclude.append(k) for k in ds.variables if "time" in k]
     exclude.extend(["TIM", "TransMatrix"])
 
-    alloweddims = ["time", "sample", "depth"]
+    alloweddims = ["time", "sample", "depth","z"]
 
     for k in ds.variables:
         if k not in exclude:
