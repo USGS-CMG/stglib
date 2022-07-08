@@ -91,7 +91,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     if writefile:
         # Write to .nc file
         print("Writing cleaned/trimmed data to .nc file")
-        if "burst" in ds:
+        if "burst" in ds or "sample" in ds:
             nc_filename = ds.attrs["filename"] + "b-cal.nc"
         else:
             nc_filename = ds.attrs["filename"] + "-a.nc"

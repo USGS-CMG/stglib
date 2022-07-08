@@ -171,12 +171,18 @@ def csv_to_cdf(metadata):
         ds["timenew"] = xr.DataArray(
             ds.time[0 :: int(ds.attrs["samples_per_burst"])].values, dims="timenew"
         )
-        attrsbak = ds["P_1"].attrs
-        ds["P_1"] = xr.DataArray(
-            np.reshape(ds["P_1"].values, (-1, int(ds.attrs["samples_per_burst"]))),
-            dims=["timenew", "sample"],
-        )
-        ds["P_1"].attrs = attrsbak
+
+        ds["sample"] = xr.DataArray(range(ds.attrs["samples_per_burst"]), dims="sample")
+
+        for v in ["P_1", "T_28"]:
+            if v in ds:
+                attrsbak = ds[v].attrs
+                ds[v] = xr.DataArray(
+                    np.reshape(ds[v].values, (-1, int(ds.attrs["samples_per_burst"]))),
+                    dims=["timenew", "sample"],
+                )
+                ds[v].attrs = attrsbak
+
         ds = ds.rename({"time": "timeold"})
         ds = ds.rename({"timenew": "time"})
         ds = ds.drop("timeold")
