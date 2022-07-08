@@ -3,7 +3,7 @@ from __future__ import division, print_function
 import numpy as np
 import pandas as pd
 import xarray as xr
-import seawater as sw #12/23/21
+import seawater as sw
 
 from .core import utils
 
@@ -75,7 +75,7 @@ def cdf_to_nc(cdf_filename):
     ds = xr.load_dataset(cdf_filename)
     
     #create burst num variable
-    ds = burst_num(ds) #12/29/21
+    ds = burst_num(ds)
     
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
@@ -84,32 +84,28 @@ def cdf_to_nc(cdf_filename):
     if "bins" in ds:
         calc_bin_height(ds)
 
-    #ds.to_netcdf('ea400_check.nc') #5/20/22 - used to check vars
-
     # calculate corrected altitude (distance to bed/b_range) with adjusted sound speed 
     ds = calc_cor_brange(ds) #12/23/21
     
     # calculate corrected bin height (on NAVD88 datum) with adjusted sound speed
     if "bins" in ds:
-        ds = calc_cor_bin_height(ds) #12/23/21
+        ds = calc_cor_bin_height(ds)
 
-    ds = calc_seabed_elev(ds) #5/20/22
+    ds = calc_seabed_elev(ds)
  
     if "bins" in ds:
-        ds = utils.create_z_bindist(ds) #5/20/22 - added new def to stglib.utils to create z for profile
+        ds = utils.create_z_bindist(ds)  #create z for profile
     else:
         ds = utils.create_z(ds)
 
-    #ds.to_netcdf('ea400_check.nc') #5/20/22 - used to check vars
-    
+        
     # swap bin dim with bin_height
-    #ds = ds.swap_dims({"bins":"bin_height"}) #5/20/22
-    ds = ds_swap_dims(ds) #5/20/22 - use new def to swap vert dim to z
+    ds = ds_swap_dims(ds) #swap vert dim to z
 
     #rename variables
     ds = ds_rename_vars(ds)
      
-    #12/29/21
+    #drop some vars after renaming
     for k in [
         "bins",
         "ping",
@@ -120,8 +116,7 @@ def cdf_to_nc(cdf_filename):
         if k in ds:
             ds = ds.drop_vars(k)
    
-    #remove lat/lon dims 12/23/21
-    #5/20/22- add lat/lons as coordinates
+    #add lat/lons as coordinates
     ds = utils.ds_add_lat_lon(ds)
             
     # add attributes to each variable
@@ -279,7 +274,7 @@ def load_ea_profile(ds, basefile):
     
     profile = []
 
-    with open(basefile) as f: #there might be a better way to write this
+    with open(basefile) as f: #read in profile echo data
         for row in f:
             if row.rstrip() == "##DataStart": 
                 for row in f:
@@ -297,7 +292,7 @@ def load_ea_profile(ds, basefile):
     
     return ds
 
-def burst_num(ds): #12/29/21
+def burst_num(ds):
     
     ds['burst'] = xr.DataArray(np.arange(1,len(ds['time']) + 1,1,dtype= 'int32'), dims='time')
     
@@ -343,7 +338,7 @@ def ds_add_attrs(ds): #12/23/21
         ds["Roll_1217"].attrs.update({"units": "degrees", "long_name": "Instrument Roll", "standard_name": "platform_roll", "epic_code":"1217"})
 
     if "aa" in ds.attrs["instrument_type"]:
-        ds["AMP_723"].attrs.update({"units": "percent full scale", "long_name": "Acoustic Signal Amplitude", "epic_code":"723"})
+        ds["AMP_723"].attrs.update({"units": "percent", "long_name": "Acoustic Signal Amplitude Strength", "epic_code":"723"})
 
     #add initial height information and fill values to variabels
     def add_attributes(var, dsattrs):
@@ -371,7 +366,7 @@ def ds_add_attrs(ds): #12/23/21
 
     return ds
 
-def calc_bin_height(ds): #12/23/21
+def calc_bin_height(ds):
 #modified from qaqc.check_orientation
 
     print("Calculating center of bin distance from transducer")
@@ -415,7 +410,7 @@ def calc_bin_height(ds): #12/23/21
 
     return ds
 
-def calc_cor_brange(ds): #5/20/22 - remove seabed_elev from this def create new one
+def calc_cor_brange(ds):
     print("Correcting distance to bed (brange) using adjusted sound speed")
     #here the brange is still called Altitude_m but variable name will change to brange later in code
     
@@ -436,8 +431,8 @@ def calc_cor_brange(ds): #5/20/22 - remove seabed_elev from this def create new 
     
     return ds
 
-def calc_seabed_elev(ds): #added 5/20/22
-    
+def calc_seabed_elev(ds):
+    #find seabed elevation referenced to datum
     histtext = "add seabed_elevation using speed of sound corrected brange and ref datum"
     ds = utils.insert_history(ds, histtext)
     
@@ -525,7 +520,7 @@ def average_burst(ds):
             
     return ds
 
-def ds_swap_dims(ds): #5/20/22 def to swap vert dim to z
+def ds_swap_dims(ds): #swap vert dim to z
     # need to preserve z attrs because swap_dims will remove them
     attrsbak = ds["z"].attrs
     for v in ds.data_vars:
@@ -553,7 +548,7 @@ def read_aa_instmet(basefile):
                 elif "- series" in row:
                     instmeta['Pulses_in_series_num'] = int(dat[3])
                 elif "- threshold" in row:
-                   instmeta['Threshold_%'] = int(dat[3])
+                   instmeta['Threshold_percent'] = int(dat[3])
                 elif "- offset" in row:
                     instmeta['Offset_m'] = float(dat[3])/1000
                 elif "- deadzone" in row:
@@ -561,7 +556,7 @@ def read_aa_instmet(basefile):
                 elif "- txlength" in row:
                     instmeta['PulseLength_microsec'] = int(dat[3])
                 elif "- amplitude" in row:
-                    instmeta['Amplitude_Threshold_%'] = int(dat[3])
+                    instmeta['Amplitude_Threshold_percent'] = int(dat[3])
                 elif "-" and "sampling"  in row:
                     instmeta['Sampling_rate_Hz'] = int(dat[3])
                 elif "Total Number of Series" in row:
