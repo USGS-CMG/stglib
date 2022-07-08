@@ -61,6 +61,8 @@ setup(
         "scripts/runwvsnc2waves.py",
         "scripts/aqdturnaround.py",
         "scripts/exoturnaround.py",
+        "scripts/runeofelog2cdf.py",
+        "scriptps/runeofecdf2nc.py",
     ],
     include_package_data=True,
 )
