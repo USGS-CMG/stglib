@@ -14,7 +14,7 @@ def log_to_cdf(metadata):
     if "prefix" in metadata:
         basefile = metadata["prefix"] + basefile
 
-    #utils.check_valid_metadata(metadata)
+    utils.check_valid_metadata(metadata)
     
     # get instrument metadata from the LOG file
     # Assume ea400 in burst mode if no attrs
