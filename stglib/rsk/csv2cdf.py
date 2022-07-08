@@ -30,6 +30,18 @@ def csv_to_cdf(metadata):
         ds.attrs[v] = meta["instrument"][v]
     ds.attrs["sample_mode"] = meta["sampling"]["mode"]
 
+    ds["latitude"] = xr.DataArray(
+        [ds.attrs["latitude"]],
+        dims="latitude",
+        attrs={"units": "degree_north", "standard_name": "latitude", "axis": "Y"},
+    )
+
+    ds["longitude"] = xr.DataArray(
+        [ds.attrs["longitude"]],
+        dims="longitude",
+        attrs={"units": "degree_east", "standard_name": "longitude", "axis": "X"},
+    )
+
     for k in ds.data_vars:
         if " " in k:
             ds = ds.rename({k: k.replace(" ", "_")})

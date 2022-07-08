@@ -170,18 +170,16 @@ def rsk_to_xr(metadata):
         np.arange(len(times)), dims=("time"), attrs={"long_name": "burst number"}
     )
 
-    ds["lat"] = xr.DataArray(
+    ds["latitude"] = xr.DataArray(
         [ds.attrs["latitude"]],
-        dims=("lat"),
-        name="lat",
-        attrs={"units": "degree_north", "long_name": "Latitude", "epic_code": 500},
+        dims="latitude",
+        attrs={"units": "degree_north", "standard_name": "latitude", "axis": "Y"},
     )
 
-    ds["lon"] = xr.DataArray(
+    ds["longitude"] = xr.DataArray(
         [ds.attrs["longitude"]],
-        dims=("lon"),
-        name="lon",
-        attrs={"units": "degree_east", "long_name": "Longitude", "epic_code": 502},
+        dims="longitude",
+        attrs={"units": "degree_east", "standard_name": "longitude", "axis": "X"},
     )
 
     # need to add  time attrs after DataArrays have been combined into Dataset
