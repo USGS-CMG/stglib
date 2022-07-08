@@ -154,7 +154,7 @@ def rsk_to_xr(metadata):
             dims=("time", "sample"),
             name="Temperature",
             attrs={
-                "units": "C",
+                "units": "degree_C",
                 "long_name": "Temperature",
                 "epic_code": 28,
                 "serial_number": ds.attrs["serial_number"],
