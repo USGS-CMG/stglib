@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import yaml
-from .stglib import eofe
+
 import stglib
 
 args = stglib.cmd.aqdhdr2cdf_parser().parse_args()
