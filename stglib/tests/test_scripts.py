@@ -167,4 +167,6 @@ def eofe_nc(nc_file):
 def test_eofe():
     eofe_raw("glob_att1123A_msl.txt", "1123Aea_example_config.yaml")
     eofe_nc("11231Aea_example-raw.cdf")
+    eofe_raw("glob_att1137.txt", "1137aa_config.yaml")
+    eofe_nc("11373aa-raw.cdf")
 
