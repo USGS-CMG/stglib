@@ -26,6 +26,7 @@ Currently, this package has at least partial support for:
 - In-Situ Aqua TROLL sensors
 - RD Instruments ADCPs
 - Moving-boat ADCP data processed using QRev_, for use in index-velocity computation
+- EofE ECHOLOGGER altimeters
 
 .. _QRev: https://hydroacoustics.usgs.gov/movingboat/QRev.shtml
 
@@ -48,6 +49,8 @@ Currently, this package has at least partial support for:
    turnaround
    code
    contributing
+   wxt
+   eofe
 
 
 Indices and tables

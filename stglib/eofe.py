@@ -331,7 +331,7 @@ def ds_add_attrs(ds): #12/23/21
     
     ds["sample"].attrs.update({"units": "1", "long_name": "Sample in burst"})
     
-    ds["burst"].attrs.update({"units": "1","long_name": "Burst number","generic_name":"record", "epic_code": "1207", "coverage_content_type": "physicalMeasurement"})
+    ds["burst"].attrs.update({"units": "1", "long_name": "Burst number","generic_name":"record", "epic_code": "1207", "coverage_content_type": "physicalMeasurement"})
     
     ds["Tx_1211"].attrs.update({"units": "degree_C", "long_name": "Instrument Internal Temperature", "standard_name": "sea_water_temperature", "epic_code":"1211"})
     

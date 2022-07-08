@@ -107,3 +107,11 @@ WXT-specific options include:
 - ``RTK_elevation_NAVD88``: RTK elevation of the sensor referenced to NAVD88 in meters.
 - ``dir_offset``: a direction offset in degrees from magnetic north to be applied if the sensor was not pointing toward magnetic north.
 - ``dir_offset_note``: a note about the direction offset being used.
+
+EofE ECHOLOGGER
+---------------
+- All the _min, _max, _bad_ens, etc. options available to the EXO. 
+- instrument_type: types "ea" and "aa" are supported.
+- orientation: orientation of transducers types 'DOWN' or 'UP' are supported.
+- average_salinity: average salinity value (PSU) for the water mass for the deployment site and time period.
+- average_salinity_note: source of average salinity value.
