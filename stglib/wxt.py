@@ -192,7 +192,9 @@ def ds_add_attrs(ds):
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
-    ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
+    ds["time"].attrs.update(
+        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
+    )
 
     if "WD_min" in ds:
         ds["WD_min"].attrs.update(

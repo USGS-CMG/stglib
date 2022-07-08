@@ -289,7 +289,9 @@ def ds_add_attrs(ds):
     # Update attributes for EPIC and STG compliance
     ds = ds_coord_no_fillvalue(ds)
 
-    ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
+    ds["time"].attrs.update(
+        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
+    )
 
     ds["time"].encoding["dtype"] = "i4"
 

@@ -232,7 +232,9 @@ def ds_add_attrs(ds):
     # Update attributes for EPIC and STG compliance
     ds = utils.ds_coord_no_fillvalue(ds)
 
-    ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
+    ds["time"].attrs.update(
+        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
+    )
 
     if "epic_time" in ds:
         ds["epic_time"].attrs.update(

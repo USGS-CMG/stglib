@@ -671,7 +671,9 @@ def update_attrs(ds, waves=False):
     # Need to remove AQDTransMatrix from attrs for netCDF3 compliance
     ds.attrs.pop("AQDTransMatrix")
 
-    ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
+    ds["time"].attrs.update(
+        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
+    )
 
     ds["lat"].attrs.update(
         {
@@ -842,7 +844,9 @@ def ds_add_attrs(ds, waves=False):
     # Update attributes for EPIC and STG compliance
     ds = utils.ds_coord_no_fillvalue(ds)
 
-    ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
+    ds["time"].attrs.update(
+        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
+    )
 
     if "epic_time" in ds:
         ds["epic_time"].attrs.update(

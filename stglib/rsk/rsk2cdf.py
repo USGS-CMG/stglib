@@ -185,7 +185,9 @@ def rsk_to_xr(metadata):
     )
 
     # need to add  time attrs after DataArrays have been combined into Dataset
-    ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
+    ds["time"].attrs.update(
+        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
+    )
 
     return ds
 
