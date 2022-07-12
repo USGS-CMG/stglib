@@ -6,7 +6,7 @@ def exo_raw(glob_att, config_yaml):
     result = subprocess.run(
         ["python", "../../../scripts/runexocsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -15,7 +15,7 @@ def exo_nc(nc_file):
     result = subprocess.run(
         ["python", "../../../scripts/runexocdf2nc.py", nc_file],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -24,7 +24,7 @@ def aqd_raw(glob_att, config_yaml):
     result = subprocess.run(
         ["python", "../../../scripts/runaqdhdr2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -33,7 +33,7 @@ def aqd_nc(nc_file):
     result = subprocess.run(
         ["python", "../../../scripts/runaqdcdf2nc.py", nc_file],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -54,7 +54,7 @@ def wxt_raw(glob_att, config_yaml):
     result = subprocess.run(
         ["python", "../../../scripts/runwxtcsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -63,7 +63,7 @@ def wxt_nc(nc_file):
     result = subprocess.run(
         ["python", "../../../scripts/runwxtcdf2nc.py", nc_file],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -77,7 +77,7 @@ def iq_raw(glob_att, config_yaml):
     result = subprocess.run(
         ["python", "../../../scripts/runiqmat2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -86,7 +86,7 @@ def iq_nc(nc_file):
     result = subprocess.run(
         ["python", "../../../scripts/runiqcdf2nc.py", nc_file],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -100,7 +100,7 @@ def eco_raw(glob_att, config_yaml):
     result = subprocess.run(
         ["python", "../../../scripts/runecocsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -109,7 +109,7 @@ def eco_nc(nc_file):
     result = subprocess.run(
         ["python", "../../../scripts/runecocdf2nc.py", nc_file],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -123,7 +123,7 @@ def rbr_raw(glob_att, config_yaml):
     result = subprocess.run(
         ["python", "../../../scripts/runrskcsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -132,7 +132,7 @@ def rbr_nc(nc_file):
     result = subprocess.run(
         ["python", "../../../scripts/runrskcdf2nc.py", nc_file],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -143,8 +143,8 @@ def test_rbr():
 
     # zip files created on windows won't extract to directories on unix systems without the following line
     path.altsep = "\\"
-    with zipfile.ZipFile("data/051001_CSF20SC201.zip", "r") as zip_ref:
-        zip_ref.extractall("data/")
+    with zipfile.ZipFile("stglib/tests/data/051001_CSF20SC201.zip", "r") as zip_ref:
+        zip_ref.extractall("stglib/tests/data/")
     rbr_raw("csf20sc201_globatt.txt", "csf20sc201_config.yaml")
     rbr_nc("CSF20SC201pt-raw.cdf")
 
@@ -152,7 +152,7 @@ def eofe_raw(glob_att, config_yaml):
     result = subprocess.run(
         ["python", "../../../scripts/runeofelog2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -160,7 +160,7 @@ def eofe_nc(nc_file):
     result = subprocess.run(
         ["python", "../../../scripts/runeofecdf2nc.py", nc_file],
         capture_output=True,
-        cwd="data",
+        cwd="stglib/tests/data",
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 

@@ -25,3 +25,9 @@ glob_att1097C.txt filter=lfs diff=lfs merge=lfs -text
 1103D_ntu507.log filter=lfs diff=lfs merge=lfs -text
 glob_att1103D.txt filter=lfs diff=lfs merge=lfs -text
 051001_CSF20SC201.zip filter=lfs diff=lfs merge=lfs -text
+1123Aea_example_config.yaml filter=lfs diff=lfs merge=lfs -text
+ea400_example_data.log filter=lfs diff=lfs merge=lfs -text
+glob_att1123A_msl.txt filter=lfs diff=lfs merge=lfs -text
+glob_att1137.txt filter=lfs diff=lfs merge=lfs -text
+1137aa_config.yaml filter=lfs diff=lfs merge=lfs -text
+aa400_0074_orange_raw_trim.log filter=lfs diff=lfs merge=lfs -text
