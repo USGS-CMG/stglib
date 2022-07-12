@@ -37,8 +37,8 @@ Option 1: internal waves code
 
 This option is recommended as it does not require MATLAB. Generate the waves statistics and incorporate them into an EPIC-compliant netCDF file with .nc extension using ``runrsknc2waves.py``.
 
-runrsknc2diwasp.py
-~~~~~~~~~~~~~~~~~~
+runrsknc2waves.py
+~~~~~~~~~~~~~~~~~
 
 .. argparse::
   :ref: stglib.core.cmd.rsknc2waves_parser
@@ -54,7 +54,3 @@ Incorporate the DIWASP statistics into an EPIC-compliant netCDF file with .nc ex
 
 runrsknc2diwasp.py
 ~~~~~~~~~~~~~~~~~~
-
-.. argparse::
-  :ref: stglib.core.cmd.rsknc2diwasp_parser
-  :prog: runrsknc2diwasp.py
