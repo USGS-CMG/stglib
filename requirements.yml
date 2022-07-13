@@ -12,6 +12,7 @@ dependencies:
   - pytest
   - pyyaml
   - scipy
+  - seawater
   - sqlite
   - tqdm
   - xarray

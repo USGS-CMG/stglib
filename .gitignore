@@ -9,5 +9,3 @@ stglib.egg-info
 doc/_build
 doc/generated
 
-stglib/ea400.py
-

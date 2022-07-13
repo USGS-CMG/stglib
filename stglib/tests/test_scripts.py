@@ -148,6 +148,7 @@ def test_rbr():
     rbr_raw("csf20sc201_globatt.txt", "csf20sc201_config.yaml")
     rbr_nc("CSF20SC201pt-raw.cdf")
 
+
 def eofe_raw(glob_att, config_yaml):
     result = subprocess.run(
         ["python", "../../../scripts/runeofelog2cdf.py", glob_att, config_yaml],
@@ -155,6 +156,7 @@ def eofe_raw(glob_att, config_yaml):
         cwd="stglib/tests/data",
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
+
 
 def eofe_nc(nc_file):
     result = subprocess.run(
@@ -164,9 +166,9 @@ def eofe_nc(nc_file):
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
+
 def test_eofe():
     eofe_raw("glob_att1123A_msl.txt", "1123Aea_example_config.yaml")
     eofe_nc("11231Aea_example-raw.cdf")
     eofe_raw("glob_att1137.txt", "1137aa_config.yaml")
     eofe_nc("11373aa-raw.cdf")
-
