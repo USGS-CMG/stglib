@@ -1,4 +1,0 @@
-Deployment_date; "16-JUL-2020 20:04:45"
-Recovery_date; "30-JUL-2020  15:40:00"
-WATER_DEPTH; 3.95
-Conventions; CF-1.6

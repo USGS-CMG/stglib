@@ -145,5 +145,5 @@ def test_rbr():
     path.altsep = "\\"
     with zipfile.ZipFile("stglib/tests/data/051001_CSF20SC201.zip", "r") as zip_ref:
         zip_ref.extractall("stglib/tests/data/")
-    rbr_raw("csf20sc201_globatt.txt", "csf20sc201_config.yaml")
+    rbr_raw("gatts_CSF20SC2.txt", "csf20sc201_config.yaml")
     rbr_nc("CSF20SC201pt-raw.cdf")
