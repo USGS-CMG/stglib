@@ -25,9 +25,9 @@ def csv_to_cdf(metadata):
 
     ds["time"] = pd.DatetimeIndex(ds["time"])
 
-    ds.attrs["serial_number"] = meta["instrument"]["serial"]
+    ds.attrs["serial_number"] = str(meta["instrument"]["serial"])
     for v in ["model", "fwtype", "fwversion"]:
-        ds.attrs[v] = meta["instrument"][v]
+        ds.attrs[v] = str(meta["instrument"][v])
     ds.attrs["sample_mode"] = meta["sampling"]["mode"]
 
     ds["latitude"] = xr.DataArray(
