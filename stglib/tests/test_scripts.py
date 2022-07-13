@@ -147,3 +147,28 @@ def test_rbr():
         zip_ref.extractall("stglib/tests/data/")
     rbr_raw("gatts_CSF20SC2.txt", "csf20sc201_config.yaml")
     rbr_nc("CSF20SC201pt-raw.cdf")
+
+
+def eofe_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        ["python", "../../../scripts/runeofelog2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def eofe_nc(nc_file):
+    result = subprocess.run(
+        ["python", "../../../scripts/runeofecdf2nc.py", nc_file],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_eofe():
+    eofe_raw("glob_att1123A_msl.txt", "1123Aea_example_config.yaml")
+    eofe_nc("11231Aea_example-raw.cdf")
+    eofe_raw("glob_att1137.txt", "1137aa_config.yaml")
+    eofe_nc("11373aa-raw.cdf")

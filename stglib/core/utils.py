@@ -159,7 +159,7 @@ def add_min_max(ds):
     [exclude.append(k) for k in ds.variables if "time" in k]
     exclude.extend(["TIM", "TransMatrix"])
 
-    alloweddims = ["time", "sample", "depth"]
+    alloweddims = ["time", "sample", "depth", "z"]
 
     for k in ds.variables:
         if k not in exclude:
@@ -894,43 +894,121 @@ def create_nominal_instrument_depth(ds):
 def create_z(ds):
     # create z for exo
     if "NAVD88_ref" in ds.attrs:
-        ds["z"] = xr.DataArray(
-            [ds.attrs["NAVD88_ref"] + ds.attrs["initial_instrument_height"]],
-            dims="z",
-        )
+        if "bindist" in ds:
+            if ds.attrs["orientation"] == "DOWN":
+                ds["z"] = xr.DataArray(
+                    ds.attrs["NAVD88_ref"]
+                    + ds.attrs["initial_instrument_height"]
+                    - ds["bindist"].values,
+                    dims="z",
+                )
+
+            elif ds.attrs["orientation"] == "UP":
+                ds["z"] = xr.DataArray(
+                    ds.attrs["NAVD88_ref"]
+                    + ds.attrs["initial_instrument_height"]
+                    + ds["bindist"].values,
+                    dims="z",
+                )
+        else:
+
+            ds["z"] = xr.DataArray(
+                [ds.attrs["NAVD88_ref"] + ds.attrs["initial_instrument_height"]],
+                dims="z",
+            )
+
         ds["z"].attrs["geopotential_datum_name"] = "NAVD88"
         ds["z"].attrs["long_name"] = "height relative to NAVD88"
+
     elif "height_above_geopotential_datum" in ds.attrs:
-        ds["z"] = xr.DataArray(
-            [
-                ds.attrs["height_above_geopotential_datum"]
-                + ds.attrs["initial_instrument_height"]
-            ],
-            dims="z",
-        )
+        if "bindist" in ds:
+            if ds.attrs["orientation"] == "DOWN":
+                ds["z"] = xr.DataArray(
+                    ds.attrs["height_above_geopotential_datum"]
+                    + ds.attrs["initial_instrument_height"]
+                    - ds["bindist"].values,
+                    dims="z",
+                )
+            elif ds.attrs["orientation"] == "UP":
+                ds["z"] = xr.DataArray(
+                    ds.attrs["height_above_geopotential_datum"]
+                    + ds.attrs["initial_instrument_height"]
+                    + ds["bindist"].values,
+                    dims="z",
+                )
+
+        else:
+
+            ds["z"] = xr.DataArray(
+                [
+                    ds.attrs["height_above_geopotential_datum"]
+                    + ds.attrs["initial_instrument_height"]
+                ],
+                dims="z",
+            )
+
         ds["z"].attrs["geopotential_datum_name"] = ds.attrs["geopotential_datum_name"]
-        ds["z"].attrs[
-            "long_name"
-        ] = "height relative to {VEL.attrs['geopotential_datum_name']}"
-    else:
-        ds["z"] = xr.DataArray(
-            [ds.attrs["initial_instrument_height"]],
-            dims="z",
+        ds["z"].attrs["long_name"] = (
+            "height relative to %s" % ds.attrs["geopotential_datum_name"]
         )
+    else:
+        if "bindist" in ds:
+            if ds.attrs["orientation"] == "DOWN":
+                ds["z"] = xr.DataArray(
+                    ds.attrs["initial_instrument_height"] - ds["bindist"].values,
+                    dims="z",
+                )
+            elif ds.attrs["orientation"] == "UP":
+                ds["z"] = xr.DataArray(
+                    ds.attrs["initial_instrument_height"] + ds["bindist"].values,
+                    dims="z",
+                )
+        else:
+            ds["z"] = xr.DataArray(
+                [ds.attrs["initial_instrument_height"]],
+                dims="z",
+            )
+
         ds["z"].attrs["long_name"] = "height relative to sea bed"
+
     ds["z"].attrs["positive"] = "up"
     ds["z"].attrs["axis"] = "Z"
     ds["z"].attrs["units"] = "m"
     ds["z"].attrs["standard_name"] = "height"
 
     if "P_1ac" in ds:
-        presvar = np.nanmean(ds["P_1ac"])
-    elif "P_1" in ds:
-        presvar = np.nanmean(ds["P_1"])
-    else:
-        presvar = ds.attrs["WATER_DEPTH"]
+        if "bindist" in ds:
+            if ds.attrs["orientation"] == "DOWN":
+                presvar = np.nanmean(ds["P_1ac"]) + ds["bindist"].values
+            elif ds.attrs["orientation"] == "UP":
+                presvar = np.nanmean(ds["P_1ac"]) - ds["bindist"].values
 
-    ds["depth"] = xr.DataArray([presvar], dims="depth")
+        else:
+            presvar = np.nanmean(ds["P_1ac"])
+
+    elif "P_1" in ds:
+        if "bindist" in ds:
+            if ds.attrs["orientation"] == "DOWN":
+                presvar = np.nanmean(ds["P_1"]) + ds["bindist"].values
+            elif ds.attrs["orientation"] == "UP":
+                presvar = np.nanmean(ds["P_1"]) - ds["bindist"].values
+        else:
+            presvar = np.nanmean(ds["P_1"])
+    else:
+        if "bindist" in ds:
+            if ds.attrs["orientation"] == "DOWN":
+                presvar = ds.attrs["WATER_DEPTH"] + ds["bindist"].values
+            elif ds.attrs["orientation"] == "UP":
+                presvar = ds.attrs["WATER_DEPTH"] - ds["bindist"].values
+
+        else:
+            presvar = ds.attrs["WATER_DEPTH"] - ds.attrs["initial_instrument_height"]
+
+    if "bindist" in ds:
+        ds["depth"] = xr.DataArray(presvar, dims="depth")
+    else:
+        ds["depth"] = xr.DataArray([presvar], dims="depth")
+
     ds["depth"].attrs["positive"] = "down"
     ds["depth"].attrs["units"] = "m"
     ds["depth"].attrs["standard_name"] = "depth"

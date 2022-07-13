@@ -311,3 +311,21 @@ def wxtcdf2nc_parser():
     parser.add_argument("cdfname", help="raw .CDF filename")
 
     return parser
+
+def eofelog2cdf_parser():
+    description = (
+        "Convert EofE echologger .log file to raw .cdf format. Run this script "
+        "from the directory containing ea400 echologger .log file"
+    )
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+def eofecdf2nc_parser():
+    description = "Convert raw echologger .cdf format to processed .nc files"
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("cdfname", help="raw .CDF filename")
+
+    return parser
