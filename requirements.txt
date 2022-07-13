@@ -4,6 +4,7 @@ netcdf4
 numpy
 pandas
 pre-commit
+pyarrow
 pytest
 pyyaml
 scipy

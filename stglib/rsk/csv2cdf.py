@@ -12,7 +12,7 @@ def csv_to_cdf(metadata):
     with open("_".join(basefile.split("_")[0:-1]) + "_metadata.txt") as f:
         meta = yaml.safe_load(f)
 
-    df = pd.read_csv(basefile + ".txt", infer_datetime_format=True)
+    df = pd.read_csv(basefile + ".txt", engine="pyarrow")
 
     df = df.rename(columns={"Time": "time"}).set_index("time")
 
