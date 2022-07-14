@@ -64,7 +64,7 @@ setup(
         "scripts/runwxtcsv2cdf.py",
         "scripts/runwxtcdf2nc.py",
         "scripts/runeofelog2cdf.py",
-        "scriptps/runeofecdf2nc.py",
+        "scripts/runeofecdf2nc.py",
     ],
     include_package_data=True,
 )
