@@ -12,7 +12,12 @@ def csv_to_cdf(metadata):
     with open("_".join(basefile.split("_")[0:-1]) + "_metadata.txt") as f:
         meta = yaml.safe_load(f)
 
-    df = pd.read_csv(basefile + ".txt", engine="pyarrow")
+    try:
+        df = pd.read_csv(basefile + ".txt", engine="pyarrow")
+    except ValueError:
+        df = pd.read_csv(
+            basefile + ".txt"
+        )  # pyarrow seems to fail on Python 3.7 on GitHub Actions
 
     df = df.rename(columns={"Time": "time"}).set_index("time")
 
