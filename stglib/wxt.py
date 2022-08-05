@@ -78,26 +78,14 @@ def cdf_to_nc(cdf_filename):
         if k in ds:
             ds = ds.drop_vars(k)
 
-    # Add height as variable
-    ds["height"] = xr.DataArray(
-        [ds.attrs["initial_instrument_height"]],
-        dims=("height"),
-        name="height",
-        attrs={
-            "units": "m",
-            "long_name": "Measurement Elevation",
-            "standard_name": "height",
-            "positive": "up",
-            "axis": "Z",
-            "epic_code": "18",
-        },
-    )
+    # create vert dim z
+    ds = utils.create_z(ds)
 
     # Rename variables to CF compliant names
     ds = ds_rename_vars(ds)
 
     # Convert data types to float 32
-    ds = ds_convertfloat(ds)
+    # ds = ds_convertfloat(ds)
 
     # If sensor wasn't pointing to magnetic north, apply offset to direction
     if "dir_offset" in ds.attrs:

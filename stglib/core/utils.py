@@ -234,6 +234,7 @@ def ds_coord_no_fillvalue(ds):
         "direction",
         "sample",
         "frequency",
+        "z",
     ]:
         if var in ds:
             ds[var].encoding["_FillValue"] = None
