@@ -91,22 +91,12 @@ def cdf_to_nc(cdf_filename):
     if "dir_offset" in ds.attrs:
         if "WD_min" in ds:
             ds["WD_min"].values = ds["WD_min"].values + ds.attrs["dir_offset"]
-            ds["WD_min"].values = ds["WD_min"].values.round(0)
-            ds["WD_min"].values[
-                ds["WD_min"].values == 0.0
-            ] = 0.0  # convert any -0. to 0.
+
         if "WD_410" in ds:
             ds["WD_410"].values = ds["WD_410"].values + ds.attrs["dir_offset"]
-            ds["WD_410"].values = ds["WD_410"].values.round(0)
-            ds["WD_410"].values[
-                ds["WD_410"].values == 0.0
-            ] = 0.0  # convert any -0. to 0.
+
         if "WD_gust" in ds:
             ds["WD_gust"].values = ds["WD_gust"].values + ds.attrs["dir_offset"]
-            ds["WD_gust"].values = ds["WD_gust"].values.round(0)
-            ds["WD_gust"].values[
-                ds["WD_gust"].values == 0.0
-            ] = 0.0  # convert any -0. to 0.
 
     # Convert direction from magnetic to true with magenetic declination
     if "WD_min" in ds:
