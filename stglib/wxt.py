@@ -91,10 +91,8 @@ def cdf_to_nc(cdf_filename):
     if "dir_offset" in ds.attrs:
         if "WD_min" in ds:
             ds["WD_min"].values = ds["WD_min"].values + ds.attrs["dir_offset"]
-
         if "WD_410" in ds:
             ds["WD_410"].values = ds["WD_410"].values + ds.attrs["dir_offset"]
-
         if "WD_gust" in ds:
             ds["WD_gust"].values = ds["WD_gust"].values + ds.attrs["dir_offset"]
 
