@@ -286,6 +286,3 @@ def eco_qaqc(ds):
             ds = qaqc.trim_bad_ens(ds, var)
 
     return ds
-
-
-# relocate trim_max_std() to qaqc.py

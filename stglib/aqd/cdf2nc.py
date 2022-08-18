@@ -80,6 +80,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # should function this
     for var in VEL.data_vars:
+        VEL = qaqc.trim_max_diff(VEL, var)
         VEL = qaqc.trim_min_diff(VEL, var)
         VEL = qaqc.trim_min(VEL, var)
         VEL = qaqc.trim_max(VEL, var)

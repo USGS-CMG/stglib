@@ -598,6 +598,3 @@ def exo_qaqc(ds):
         )  # re-run and trim by other variables as necessary
 
     return ds
-
-
-# remove qaqc defs from exo.py
