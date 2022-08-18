@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from . import exo
+from .core import qaqc
 from .core import utils
 
 
@@ -269,38 +269,23 @@ def eco_qaqc(ds):
     # QA/QC ECO data
     if "ntu" in ds.attrs["INST_TYPE"].lower():
         for var in ["Turb"]:
-            ds = trim_max_std(ds, var)
+            ds = qaqc.trim_max_std(ds, var)
 
-            ds = exo.trim_min(ds, var)
+            ds = qaqc.trim_min(ds, var)
 
-            ds = exo.trim_max(ds, var)
+            ds = qaqc.trim_max(ds, var)
 
-            ds = exo.trim_min_diff(ds, var)
+            ds = qaqc.trim_min_diff(ds, var)
 
-            ds = exo.trim_max_diff(ds, var)
+            ds = qaqc.trim_max_diff(ds, var)
 
-            ds = exo.trim_med_diff(ds, var)
+            ds = qaqc.trim_med_diff(ds, var)
 
-            ds = exo.trim_med_diff_pct(ds, var)
+            ds = qaqc.trim_med_diff_pct(ds, var)
 
-            ds = exo.trim_bad_ens(ds, var)
-
-    return ds
-
-
-def trim_max_std(ds, var):
-    if var + "_std_max" in ds.attrs:
-        print(
-            "%s: Trimming using maximum standard deviation of %f"
-            % (var, ds.attrs[var + "_std_max"])
-        )
-        ds[var][ds["Turb_std"] > ds.attrs[var + "_std_max"]] = np.nan
-
-        notetxt = (
-            "Values filled where standard deviation greater than %f "
-            "units. " % ds.attrs[var + "_std_max"]
-        )
-
-        ds = utils.insert_note(ds, var, notetxt)
+            ds = qaqc.trim_bad_ens(ds, var)
 
     return ds
+
+
+# relocate trim_max_std() to qaqc.py
