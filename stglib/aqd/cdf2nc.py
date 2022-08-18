@@ -1,6 +1,6 @@
 import xarray as xr
 
-from .. import exo
+from ..core import qaqc
 from ..core import utils
 from . import aqdutils
 
@@ -80,10 +80,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # should function this
     for var in VEL.data_vars:
-        VEL = exo.trim_max_diff(VEL, var)
-        VEL = exo.trim_min_diff(VEL, var)
-        VEL = exo.trim_min(VEL, var)
-        VEL = exo.trim_max(VEL, var)
+        VEL = qaqc.trim_max_diff(VEL, var)
+        VEL = qaqc.trim_min_diff(VEL, var)
+        VEL = qaqc.trim_min(VEL, var)
+        VEL = qaqc.trim_max(VEL, var)
 
     # Add min/max values
     VEL = utils.add_min_max(VEL)
