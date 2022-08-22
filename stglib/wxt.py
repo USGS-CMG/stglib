@@ -84,6 +84,14 @@ def cdf_to_nc(cdf_filename):
     # Rename variables to CF compliant names
     ds = ds_rename_vars(ds)
 
+    # force WD vars to floats
+    if "WD_min" in ds:
+        ds["WD_min"] = ds["WD_min"].astype(float)
+    if "WD_410" in ds:
+        ds["WD_410"] = ds["WD_410"].astype(float)
+    if "WD_gust" in ds:
+        ds["WD_gust"] = ds["WD_gust"].astype(float)
+
     # If sensor wasn't pointing to magnetic north, apply offset to direction
     if "dir_offset" in ds.attrs:
         if "WD_min" in ds:
