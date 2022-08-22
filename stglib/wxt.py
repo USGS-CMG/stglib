@@ -84,21 +84,18 @@ def cdf_to_nc(cdf_filename):
     # Rename variables to CF compliant names
     ds = ds_rename_vars(ds)
 
-    # Convert data types to float 32
-    # ds = ds_convertfloat(ds)
-
     # If sensor wasn't pointing to magnetic north, apply offset to direction
     if "dir_offset" in ds.attrs:
         if "WD_min" in ds:
-            ds["WD_min"].values = ds["WD_min"].values + ds.attrs["dir_offset"]
+            ds["WD_min"].values = ds["WD_min"].values + ds.attrs["dir_offset"].astype(float)
         if "WD_410" in ds:
-            ds["WD_410"].values = ds["WD_410"].values + ds.attrs["dir_offset"]
+            ds["WD_410"].values = ds["WD_410"].values + ds.attrs["dir_offset"].astype(float)
         if "WD_gust" in ds:
-            ds["WD_gust"].values = ds["WD_gust"].values + ds.attrs["dir_offset"]
+            ds["WD_gust"].values = ds["WD_gust"].values + ds.attrs["dir_offset"].astype(float)
 
     # Convert direction from magnetic to true with magenetic declination
     if "WD_min" in ds:
-        ds["WD_min"].values = ds["WD_min"].values + ds.attrs["magnetic_variation"]
+        ds["WD_min"].values = ds["WD_min"].values + ds.attrs["magnetic_variation"].astype(float)
         ds["WD_min"].values = ds["WD_min"].values.round(0)
         ds["WD_min"].values[ds["WD_min"].values < 0.0] = (
             ds["WD_min"].values[ds["WD_min"].values < 0.0] + 360.0
@@ -109,7 +106,7 @@ def cdf_to_nc(cdf_filename):
         ds["WD_min"].values[ds["WD_min"].values == 0.0] = 0.0  # convert any -0. to 0.
 
     if "WD_410" in ds:
-        ds["WD_410"].values = ds["WD_410"].values + ds.attrs["magnetic_variation"]
+        ds["WD_410"].values = ds["WD_410"].values + ds.attrs["magnetic_variation"].astype(float)
         ds["WD_410"].values = ds["WD_410"].values.round(0)
         ds["WD_410"].values[ds["WD_410"].values < 0.0] = (
             ds["WD_410"].values[ds["WD_410"].values < 0.0] + 360.0
@@ -120,7 +117,7 @@ def cdf_to_nc(cdf_filename):
         ds["WD_410"].values[ds["WD_410"].values == 0.0] = 0.0  # convert any -0. to 0.
 
     if "WD_gust" in ds:
-        ds["WD_gust"].values = ds["WD_gust"].values + ds.attrs["magnetic_variation"]
+        ds["WD_gust"].values = ds["WD_gust"].values + ds.attrs["magnetic_variation"].astype(float)
         ds["WD_gust"].values = ds["WD_gust"].values.round(0)
         ds["WD_gust"].values[ds["WD_gust"].values < 0.0] = (
             ds["WD_gust"].values[ds["WD_gust"].values < 0.0] + 360.0
