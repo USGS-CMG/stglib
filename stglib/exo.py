@@ -214,6 +214,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         # nLF_Cond_µS_per_cm: "This convention is typically used in German markets." pp. 85
         "nLF_Cond_µS_per_cm",
         "Vertical_Position_m",
+        "pHmV",
     ]:
         if k in ds:
             ds = ds.drop(k)
