@@ -215,6 +215,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         # nLF_Cond_µS_per_cm: "This convention is typically used in German markets." pp. 85
         "nLF_Cond_µS_per_cm",
         "Vertical_Position_m",
+        "pH_mV",
     ]:
         if k in ds:
             ds = ds.drop(k)
@@ -246,12 +247,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # add lat/lon coordinates
     ds = utils.ds_add_lat_lon(ds)
 
-    ds = ds_add_attrs(ds)
-
     # ds = utils.create_water_depth(ds)
     ds = utils.create_nominal_instrument_depth(ds)
 
     ds = utils.create_z(ds)
+
+    ds = ds_add_attrs(ds)
 
     # add lat/lon coordinates to each variable
     # for var in ds.variables:
@@ -318,7 +319,6 @@ def ds_rename_vars(ds):
         "Turbidity_NTU": "Turb",
         "Turbidity_FNU": "Turb_FNU",
         "pH": "pH_159",
-        "pH_mV": "pHmV",
     }
 
     # check to make sure they exist before trying to rename
@@ -355,7 +355,8 @@ def ds_add_attrs(ds):
     if "fDOMRFU" in ds:
         ds["fDOMRFU"].attrs.update(
             {
-                "units": "Relative fluorescence units (RFU)",
+                "units": "1",
+                "units_note": "Relative fluorescence units",
                 "long_name": "Fluorescent dissolved organic matter",
             }
         )
@@ -363,14 +364,19 @@ def ds_add_attrs(ds):
     if "fDOMQSU" in ds:
         ds["fDOMQSU"].attrs.update(
             {
-                "units": "Quinine sulfate equivalent units (QSU)",
+                "units": "1",
+                "units_note": "Quinine sulfate equivalent units",
                 "long_name": "Fluorescent dissolved organic matter",
             }
         )
 
     if "CHLrfu" in ds:
         ds["CHLrfu"].attrs.update(
-            {"units": "Relative fluorescence units (RFU)", "long_name": "Chlorophyll A"}
+            {
+                "units": "1",
+                "units_note": "Relative fluorescence units",
+                "long_name": "Chlorophyll A",
+            }
         )
 
     if "Fch_906" in ds:
@@ -381,7 +387,8 @@ def ds_add_attrs(ds):
     if "BGAPErfu" in ds:
         ds["BGAPErfu"].attrs.update(
             {
-                "units": "Relative fluorescence units (RFU)",
+                "units": "1",
+                "units_note": "Relative fluorescence units",
                 "long_name": "Blue green algae phycoerythrin",
             }
         )
@@ -570,7 +577,6 @@ def exo_qaqc(ds):
         "OST_62",
         "DO",
         "pH_159",
-        "pHmV",
         "P_1ac",
         "P_1",
     ]
