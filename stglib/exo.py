@@ -357,7 +357,7 @@ def ds_add_attrs(ds):
             {
                 "units": "percent",
                 "long_name": "Fluorescent dissolved organic matter, RFU",
-                "comments": "Relative fluorescent units (RFU)",
+                "comments": "Relative fluorescence units (RFU)",
             }
         )
 
