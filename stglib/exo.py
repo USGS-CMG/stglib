@@ -355,27 +355,27 @@ def ds_add_attrs(ds):
     if "fDOMRFU" in ds:
         ds["fDOMRFU"].attrs.update(
             {
-                "units": "1",
-                "units_note": "Relative fluorescence units",
-                "long_name": "Fluorescent dissolved organic matter",
+                "units": "percent",
+                "long_name": "Fluorescent dissolved organic matter, RFU",
+                "comments": "Relative fluorescent units (RFU)",
             }
         )
 
     if "fDOMQSU" in ds:
         ds["fDOMQSU"].attrs.update(
             {
-                "units": "1",
-                "units_note": "Quinine sulfate equivalent units",
-                "long_name": "Fluorescent dissolved organic matter",
+                "units": "1e-9",
+                "long_name": "Fluorescent dissolved organic matter, QSU",
+                "comments": "Quinine sulfate units (QSU)",
             }
         )
 
     if "CHLrfu" in ds:
         ds["CHLrfu"].attrs.update(
             {
-                "units": "1",
-                "units_note": "Relative fluorescence units",
-                "long_name": "Chlorophyll A",
+                "units": "percent",
+                "long_name": "Chlorophyll A, RFU",
+                "comments": "Relative fluorescence units (RFU)",
             }
         )
 
@@ -387,9 +387,9 @@ def ds_add_attrs(ds):
     if "BGAPErfu" in ds:
         ds["BGAPErfu"].attrs.update(
             {
-                "units": "1",
-                "units_note": "Relative fluorescence units",
-                "long_name": "Blue green algae phycoerythrin",
+                "units": "percent",
+                "long_name": "Blue green algae phycoerythrin, RFU",
+                "comments": "Relative fluorescence units (RFU)",
             }
         )
 
@@ -428,8 +428,9 @@ def ds_add_attrs(ds):
 
     ds["S_41"].attrs.update(
         {
-            "units": "Practical salinity units (PSU)",
-            "long_name": "Salinity",
+            "units": "1e-3",
+            "long_name": "Salinity, PSU",
+            "comments": "Practical salinity units (PSU)",
             "epic_code": 41,
             "standard_name": "sea_water_salinity",
         }
@@ -457,8 +458,9 @@ def ds_add_attrs(ds):
     if "Turb" in ds:
         ds["Turb"].attrs.update(
             {
-                "units": "Nephelometric turbidity units (NTU)",
-                "long_name": "Turbidity",
+                "units": "1",
+                "long_name": "Turbidity, NTU",
+                "comments": "Nephelometric turbidity units (NTU)",
                 "standard_name": "sea_water_turbidity",
             }
         )
@@ -466,8 +468,9 @@ def ds_add_attrs(ds):
     if "Turb_FNU" in ds:
         ds["Turb_FNU"].attrs.update(
             {
-                "units": "Formazin nephelometric units (FNU)",
-                "long_name": "Turbidity",
+                "units": "1",
+                "long_name": "Turbidity, FNU",
+                "comments": "Formazin nephelometric units (FNU)",
                 "standard_name": "sea_water_turbidity",
             }
         )
