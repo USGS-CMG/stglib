@@ -215,7 +215,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         # nLF_Cond_µS_per_cm: "This convention is typically used in German markets." pp. 85
         "nLF_Cond_µS_per_cm",
         "Vertical_Position_m",
-        "pHmV",
+        "pH_mV",
     ]:
         if k in ds:
             ds = ds.drop(k)
@@ -247,12 +247,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # add lat/lon coordinates
     ds = utils.ds_add_lat_lon(ds)
 
-    ds = ds_add_attrs(ds)
-
     # ds = utils.create_water_depth(ds)
     ds = utils.create_nominal_instrument_depth(ds)
 
     ds = utils.create_z(ds)
+
+    ds = ds_add_attrs(ds)
 
     # add lat/lon coordinates to each variable
     # for var in ds.variables:
@@ -319,7 +319,6 @@ def ds_rename_vars(ds):
         "Turbidity_NTU": "Turb",
         "Turbidity_FNU": "Turb_FNU",
         "pH": "pH_159",
-        "pH_mV": "pHmV",
     }
 
     # check to make sure they exist before trying to rename
@@ -356,22 +355,28 @@ def ds_add_attrs(ds):
     if "fDOMRFU" in ds:
         ds["fDOMRFU"].attrs.update(
             {
-                "units": "Relative fluorescence units (RFU)",
-                "long_name": "Fluorescent dissolved organic matter",
+                "units": "percent",
+                "long_name": "Fluorescent dissolved organic matter, RFU",
+                "comments": "Relative fluorescence units (RFU)",
             }
         )
 
     if "fDOMQSU" in ds:
         ds["fDOMQSU"].attrs.update(
             {
-                "units": "Quinine sulfate equivalent units (QSU)",
-                "long_name": "Fluorescent dissolved organic matter",
+                "units": "1e-9",
+                "long_name": "Fluorescent dissolved organic matter, QSU",
+                "comments": "Quinine sulfate units (QSU)",
             }
         )
 
     if "CHLrfu" in ds:
         ds["CHLrfu"].attrs.update(
-            {"units": "Relative fluorescence units (RFU)", "long_name": "Chlorophyll A"}
+            {
+                "units": "percent",
+                "long_name": "Chlorophyll A, RFU",
+                "comments": "Relative fluorescence units (RFU)",
+            }
         )
 
     if "Fch_906" in ds:
@@ -382,8 +387,9 @@ def ds_add_attrs(ds):
     if "BGAPErfu" in ds:
         ds["BGAPErfu"].attrs.update(
             {
-                "units": "Relative fluorescence units (RFU)",
-                "long_name": "Blue green algae phycoerythrin",
+                "units": "percent",
+                "long_name": "Blue green algae phycoerythrin, RFU",
+                "comments": "Relative fluorescence units (RFU)",
             }
         )
 
@@ -422,8 +428,9 @@ def ds_add_attrs(ds):
 
     ds["S_41"].attrs.update(
         {
-            "units": "Practical salinity units (PSU)",
-            "long_name": "Salinity",
+            "units": "1e-3",
+            "long_name": "Salinity, PSU",
+            "comments": "Practical salinity units (PSU)",
             "epic_code": 41,
             "standard_name": "sea_water_salinity",
         }
@@ -451,8 +458,9 @@ def ds_add_attrs(ds):
     if "Turb" in ds:
         ds["Turb"].attrs.update(
             {
-                "units": "Nephelometric turbidity units (NTU)",
-                "long_name": "Turbidity",
+                "units": "1",
+                "long_name": "Turbidity, NTU",
+                "comments": "Nephelometric turbidity units (NTU)",
                 "standard_name": "sea_water_turbidity",
             }
         )
@@ -460,8 +468,9 @@ def ds_add_attrs(ds):
     if "Turb_FNU" in ds:
         ds["Turb_FNU"].attrs.update(
             {
-                "units": "Formazin nephelometric units (FNU)",
-                "long_name": "Turbidity",
+                "units": "1",
+                "long_name": "Turbidity, FNU",
+                "comments": "Formazin nephelometric units (FNU)",
                 "standard_name": "sea_water_turbidity",
             }
         )
@@ -577,7 +586,6 @@ def exo_qaqc(ds):
         "OST_62",
         "DO",
         "pH_159",
-        "pHmV",
         "P_1ac",
         "P_1",
     ]
