@@ -1,5 +1,6 @@
 from ..core import utils
 from . import aqdutils
+import datetime
 
 
 def cdf_to_nc(
@@ -21,8 +22,10 @@ def cdf_to_nc(
 
     # Transform coordinates from ENU to BEAM if necessary
     if "wave_coord_output" in ds.attrs:
-        histtext = "Converting from {} to {} at user request. ".format(
-            ds.attrs["AQDCoordinateSystem"], ds.attrs["wave_coord_output"]
+        histtext = "{}: Converting from {} to {} at user request.\n".format(
+            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            ds.attrs["AQDCoordinateSystem"],
+            ds.attrs["wave_coord_output"],
         )
         print(histtext)
         ds = utils.insert_history(ds, histtext)

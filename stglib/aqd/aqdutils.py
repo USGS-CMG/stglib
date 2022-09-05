@@ -1,4 +1,5 @@
 import math
+import datetime
 
 import numpy as np
 import xarray as xr
@@ -382,19 +383,28 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
             print("Trimming using water level")
             for var in data_vars:
                 ds[var] = ds[var].where(ds["bindist"] < P)
-            ds.attrs["history"] = (
-                "Trimmed velocity data using water level. " + ds.attrs["history"]
+
+            histtext = "{}: Trimmed velocity data using water level.\n".format(
+                datetime.datetime.now(datetime.timezone.utc).isoformat()
             )
+
+            ds = utils.insert_history(ds, histtext)
+
         elif ds.attrs["trim_method"].lower() == "water level sl":
             print("Trimming using water level and sidelobes")
             for var in data_vars:
                 ds[var] = ds[var].where(
                     ds["bindist"] < P * np.cos(np.deg2rad(ds.attrs["AQDBeamAngle"]))
                 )
-            ds.attrs["history"] = (
-                "Trimmed velocity data using water level and sidelobes. "
-                + ds.attrs["history"]
+
+            histtext = (
+                "{}: Trimmed velocity data using water level and sidelobes.\n".format(
+                    datetime.datetime.now(datetime.timezone.utc).isoformat()
+                )
             )
+
+            ds = utils.insert_history(ds, histtext)
+
         elif ds.attrs["trim_method"].lower() == "bin range":
             print("Trimming using good_bins of %s" % str(ds.attrs["good_bins"]))
             for var in data_vars:
@@ -997,7 +1007,11 @@ def ds_add_attrs(ds, waves=False):
 
         add_attributes(ds["P_1ac"], ds.attrs)
 
-        ds.attrs["history"] = "Atmospheric pressure compensated. " + ds.attrs["history"]
+        histtext = "{}: Atmospheric pressure compensated.\n".format(
+            datetime.datetime.now().isoformat(),
+        )
+
+        ds = utils.insert_history(ds, histtext)
 
     ds["bin_depth"].attrs.update(
         {"units": "m", "name": "bin depth", "long_name": "bin depth"}

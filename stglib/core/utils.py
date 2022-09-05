@@ -5,6 +5,7 @@ import platform
 import sqlite3
 import sys
 import warnings
+import datetime
 
 import netCDF4
 import numpy as np
@@ -83,7 +84,9 @@ def clip_ds(ds, wvs=False):
         goods = np.hstack(goods)
         ds = ds.isel(time=goods)
 
-        histtext = "Data clipped using good_ens values of {}. ".format(str(good_ens))
+        histtext = "{}: Data clipped using good_ens values of {}.\n".format(
+            datetime.datetime.now(datetime.timezone.utc).isoformat(), str(good_ens)
+        )
 
         ds = insert_history(ds, histtext)
 
@@ -95,8 +98,8 @@ def clip_ds(ds, wvs=False):
 
         ds = ds.isel(time=goods)
 
-        histtext = "Data clipped using good_ens_wvs values of {}. ".format(
-            str(good_ens)
+        histtext = "{}: Data clipped using good_ens_wvs values of {}.\n".format(
+            datetime.datetime.now(datetime.timezone.utc).isoformat(), str(good_ens)
         )
 
         ds = insert_history(ds, histtext)
@@ -114,8 +117,9 @@ def clip_ds(ds, wvs=False):
         print("good_dates[1] {}, idx {}".format(ds.attrs["good_dates"][1], where.max()))
         ds = ds.sel(time=slice(ds.attrs["good_dates"][0], ds.attrs["good_dates"][1]))
 
-        histtext = "Data clipped using good_dates of {}. ".format(
-            ds.attrs["good_dates"]
+        histtext = "{}: Data clipped using good_dates of {}.\n".format(
+            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            ds.attrs["good_dates"],
         )
 
         ds = insert_history(ds, histtext)
@@ -126,8 +130,12 @@ def clip_ds(ds, wvs=False):
         ds = ds.sel(time=slice(ds.attrs["Deployment_date"], ds.attrs["Recovery_date"]))
 
         histtext = (
-            "Data clipped using Deployment_date of {} and " "Recovery_date of {}. "
-        ).format(ds.attrs["Deployment_date"], ds.attrs["Recovery_date"])
+            "{}: Data clipped using Deployment_date of {} and Recovery_date of {}.\n"
+        ).format(
+            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            ds.attrs["Deployment_date"],
+            ds.attrs["Recovery_date"],
+        )
 
         ds = insert_history(ds, histtext)
     else:
@@ -177,7 +185,7 @@ def add_min_max(ds):
 
 def insert_history(ds, histtext):
     if "history" in ds.attrs:
-        ds.attrs["history"] = histtext + ds.attrs["history"]
+        ds.attrs["history"] = ds.attrs["history"] + histtext
     else:
         ds.attrs["history"] = histtext
 
@@ -186,20 +194,24 @@ def insert_history(ds, histtext):
 
 def add_history(ds):
     if is_cf(ds):
-        histtext = "Processed to {} using {}. ".format(
-            ds.attrs["Conventions"], os.path.basename(sys.argv[0])
+        histtext = "{}: Processed to {} using {}.\n".format(
+            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            ds.attrs["Conventions"],
+            os.path.basename(sys.argv[0]),
         )
     else:
-        histtext = "Processed to EPIC using {}. ".format(os.path.basename(sys.argv[0]))
+        histtext = "Processed to EPIC using {}.\n".format(os.path.basename(sys.argv[0]))
 
     return insert_history(ds, histtext)
 
 
 def ds_add_waves_history(ds):
     histtext = (
-        "Wave statistics computed using scipy.signal.welch(), "
+        "{}: Wave statistics computed using scipy.signal.welch(), "
         "assigning cutoff following Jones & Monismith (2007), and "
-        "applying f^-4 tail past cutoff. "
+        "applying f^-4 tail past cutoff.\n".format(
+            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        )
     )
 
     return insert_history(ds, histtext)
@@ -210,7 +222,9 @@ def ds_add_diwasp_history(ds):
     Add history indicating DIWASP has been applied
     """
 
-    histtext = "Wave statistics computed using DIWASP 1.1GD. "
+    histtext = "{}: Wave statistics computed using DIWASP 1.1GD.\n".format(
+        datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    )
 
     return insert_history(ds, histtext)
 
@@ -558,9 +572,9 @@ def write_metadata(ds, metadata):
     f = os.path.basename(inspect.stack()[1][1])
 
     histtext = (
-        "Processed using {} with stglib {}, xarray {}, NumPy {}, "
-        "netCDF4 {}, Python {}. "
+        "{}: Processed using {} with stglib {}, xarray {}, NumPy {}, netCDF4 {}, Python {}.\n"
     ).format(
+        datetime.datetime.now(datetime.timezone.utc).isoformat(),
         f,
         stglib.__version__,
         xr.__version__,
@@ -788,8 +802,9 @@ def shift_time(ds, timeshift):
             # note negative on ds.attrs['ClockError']
             ds["time"] = ds["time"] + np.timedelta64(-ds.attrs["ClockError"], "s")
 
-        histtext = "Time shifted by {:d} s from ClockError. ".format(
-            -ds.attrs["ClockError"]
+        histtext = "{}: Time shifted by {:d} s from ClockError.\n".format(
+            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            -ds.attrs["ClockError"],
         )
 
         insert_history(ds, histtext)
