@@ -17,13 +17,13 @@ import stglib
 
 
 def is_cf(ds):
-    if ("Conventions" in ds.attrs) and (str(ds.attrs["Conventions"]) == "CF-1.6"):
+    if ("Conventions" in ds.attrs) and ("CF" in ds.attrs["Conventions"]):
         return True
     else:
         return False
 
 
-def check_compliance(nc_file, conventions="CF-1.6"):
+def check_compliance(nc_file, conventions="CF-1.8"):
     from compliance_checker.runner import ComplianceChecker, CheckSuite
 
     check_suite = CheckSuite()
