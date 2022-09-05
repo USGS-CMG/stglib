@@ -117,9 +117,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     return VEL
 
 
-# TODO: add analog input variables (OBS, NTU, etc)
-
-
 def ds_swap_dims(ds):
     # need to preserve z attrs because swap_dims will remove them
     attrsbak = ds["z"].attrs

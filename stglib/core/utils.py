@@ -271,6 +271,11 @@ def add_standard_names(ds):
             if f"AnalogInput1_{v}" in ds.attrs:
                 ds["AnalogInput1"].attrs[v] = ds.attrs[f"AnalogInput1_{v}"]
 
+    if "AnalogInput2" in ds:
+        for v in ["standard_name", "long_name", "units"]:
+            if f"AnalogInput2_{v}" in ds.attrs:
+                ds["AnalogInput2"].attrs[v] = ds.attrs[f"AnalogInput2_{v}"]
+
     ds["feature_type_instance"] = xr.DataArray(
         [f"{ds.attrs['MOORING']}aqd"], dims="feature_type_instance"
     )

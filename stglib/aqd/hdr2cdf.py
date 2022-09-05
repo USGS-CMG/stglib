@@ -91,7 +91,6 @@ def load_sen(basefile):
         inplace=True,
     )
 
-    # Look for analog data TODO
     SEN.rename(columns={15: "AnalogInput1"}, inplace=True)
     SEN["AnalogInput1"] = SEN["AnalogInput1"] * 5 / 65535
     SEN.rename(columns={16: "AnalogInput2"}, inplace=True)
