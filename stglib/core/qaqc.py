@@ -212,3 +212,27 @@ def trim_max_std(ds, var):
         ds = utils.insert_note(ds, var, notetxt)
 
     return ds
+
+
+def trim_fliers(ds, var):
+    """trim "fliers", single (or more) presumably bad data points unconnected to other, good data points"""
+
+    if var + "_fliers" in ds.attrs:
+        print(f"{var}: Trimming fliers using value of {ds.attrs[var + '_fliers']}")
+
+        num = ds.attrs[var + "_fliers"]
+
+        a = np.ma.masked_array(ds[var], fill_value=np.nan)
+        a[np.isnan(a)] = np.ma.masked
+        for b in np.ma.clump_unmasked(a):
+            if b.stop - b.start <= num:
+                a[b] = np.nan
+        a = a.filled()
+
+        ds[var] = ds[var].where(np.isfinite(a))
+
+        notetxt = f"Fliers of {ds.attrs[var + '_fliers']} or fewer points removed. "
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds

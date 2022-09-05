@@ -79,6 +79,7 @@ EXO-specific options include:
 - ``<VAR>_max_diff``: fill values where data increases by more than this number of units in a single time step.
 - ``<VAR>_med_diff``: fill values where difference between a 5-point (default) median filter and original values is greater than this number.
 - ``<VAR>_med_diff_pct``: fill values where percent difference between a 5-point (default) median filter and original values is greater than this number.
+- ``<VAR>_trim_fliers``: fill flier values, which are data points surrounded by filled data. Set to the maximum size of flier clumps to remove.
 - ``<VAR>_bad_ens``: specify bad ensemble ranges (either index numbers or dates) that should be set to ``_FillValue``. If you want multiple ranges, you can do this with additional values in the array. For example, ``Turb_bad_ens: ['2017-09-30 21:15', '2017-10-02 09:30', '2017-10-12 20:45', '2017-10-16 00:30']``. This will set the ranges in late September and early October, and again in mid-October, to ``_FillValue``.
 - ``trim_by_salinity``: if ``'true'``, use salinity (``S_41``) as a master variable. Wherever salinity is ``_FillValue``, all other variables will be filled as well. Useful for when the instrument comes out of the water.
 - ``drop_vars``: a list of variables to be removed from the final file. For example, ``drop_vars: ['nLF_Cond_µS_per_cm', 'Wiper_Position_volt', 'Cable_Pwr_V']``.

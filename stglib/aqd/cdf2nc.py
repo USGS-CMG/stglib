@@ -84,6 +84,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         VEL = qaqc.trim_min_diff(VEL, var)
         VEL = qaqc.trim_min(VEL, var)
         VEL = qaqc.trim_max(VEL, var)
+        VEL = qaqc.trim_fliers(VEL, var)
 
     # Add min/max values
     VEL = utils.add_min_max(VEL)
