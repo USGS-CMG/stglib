@@ -476,7 +476,13 @@ def ds_add_attrs(ds):
         )
 
     if "pH_159" in ds.variables:
-        ds["pH_159"].attrs.update({"units": "", "long_name": "pH", "epic_code": 159})
+        ds["pH_159"].attrs.update(
+            {
+                "units": "1",
+                "standard_name": "sea_water_ph_reported_on_total_scale",
+                "epic_code": 159,
+            }
+        )
 
     if "P_1" in ds:
         ds["P_1"].attrs.update(
