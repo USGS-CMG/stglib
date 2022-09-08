@@ -262,16 +262,14 @@ def ds_add_attrs(ds):
 
     #     add initial height information and fill values to variables
     def add_attributes(var, dsattrs):
-        var.attrs.update(
-            {
-                "initial_instrument_height": dsattrs["initial_instrument_height"],
-                "height_depth_units": "m",
-                "initial_instrument_height_note": dsattrs[
-                    "initial_instrument_height_note"
-                ],
-                "sensor_type": "Vaisala WXT536",
-            }
-        )
+        var.attrs["initial_instrument_height"] = dsattrs["initial_instrument_height"]
+        var.attrs["height_depth_units"] = "m"
+        if "initial_instrument_height_note" in dsattrs:
+            var.attrs["initial_instrument_height_note"] = dsattrs[
+                "initial_instrument_height_note"
+            ]
+        if "sensor_type" not in dsattrs:
+            var.attrs["sensor_type"] = "Vaisala WXT536"
 
     # for var in ds.variables:
     #     if ds[var].dtype == "float32":
