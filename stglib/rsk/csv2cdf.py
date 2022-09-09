@@ -12,6 +12,7 @@ def csv_to_cdf(metadata):
     with open("_".join(basefile.split("_")[0:-1]) + "_metadata.txt") as f:
         meta = yaml.safe_load(f)
 
+    print(f"Reading {basefile}.txt")
     try:
         df = pd.read_csv(basefile + ".txt", engine="pyarrow")
     except ValueError:

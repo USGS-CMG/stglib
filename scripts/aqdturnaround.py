@@ -89,7 +89,9 @@ ds["Pressure"].plot()
 for sp in [2, 3, 4]:
     plt.subplot(4, 1, sp)
     for beam in ["U", "V", "W"]:
-        ds[beam].isel(bindist=sp - 2).plot()  # second bin
+        ds[beam].isel(bindist=sp - 2).plot(
+            label=beam
+        )  # plot first, second, and third bins
     plt.legend()
     plt.title(
         (
