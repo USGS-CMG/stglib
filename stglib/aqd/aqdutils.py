@@ -432,6 +432,20 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
     return ds
 
 
+def trim_single_bins(ds, var):
+    if var + "_trim_single_bins" in ds.attrs:
+        print(f"{var}: Trimming single velocity bins")
+
+        singlebins = (~ds[var].isnull()).sum(dim="z") != 1
+        ds[var] = ds[var].where(singlebins)
+
+        notetxt = f"Single {var} velocity bins removed. "
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
 def read_aqd_hdr(basefile):
     """
     Get instrument metadata from .hdr file

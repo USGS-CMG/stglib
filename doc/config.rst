@@ -48,6 +48,7 @@ Aquadopp-specific options include:
 - ``head_rotation``: probably will be ``'horizontal'``
 - ``cutoff_ampl``: will probably always be ``0``
 - ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``'bin range'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
+- ``<VAR>_trim_single_bins``: trim data where only a single bin of data (after trimming via ``trim_method``) remains. Set this value to ``true`` to enable.
 
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml
