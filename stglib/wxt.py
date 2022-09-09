@@ -94,6 +94,7 @@ def cdf_to_nc(cdf_filename):
 
     # If sensor wasn't pointing to magnetic north, apply offset to direction
     if "dir_offset" in ds.attrs:
+        print(f"Applying dir_offset of {ds.attrs['dir_offset']}")
         if "WD_min" in ds:
             ds["WD_min"] = ds["WD_min"] + ds.attrs["dir_offset"].astype(float)
         if "WD_410" in ds:
@@ -102,6 +103,9 @@ def cdf_to_nc(cdf_filename):
             ds["WD_gust"] = ds["WD_gust"] + ds.attrs["dir_offset"].astype(float)
 
     # Convert direction from magnetic to true with magenetic declination
+    print(
+        f"Rotating directions from magnetic north to true north by applying magnetic_variation of {ds.attrs['magnetic_variation']}"
+    )
     if "WD_min" in ds:
         ds["WD_min"] = ds["WD_min"] + ds.attrs["magnetic_variation"].astype(float)
         ds["WD_min"] = ds["WD_min"].round(0)
