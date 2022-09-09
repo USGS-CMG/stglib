@@ -80,11 +80,15 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # should function this
     for var in VEL.data_vars:
-        VEL = qaqc.trim_max_diff(VEL, var)
-        VEL = qaqc.trim_min_diff(VEL, var)
         VEL = qaqc.trim_min(VEL, var)
         VEL = qaqc.trim_max(VEL, var)
+        VEL = qaqc.trim_min_diff(VEL, var)
+        VEL = qaqc.trim_max_diff(VEL, var)
+        VEL = qaqc.trim_med_diff(VEL, var)
+        VEL = qaqc.trim_med_diff_pct(VEL, var)
+        VEL = qaqc.trim_bad_ens(VEL, var)
         VEL = qaqc.trim_fliers(VEL, var)
+        VEL = aqdutils.trim_single_bins(VEL, var)
 
     # Add min/max values
     VEL = utils.add_min_max(VEL)
