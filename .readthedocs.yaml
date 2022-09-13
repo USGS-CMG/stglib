@@ -4,7 +4,7 @@ sphinx:
    configuration: doc/conf.py
 
 conda:
-    environment: doc/doc-requirements.yml
+    environment: doc/requirements.yml
 
 build:
   os: ubuntu-22.04
