@@ -10,7 +10,7 @@ Historically, data have been released according to NOAA PMEL/EPIC conventions. T
 
 ::
 
-  Conventions: 'CF-1.6'
+  Conventions: 'CF-1.8'
 
 (or a later release of the standard) will enable straight-to-CF processing.
 
@@ -112,7 +112,7 @@ WXT-specific options include:
 
 EofE ECHOLOGGER
 ---------------
-- All the _min, _max, _bad_ens, etc. options available to the EXO. 
+- All the _min, _max, _bad_ens, etc. options available to the EXO.
 - instrument_type: types "ea" and "aa" are supported.
 - orientation: orientation of transducers types 'DOWN' or 'UP' are supported.
 - average_salinity: average salinity value (PSU) for the water mass for the deployment site and time period.
