@@ -5,7 +5,7 @@ pandas
 numpy
 netcdf4
 xmltodict
-sphinx==1.8.6
-sphinx-argparse
-sphinx_rtd_theme
+sphinx==5.1.1
+sphinx-argparse==0.2.5
+sphinx_rtd_theme==1.0.0
 numpydoc
