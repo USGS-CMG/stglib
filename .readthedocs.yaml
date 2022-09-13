@@ -1,0 +1,13 @@
+version: 2
+
+sphinx:
+   configuration: doc/conf.py
+
+conda:
+    file: doc/doc-requirements.yml
+
+python:
+  version: "3.9"
+  install:
+    - method: pip
+      path: .
