@@ -1,4 +1,6 @@
+python
 compliance-checker
+git-lfs
 matplotlib-base
 netcdf4
 numpy
