@@ -1,14 +1,22 @@
 name: stglib-docs
 channels:
   - conda-forge
-  - defaults
 dependencies:
-  - xarray
-  - scipy
-  - matplotlib
-  - pandas
-  - numpy
+  - python
+  - compliance-checker
+  - matplotlib-base
   - netcdf4
+  - numpy
+  - pandas
+  - pre-commit
+  - pyarrow
+  - pytest
+  - pyyaml
+  - scipy
+  - seawater
+  - sqlite
+  - tqdm
+  - xarray
   - xmltodict
   - sphinx==5.1.1
   - sphinx-argparse==0.2.5
