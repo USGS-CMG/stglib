@@ -20,7 +20,7 @@ We need your help.  All contributions, bug reports, bug fixes, documentation imp
 enhancements, and ideas are welcome.
 
 If you are brand new to open-source development, we recommend going
-through the `stglib's GitHub "issues" tab <https://github.com/dnowacki-usgs/stglib/issues>`_
+through the `stglib's GitHub "issues" tab <https://github.com/USGS-CMG/stglib/issues>`_
 to find issues that interest you, discuss issues, to report new issues or propose new features.
 
 
@@ -34,7 +34,7 @@ Follow the guidance here to set up your environment in python.
 
 We do not yet have a public mailing list.  USGS folks can ask questions and follow discussions in the
 GS-CMHRP-CCH-TimeSeriesData team, however we encourage all to publicly post and discuss issues here
-on github in `stglib's GitHub "issues" tab <https://github.com/dnowacki-usgs/stglib/issues>`_,
+on github in `stglib's GitHub "issues" tab <https://github.com/USGS-CMG/stglib/issues>`_,
 so that we can advance this package as a user community.
 
 Bug reports are an important part of improving our package. Having a complete bug
@@ -75,7 +75,7 @@ to *stglib*.  It can very quickly become overwhelming, but sticking to the guide
 below will help keep the process straightforward and mostly trouble free.  As always,
 if you are having difficulties please feel free to ask for help.
 
-The code is hosted on `GitHub <https://github.com/dnowacki-usgs/stglib>`_. To
+The code is hosted on `GitHub <https://github.com/USGS-CMG/stglib>`_. To
 contribute you will need to sign up for a `free GitHub account
 <https://github.com/signup/free>`_. We use `Git <http://git-scm.com/>`_ for
 version control to allow many people to work together on the project.
@@ -104,12 +104,12 @@ Forking
 -------
 
 You will need your own fork to work on the code. Go to the `stglib project
-page <https://github.com/dnowacki-usgs/stglib>>`_ and hit the ``Fork`` button. You will
+page <https://github.com/USGS-CMG/stglib>`_ and hit the ``Fork`` button. You will
 want to clone your fork to your machine::
 
     git clone https://github.com/your-github-user-name/stglib.git
     cd stglib
-    git remote add upstream https://github.com/dnowacki-usgs/stglib.git
+    git remote add upstream https://github.com/USGS-CMG/stglib.git
 
 This creates the directory `stglib` and connects your repository to
 the upstream (main project) *stglib* repository.
@@ -184,7 +184,7 @@ To update your shiny-new-feature branch, you need to retrieve the changes from t
     git rebase upstream/master
 
 Keep in mind, `upstream` refers to the original version of *stglib* at
-`<https://github.com/dnowacki-usgs/stglib>`,
+`<https://github.com/USGS-CMG/stglib>`,
 not to be confused with the term `origin`, which is your fork of *stglib* at
 `<https://github.com/your-github-user-name/stglib.git>`.
 The fetch and rebase commands will replay your commits (changes) on top of the latest *stglib* git master.
@@ -540,5 +540,5 @@ PR checklist
 - **Squash your commits**
 - **Push your code and** `create a PR on GitHub <https://help.github.com/en/articles/creating-a-pull-request>`_.
 - **Use a helpful title for your pull request** by summarizing the main contributions rather
-  than using the latest commit message. If this addresses an `issue <https://github.com/dnowacki-usgs/stglib/issues>`_,
+  than using the latest commit message. If this addresses an `issue <https://github.com/USGS-CMG/stglib/issues>`_,
   please `reference it <https://help.github.com/en/articles/autolinked-references-and-urls>`_.

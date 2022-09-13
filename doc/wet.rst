@@ -13,7 +13,7 @@ runecocsv2cdf.py
 ----------------
 
 .. argparse::
-   :ref: stglib.core.cmd.ecocsv2cdf_parser
+   :ref: stglib.core.cmd.ecolog2cdf_parser
    :prog: runecocsv2cdf.py
 
 Raw .cdf to clean .nc

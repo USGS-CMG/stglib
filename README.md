@@ -1,7 +1,7 @@
 # stglib - Process data from a variety of oceanographic instrumentation
 
 [![Documentation Status](https://readthedocs.org/projects/stglib/badge/?version=latest)](http://stglib.readthedocs.io/en/latest/?badge=latest)
-![stglib](https://github.com/dnowacki-usgs/stglib/workflows/stglib/badge.svg)
+![stglib](https://github.com/USGS-CMG/stglib/workflows/stglib/badge.svg)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/stglib/badges/version.svg)](https://anaconda.org/conda-forge/stglib)
 
 This package contains code to process data from a variety of oceanographic instrumentation, consistent with the procedures of the USGS [Coastal/Marine Hazards and Resources Program](https://marine.usgs.gov) (formerly Coastal and Marine Geology Program).

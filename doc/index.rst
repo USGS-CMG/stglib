@@ -45,12 +45,12 @@ Currently, this package has at least partial support for:
    iq
    wet
    hobo
+   wxt
+   eofe
    indexvel
    turnaround
    code
    contributing
-   wxt
-   eofe
 
 
 Indices and tables
