@@ -9,6 +9,7 @@ sphinx:
 #     python: "3.9"
 
 python:
+  version: "3"
   install:
     - method: pip
       path: .

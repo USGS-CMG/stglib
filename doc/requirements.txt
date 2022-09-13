@@ -1,4 +1,3 @@
-python
 compliance-checker
 matplotlib-base
 netcdf4
