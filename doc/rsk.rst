@@ -7,7 +7,7 @@ depends on two :doc:`configuration files </config>`.
 Instrument data to raw .cdf
 ===========================
 
-Convert from .rsk binary to a raw netCDF file with .cdf extension. The recommended approach is to export to text (.zip) format (File -> Export -> Text (*.zip)) from the Ruskin software. Then use ``runrskcsv2cdf.py``.
+Convert from .rsk binary to a raw netCDF file with .cdf extension. The recommended approach is to export to text (.zip) format (File -> Export -> Text (\*.zip)) from the Ruskin software. Then use ``runrskcsv2cdf.py``.
 
 runrskcsv2cdf.py
 ----------------

@@ -29,6 +29,7 @@ d|wave
 
    stglib.rsk.rsk2cdf.rsk_to_cdf
    stglib.rsk.cdf2nc.cdf_to_nc
+..
    stglib.rsk.nc2diwasp.nc_to_diwasp
 
 EXO

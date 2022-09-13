@@ -54,7 +54,7 @@ Set up conda-forge channel priority as above. Obtain stglib by cloning the GitHu
 
 ``git clone https://github.com/USGS-CMG/stglib.git``
 
-After ``cd``ing to the directory containing stglib, type:
+After ``cd``\ing to the directory containing stglib, type:
 
 ``conda env create -n stglib --file requirements.yml``
 
