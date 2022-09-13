@@ -1,5 +1,5 @@
 compliance-checker
-matplotlib-base
+matplotlib
 netcdf4
 numpy
 pandas
