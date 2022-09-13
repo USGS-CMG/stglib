@@ -12,6 +12,6 @@ build:
     python: "3.9"
 
 python:
-  install:
+  install: 
     - method: pip
       path: .
