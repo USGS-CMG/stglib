@@ -22,7 +22,7 @@ setup(
     long_description_content_type="text/markdown",
     author="Dan Nowacki",
     author_email="dnowacki@usgs.gov",
-    url="https://github.com/dnowacki-usgs/stglib",
+    url="https://github.com/USGS-CMG/stglib",
     license="Public domain",
     classifiers=[
         "Development Status :: 3 - Alpha",
