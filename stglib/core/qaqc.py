@@ -236,3 +236,24 @@ def trim_fliers(ds, var):
         ds = utils.insert_note(ds, var, notetxt)
 
     return ds
+
+
+def trim_maxabs_diff_z(ds, var):
+    if var + "_maxabs_diff_z" in ds.attrs:
+        print(
+            "%s: Trimming using maximum absolute diff of %5.2f on z dim"
+            % (var, ds.attrs[var + "_maxabs_diff_z"].round(2))
+        )
+
+        bads = np.abs(ds[var].diff(dim="z")) >= ds.attrs[var + "_maxabs_diff_z"]
+        ds[var][:, 1:] = ds[var].where(~bads)
+
+        notetxt = (
+            "Values filled where data increases by more than %5.2f "
+            "units (absolute) in a single time step along the z dimension. "
+            % ds.attrs[var + "_maxabs_diff_z"].round(2)
+        )
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
