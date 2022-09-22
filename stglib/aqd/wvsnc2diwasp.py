@@ -4,7 +4,7 @@ import xarray as xr
 from ..core import utils, waves
 
 
-def nc_to_diwasp(nc_filename, format="NETCDF3_64BIT"):
+def nc_to_diwasp(nc_filename):
 
     ds = utils.open_time_2d_dataset(nc_filename)
 

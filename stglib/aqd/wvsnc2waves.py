@@ -205,6 +205,7 @@ def nc_to_waves(nc_filename):
     nc_filename = ds.attrs["filename"] + "wvs-a.nc"
 
     ds.to_netcdf(nc_filename, unlimited_dims=["time"])
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done creating", nc_filename)
 

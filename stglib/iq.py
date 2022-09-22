@@ -229,7 +229,7 @@ def make_iq_plots(iq, directory="", savefig=False):
     plt.show()
 
 
-def cdf_to_nc(cdf_filename, format="NETCDF3_64BIT"):
+def cdf_to_nc(cdf_filename):
     """
     Load a "raw" .cdf file and generate a processed .nc file
     """
