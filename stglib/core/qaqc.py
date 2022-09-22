@@ -178,15 +178,14 @@ def trim_by_any(ds, var):
             attrlist.append(a)
 
     for a in attrlist:
-        if (
-            a in ds.attrs and ds.attrs[a].lower() == "true" and var in ds
-        ):  # xarray doesn't support writing attributes as booleans
+        if a in ds.attrs and ds.attrs[a].lower() == "true" and var in ds:
+            # xarray doesn't support writing attributes as booleans
             if f"{a}_exclude" in ds.attrs and var in ds.attrs[f"{a}_exclude"]:
                 pass
             else:
                 trimvar = a.split("trim_by_")[-1]
                 print(f"{var}: Trimming using valid {trimvar} threshold")
-                ds[var][ds[trimvar].isnull()] = np.nan
+                ds[var] = ds[var].where(~ds[trimvar].isnull())
 
                 if var != trimvar:
                     notetxt = f"Values filled using valid {trimvar} threshold. "
