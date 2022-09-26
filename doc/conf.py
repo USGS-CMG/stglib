@@ -22,8 +22,8 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Project information -----------------------------------------------------
 
 project = "stglib"
-copyright = "2018, Dan Nowacki"
-author = "Dan Nowacki"
+copyright = "Public Domain"
+author = "stglib Developers"
 
 # The short X.Y version
 version = ""
@@ -44,7 +44,8 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinxarg.ext",
-    "numpydoc",
+    "sphinx.ext.napoleon",
+    "sphinx_rtd_theme",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
