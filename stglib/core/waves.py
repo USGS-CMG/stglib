@@ -58,7 +58,7 @@ def make_waves_ds(ds, noise=0.75):
     return spec
 
 
-def pressure_spectra(x, fs=1.0, window="hanning", nperseg=256, **kwargs):
+def pressure_spectra(x, fs=1.0, window="hann", nperseg=256, **kwargs):
     """Compute pressure spectral density using Welch's method
 
     Parameters
@@ -68,7 +68,7 @@ def pressure_spectra(x, fs=1.0, window="hanning", nperseg=256, **kwargs):
     fs : float, optional
         Sampling frequency (Hz)
     window : str, optional
-        Window, default 'hanning'
+        Window, default 'hann'
     nperseg : int, optional
         Length of each segment, default 256
     **kwargs
@@ -305,7 +305,7 @@ def puv_quick(
     first_frequency_cutoff=1 / 50,
     infra_gravity_cutoff=0.05,
     last_frequency_cutoff=1 / 5,
-    fft_window_type="hanning",
+    fft_window_type="hann",
     show_diagnostic_plot=False,
     check_variances=False,
     variance_error=0.0,
@@ -383,7 +383,7 @@ def puv_quick(
     """
 
     gravity = 9.81  # m/s^2
-    if fft_window_type == "hanning":
+    if fft_window_type == "hann":
         fft_window_type = "hann"  # this is just the way scipy signal likes it
     if overlap_length == "default":
         overlap_length = int(np.floor(fft_length / 2))
