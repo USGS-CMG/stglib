@@ -25,34 +25,24 @@ def ds_rename(ds, waves=False):
     if "Pressure_ac" in ds:
         varnames["Pressure_ac"] = "P_1ac"
 
-    if not waves:
-        varnames.update(
-            {"U": "u_1205", "V": "v_1206", "W": "w_1204", "AGC": "AGC_1202"}
-        )
-    elif waves:
-        varnames.update(
-            {
-                "VEL1": "vel1_1277",
-                "VEL2": "vel2_1278",
-                "VEL3": "vel3_1279",
-                "AMP1": "AGC1_1221",
-                "AMP2": "AGC2_1222",
-                "AMP3": "AGC3_1223",
-            }
-        )
+    varnames.update(
+        {
+            "U": "u_1205",
+            "V": "v_1206",
+            "W": "w_1204",
+            "AGC": "AGC_1202",
+            "VEL1": "vel1_1277",
+            "VEL2": "vel2_1278",
+            "VEL3": "vel3_1279",
+            "AMP1": "AGC1_1221",
+            "AMP2": "AGC2_1222",
+            "AMP3": "AGC3_1223",
+        }
+    )
 
-    ds = ds.rename(varnames)
-
-    if waves:
-        for v in [
-            "vel1_1277",
-            "vel2_1278",
-            "vel3_1279",
-            "AGC1_1221",
-            "AGC2_1222",
-            "AGC3_1223",
-        ]:
-            ds[v] = ds[v].expand_dims("depth", axis=-1)
+    for v in varnames:
+        if v in ds:
+            ds = ds.rename({v: varnames[v]})
 
     for v in [
         "avgamp1",
@@ -671,9 +661,9 @@ def create_bindist(ds, waves=False):
     print("center_first_bin = %f" % ds.attrs["center_first_bin"])
     print("bin_size = %f" % ds.attrs["bin_size"])
     print("bin_count = %f" % ds.attrs["bin_count"])
-    print(f"AQDCCD = {ds.attrs['AQDCCD']}")
 
     if not waves:
+        print(f"Cell center distance = {ds.attrs['AQDCCD']}")
         bindist = ds.attrs["AQDCCD"]
     else:
         bindist = [ds["cellpos"][0]]
@@ -689,9 +679,7 @@ def update_attrs(ds, waves=False):
     ds["lat"] = xr.DataArray([ds.attrs["latitude"]], dims=("lat"), name="lat")
     ds["lon"] = xr.DataArray([ds.attrs["longitude"]], dims=("lon"), name="lon")
 
-    ds["TransMatrix"] = xr.DataArray(
-        ds.attrs["AQDTransMatrix"], dims=("Tmatrix", "Tmatrix"), name="TransMatrix"
-    )
+    ds["TransMatrix"] = xr.DataArray(ds.attrs["AQDTransMatrix"])
     # Need to remove AQDTransMatrix from attrs for netCDF3 compliance
     ds.attrs.pop("AQDTransMatrix")
 
@@ -749,20 +737,19 @@ def update_attrs(ds, waves=False):
     )
 
     for n in [1, 2, 3]:
-        ds["VEL" + str(n)].attrs.update(
-            {
-                "units": "m s-1",
-                "Type": "scalar",
-                "transducer_offset_from_bottom": ds.attrs[
-                    "transducer_offset_from_bottom"
-                ],
-            }
-        )
+        if "VEL" + str(n) in ds:
+            ds["VEL" + str(n)].attrs.update(
+                {
+                    "units": "m s-1",
+                    "transducer_offset_from_bottom": ds.attrs[
+                        "transducer_offset_from_bottom"
+                    ],
+                }
+            )
         ds["AMP" + str(n)].attrs.update(
             {
                 "long_name": "Beam " + str(n) + " Echo Amplitude",
                 "units": "counts",
-                "Type": "scalar",
                 "transducer_offset_from_bottom": ds.attrs[
                     "transducer_offset_from_bottom"
                 ],
@@ -907,7 +894,7 @@ def ds_add_attrs(ds, waves=False):
     #         "distance from transducer"
     #     )
 
-    if not waves:
+    if "u_1205" in ds:
         ds["u_1205"].attrs.update(
             {
                 "name": "u",
@@ -917,6 +904,7 @@ def ds_add_attrs(ds, waves=False):
             }
         )
 
+    if "v_1206" in ds:
         ds["v_1206"].attrs.update(
             {
                 "name": "v",
@@ -926,6 +914,7 @@ def ds_add_attrs(ds, waves=False):
             }
         )
 
+    if "w_1204" in ds:
         ds["w_1204"].attrs.update(
             {
                 "name": "w",
@@ -935,6 +924,7 @@ def ds_add_attrs(ds, waves=False):
             }
         )
 
+    if "AGC_1202" in ds:
         ds["AGC_1202"].attrs.update(
             {
                 "units": "counts",
@@ -945,33 +935,47 @@ def ds_add_attrs(ds, waves=False):
             }
         )
 
-    elif waves:
-        ds["vel1_1277"].attrs.update(
-            {
-                "units": "mm/s",
-                "long_name": "Beam 1 Velocity",
-                "generic_name": "vel1",
-                "epic_code": 1277,
-            }
-        )
+    if waves:
+        ds["sample"].encoding["dtype"] = "i4"
+        ds["sample"].attrs["long_name"] = "sample number"
+        ds["sample"].attrs["units"] = "1"
 
-        ds["vel2_1278"].attrs.update(
-            {
-                "units": "mm/s",
-                "long_name": "Beam 2 Velocity",
-                "generic_name": "vel2",
-                "epic_code": 1278,
-            }
-        )
+        if "u_1205" in ds:
+            ds["u_1205"].attrs["units"] = "m s-1"
 
-        ds["vel3_1279"].attrs.update(
-            {
-                "units": "mm/s",
-                "long_name": "Beam 3 Velocity",
-                "generic_name": "vel3",
-                "epic_code": 1279,
-            }
-        )
+        if "v_1206" in ds:
+            ds["v_1206"].attrs["units"] = "m s-1"
+
+        if "w_1204" in ds:
+            ds["w_1204"].attrs["units"] = "m s-1"
+
+        if "vel1_1277" in ds:
+            ds["vel1_1277"].attrs.update(
+                {
+                    "units": "m s-1",
+                    "long_name": "Beam 1 Velocity",
+                    "generic_name": "vel1",
+                    "epic_code": 1277,
+                }
+            )
+        if "vel2_1278" in ds:
+            ds["vel2_1278"].attrs.update(
+                {
+                    "units": "m s-1",
+                    "long_name": "Beam 2 Velocity",
+                    "generic_name": "vel2",
+                    "epic_code": 1278,
+                }
+            )
+        if "vel3_1279" in ds:
+            ds["vel3_1279"].attrs.update(
+                {
+                    "units": "m s-1",
+                    "long_name": "Beam 3 Velocity",
+                    "generic_name": "vel3",
+                    "epic_code": 1279,
+                }
+            )
 
         ds["AGC1_1221"].attrs.update(
             {
@@ -1033,19 +1037,13 @@ def ds_add_attrs(ds, waves=False):
 
     if "P_1ac" in ds:
         if waves:
-            ds["bin_depth"].attrs["note"] = (
-                "Actual depth time series of "
-                "wave burst bin depths. "
-                "Calculated as corrected "
-                "pressure (P_1ac) - bindist."
-            )
+            ds["bin_depth"].attrs[
+                "note"
+            ] = "Actual depth time series of wave burst bin depths. Calculated as corrected pressure (P_1ac) - bindist."
         else:
-            ds["bin_depth"].attrs["note"] = (
-                "Actual depth time series of "
-                "velocity bins. Calculated as "
-                "corrected pressure (P_1ac) - "
-                "bindist."
-            )
+            ds["bin_depth"].attrs[
+                "note"
+            ] = "Actual depth time series of velocity bins. Calculated as corrected pressure (P_1ac) - bindist."
     else:
         ds["bin_depth"].attrs.update(
             {
@@ -1118,9 +1116,7 @@ def ds_add_attrs(ds, waves=False):
             "units": "m",
             "long_name": "distance from transducer head",
             "blanking_distance": ds.attrs["AQDBlankingDistance"],
-            "note": (
-                "distance is along profile from instrument " "head to center of bin"
-            ),
+            "note": ("distance is along profile from instrument head to center of bin"),
         }
     )
 
@@ -1138,7 +1134,8 @@ def ds_add_attrs(ds, waves=False):
             "AGC2_1222",
             "AGC3_1223",
         ]:
-            add_attributes(ds[v], ds.attrs)
+            if v in ds:
+                add_attributes(ds[v], ds.attrs)
 
     for v in [
         "P_1",
