@@ -775,13 +775,13 @@ def update_attrs(ds, waves=False):
         veltxt = "wave-burst velocity"
 
     if ds.attrs["AQDCoordinateSystem"] == "ENU":
-        ds["VEL1"].attrs["long_name"] = "Eastward " + veltxt
-        ds["VEL2"].attrs["long_name"] = "Northward " + veltxt
-        ds["VEL3"].attrs["long_name"] = "Vertical " + veltxt
+        ds["U"].attrs["long_name"] = "Eastward " + veltxt
+        ds["V"].attrs["long_name"] = "Northward " + veltxt
+        ds["W"].attrs["long_name"] = "Vertical " + veltxt
     elif ds.attrs["AQDCoordinateSystem"] == "XYZ":
-        ds["VEL1"].attrs["long_name"] = veltxt.capitalize() + " in X Direction"
-        ds["VEL2"].attrs["long_name"] = veltxt.capitalize() + " in Y Direction"
-        ds["VEL3"].attrs["long_name"] = veltxt.capitalize() + " in Z Direction"
+        ds["X"].attrs["long_name"] = veltxt.capitalize() + " in X Direction"
+        ds["Y"].attrs["long_name"] = veltxt.capitalize() + " in Y Direction"
+        ds["Z"].attrs["long_name"] = veltxt.capitalize() + " in Z Direction"
     elif ds.attrs["AQDCoordinateSystem"] == "BEAM":
         ds["VEL1"].attrs["long_name"] = "Beam 1 " + veltxt
         ds["VEL2"].attrs["long_name"] = "Beam 2 " + veltxt

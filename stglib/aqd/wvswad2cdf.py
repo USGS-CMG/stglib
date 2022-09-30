@@ -162,7 +162,14 @@ def load_wad(ds):
         + " samples per burst"
     )
 
-    thevars = ["Pressure", "VEL1", "VEL2", "VEL3", "AMP1", "AMP2", "AMP3"]
+    ds["sample"] = xr.DataArray(range(wavensamps), dims="sample")
+
+    if ds.attrs["AQDCoordinateSystem"] == "BEAM":
+        thevars = ["Pressure", "VEL1", "VEL2", "VEL3", "AMP1", "AMP2", "AMP3"]
+    elif ds.attrs["AQDCoordinateSystem"] == "ENU":
+        thevars = ["Pressure", "U", "V", "W", "AMP1", "AMP2", "AMP3"]
+    elif ds.attrs["AQDCoordinateSystem"] == "ENU":
+        thevars = ["Pressure", "X", "Y", "Z", "AMP1", "AMP2", "AMP3"]
     thecols = [2, 5, 6, 7, 9, 10, 11]
     for var, n in zip(thevars, thecols):
         ds[var] = xr.DataArray(
