@@ -24,7 +24,11 @@ def nc_to_waves(nc_filename):
     for k in ["wp_peak", "wh_4061", "wp_4060", "pspec"]:
         ds[k] = spec[k]
 
-    dopuv = True
+    dopuv = False
+    if "puv" in ds.attrs:
+        if ds.attrs["puv"] == "true":
+            dopuv = True
+
     if dopuv:
         print("Computing PUV")
         desc = {
@@ -67,23 +71,25 @@ def nc_to_waves(nc_filename):
             raise NotImplementedError(
                 "PUV currently only works on UP oriented instruments"
             )
-        # only works on UP because we assume T = T_orig
-        # need to pass .values because passing the DataArray is MUCH slower
-        u, v, w = aqdutils.coord_transform(
-            ds["vel1_1277"].squeeze().values / 1000,
-            ds["vel2_1278"].squeeze().values / 1000,
-            ds["vel3_1279"].squeeze().values / 1000,
-            ds["Hdg_1215"].squeeze().values,
-            ds["Ptch_1216"].squeeze().values,
-            ds["Roll_1217"].squeeze().values,
-            ds["TransMatrix"].squeeze().values,
-            ds["TransMatrix"].squeeze().values,
-            ds.attrs["AQDCoordinateSystem"],
-        )
-        ds["u_1205"] = xr.DataArray(u, dims=("time", "sample"))
-        ds["v_1206"] = xr.DataArray(v, dims=("time", "sample"))
-        ds["w_1204"] = xr.DataArray(w, dims=("time", "sample"))
-        N, M = np.shape(ds["vel1_1277"].squeeze())
+        if "u_1205" not in ds:  # in case we are already in ENU coordinates
+            # only works on UP because we assume T = T_orig
+            # need to pass .values because passing the DataArray is MUCH slower
+            u, v, w = aqdutils.coord_transform(
+                ds["vel1_1277"].squeeze().values,
+                ds["vel2_1278"].squeeze().values,
+                ds["vel3_1279"].squeeze().values,
+                ds["Hdg_1215"].squeeze().values,
+                ds["Ptch_1216"].squeeze().values,
+                ds["Roll_1217"].squeeze().values,
+                ds["TransMatrix"].squeeze().values,
+                ds["TransMatrix"].squeeze().values,
+                ds.attrs["AQDCoordinateSystem"],
+            )
+            ds["u_1205"] = xr.DataArray(u, dims=("time", "sample"))
+            ds["v_1206"] = xr.DataArray(v, dims=("time", "sample"))
+            ds["w_1204"] = xr.DataArray(w, dims=("time", "sample"))
+
+        N, M = np.shape(ds["u_1205"].squeeze())
         puvs = {
             k: np.full_like(ds["time"].values, np.nan, dtype=float)
             for k in desc
@@ -108,8 +114,8 @@ def nc_to_waves(nc_filename):
             try:
                 puv = waves.puv_quick(
                     ds["P_1ac"][n, :].values,
-                    u[n, :],
-                    v[n, :],
+                    ds["u_1205"][n, :],
+                    ds["v_1206"][n, :],
                     ds["P_1ac"][n, :].mean().values
                     + ds.attrs["initial_instrument_height"],
                     ds.attrs["initial_instrument_height"],
@@ -127,16 +133,22 @@ def nc_to_waves(nc_filename):
 
         for k in puvs:
             ds["puv_" + k] = xr.DataArray(puvs[k], dims="time")
-            ds["puv_" + k].attrs["description"] = desc[k]
-            ds["puv_" + k].attrs["standard_name"] = standard_name[k]
+            if k in desc:
+                ds["puv_" + k].attrs["description"] = desc[k]
+            if k in standard_name:
+                ds["puv_" + k].attrs["standard_name"] = standard_name[k]
 
         # add in Hs
         ds["puv_Hsp"] = np.sqrt(2) * ds["puv_Hrmsp"]
         ds["puv_Hsp"].attrs["description"] = "Hs computed via sqrt(2) * Hrmsp"
         ds["puv_Hsp"].attrs["standard_name"] = "sea_surface_wave_significant_height"
+        ds["puv_Hsp"].attrs["units"] = "m"
+
         ds["puv_Hsu"] = np.sqrt(2) * ds["puv_Hrmsu"]
         ds["puv_Hsu"].attrs["description"] = "Hs computed via sqrt(2) * Hrmsu"
         ds["puv_Hsu"].attrs["standard_name"] = "sea_surface_wave_significant_height"
+        ds["puv_Hsu"].attrs["units"] = "m"
+
         ds["puv_Hsp_tail"] = np.sqrt(2) * ds["puv_Hrmsp_tail"]
         ds["puv_Hsp_tail"].attrs[
             "description"
@@ -144,6 +156,8 @@ def nc_to_waves(nc_filename):
         ds["puv_Hsp_tail"].attrs[
             "standard_name"
         ] = "sea_surface_wave_significant_height"
+        ds["puv_Hsp_tail"].attrs["units"] = "m"
+
         ds["puv_Hsu_tail"] = np.sqrt(2) * ds["puv_Hrmsu_tail"]
         ds["puv_Hsu_tail"].attrs[
             "description"
@@ -151,6 +165,14 @@ def nc_to_waves(nc_filename):
         ds["puv_Hsu_tail"].attrs[
             "standard_name"
         ] = "sea_surface_wave_significant_height"
+        ds["puv_Hsu_tail"].attrs["units"] = "m"
+
+        ds["puv_Tpp"].attrs["units"] = "s"
+
+        ds["puv_Tpu"].attrs["units"] = "s"
+
+        ds["puv_azr"].attrs["units"] = "degrees"
+        ds["puv_azr_tail"].attrs["units"] = "degrees"
 
     # ds = utils.create_water_depth(ds)
 
@@ -197,7 +219,8 @@ def nc_to_waves(nc_filename):
 
     ds = utils.trim_wp_ratio(ds)
 
-    ds = waves.puv_qaqc(ds)
+    if dopuv:
+        ds = waves.puv_qaqc(ds)
 
     # Add attrs
     ds = utils.ds_add_attrs(ds)
