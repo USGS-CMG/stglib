@@ -59,6 +59,7 @@ d|wave
 
 d|wave-specific options include:
 
+- ``basefile``: the input filename without extension or data type. For example, if your exported text files are named ``055170_20190219_1547_burst.txt``, ``055170_20190219_1547_data.txt``, etc., ``basefile`` will be ``055170_20190219_1547``.
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).

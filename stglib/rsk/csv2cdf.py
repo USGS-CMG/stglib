@@ -9,15 +9,16 @@ def csv_to_cdf(metadata):
 
     basefile = metadata["basefile"]
 
-    with open("_".join(basefile.split("_")[0:-1]) + "_metadata.txt") as f:
+    with open(basefile + "_metadata.txt") as f:
         meta = yaml.safe_load(f)
 
     print(f"Reading {basefile}.txt")
     try:
-        df = pd.read_csv(basefile + ".txt", engine="pyarrow")
+        df = pd.read_csv(basefile + "_data.txt", engine="pyarrow")
     except ValueError:
+
         df = pd.read_csv(
-            basefile + ".txt"
+            basefile + "_data.txt"
         )  # pyarrow seems to fail on Python 3.7 on GitHub Actions
 
     df = df.rename(columns={"Time": "time"}).set_index("time")
@@ -100,10 +101,7 @@ def csv_to_cdf(metadata):
         ds.attrs["samples_per_burst"] = meta["sampling"]["burstcount"]
 
     if ds.attrs["sample_mode"] == "WAVE":
-        burst = pd.read_csv(
-            "_".join(basefile.split("_")[0:-1]) + "_burst.txt",
-            infer_datetime_format=True,
-        )
+        burst = pd.read_csv(basefile + "_burst.txt", infer_datetime_format=True)
 
         burst = burst.rename(columns={"Time": "time"}).set_index("time")
 
