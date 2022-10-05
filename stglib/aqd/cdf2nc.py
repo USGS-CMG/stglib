@@ -24,10 +24,24 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL, T, T_orig = aqdutils.set_orientation(VEL, VEL["TransMatrix"].values)
 
     # Transform coordinates from, most likely, BEAM to ENU
+
+    if "VEL1" in VEL:
+        theu = VEL["VEL1"].values
+        thev = VEL["VEL2"].values
+        thew = VEL["VEL3"].values
+    elif "U" in VEL:
+        theu = VEL["U"].values
+        thev = VEL["V"].values
+        thew = VEL["W"].values
+    elif "X" in VEL:
+        theu = VEL["X"].values
+        thev = VEL["Y"].values
+        thew = VEL["Z"].values
+
     u, v, w = aqdutils.coord_transform(
-        VEL["VEL1"].values,
-        VEL["VEL2"].values,
-        VEL["VEL3"].values,
+        theu,
+        thev,
+        thew,
         VEL["Heading"].values,
         VEL["Pitch"].values,
         VEL["Roll"].values,
