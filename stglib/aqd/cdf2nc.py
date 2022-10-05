@@ -167,10 +167,10 @@ def ds_drop(ds):
         "Depth",
     ]
 
-    if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"] == "true"):
+    if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"].lower() == "true"):
         todrop.remove("AnalogInput1")
 
-    if ("AnalogInput2" in ds.attrs) and (ds.attrs["AnalogInput2"] == "true"):
+    if ("AnalogInput2" in ds.attrs) and (ds.attrs["AnalogInput2"].lower() == "true"):
         todrop.remove("AnalogInput2")
 
     return ds.drop([t for t in todrop if t in ds.variables])

@@ -26,7 +26,7 @@ def nc_to_waves(nc_filename):
 
     dopuv = False
     if "puv" in ds.attrs:
-        if ds.attrs["puv"] == "true":
+        if ds.attrs["puv"].lower() == "true":
             dopuv = True
 
     if dopuv:
