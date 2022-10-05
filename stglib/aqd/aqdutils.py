@@ -1162,3 +1162,47 @@ def check_valid_config_metadata(metadata):
     ]:
         if k not in metadata:
             raise KeyError(f"{k} must be defined, most likely in config.yaml")
+
+
+def apply_wave_coord_output(ds, T, T_orig):
+    # Transform coordinates from ENU to BEAM if necessary
+    if "wave_coord_output" in ds.attrs:
+        if ds.attrs["wave_coord_output"] != "ENU":
+            raise NotImplementedError(
+                "Only wave_coord_output to ENU is supported at this time"
+            )
+
+        if (ds.attrs["wave_coord_output"] == "ENU") and (
+            ds.attrs["AQDCoordinateSystem"] == "ENU"
+        ):
+            print(
+                "Requested wave coordinate output to ENU but coordinate system is already ENU. Doing nothing."
+            )
+            return ds
+
+        histtext = "{}: Converting from {} to {} at user request.\n".format(
+            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            ds.attrs["AQDCoordinateSystem"],
+            ds.attrs["wave_coord_output"],
+        )
+        print(histtext)
+        ds = utils.insert_history(ds, histtext)
+        u, v, w = coord_transform(
+            ds["VEL1"].values,
+            ds["VEL2"].values,
+            ds["VEL3"].values,
+            ds["Heading"].values,
+            ds["Pitch"].values,
+            ds["Roll"].values,
+            T,
+            T_orig,
+            ds.attrs["AQDCoordinateSystem"],
+            out=ds.attrs["wave_coord_output"],
+        )
+        ds["U"] = xr.DataArray(u, dims=("time", "sample"))
+        ds["V"] = xr.DataArray(v, dims=("time", "sample"))
+        ds["W"] = xr.DataArray(w, dims=("time", "sample"))
+
+        ds = ds.drop(["VEL1", "VEL2", "VEL3"])
+
+    return ds
