@@ -238,20 +238,32 @@ def trim_fliers(ds, var):
     return ds
 
 
-def trim_maxabs_diff_z(ds, var):
-    if var + "_maxabs_diff_z" in ds.attrs:
+def trim_maxabs_diff_2d(ds, var):
+    if var + "_maxabs_diff_2d" in ds.attrs:
         print(
-            "%s: Trimming using maximum absolute diff of %5.2f on z dim"
-            % (var, ds.attrs[var + "_maxabs_diff_z"].round(2))
+            "%s: Trimming using maximum absolute diff of %5.2f of 2d variable"
+            % (var, ds.attrs[var + "_maxabs_diff_2d"])
         )
 
-        bads = np.abs(ds[var].diff(dim="z")) >= ds.attrs[var + "_maxabs_diff_z"]
-        ds[var][:, 1:] = ds[var].where(~bads)
+        bads0 = (
+            np.abs(ds[var].diff(dim=ds[var].dims[0]))
+            >= ds.attrs[var + "_maxabs_diff_2d"]
+        )
+        bads0 = np.vstack([bads0[0, :], bads0])
+
+        bads1 = (
+            np.abs(ds[var].diff(dim=ds[var].dims[1]))
+            >= ds.attrs[var + "_maxabs_diff_2d"]
+        )
+        bads1 = np.vstack([bads1[:, 0].transpose(), bads1.transpose()]).transpose()
+
+        ds[var] = ds[var].where(~bads0)
+        ds[var] = ds[var].where(~bads1)
 
         notetxt = (
             "Values filled where data increases by more than %5.2f "
-            "units (absolute) in a single time step along the z dimension. "
-            % ds.attrs[var + "_maxabs_diff_z"].round(2)
+            "units (absolute) in a single time step along the dimensions of 2d variable. "
+            % ds.attrs[var + "_maxabs_diff_2d"]
         )
 
         ds = utils.insert_note(ds, var, notetxt)
