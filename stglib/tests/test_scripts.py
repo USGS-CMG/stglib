@@ -48,6 +48,9 @@ def test_exo():
 def test_aqd():
     aqd_raw("glob_att1118a_b.txt", "aqd1118A_config.yaml")
     aqd_nc("1118ABaqd-raw.cdf")
+    aqd_raw("glob_att1121a_msl_aqd.txt", "aqd1121A_config.yaml")
+    aqd_nc("11211Aaqd-raw.cdf")
+
 
 
 def wxt_raw(glob_att, config_yaml):

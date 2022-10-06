@@ -1,0 +1,242 @@
+[C:\Users\jborden-pr.IGSAGIEGLTJBO70\Downloads\1121AQ04.PRF]
+---------------------------------------------------------------------
+Number of measurements                9580
+Number of checksum errors             0
+Time of first measurement             11/12/2018
+Time of last measurement              2/19/2019 6:45:00 PM
+
+User setup
+---------------------------------------------------------------------
+Profile interval                      900 sec
+Number of cells                       44
+Cell size                             10 cm
+Average interval                      120 sec
+Measurement load                      100 %
+Transmit pulse length                 0.10 m
+Blanking distance                     0.10 m
+Compass update rate                   900 sec
+Distance measurements                 DISABLED
+Wave measurements                     DISABLED
+Wave - Powerlevel                     LOW
+Wave - Interval                       5400 sec
+Wave - Number of samples              1024
+Wave - Sampling rate                  1 Hz
+Wave - Cell size                      1.00 m
+Analog input 1                        NONE
+Analog input 2                        NONE
+Power output                          DISABLED
+Powerlevel                            LOW+
+Coordinate system                     BEAM
+Sound speed                           MEASURED
+Salinity                              25.0 ppt
+Distance between pings                10.00 m
+Number of beams                       3
+Number of pings per burst             23
+Software version                      1.37.08
+Deployment name                       1121AQ
+Wrap mode                             OFF
+Deployment time                       11/12/2018
+Comments                              
+System1                               19
+System2                               10
+System3                               5
+System4                               437
+System5                               512
+System9                               49216
+System10                              96
+System11                              0
+System12                              0
+System13                              0
+System14                              900
+System16                              44
+System17                              1182
+System22                              5400
+System28                              1
+System29                              1
+System30                              24
+System31                              15466 15495 15522 15550
+System32                              0
+System33                              0
+System34                              167
+System35                              53
+System36                              10709
+System38                              0
+System39                              0
+System40                              10
+System41                              0
+System42                              0
+System43                              0
+System44                              0
+System45                              6
+Start command                         Recorder deployment
+CRC download                          ON
+
+Hardware configuration
+---------------------------------------------------------------------
+Serial number                         AQD14022
+Hardware revision                     4 (E)
+Recorder size                         3773 MByte
+Firmware version                      3.40
+Velocity range                        HIGH
+Power output                          12V
+Sync signal data out delay            0 sec
+Sync signal power down delay          0 sec
+ProLog ID                             1771
+ProLog firmware version               4.22
+SD Card Inserted                      YES
+SD Card Ready                         YES
+SD Card Write protected               NO
+SD Card Type                          SDHC
+SD Card Supported                     YES
+
+Head configuration
+---------------------------------------------------------------------
+Pressure sensor                       YES
+Compass                               YES
+Tilt sensor                           YES
+System 1                              1
+Head frequency                        2000 kHz
+Serial number                         ASP 8772
+Transformation matrix                 1.5774 -0.7891 -0.7891
+                                      0.0000 -1.3662 1.3662
+                                      0.3677 0.3677 0.3677
+Magnetometer calibration matrix       0.9911 -0.0128 -0.0101
+                                      0.0091 1.0000 0.0057
+                                      0.0066 -0.0004 0.9960
+Compass hard iron calibration         85 168 46
+Pressure sensor calibration           0 0 3258 18643
+Number of beams                       3
+System5                               25 25 25 0
+System7                               -24537 266 12676 53
+                                      -23562 1117 12564 -354
+System8                               1 0 0
+                                      0 -1 0
+                                      0 0 -1
+System9                               1 0 0
+                                      0 1 0
+                                      0 0 1
+System10                              0 1 -1 0
+System11                              0 1 1 0
+System13                              1481 259 7128 10861
+System14                              -23046 -445 12708 -71
+                                      -20966 -738 12211 -97
+System15                              32476 -420 -330 299
+                                      32767 186 216 -14
+                                      32637 85 168 46
+                                      0 0 0 0
+System16                              0 0 0 0
+System17                              4550
+System18                              3600
+System19                              3600
+System20                              10000
+
+
+Current profile cell center distance from head (m)
+---------------------------------------------------------------------
+  1    0.20
+  2    0.30
+  3    0.40
+  4    0.50
+  5    0.60
+  6    0.70
+  7    0.80
+  8    0.90
+  9    1.00
+ 10    1.10
+ 11    1.20
+ 12    1.30
+ 13    1.40
+ 14    1.50
+ 15    1.60
+ 16    1.70
+ 17    1.80
+ 18    1.90
+ 19    2.00
+ 20    2.10
+ 21    2.20
+ 22    2.30
+ 23    2.40
+ 24    2.50
+ 25    2.60
+ 26    2.70
+ 27    2.80
+ 28    2.90
+ 29    3.00
+ 30    3.10
+ 31    3.20
+ 32    3.30
+ 33    3.40
+ 34    3.50
+ 35    3.60
+ 36    3.70
+ 37    3.80
+ 38    3.90
+ 39    4.00
+ 40    4.10
+ 41    4.20
+ 42    4.30
+ 43    4.40
+ 44    4.50
+
+Data file format
+---------------------------------------------------------------------
+[C:\Users\jborden-pr.IGSAGIEGLTJBO70\Downloads\1121AQ04.v1]
+ 1   Velocity Cell 1 (Beam1|X|East)   (m/s)
+ 2   Velocity Cell 2 (Beam1|X|East)   (m/s)
+     .
+     .
+ n   Velocity Cell n (Beam1|X|East)   (m/s)
+---------------------------------------------------------------------
+[C:\Users\jborden-pr.IGSAGIEGLTJBO70\Downloads\1121AQ04.v2]
+ 1   Velocity Cell 1 (Beam2|Y|North)  (m/s)
+ 2   Velocity Cell 2 (Beam2|Y|North)  (m/s)
+     .
+     .
+ n   Velocity Cell n (Beam2|Y|North)  (m/s)
+---------------------------------------------------------------------
+[C:\Users\jborden-pr.IGSAGIEGLTJBO70\Downloads\1121AQ04.v3]
+ 1   Velocity Cell 1 (Beam3|Z|Up)     (m/s)
+ 2   Velocity Cell 2 (Beam3|Z|Up)     (m/s)
+     .
+     .
+ n   Velocity Cell n (Beam3|Z|Up)     (m/s)
+---------------------------------------------------------------------
+[C:\Users\jborden-pr.IGSAGIEGLTJBO70\Downloads\1121AQ04.a1]
+ 1   Amplitude Cell 1 (Beam1)         (counts)
+ 2   Amplitude Cell 2 (Beam1)         (counts)
+     .
+     .
+ n   Amplitude Cell n (Beam1)         (counts)
+---------------------------------------------------------------------
+[C:\Users\jborden-pr.IGSAGIEGLTJBO70\Downloads\1121AQ04.a2]
+ 1   Amplitude Cell 1 (Beam2)         (counts)
+ 2   Amplitude Cell 2 (Beam2)         (counts)
+     .
+     .
+ n   Amplitude Cell n (Beam2)         (counts)
+---------------------------------------------------------------------
+[C:\Users\jborden-pr.IGSAGIEGLTJBO70\Downloads\1121AQ04.a3]
+ 1   Amplitude Cell 1 (Beam3)         (counts)
+ 2   Amplitude Cell 2 (Beam3)         (counts)
+     .
+     .
+ n   Amplitude Cell n (Beam3)         (counts)
+---------------------------------------------------------------------
+[C:\Users\jborden-pr.IGSAGIEGLTJBO70\Downloads\1121AQ04.sen]
+ 1   Month                            (1-12)
+ 2   Day                              (1-31)
+ 3   Year
+ 4   Hour                             (0-23)
+ 5   Minute                           (0-59)
+ 6   Second                           (0-59)
+ 7   Error code
+ 8   Status code
+ 9   Battery voltage                  (V)
+10   Soundspeed                       (m/s)
+11   Heading                          (degrees)
+12   Pitch                            (degrees)
+13   Roll                             (degrees)
+14   Pressure                         (dbar)
+15   Temperature                      (degrees C)
+16   Analog input 1
+17   Analog input 2
