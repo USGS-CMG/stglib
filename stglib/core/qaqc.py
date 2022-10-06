@@ -240,32 +240,55 @@ def trim_fliers(ds, var):
 
 def trim_maxabs_diff_2d(ds, var):
     if var + "_maxabs_diff_2d" in ds.attrs:
-        print(
-            "%s: Trimming using maximum absolute diff of %5.2f of 2d variable"
-            % (var, ds.attrs[var + "_maxabs_diff_2d"])
-        )
 
-        bads0 = (
-            np.abs(ds[var].diff(dim=ds[var].dims[0]))
-            >= ds.attrs[var + "_maxabs_diff_2d"]
-        )
-        bads0 = np.vstack([bads0[0, :], bads0])
+        if (
+            isinstance(ds.attrs[var + "_maxabs_diff_2d"][0], str)
+            & isinstance(ds.attrs[var + "_maxabs_diff_2d"][2], str)
+            & isinstance(ds.attrs[var + "_maxabs_diff_2d"][1], (float, int))
+            & isinstance(ds.attrs[var + "_maxabs_diff_2d"][3], (float, int))
+        ):
 
-        bads1 = (
-            np.abs(ds[var].diff(dim=ds[var].dims[1]))
-            >= ds.attrs[var + "_maxabs_diff_2d"]
-        )
-        bads1 = np.vstack([bads1[:, 0].transpose(), bads1.transpose()]).transpose()
+            print(
+                "%s: Trimming using maximum absolute diff of 2d variable with [dim,val] pairs [%s, %5.2f, %s, %5.2f]"
+                % (
+                    var,
+                    ds.attrs[var + "_maxabs_diff_2d"][0],
+                    ds.attrs[var + "_maxabs_diff_2d"][1],
+                    ds.attrs[var + "_maxabs_diff_2d"][2],
+                    ds.attrs[var + "_maxabs_diff_2d"][3],
+                )
+            )
 
-        ds[var] = ds[var].where(~bads0)
-        ds[var] = ds[var].where(~bads1)
+            bads0 = (
+                np.abs(ds[var].diff(dim=ds.attrs[var + "_maxabs_diff_2d"][0]))
+                >= ds.attrs[var + "_maxabs_diff_2d"][1]
+            )
+            bads0 = np.vstack([bads0[0, :], bads0])
 
-        notetxt = (
-            "Values filled where data increases by more than %5.2f "
-            "units (absolute) in a single time step along the dimensions of 2d variable. "
-            % ds.attrs[var + "_maxabs_diff_2d"]
-        )
+            bads1 = (
+                np.abs(ds[var].diff(dim=ds[var].dims[1]))
+                >= ds.attrs[var + "_maxabs_diff_2d"]
+            )
+            bads1 = np.vstack([bads1[:, 0].transpose(), bads1.transpose()]).transpose()
 
-        ds = utils.insert_note(ds, var, notetxt)
+            ds[var] = ds[var].where(~bads0)
+            ds[var] = ds[var].where(~bads1)
+
+            notetxt = (
+                "Values filled where data increases by more than %5.2f"
+                "units (absolute) units along dimension %s and %5.2f and along dimension %s. "
+                % (
+                    ds.attrs[var + "_maxabs_diff_2d"][0],
+                    ds.attrs[var + "_maxabs_diff_2d"][1],
+                    ds.attrs[var + "_maxabs_diff_2d"][2],
+                    ds.attrs[var + "_maxabs_diff_2d"][3],
+                )
+            )
+            ds = utils.insert_note(ds, var, notetxt)
+        else:
+            print(
+                "Values for %s_maxabs_diff_2d not in required format [dim1(str), val1(float), dim2(str), val2(float)]. No maxabs_diff_2d trimming was done!!",
+                var,
+            )
 
     return ds
