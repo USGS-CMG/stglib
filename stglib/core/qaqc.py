@@ -261,18 +261,22 @@ def trim_maxabs_diff_2d(ds, var):
                 )
 
                 bads0 = (
-                    np.abs(ds[var].diff(dim=ds.attrs[var + "_maxabs_diff_2d"][0]))
+                    np.abs(
+                        ds[var].diff(
+                            dim=ds.attrs[var + "_maxabs_diff_2d"][0], label="upper"
+                        )
+                    )
                     >= val1
                 )
-                bads0 = np.vstack([bads0[0, :], bads0])
 
                 bads1 = (
-                    np.abs(ds[var].diff(dim=ds.attrs[var + "_maxabs_diff_2d"][2]))
+                    np.abs(
+                        ds[var].diff(
+                            dim=ds.attrs[var + "_maxabs_diff_2d"][2], label="upper"
+                        )
+                    )
                     >= val2
                 )
-                bads1 = np.vstack(
-                    [bads1[:, 0].transpose(), bads1.transpose()]
-                ).transpose()
 
                 ds[var] = ds[var].where(~bads0)
                 ds[var] = ds[var].where(~bads1)
@@ -293,7 +297,7 @@ def trim_maxabs_diff_2d(ds, var):
                 )
                 ds = utils.insert_note(ds, var, notetxt)
             except:
-                print(
+                raise TypeError(
                     "Values for %s _maxabs_diff_2d not in required format [dim1(str), val1(float), dim2(str), val2(float)]. No maxabs_diff_2d trimming was done!!"
                     % var
                 )
