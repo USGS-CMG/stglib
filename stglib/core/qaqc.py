@@ -260,7 +260,7 @@ def trim_maxabs_diff_2d(ds, var):
                     )
                 )
 
-                bads0 = (
+                bads1 = (
                     np.abs(
                         ds[var].diff(
                             dim=ds.attrs[var + "_maxabs_diff_2d"][0], label="upper"
@@ -269,7 +269,7 @@ def trim_maxabs_diff_2d(ds, var):
                     >= val1
                 )
 
-                bads1 = (
+                bads2 = (
                     np.abs(
                         ds[var].diff(
                             dim=ds.attrs[var + "_maxabs_diff_2d"][2], label="upper"
@@ -278,8 +278,21 @@ def trim_maxabs_diff_2d(ds, var):
                     >= val2
                 )
 
-                ds[var] = ds[var].where(~bads0)
+                # pad bads mask for first element along dim so not set to all NaNs
+                dim1 = dict([(ds.attrs[var + "_maxabs_diff_2d"][0], 0)])
+                padding1 = xr.zeros_like(ds[var].isel(dim1)).astype(bool)
+                bads1 = xr.concat(
+                    [padding1, bads1], dim=ds.attrs[var + "_maxabs_diff_2d"][0]
+                )
+
+                dim2 = dict([(ds.attrs[var + "_maxabs_diff_2d"][2], 0)])
+                padding2 = xr.zeros_like(ds[var].isel(dim2)).astype(bool)
+                bads2 = xr.concat(
+                    [padding2, bads2], dim=ds.attrs[var + "_maxabs_diff_2d"][2]
+                )
+
                 ds[var] = ds[var].where(~bads1)
+                ds[var] = ds[var].where(~bads2)
 
                 notetxt = (
                     "Values filled where data increases by more than %s "
