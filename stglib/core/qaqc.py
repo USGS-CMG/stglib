@@ -235,3 +235,89 @@ def trim_fliers(ds, var):
         ds = utils.insert_note(ds, var, notetxt)
 
     return ds
+
+
+def trim_maxabs_diff_2d(ds, var):
+    if var + "_maxabs_diff_2d" in ds.attrs:
+
+        if isinstance(ds.attrs[var + "_maxabs_diff_2d"][0], str) & isinstance(
+            ds.attrs[var + "_maxabs_diff_2d"][2], str
+        ):
+
+            try:
+                val1 = float(ds.attrs[var + "_maxabs_diff_2d"][1])
+                val2 = float(ds.attrs[var + "_maxabs_diff_2d"][3])
+
+                print(
+                    "%s: Trimming using maximum absolute diff of 2d variable with [dim,val] pairs [%s, %s, %s, %s]"
+                    % (
+                        var,
+                        ds.attrs[var + "_maxabs_diff_2d"][0],
+                        ds.attrs[var + "_maxabs_diff_2d"][1],
+                        ds.attrs[var + "_maxabs_diff_2d"][2],
+                        ds.attrs[var + "_maxabs_diff_2d"][3],
+                    )
+                )
+
+                bads1 = (
+                    np.abs(
+                        ds[var].diff(
+                            dim=ds.attrs[var + "_maxabs_diff_2d"][0], label="upper"
+                        )
+                    )
+                    >= val1
+                )
+
+                bads2 = (
+                    np.abs(
+                        ds[var].diff(
+                            dim=ds.attrs[var + "_maxabs_diff_2d"][2], label="upper"
+                        )
+                    )
+                    >= val2
+                )
+
+                # pad bads mask for first element along dim so not set to all NaNs
+                dim1 = dict([(ds.attrs[var + "_maxabs_diff_2d"][0], 0)])
+                padding1 = xr.zeros_like(ds[var].isel(dim1)).astype(bool)
+                bads1 = xr.concat(
+                    [padding1, bads1], dim=ds.attrs[var + "_maxabs_diff_2d"][0]
+                )
+
+                dim2 = dict([(ds.attrs[var + "_maxabs_diff_2d"][2], 0)])
+                padding2 = xr.zeros_like(ds[var].isel(dim2)).astype(bool)
+                bads2 = xr.concat(
+                    [padding2, bads2], dim=ds.attrs[var + "_maxabs_diff_2d"][2]
+                )
+
+                ds[var] = ds[var].where(~bads1)
+                ds[var] = ds[var].where(~bads2)
+
+                notetxt = (
+                    "Values filled where data increases by more than %s "
+                    "units (absolute) along "
+                    "%s"
+                    " dim, and %s units along "
+                    "%s"
+                    " dim. "
+                    % (
+                        ds.attrs[var + "_maxabs_diff_2d"][1],
+                        ds.attrs[var + "_maxabs_diff_2d"][0],
+                        ds.attrs[var + "_maxabs_diff_2d"][3],
+                        ds.attrs[var + "_maxabs_diff_2d"][2],
+                    )
+                )
+                ds = utils.insert_note(ds, var, notetxt)
+            except:
+                raise TypeError(
+                    "Values for %s _maxabs_diff_2d not in required format [dim1(str), val1(float), dim2(str), val2(float)]. No maxabs_diff_2d trimming was done!!"
+                    % var
+                )
+
+        else:
+            print(
+                "Values for %s _maxabs_diff_2d not in required format [dim1(str), val1(float), dim2(str), val2(float)]. No maxabs_diff_2d trimming was done!!"
+                % var
+            )
+
+    return ds

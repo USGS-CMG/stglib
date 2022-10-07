@@ -32,3 +32,16 @@ glob_att1137.txt filter=lfs diff=lfs merge=lfs -text
 1137aa_config.yaml filter=lfs diff=lfs merge=lfs -text
 aa400_0074_orange_raw_trim.log filter=lfs diff=lfs merge=lfs -text
 aa400_0074_orange_raw_trim_utf8.log filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/11211Aaqd-a.nc.cfcheck.txt filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/11211Aaqd-a.nc filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/11211Aaqd-raw.cdf filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/glob_att1121a_msl_aqd.txt filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/aqd1121A_config.yaml filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/1121AQ04.v3 filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/1121AQ04.v2 filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/1121AQ04.v1 filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/1121AQ04.sen filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/1121AQ04.hdr filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/1121AQ04.a3 filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/1121AQ04.a2 filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/1121AQ04.a1 filter=lfs diff=lfs merge=lfs -text
