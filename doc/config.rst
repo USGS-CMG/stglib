@@ -40,6 +40,20 @@ Options common to most (all?) instrument config files:
 - ``good_dates``: a list of dates to clip data by instead of the default ``Deployment_date`` and ``Recovery_date``. Example: ``good_dates: ['2021-01-22 18:32', '2021-04-13 19:27'] # first burst looked suspect``
 - ``good_ens``: a list of good indices (based on the raw file, zero-based) to clip the data by. Example: ``good_ens: [10, 500]``. To specify multiple good ranges, add additional pairs of indices: ``good_ens: [10, 500, 560, 600]`` will clip the data to samples 10-500 and 560-600 in the final file.
 
+Multiple instruments
+--------------------
+
+Options applicable to many instrument types include:
+
+- ``<VAR>_bad_ens``: specify bad ensemble ranges (either index numbers or dates) that should be set to ``_FillValue``. If you want multiple ranges, you can do this with additional values in the array. For example, ``Turb_bad_ens: ['2017-09-30 21:15', '2017-10-02 09:30', '2017-10-12 20:45', '2017-10-16 00:30']``. This will set the ranges in late September and early October, and again in mid-October, to ``_FillValue``.
+- ``<VAR>_min``: fill values less than this minimum valid value. Values outside this range will become ``_FillValue``. Substitute your variable for ``<VAR>``, e.g. ``fDOMQSU_min``.
+- ``<VAR>_max``: fill values more than this maximum valid value.
+- ``<VAR>_min_diff``: fill values where data decreases by more than this number of units in a single time step. Should be a negative number.
+- ``<VAR>_max_diff``: fill values where data increases by more than this number of units in a single time step.
+- ``<VAR>_med_diff``: fill values where difference between a 5-point (default) median filter and original values is greater than this number.
+- ``<VAR>_med_diff_pct``: fill values where percent difference between a 5-point (default) median filter and original values is greater than this number.
+- ``<VAR>_trim_fliers``: fill flier values, which are data points surrounded by filled data. Set to the maximum size of flier clumps to remove.
+
 Aquadopp
 --------
 
@@ -49,6 +63,7 @@ Aquadopp-specific options include:
 - ``cutoff_ampl``: will probably always be ``0``
 - ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``'bin range'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
 - ``<VAR>_trim_single_bins``: trim data where only a single bin of data (after trimming via ``trim_method``) remains. Set this value to ``true`` to enable.
+- ``<VAR>_maxabs_diff_2d``: trim values in a 2D DataArray when the absolute value of the increase is greater than a specified amount
 
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml
@@ -75,14 +90,6 @@ EXO
 EXO-specific options include:
 
 - ``skiprows``: number of lines to skip in the CSV before the real data begins
-- ``<VAR>_min``: fill values less than this minimum valid value. Values outside this range will become ``_FillValue``. Substitute your variable for ``<VAR>``, e.g. ``fDOMQSU_min``.
-- ``<VAR>_max``: fill values more than this maximum valid value.
-- ``<VAR>_min_diff``: fill values where data decreases by more than this number of units in a single time step. Should be a negative number.
-- ``<VAR>_max_diff``: fill values where data increases by more than this number of units in a single time step.
-- ``<VAR>_med_diff``: fill values where difference between a 5-point (default) median filter and original values is greater than this number.
-- ``<VAR>_med_diff_pct``: fill values where percent difference between a 5-point (default) median filter and original values is greater than this number.
-- ``<VAR>_trim_fliers``: fill flier values, which are data points surrounded by filled data. Set to the maximum size of flier clumps to remove.
-- ``<VAR>_bad_ens``: specify bad ensemble ranges (either index numbers or dates) that should be set to ``_FillValue``. If you want multiple ranges, you can do this with additional values in the array. For example, ``Turb_bad_ens: ['2017-09-30 21:15', '2017-10-02 09:30', '2017-10-12 20:45', '2017-10-16 00:30']``. This will set the ranges in late September and early October, and again in mid-October, to ``_FillValue``.
 - ``trim_by_salinity``: if ``'true'``, use salinity (``S_41``) as a master variable. Wherever salinity is ``_FillValue``, all other variables will be filled as well. Useful for when the instrument comes out of the water.
 - ``drop_vars``: a list of variables to be removed from the final file. For example, ``drop_vars: ['nLF_Cond_µS_per_cm', 'Wiper_Position_volt', 'Cable_Pwr_V']``.
 
