@@ -101,9 +101,13 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         VEL = qaqc.trim_med_diff(VEL, var)
         VEL = qaqc.trim_med_diff_pct(VEL, var)
         VEL = qaqc.trim_bad_ens(VEL, var)
-        VEL = qaqc.trim_fliers(VEL, var)
         VEL = qaqc.trim_maxabs_diff_2d(VEL, var)
         VEL = aqdutils.trim_single_bins(VEL, var)
+        VEL = qaqc.trim_fliers(VEL, var)
+
+    # after check for masking vars by other vars
+    for var in VEL.data_vars:
+        VEL = qaqc.trim_mask(VEL, var)
 
     # Add min/max values
     VEL = utils.add_min_max(VEL)
