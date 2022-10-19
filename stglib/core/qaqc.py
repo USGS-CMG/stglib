@@ -272,3 +272,26 @@ def trim_maxabs_diff_2d(ds, var):
             )
 
     return ds
+
+
+def trim_mask(ds, var):
+    """trim values using other variable(s) as mask"""
+    if var + "_mask" in ds.attrs:
+        trmvars = ds.attrs[var + "_mask"]
+
+        if not isinstance(trmvars, list):  # make sure it is a list before looping
+            trmvars = [trmvars]
+
+        for trimvar in trmvars:
+            if ds[var].dims == ds[trimvar].dims:
+                ds[var] = ds[var].where(~ds[trimvar].isnull())
+
+                print(f"{var}: Trimming using {trimvar} mask")
+                notetxt = f"Values filled using {trimvar} mask."
+                ds = utils.insert_note(ds, var, notetxt)
+            else:
+                raise ValueError(
+                    f"dimension mismatch between {var} and masking variable {trimvar}"
+                )
+
+    return ds
