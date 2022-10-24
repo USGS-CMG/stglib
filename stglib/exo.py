@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import scipy.signal
 import xarray as xr
 
 from .core import utils
