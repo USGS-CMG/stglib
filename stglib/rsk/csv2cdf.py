@@ -2,6 +2,7 @@ import pandas as pd
 import yaml
 import numpy as np
 import xarray as xr
+import warnings
 from ..core import utils
 
 
@@ -16,7 +17,9 @@ def csv_to_cdf(metadata):
     try:
         df = pd.read_csv(basefile + "_data.txt", engine="pyarrow")
     except ValueError:
-
+        warnings.warn(
+            "Failed to load file using pyarrow; falling back to the slower default loader. Are you sure you have installed pyarrow?"
+        )
         df = pd.read_csv(
             basefile + "_data.txt"
         )  # pyarrow seems to fail on Python 3.7 on GitHub Actions
