@@ -111,11 +111,11 @@ def csv_to_cdf(metadata):
         burst = burst.to_xarray()
 
         r = np.shape(burst.Pressure)[0]
-        if r % ds.attrs["samples_per_burst"]:
+        mod = r % ds.attrs["samples_per_burst"]
+        if mod:
             print(
                 "Number of rows is not a multiple of samples_per_burst; truncating to last full burst"
             )
-            mod = r % ds.attrs["samples_per_burst"]
             burst = burst.sel(time=burst.time[0:-mod])
 
         dsburst = xr.Dataset()
@@ -169,12 +169,13 @@ def csv_to_cdf(metadata):
         # burst_length is the number of data points in the burst
         ds.attrs["burst_length"] = ds.attrs["samples_per_burst"]
         r = np.shape(ds.P_1)[0]
-        if r % ds.attrs["samples_per_burst"]:
+        mod = r % ds.attrs["samples_per_burst"]
+        if mod:
             print(
                 "Number of rows is not a multiple of samples_per_burst; truncating to last full burst"
             )
-            mod = r % ds.attrs["samples_per_burst"]
             ds = ds.sel(time=ds.time[0:-mod])
+
         ds["timenew"] = xr.DataArray(
             ds.time[0 :: int(ds.attrs["samples_per_burst"])].values, dims="timenew"
         )
