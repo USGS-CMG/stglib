@@ -135,6 +135,7 @@ def cdf_to_nc(cdf_filename):
         ds["WD_gust"][ds["WD_gust"] == 0.0] = 0.0  # convert any -0. to 0.
 
     # Run utilities
+    ds = utils.clip_ds(ds)
     ds = utils.add_start_stop_time(ds)
     ds = utils.ds_add_lat_lon(ds)
     ds = utils.add_min_max(ds)
