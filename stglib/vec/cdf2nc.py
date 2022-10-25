@@ -14,14 +14,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     """
 
     # Load raw .cdf data
-    ds = xr.load_dataset(cdf_filename)
+    ds = aqdutils.load_cdf(cdf_filename, atmpres=atmpres)
 
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
     ds = utils.create_nominal_instrument_depth(ds)
-
-    ds.attrs["transducer_offset_from_bottom"] = ds.attrs["initial_instrument_height"]
 
     ds, T, T_orig = set_orientation(ds, ds["TransMatrix"].values)
 
@@ -44,13 +42,31 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     for var in ["VEL1", "VEL2", "VEL3"]:
         ds = ds.drop(var)
 
+    ds = aqdutils.magvar_correct(ds)
+
+    # Rename DataArrays for EPIC compliance
+    ds = aqdutils.ds_rename(ds)
+
+    # Drop unused variables
+    ds = ds_drop(ds)
+
+    # Add EPIC and CMG attributes
+    ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
+
     ds = ds.rename({"Burst": "burst"})
     for v in ds.data_vars:
         # need to do this or else a "coordinates" attribute with value of "Burst" hangs around
         ds[v].encoding["coordinates"] = None
 
     ds["burst"].encoding["dtype"] = "i4"
-    ds["sample"].encoding["dtype"] = "i4"
+
+    # Add start_time and stop_time attrs
+    ds = utils.add_start_stop_time(ds)
+
+    # Add history showing file used
+    ds = utils.add_history(ds)
+
+    ds = utils.add_standard_names(ds)
 
     if "prefix" in ds.attrs:
         nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "-a.nc"
@@ -236,3 +252,31 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs, out="
         )
 
     return u, v, w
+
+
+def ds_drop(ds):
+    """
+    Drop old DataArrays from Dataset that won't make it into the final .nc file
+    """
+
+    todrop = [
+        "VEL1",
+        "VEL2",
+        "VEL3",
+        "AMP1",
+        "AMP2",
+        "AMP3",
+        "TransMatrix",
+        "AnalogInput1",
+        "AnalogInput2",
+        "jd",
+        "Depth",
+    ]
+
+    if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"].lower() == "true"):
+        todrop.remove("AnalogInput1")
+
+    if ("AnalogInput2" in ds.attrs) and (ds.attrs["AnalogInput2"].lower() == "true"):
+        todrop.remove("AnalogInput2")
+
+    return ds.drop([t for t in todrop if t in ds.variables])

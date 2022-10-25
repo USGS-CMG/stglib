@@ -268,6 +268,7 @@ def add_standard_names(ds):
         "u_1205": "eastward_sea_water_velocity",
         "v_1206": "northward_sea_water_velocity",
         "w_1204": "upward_sea_water_velocity",
+        "SV_80": "speed_of_sound_in_sea_water"
         # 'AGC_1202'
     }
 

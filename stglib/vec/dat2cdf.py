@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import xarray as xr
 from ..core import utils
+from ..aqd import aqdutils
 
 
 def dat_to_cdf(metadata):
@@ -12,7 +13,7 @@ def dat_to_cdf(metadata):
         basefile = metadata["prefix"] + basefile
 
     utils.check_valid_globalatts_metadata(metadata)
-    # aqdutils.check_valid_config_metadata(metadata)
+    aqdutils.check_valid_config_metadata(metadata)
 
     # get instrument metadata from the HDR file
     instmeta = read_vec_hdr(basefile)
@@ -21,25 +22,33 @@ def dat_to_cdf(metadata):
 
     print("Loading ASCII files")
 
+    ds = load_dat(basefile)
+
+    ds = utils.write_metadata(ds, metadata)
+
+    ds = aqdutils.check_attrs(ds, inst_type="VEC")
+
     dsvhd = load_vhd(basefile)
 
     dssen = load_sen(basefile)
 
     r = np.shape(dssen.Heading)[0]
-    mod = r % int(2080 / 8 + 1)
+    senburstlen = int(ds.attrs["VECSamplesPerBurst"] / ds.attrs["VECSamplingRate"] + 1)
+
+    mod = r % senburstlen
     if mod:
+        print(f"{ds.attrs['VECSamplesPerBurst']=}")
+        print(f"{ds.attrs['VECSamplingRate']=}")
         print(
-            "Number of rows is not a multiple of samples_per_burst/sampling_rate + 1; truncating to last full burst"
+            f"Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
         )
         dssen = dssen.sel(time=dssen.time[0:-mod])
 
-    dssen["timenew"] = xr.DataArray(
-        dssen["time"].values[:: int(2080 / 8 + 1)], dims="timenew"
-    )
-    dssen["sensample"] = xr.DataArray(range(int(2080 / 8 + 1)), dims="sensample")
+    dssen["timenew"] = xr.DataArray(dssen["time"].values[::senburstlen], dims="timenew")
+    dssen["sensample"] = xr.DataArray(range(senburstlen), dims="sensample")
     for var in ["Heading", "Pitch", "Roll", "Battery", "Temperature", "Soundspeed"]:
         dssen[var + "new"] = xr.DataArray(
-            dssen[var].values.reshape((-1, int(2080 / 8 + 1))),
+            dssen[var].values.reshape((-1, senburstlen)),
             dims=["timenew", "sensample"],
         ).mean(dim="sensample")
     for var in dssen.data_vars:
@@ -50,11 +59,7 @@ def dat_to_cdf(metadata):
     dssen = dssen.drop(["time", "sensample"])
     dssen = dssen.rename({"timenew": "time"})
 
-    ds = load_dat(basefile)
-
-    ds = utils.write_metadata(ds, metadata)
-
-    # need to get time from VHD
+    # Apply time from VHD file to DAT data
     ds["time"] = dsvhd["time"]
 
     ds = ds.swap_dims({"Burst": "time"})
@@ -64,12 +69,18 @@ def dat_to_cdf(metadata):
         ds[var] = dssen[var].reindex_like(ds, method="nearest")
 
     ds["TransMatrix"] = xr.DataArray(ds.attrs["VECTransMatrix"])
-    # Need to remove VECTransMatrix from attrs for netCDF compliance
+    # Remove VECTransMatrix from attrs for netCDF compliance
     ds.attrs.pop("VECTransMatrix")
 
     for v in ds.data_vars:
         # need to do this or else a "coordinates" attribute with value of "Burst" hangs around
         ds[v].encoding["coordinates"] = None
+    ds.encoding["coordinates"] = None
+
+    # Compute time stamps
+    ds = utils.shift_time(
+        ds, ds.attrs["VECSamplesPerBurst"] / ds.attrs["VECSamplingRate"] / 2
+    )
 
     if "prefix" in ds.attrs:
         cdf_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "-raw.cdf"
@@ -82,6 +93,7 @@ def dat_to_cdf(metadata):
 
 
 def load_vhd(basefile):
+    print(f"Loading {basefile}.vhd")
     names = [
         "Month",
         "Day",
@@ -119,6 +131,7 @@ def load_vhd(basefile):
 
 
 def load_sen(basefile):
+    print(f"Loading {basefile}.sen")
     names = [
         "Month",
         "Day",
@@ -148,6 +161,7 @@ def load_sen(basefile):
 
 
 def load_dat(basefile):
+    print(f"Loading {basefile}.dat")
     names = [
         "Burst",
         "Ensemble",
@@ -193,7 +207,7 @@ def read_vec_hdr(basefile):
                 idx = row.find(" sec")
                 Instmeta["VECBurstInterval"] = int(row[38:idx])
             if "Samples per burst" in row:
-                Instmeta["VECSamplesPerBurst"] = row[38:]
+                Instmeta["VECSamplesPerBurst"] = int(row[38:])
             if "Sampling volume" in row:
                 Instmeta["VECSamplingVolume"] = row[38:]
             if "Measurement load" in row:

@@ -20,6 +20,7 @@ def ds_rename(ds, waves=False):
         "Pitch": "Ptch_1216",
         "Roll": "Roll_1217",
         "Battery": "Bat_106",
+        "Soundspeed": "SV_80",
     }
 
     if "Pressure_ac" in ds:
@@ -603,7 +604,7 @@ def read_aqd_hdr(basefile):
     return Instmeta
 
 
-def check_attrs(ds, waves=False):
+def check_attrs(ds, waves=False, inst_type="AQD"):
 
     # Add some metadata originally in the run scripts
     ds.attrs["nominal_sensor_depth_note"] = "WATER_DEPTH - " "initial_instrument_height"
@@ -617,39 +618,42 @@ def check_attrs(ds, waves=False):
     ):
         ds.attrs["initial_instrument_height"] = 0
 
-    ds.attrs["serial_number"] = ds.attrs["AQDSerial_Number"]
+    if inst_type == "AQD":
+        ds.attrs["serial_number"] = ds.attrs["AQDSerial_Number"]
+        ds.attrs["frequency"] = ds.attrs["AQDFrequency"]
+        ds.attrs["beam_width"] = ds.attrs["AQDBeamWidth"]
+        ds.attrs["beam_pattern"] = ds.attrs["AQDBeamPattern"]
+        ds.attrs["beam_angle"] = ds.attrs["AQDBeamAngle"]
+        ds.attrs["salinity_set_by_user"] = ds.attrs["AQDSalinity"]
+        ds.attrs["salinity_set_by_user_units"] = "ppt"
 
-    # update metadata from Aquadopp header to CMG standard so that various
-    # profilers have the same attribute wording.  Redundant, but necessary
-    if not waves:
-        ds.attrs["bin_count"] = ds.attrs["AQDNumberOfCells"]
-        ds.attrs["bin_size"] = ds.attrs["AQDCellSize"] / 100  # from cm to m
-        ds.attrs["blanking_distance"] = ds.attrs["AQDBlankingDistance"]
-        # Nortek lists the distance to the center of the first bin as the
-        # blanking distance plus one cell size
-        ds.attrs["center_first_bin"] = (
-            ds.attrs["blanking_distance"] + ds.attrs["bin_size"]
-        )  # in m
-    else:
-        ds.attrs["bin_count"] = 1  # only 1 wave bin
-        ds.attrs["bin_size"] = ds.attrs["WaveCellSize"]
-        ds.attrs["blanking_distance"] = ds.attrs["AQDBlankingDistance"]
-        # TODO: need to set center_first_bin after return in main
-        # calling function
+        # update metadata from Aquadopp header to CMG standard so that various
+        # profilers have the same attribute wording.  Redundant, but necessary
+        if not waves:
+            ds.attrs["bin_count"] = ds.attrs["AQDNumberOfCells"]
+            ds.attrs["bin_size"] = ds.attrs["AQDCellSize"] / 100  # from cm to m
+            ds.attrs["blanking_distance"] = ds.attrs["AQDBlankingDistance"]
+            # Nortek lists the distance to the center of the first bin as the
+            # blanking distance plus one cell size
+            ds.attrs["center_first_bin"] = (
+                ds.attrs["blanking_distance"] + ds.attrs["bin_size"]
+            )  # in m
+        else:
+            ds.attrs["bin_count"] = 1  # only 1 wave bin
+            ds.attrs["bin_size"] = ds.attrs["WaveCellSize"]
+            ds.attrs["blanking_distance"] = ds.attrs["AQDBlankingDistance"]
+            # TODO: need to set center_first_bin after return in main
+            # calling function
 
-    ds.attrs["salinity_set_by_user"] = ds.attrs["AQDSalinity"]
-    ds.attrs["salinity_set_by_user_units"] = "ppt"
+        # TODO: Ideally we want to read the error, status, and orientation from
+        # the .SEN file, but this requires reading the first good burst, which
+        # is unknown at this point.
 
-    ds.attrs["frequency"] = ds.attrs["AQDFrequency"]
-    ds.attrs["beam_width"] = ds.attrs["AQDBeamWidth"]
-    ds.attrs["beam_pattern"] = ds.attrs["AQDBeamPattern"]
-    ds.attrs["beam_angle"] = ds.attrs["AQDBeamAngle"]
-
-    # TODO: Ideally we want to read the error, status, and orientation from
-    # the .SEN file, but this requires reading the first good burst, which
-    # is unknown at this point.
-
-    ds.attrs["INST_TYPE"] = "Nortek Aquadopp Profiler"
+        ds.attrs["INST_TYPE"] = "Nortek Aquadopp Profiler"
+    elif inst_type == "VEC":
+        ds.attrs["serial_number"] = ds.attrs["VECSerialNumber"]
+        ds.attrs["frequency"] = ds.attrs["VECFrequency"]
+        ds.attrs["INST_TYPE"] = "Nortek Vector"
 
     return ds
 
@@ -800,7 +804,7 @@ def update_attrs(ds, waves=False):
     # )
 
     ds["TransMatrix"].attrs["long_name"] = "Transformation Matrix " "for this Aquadopp"
-    if waves:
+    if "burst" in ds:
         ds["burst"].attrs.update({"units": "count", "long_name": "Record number"})
         # ds['burst'].encoding['_FillValue'] = 1e35 # don't want this to have a _FillValue
 
@@ -809,36 +813,39 @@ def update_attrs(ds, waves=False):
     return ds
 
 
-def ds_add_attrs(ds, waves=False):
+def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     """
     add EPIC and CMG attributes to xarray Dataset
     """
 
     def add_vel_attributes(vel, dsattrs):
-        vel.attrs.update(
-            {
-                "units": "m s-1",
-                "data_cmnt": (
-                    "Velocity in shallowest bin is often suspect and "
-                    "should be used with caution"
-                ),
-            }
-        )
+        vel.attrs.update({"units": "m s-1"})
+        if inst_type == "AQD":
+            vel.attrs.update(
+                {
+                    "data_cmnt": (
+                        "Velocity in shallowest bin is often suspect and should be used with caution"
+                    )
+                }
+            )
 
         # TODO: why do we only do trim_method for Water Level SL?
         if (
             "trim_method" in dsattrs
             and dsattrs["trim_method"].lower() == "water level sl"
         ):
-            vel.attrs["note"] = (
-                "Velocity bins trimmed if out of water or if "
-                "side lobes intersect sea surface"
-            )
+            vel.attrs[
+                "note"
+            ] = "Velocity bins trimmed if out of water or if side lobes intersect sea surface"
 
     def add_attributes(var, dsattrs):
+        if inst_type == "AQD":
+            sn = dsattrs["AQDSerial_Number"]
+        elif inst_type == "VEC":
+            sn = dsattrs["VECSerialNumber"]
         var.attrs.update(
             {
-                "serial_number": dsattrs["AQDSerial_Number"],
+                "serial_number": sn,
                 "initial_instrument_height": dsattrs["initial_instrument_height"],
                 "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
                 "height_depth_units": "m",
@@ -935,11 +942,12 @@ def ds_add_attrs(ds, waves=False):
             }
         )
 
-    if waves:
+    if "sample" in ds:
         ds["sample"].encoding["dtype"] = "i4"
         ds["sample"].attrs["long_name"] = "sample number"
         ds["sample"].attrs["units"] = "1"
 
+    if waves:
         if "u_1205" in ds:
             ds["u_1205"].attrs["units"] = "m s-1"
 
@@ -977,6 +985,9 @@ def ds_add_attrs(ds, waves=False):
                 }
             )
 
+        ds.attrs["COORD_SYSTEM"] = "GEOGRAPHIC + sample"
+
+    if "AGC1_1221" in ds:
         ds["AGC1_1221"].attrs.update(
             {
                 "units": "counts",
@@ -986,6 +997,7 @@ def ds_add_attrs(ds, waves=False):
             }
         )
 
+    if "AGC2_1222" in ds:
         ds["AGC2_1222"].attrs.update(
             {
                 "units": "counts",
@@ -995,6 +1007,7 @@ def ds_add_attrs(ds, waves=False):
             }
         )
 
+    if "AGC3_1223" in ds:
         ds["AGC3_1223"].attrs.update(
             {
                 "units": "counts",
@@ -1003,8 +1016,6 @@ def ds_add_attrs(ds, waves=False):
                 "epic_code": 1223,
             }
         )
-
-        ds.attrs["COORD_SYSTEM"] = "GEOGRAPHIC + sample"
 
     ds["P_1"].attrs.update(
         {
@@ -1031,28 +1042,29 @@ def ds_add_attrs(ds, waves=False):
 
         ds = utils.insert_history(ds, histtext)
 
-    ds["bin_depth"].attrs.update(
-        {"units": "m", "name": "bin depth", "long_name": "bin depth"}
-    )
-
-    if "P_1ac" in ds:
-        if waves:
-            ds["bin_depth"].attrs[
-                "note"
-            ] = "Actual depth time series of wave burst bin depths. Calculated as corrected pressure (P_1ac) - bindist."
-        else:
-            ds["bin_depth"].attrs[
-                "note"
-            ] = "Actual depth time series of velocity bins. Calculated as corrected pressure (P_1ac) - bindist."
-    else:
+    if "bin_depth" in ds:
         ds["bin_depth"].attrs.update(
-            {
-                "note": (
-                    "Actual depth time series of velocity bins. Calculated "
-                    "as pressure (P_1) - bindist."
-                )
-            }
+            {"units": "m", "name": "bin depth", "long_name": "bin depth"}
         )
+
+        if "P_1ac" in ds:
+            if waves:
+                ds["bin_depth"].attrs[
+                    "note"
+                ] = "Actual depth time series of wave burst bin depths. Calculated as corrected pressure (P_1ac) - bindist."
+            else:
+                ds["bin_depth"].attrs[
+                    "note"
+                ] = "Actual depth time series of velocity bins. Calculated as corrected pressure (P_1ac) - bindist."
+        else:
+            ds["bin_depth"].attrs.update(
+                {
+                    "note": (
+                        "Actual depth time series of velocity bins. Calculated "
+                        "as pressure (P_1) - bindist."
+                    )
+                }
+            )
 
     ds["Tx_1211"].attrs.update(
         {
@@ -1111,20 +1123,25 @@ def ds_add_attrs(ds, waves=False):
         {"units": "V", "long_name": "Battery voltage", "epic_code": 106}
     )
 
-    ds["bindist"].attrs.update(
-        {
-            "units": "m",
-            "long_name": "distance from transducer head",
-            "blanking_distance": ds.attrs["AQDBlankingDistance"],
-            "note": ("distance is along profile from instrument head to center of bin"),
-        }
-    )
+    if "bindist" in ds:
+        ds["bindist"].attrs.update(
+            {
+                "units": "m",
+                "long_name": "distance from transducer head",
+                "blanking_distance": ds.attrs["AQDBlankingDistance"],
+                "note": (
+                    "distance is along profile from instrument head to center of bin"
+                ),
+            }
+        )
 
     if not waves:
         for v in ["AGC_1202", "u_1205", "v_1206", "w_1204"]:
-            add_attributes(ds[v], ds.attrs)
+            if v in ds:
+                add_attributes(ds[v], ds.attrs)
         for v in ["u_1205", "v_1206", "w_1204"]:
-            add_vel_attributes(ds[v], ds.attrs)
+            if v in ds:
+                add_vel_attributes(ds[v], ds.attrs)
     elif waves:
         for v in [
             "vel1_1277",
@@ -1147,7 +1164,8 @@ def ds_add_attrs(ds, waves=False):
         "bin_depth",
         "bindist",
     ]:
-        add_attributes(ds[v], ds.attrs)
+        if v in ds:
+            add_attributes(ds[v], ds.attrs)
 
     return ds
 
