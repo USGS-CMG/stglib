@@ -108,18 +108,31 @@ def add_delta_t(ds, waves=False):
     return ds
 
 
-def make_tilt(p, r):
+def make_heading_np(h):
+    zero = np.zeros_like(h)
+    one = np.ones_like(h)
     return np.array(
         [
-            [math.cos(p), -math.sin(p) * math.sin(r), -math.cos(r) * math.sin(p)],
-            [0, math.cos(r), -math.sin(r)],
-            [math.sin(p), math.sin(r) * math.cos(p), math.cos(p) * math.cos(r)],
+            [np.cos(h), np.sin(h), zero],
+            [-np.sin(h), np.cos(h), zero],
+            [zero, zero, one],
+        ]
+    )
+
+
+def make_tilt_np(p, r):
+    zero = np.zeros_like(p)
+    return np.array(
+        [
+            [np.cos(p), -np.sin(p) * np.sin(r), -np.cos(r) * np.sin(p)],
+            [zero, np.cos(r), -np.sin(r)],
+            [np.sin(p), np.sin(r) * np.cos(p), np.cos(p) * np.cos(r)],
         ]
     )
 
 
 def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs, out="ENU"):
-    """Perform coordinate transformation to ENU"""
+    """Perform coordinate transformation"""
 
     N, M = np.shape(vel1)
 
@@ -127,7 +140,7 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs, out="
     v = np.zeros((N, M))
     w = np.zeros((N, M))
 
-    if cs == "ENU" and out == "ENU":
+    if cs.lower() == out.lower():
         print(
             f"Data already in {cs} coordinates and conversion to {out} requested. Doing nothing."
         )
@@ -143,52 +156,39 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs, out="
     ):
         print(f"Data are in {cs} coordinates; transforming to {out} coordinates")
 
+        hh = np.pi * (heading - 90) / 180
+        pp = np.pi * pitch / 180
+        rr = np.pi * roll / 180
+
+        # compute heading and tilt matrix and reorder dimensions so matrix multiplication works properly
+        tilt = make_tilt_np(pp, rr)
+        tilt = np.moveaxis(tilt, 2, 0)
+        head = make_heading_np(hh)
+        head = np.moveaxis(head, 2, 0)
+
+        # compute this inversion so we don't needlessly do it every time in the loop below
+        T_orig_inverted = np.linalg.inv(T_orig)
+        Rall = head @ tilt @ T
+
         for i in tqdm(range(N)):
-            hh = np.pi * (heading[i] - 90) / 180
-            pp = np.pi * pitch[i] / 180
-            rr = np.pi * roll[i] / 180
+            # select the correct transformation matrix for this burst
+            R = Rall[i]
 
-            H = np.array(
-                [
-                    [math.cos(hh), math.sin(hh), 0],
-                    [-math.sin(hh), math.cos(hh), 0],
-                    [0, 0, 1],
-                ]
-            )
-
-            # make tilt matrix
-            P = make_tilt(pp, rr)
-
-            # resulting transformation matrix
-            R = np.dot(np.dot(H, P), T)
             if cs == "XYZ" and out == "ENU":
-                for j in range(M):
-                    vel = np.dot(
-                        np.dot(R, np.linalg.inv(T_orig)),
-                        np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T,
-                    )
-                    u[i, j] = vel[0]
-                    v[i, j] = vel[1]
-                    w[i, j] = vel[2]
-
+                uvw = (
+                    R @ T_orig_inverted @ np.array([vel1[i, :], vel2[i, :], vel3[i, :]])
+                )
             elif cs == "BEAM" and out == "ENU":
-                for j in range(M):
-                    vel = np.dot(R, np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T)
-                    u[i, j] = vel[0]
-                    v[i, j] = vel[1]
-                    w[i, j] = vel[2]
+                uvw = R @ np.array([vel1[i, :], vel2[i, :], vel3[i, :]])
             elif cs == "ENU" and out == "BEAM":
-                for j in range(M):
-                    vel = np.dot(
-                        np.linalg.inv(R),
-                        np.array([vel1[i, j], vel2[i, j], vel3[i, j]]).T,
-                    )
-                    u[i, j] = vel[0]
-                    v[i, j] = vel[1]
-                    w[i, j] = vel[2]
+                uvw = np.linalg.inv(R) @ np.array([vel1[i, :], vel2[i, :], vel3[i, :]])
+
+            u[i, :] = uvw[0]
+            v[i, :] = uvw[1]
+            w[i, :] = uvw[2]
     else:
         raise NotImplementedError(
-            f"stglib does not currently input of {cs} and output of {out} coordinates"
+            f"stglib does not currently support input of {cs} and output of {out} coordinates"
         )
 
     return u, v, w
