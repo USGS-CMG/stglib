@@ -39,9 +39,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds["V"] = xr.DataArray(v, dims=("time", "sample"))
     ds["W"] = xr.DataArray(w, dims=("time", "sample"))
 
-    for var in ["VEL1", "VEL2", "VEL3"]:
-        ds = ds.drop(var)
-
     ds = aqdutils.magvar_correct(ds)
 
     # Rename DataArrays for EPIC compliance
