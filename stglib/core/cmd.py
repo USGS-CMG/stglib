@@ -312,6 +312,7 @@ def wxtcdf2nc_parser():
 
     return parser
 
+
 def eofelog2cdf_parser():
     description = (
         "Convert EofE echologger .log file to raw .cdf format. Run this script "
@@ -323,9 +324,30 @@ def eofelog2cdf_parser():
 
     return parser
 
+
 def eofecdf2nc_parser():
     description = "Convert raw echologger .cdf format to processed .nc files"
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("cdfname", help="raw .CDF filename")
+
+    return parser
+
+
+def vecdat2cdf_parser():
+    description = "Convert Vector text files to raw .cdf format. Run this script from the directory containing Vector files"
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def veccdf2nc_parser():
+    description = "Convert raw Vector .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("cdfname", help="raw .CDF filename")
+    parser.add_argument(
+        "--atmpres", help=("path to cdf file containing atmopsheric pressure data")
+    )
 
     return parser
