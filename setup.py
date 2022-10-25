@@ -17,7 +17,7 @@ setup(
     name="stglib",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    description=("Process data from a variety of oceanographic " "instrumentation"),
+    description=("Process data from a variety of oceanographic instrumentation"),
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Dan Nowacki",
