@@ -1,4 +1,18 @@
-from . import aqd, argonaut, core, eco, exo, hobo, indexvel, iq, rdi, rsk, troll, eofe
+from . import (
+    aqd,
+    argonaut,
+    core,
+    eco,
+    eofe,
+    exo,
+    hobo,
+    indexvel,
+    iq,
+    rdi,
+    rsk,
+    troll,
+    vec,
+)
 from .core import cmd, utils, waves
 from .core.utils import read_globalatts
 from .aqd import aqdutils

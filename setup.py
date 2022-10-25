@@ -65,6 +65,8 @@ setup(
         "scripts/runwxtcdf2nc.py",
         "scripts/runeofelog2cdf.py",
         "scripts/runeofecdf2nc.py",
+        "scripts/runvecdat2cdf.py",
+        "scripts/runveccdf2nc.py",
     ],
     include_package_data=True,
 )
