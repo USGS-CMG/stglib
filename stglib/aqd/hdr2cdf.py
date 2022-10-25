@@ -125,7 +125,7 @@ def load_amp_vel(RAW, basefile):
             thevars = {1: "VEL1", 2: "VEL2", 3: "VEL3"}
         elif RAW.attrs["AQDCoordinateSystem"] == "ENU":
             thevars = {1: "U", 2: "V", 3: "W"}
-        elif RAW.attrs["AQDCoordinateSystem"] == "ENU":
+        elif RAW.attrs["AQDCoordinateSystem"] == "XYZ":
             thevars = {1: "X", 2: "Y", 3: "Z"}
 
         RAW[thevars[n]] = xr.DataArray(v, dims=("time", "bindist"), coords=coords)
