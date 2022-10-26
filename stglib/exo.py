@@ -405,7 +405,7 @@ def ds_add_attrs(ds):
         )
 
     if "TALPErfu" in ds:
-        ds["BGAPErfu"].attrs.update(
+        ds["TALPErfu"].attrs.update(
             {
                 "units": "percent",
                 "long_name": "Total algae phycoerythrin, RFU",
