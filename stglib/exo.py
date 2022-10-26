@@ -311,7 +311,7 @@ def ds_rename_vars(ds):
         "BGA_PE_RFU": "BGAPErfu",  # added variable name
         "BGA-PE_µg_per_L": "BGAPE",
         "BGA_PE_ug_per_L": "BGAPE",  # added variable name
-        "TAL_PE_RFU": "TALrfu", #added variable name
+        "TAL_PE_RFU": "TALPErfu", #added variable name
         "TAL_PE_ug_per_L": "TALPE", #added variable name
         "Temp_°C": "T_28",
         "Temp_∞C": "T_28",
