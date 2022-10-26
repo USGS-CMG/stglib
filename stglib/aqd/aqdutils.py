@@ -1181,6 +1181,11 @@ def check_valid_config_metadata(metadata):
         if k not in metadata:
             raise KeyError(f"{k} must be defined, most likely in config.yaml")
 
+    if "CF" not in metadata["Conventions"]:
+        raise ValueError(
+            "Conventions other than a version of the CF Metadata Conventions are not supported"
+        )
+
 
 def apply_wave_coord_output(ds, T, T_orig):
     # Transform coordinates from ENU to BEAM if necessary
