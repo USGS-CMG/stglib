@@ -161,8 +161,8 @@ def ds_drop(ds):
         "TransMatrix",
         "AnalogInput1",
         "AnalogInput2",
-        "jd",
         "Depth",
+        "Checksum",
     ]
 
     if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"].lower() == "true"):

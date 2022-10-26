@@ -1,8 +1,11 @@
-import pandas as pd
+import warnings
+
 import numpy as np
+import pandas as pd
 import xarray as xr
-from ..core import utils
+
 from ..aqd import aqdutils
+from ..core import utils
 
 
 def dat_to_cdf(metadata):
@@ -23,6 +26,8 @@ def dat_to_cdf(metadata):
     print("Loading ASCII files")
 
     ds = load_dat(basefile)
+
+    ds = ds_checksum_check(ds)
 
     ds = utils.write_metadata(ds, metadata)
 
@@ -301,3 +306,13 @@ def read_vec_hdr(basefile):
                 Instmeta["VECPressureCal"] = row[38:]
 
     return Instmeta
+
+
+def ds_checksum_check(ds):
+
+    if np.any(ds["Checksum"] == 1):
+        warnings.warn(
+            "Non-zero checksum values found in data. This indicates a failed checksum and potentially bad data. Proceed with caution."
+        )
+
+    return ds
