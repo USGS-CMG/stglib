@@ -35,7 +35,7 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
     # install_requires=['numpy', 'netCDF4', 'xarray'],
-    python_requires=">=3.5",
+    python_requires=">=3.8",
     packages=find_packages(exclude=["doc", "tests"]),
     scripts=[
         "scripts/runaqdhdr2cdf.py",
