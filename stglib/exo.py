@@ -312,8 +312,8 @@ def ds_rename_vars(ds):
         "BGA_PE_RFU": "BGAPErfu",  # added variable name
         "BGA-PE_µg_per_L": "BGAPE",
         "BGA_PE_ug_per_L": "BGAPE",  # added variable name
-        "TAL_PE_RFU": "TALrfu",
-        "TAL_PE_ug_per_L": "TALPE",
+        "TAL_PE_RFU": "TALrfu", #added variable name
+        "TAL_PE_ug_per_L": "TALPE", #added variable name
         "Temp_°C": "T_28",
         "Temp_∞C": "T_28",
         "Cond_mS_per_cm": "C_51",
@@ -591,13 +591,6 @@ def exo_qaqc(ds):
     QA/QC
     Trim EXO data based on metadata
     """
-    for k in ds:
-        if "TAL" in k:
-            BGATALPErfu = "TAL_PE_RFU"
-            BGATALPE = "TAL_PE_ug_per_L"
-        elif "BGA" in k:
-            BGATALPErfu = "BGA_PE_RFU"
-            BGATALPE = "BGA_PE_ug_per_L"
         
     varlist = [
         "S_41",
@@ -609,8 +602,8 @@ def exo_qaqc(ds):
         "fDOMQSU",
         "CHLrfu",
         "Fch_906",
-        BGATALPErfu,
-        BGATALPE,
+        "BGAPErfu",
+        "BGAPE",
         "TALPErfu",
         "TALPE",
         "OST_62",
