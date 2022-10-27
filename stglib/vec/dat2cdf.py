@@ -42,8 +42,8 @@ def dat_to_cdf(metadata):
 
     mod = r % senburstlen
     if mod:
-        print(f"{ds.attrs['VECSamplesPerBurst']=}")
-        print(f"{ds.attrs['VECSamplingRate']=}")
+        print(f"ds.attrs['VECSamplesPerBurst'] = {ds.attrs['VECSamplesPerBurst']}")
+        print(f"ds.attrs['VECSamplingRate'] = {ds.attrs['VECSamplingRate']}")
         print(
             f"Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
         )
