@@ -115,7 +115,7 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
                 ]
             else:
                 hdrvar = "Sal psu"
-            exo[k].attrs["sensor_serial_number"] = hdr[hdrvar]["sensor_serial_number"]                  
+            exo[k].attrs["sensor_serial_number"] = hdr[hdrvar]["sensor_serial_number"]
         elif "ODO" in k:
             try:
                 exo[k].attrs["sensor_serial_number"] = hdr["Optical DO"][
@@ -129,7 +129,7 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
             exo[k].attrs["sensor_serial_number"] = hdr["Turbidity"][
                 "sensor_serial_number"
             ]
-        elif k == "Turbidity NTU" or k== "Turbidity_NTU":
+        elif k == "Turbidity NTU" or k == "Turbidity_NTU":
             exo[k].attrs["sensor_serial_number"] = hdr["Turbidity NTU"][
                 "sensor_serial_number"
             ]
@@ -311,8 +311,8 @@ def ds_rename_vars(ds):
         "BGA_PE_RFU": "BGAPErfu",  # added variable name
         "BGA-PE_µg_per_L": "BGAPE",
         "BGA_PE_ug_per_L": "BGAPE",  # added variable name
-        "TAL_PE_RFU": "TALPErfu", #added variable name
-        "TAL_PE_ug_per_L": "TALPE", #added variable name
+        "TAL_PE_RFU": "TALPErfu",  # added variable name
+        "TAL_PE_ug_per_L": "TALPE",  # added variable name
         "Temp_°C": "T_28",
         "Temp_∞C": "T_28",
         "Cond_mS_per_cm": "C_51",
@@ -417,7 +417,7 @@ def ds_add_attrs(ds):
         ds["TALPE"].attrs.update(
             {"units": "ug/L", "long_name": "Total algae phycoerythrin"}
         )
-        
+
     ds["T_28"].attrs.update(
         {
             "units": "degree_C",
@@ -590,7 +590,7 @@ def exo_qaqc(ds):
     QA/QC
     Trim EXO data based on metadata
     """
-        
+
     varlist = [
         "S_41",
         "C_51",
