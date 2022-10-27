@@ -39,19 +39,22 @@ class TestIq(unittest.TestCase):
 
 class TestTimes(unittest.TestCase):
     def setUp(self):
-        self.bbvcf = xr.open_dataset(
-            (
-                "http://geoport.whoi.edu/thredds/dodsC/silt/usgs/Projects/"
-                "stellwagen/CF-1.6/CHINCOTEAGUE/10191Aaqd-a.nc"
+        try:
+            self.bbvcf = xr.open_dataset(
+                (
+                    "https://geoport.whoi.edu/thredds/dodsC/silt/usgs/Projects/"
+                    "stellwagen/CF-1.6/CHINCOTEAGUE/10191Aaqd-a.nc"
+                )
             )
-        )
-        self.bbvepic = xr.open_dataset(
-            (
-                "http://stellwagen.er.usgs.gov/thredds/dodsC/TSdata/"
-                "CHINCOTEAGUE/10191Aaqd-a.nc"
-            ),
-            decode_times=False,
-        )
+            self.bbvepic = xr.open_dataset(
+                (
+                    "https://stellwagen.er.usgs.gov/thredds/dodsC/TSdata/"
+                    "CHINCOTEAGUE/10191Aaqd-a.nc"
+                ),
+                decode_times=False,
+            )
+        except OSError:  # OSError will raise if THREDDS not available
+            self.skipTest("Could not access THREDDS servers")
 
     def test_epic_time_conversion(self):
         difftime = (
@@ -315,13 +318,16 @@ class TestWaves(unittest.TestCase):
     Use the first published burst"""
 
     def setUp(self):
-        self.bbv = xr.open_dataset(
-            (
-                "http://stellwagen.er.usgs.gov/thredds/dodsC/TSdata/"
-                "CHINCOTEAGUE/10191Aaqdwvs_diwasp-cal.nc"
-            ),
-            decode_times=False,
-        )
+        try:
+            self.bbv = xr.open_dataset(
+                (
+                    "https://stellwagen.er.usgs.gov/thredds/dodsC/TSdata/"
+                    "CHINCOTEAGUE/10191Aaqdwvs_diwasp-cal.nc"
+                ),
+                decode_times=False,
+            )
+        except OSError:  # OSError will raise if THREDDS not available
+            self.skipTest("Could not access THREDDS server")
 
         self.frequency = self.bbv["frequency"].squeeze()
         self.pspec = self.bbv["pspec"].isel(time=0).squeeze()
