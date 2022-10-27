@@ -266,6 +266,19 @@ def read_vec_hdr(basefile):
                 Instmeta["VECDeploymentTime"] = row[38:]
             if "Comments" in row:
                 Instmeta["VECComments"] = row[38:]
+                # There may be up to three lines of comments, but only if they were added during deployment.
+                # These extra lines will be preceded by blanks instead of a field name.
+                # After the comments lines are the System lines, which we currenty don't handle,
+                # so we can read the next lines and add to Comments if present.
+                # Example showing a two-line comment followed by System1 field:
+                # Comments                              SP 15916 30 cmab
+                #                                       WTS21
+                # System1                               19
+                for n in range(2):
+                    row = f.readline().rstrip()
+                    if len(row) and row[0] == " ":
+                        Instmeta["VECComments"] += "\n"
+                        Instmeta["VECComments"] += row[38:]
 
         while "Head configuration" not in row:
             row = f.readline().rstrip()
