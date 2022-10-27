@@ -129,11 +129,11 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
             exo[k].attrs["sensor_serial_number"] = hdr["Turbidity"][
                 "sensor_serial_number"
             ]
-        elif k == "Turbidity NTU" or k == "Turbidity_NTU":
+        elif k == "Turbidity_NTU":
             exo[k].attrs["sensor_serial_number"] = hdr["Turbidity NTU"][
                 "sensor_serial_number"
             ]
-        elif k == "Turbidity FNU":
+        elif k == "Turbidity_FNU":
             exo[k].attrs["sensor_serial_number"] = hdr["Turbidity FNU"][
                 "sensor_serial_number"
             ]
