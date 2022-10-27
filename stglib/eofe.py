@@ -95,9 +95,9 @@ def cdf_to_nc(cdf_filename):
 
     ds = calc_seabed_elev(ds)
 
-    #if "bins" in ds:
+    # if "bins" in ds:
     #   ds = utils.create_z_bindist(ds)  #create z for profile
-    #else:
+    # else:
     ds = utils.create_z(ds)
 
     # swap bin dim with bin_height
@@ -149,7 +149,7 @@ def cdf_to_nc(cdf_filename):
         nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
     )  # 5/20/22- save time as int32
 
-    utils.check_compliance(nc_filename)  # 5/20/22
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done writing burst averaged netCDF file", nc_filename)
 
