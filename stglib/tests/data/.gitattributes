@@ -45,3 +45,6 @@ stglib/tests/data/1121AQ04.hdr filter=lfs diff=lfs merge=lfs -text
 stglib/tests/data/1121AQ04.a3 filter=lfs diff=lfs merge=lfs -text
 stglib/tests/data/1121AQ04.a2 filter=lfs diff=lfs merge=lfs -text
 stglib/tests/data/1121AQ04.a1 filter=lfs diff=lfs merge=lfs -text
+KorEXO_Measurement_File_Export_081322_170216_rev.csv filter=lfs diff=lfs merge=lfs -text
+glob_att1151b.txt filter=lfs diff=lfs merge=lfs -text
+1151Bexo_config.yaml filter=lfs diff=lfs merge=lfs -text

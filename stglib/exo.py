@@ -96,11 +96,13 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
             elif "fDOM QSU" in hdr:
                 hdrvar = "fDOM QSU"
             exo[k].attrs["sensor_serial_number"] = hdr[hdrvar]["sensor_serial_number"]
-        elif "Chlorophyll" in k or "BGA-PE" in k:
+        elif "Chlorophyll" in k or "BGA" in k or "TAL" in k:
             if "Total Algae BGA-PE" in hdr:
                 hdrvar = "Total Algae BGA-PE"
             elif "BGA PE RFU" in hdr:
                 hdrvar = "BGA PE RFU"
+            elif "TAL PE RFU" in hdr:
+                hdrvar = "TAL PE RFU"
             exo[k].attrs["sensor_serial_number"] = hdr[hdrvar]["sensor_serial_number"]
         elif "Temp" in k or "Cond" in k or "Sal" in k:
             if "Unknown CT" in hdr:
@@ -111,6 +113,9 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
                 exo[k].attrs["sensor_serial_number"] = hdr["Wiped CT"][
                     "sensor_serial_number"
                 ]
+            else:
+                hdrvar = "Sal psu"
+            exo[k].attrs["sensor_serial_number"] = hdr[hdrvar]["sensor_serial_number"]
         elif "ODO" in k:
             try:
                 exo[k].attrs["sensor_serial_number"] = hdr["Optical DO"][
@@ -124,11 +129,11 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
             exo[k].attrs["sensor_serial_number"] = hdr["Turbidity"][
                 "sensor_serial_number"
             ]
-        elif k == "Turbidity NTU":
+        elif k == "Turbidity_NTU":
             exo[k].attrs["sensor_serial_number"] = hdr["Turbidity NTU"][
                 "sensor_serial_number"
             ]
-        elif k == "Turbidity FNU":
+        elif k == "Turbidity_FNU":
             exo[k].attrs["sensor_serial_number"] = hdr["Turbidity FNU"][
                 "sensor_serial_number"
             ]
@@ -306,6 +311,8 @@ def ds_rename_vars(ds):
         "BGA_PE_RFU": "BGAPErfu",  # added variable name
         "BGA-PE_µg_per_L": "BGAPE",
         "BGA_PE_ug_per_L": "BGAPE",  # added variable name
+        "TAL_PE_RFU": "TALPErfu",  # added variable name
+        "TAL_PE_ug_per_L": "TALPE",  # added variable name
         "Temp_°C": "T_28",
         "Temp_∞C": "T_28",
         "Cond_mS_per_cm": "C_51",
@@ -395,6 +402,20 @@ def ds_add_attrs(ds):
     if "BGAPE" in ds:
         ds["BGAPE"].attrs.update(
             {"units": "ug/L", "long_name": "Blue green algae phycoerythrin"}
+        )
+
+    if "TALPErfu" in ds:
+        ds["TALPErfu"].attrs.update(
+            {
+                "units": "percent",
+                "long_name": "Total algae phycoerythrin, RFU",
+                "comments": "Relative fluorescence units (RFU)",
+            }
+        )
+
+    if "TALPE" in ds:
+        ds["TALPE"].attrs.update(
+            {"units": "ug/L", "long_name": "Total algae phycoerythrin"}
         )
 
     ds["T_28"].attrs.update(
@@ -582,6 +603,8 @@ def exo_qaqc(ds):
         "Fch_906",
         "BGAPErfu",
         "BGAPE",
+        "TALPErfu",
+        "TALPE",
         "OST_62",
         "DO",
         "pH_159",
