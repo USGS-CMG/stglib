@@ -43,6 +43,8 @@ def test_exo():
     exo_nc("bel53Cexo-raw.cdf")
     exo_raw("glob_att1119a.txt", "1119Aexo_config.yaml")
     exo_nc("1119Aexo-raw.cdf")
+    exo_raw("glob_att1151b.txt", "1151Bexo_config.yaml")
+    exo_nc("1151Bexo-raw.cdf")
 
 
 def test_aqd():
