@@ -2,8 +2,11 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import seawater as sw
+import datetime
 
 from .core import utils
+from .core import qaqc
+from .aqd import aqdutils
 
 
 def log_to_cdf(metadata):
@@ -82,9 +85,15 @@ def cdf_to_nc(cdf_filename):
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
+    # Trim data when instrumet is out of water during a deployment and extra bins if good_bins specified
+    if "bins" in ds:
+        ds = trim_alt(ds)
+    else:
+        ds = trim_alt(ds, data_vars=["Altitude_m", "AmplitudeFS", "Temperature_C"])
+
     # calculate bin height for profiling echologger (i.e. type == ea)
     if "bins" in ds:
-        calc_bin_height(ds)
+        ds = calc_bin_height(ds)
 
     # calculate corrected altitude (distance to bed/b_range) with adjusted sound speed
     ds = calc_cor_brange(ds)  # 12/23/21
@@ -138,6 +147,25 @@ def cdf_to_nc(cdf_filename):
 
     # Average busrt and write to -a.nc file 12/23/21
     ds = average_burst(ds)
+
+    for var in ds.data_vars:
+        # do any diff trimming first
+        ds = qaqc.trim_min_diff(ds, var)
+        ds = qaqc.trim_max_diff(ds, var)
+        ds = qaqc.trim_med_diff(ds, var)
+        ds = qaqc.trim_med_diff_pct(ds, var)
+        ds = qaqc.trim_bad_ens(ds, var)
+        ds = qaqc.trim_maxabs_diff_2d(ds, var)
+        ds = qaqc.trim_maxabs_diff(ds, var)
+        # then do other trimming
+        ds = qaqc.trim_min(ds, var)
+        ds = qaqc.trim_max(ds, var)
+        ds = aqdutils.trim_single_bins(ds, var)
+        ds = qaqc.trim_fliers(ds, var)
+
+    # after check for masking vars by other vars
+    for var in ds.data_vars:
+        ds = qaqc.trim_mask(ds, var)
 
     # assign min/max
     ds = utils.add_min_max(ds)
@@ -789,5 +817,69 @@ def load_aa_point(basefile, metadata):
     for k in point:
         if "Time" not in k:
             ds[k] = xr.DataArray(point[k], dims=("time", "sample"))
+
+    return ds
+
+
+def trim_alt(ds, data_vars=["Altitude_m", "Counts", "Temperature_C"]):
+    """Trim altimeter data when out of water during a deployment and by bin range if specified
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        The xarray Dataset
+    data_vars : array_like
+        List of variables to trim. Default ['Altitude_m', 'Counts', 'Temperature_C'].
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset with trimmed data
+    """
+
+    if "trim_method" in ds.attrs:
+
+        trm_list = ds.attrs["trim_method"]
+
+        if not isinstance(trm_list, list):  # make sure it is a list before looping
+            trm_list = [trm_list]
+
+        for trm_meth in trm_list:
+
+            if trm_meth.lower() == "altitude":
+                print("Trimming using altitude data")
+                altitude = ds[
+                    "Altitude_m"
+                ]  # need to use atltitude values before starting trimming
+                for var in data_vars:
+                    ds[var] = ds[var].where(~(altitude < ds.attrs["Deadzone_m"]))
+                    print(f"Trimming {var}")
+
+                histtext = "{}: Trimmed altimeter data using Altimeter_m = 0.\n".format(
+                    datetime.datetime.now(datetime.timezone.utc).isoformat()
+                )
+
+                ds = utils.insert_history(ds, histtext)
+
+            elif trm_meth.lower() == "bin range":
+                print("Trimming using good_bins of %s" % str(ds.attrs["good_bins"]))
+                if "bins" in ds.coords:
+                    # trim coordinate bins
+                    ds = ds.isel(
+                        bins=slice(ds.attrs["good_bins"][0], ds.attrs["good_bins"][1])
+                    )
+                    # reset Bin_count attribute
+                    ds.attrs["Bin_count"] = (
+                        ds.attrs["good_bins"][1] - ds.attrs["good_bins"][0]
+                    )
+
+                histtext = "{}: Removed extra bins from altimeter data using good_bins attribute.\n".format(
+                    datetime.datetime.now(datetime.timezone.utc).isoformat()
+                )
+
+                ds = utils.insert_history(ds, histtext)
+
+            else:
+                print("Did not trim altimeter data")
 
     return ds
