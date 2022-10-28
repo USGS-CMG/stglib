@@ -85,7 +85,7 @@ def cdf_to_nc(cdf_filename):
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
-    # Trim data when instrumet is out of water during a deployment and extra bins if good_bins specified
+    # Trim data when instrument is out of water during a deployment and extra bins if good_bins specified
     if "bins" in ds:
         ds = trim_alt(ds)
     else:
@@ -96,7 +96,7 @@ def cdf_to_nc(cdf_filename):
         ds = calc_bin_height(ds)
 
     # calculate corrected altitude (distance to bed/b_range) with adjusted sound speed
-    ds = calc_cor_brange(ds)  # 12/23/21
+    ds = calc_cor_brange(ds)
 
     # calculate corrected bin height (on NAVD88 datum) with adjusted sound speed
     if "bins" in ds:
@@ -145,7 +145,7 @@ def cdf_to_nc(cdf_filename):
     )
     print("Done writing netCDF file", nc_filename)
 
-    # Average busrt and write to -a.nc file 12/23/21
+    # Average busrt and write to -a.nc file
     ds = average_burst(ds)
 
     for var in ds.data_vars:
@@ -163,7 +163,7 @@ def cdf_to_nc(cdf_filename):
         ds = aqdutils.trim_single_bins(ds, var)
         ds = qaqc.trim_fliers(ds, var)
 
-    # after check for masking vars by other vars
+    # after check for masking vars by others
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
 
@@ -175,7 +175,7 @@ def cdf_to_nc(cdf_filename):
     # ds['time']=ds['time'].astype('datetime64[s]')
     ds.to_netcdf(
         nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
-    )  # 5/20/22- save time as int32
+    )
 
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
@@ -343,7 +343,7 @@ def ds_rename_vars(ds):
     varnames = {
         "Ping": "ping",
         "Ping_num_in_series": "ping_num_in_series",
-        "Temperature_C": "Tx_1211",  # 12/23/21
+        "Temperature_C": "Tx_1211",
         "Pitch_deg": "Ptch_1216",
         "Roll_deg": "Roll_1217",
         "Counts": "AGC_1202",
@@ -359,7 +359,7 @@ def ds_rename_vars(ds):
     return ds.rename(newvars)
 
 
-def ds_add_attrs(ds):  # 12/23/21
+def ds_add_attrs(ds):
     # modified from exo.ds_add_attrs
     ds = utils.ds_coord_no_fillvalue(ds)
 
