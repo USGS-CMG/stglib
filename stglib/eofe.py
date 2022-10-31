@@ -154,10 +154,10 @@ def cdf_to_nc(cdf_filename):
         ds = qaqc.trim_max_diff(ds, var)
         ds = qaqc.trim_med_diff(ds, var)
         ds = qaqc.trim_med_diff_pct(ds, var)
-        ds = qaqc.trim_bad_ens(ds, var)
         ds = qaqc.trim_maxabs_diff_2d(ds, var)
         ds = qaqc.trim_maxabs_diff(ds, var)
         # then do other trimming
+        ds = qaqc.trim_bad_ens(ds, var)
         ds = qaqc.trim_min(ds, var)
         ds = qaqc.trim_max(ds, var)
         ds = aqdutils.trim_single_bins(ds, var)
@@ -853,6 +853,7 @@ def trim_alt(ds, data_vars=["Altitude_m", "Counts", "Temperature_C"]):
                 ]  # need to use atltitude values before starting trimming
                 for var in data_vars:
                     ds[var] = ds[var].where(~(altitude < ds.attrs["Deadzone_m"]))
+                    ds[var] = ds[var].where(~(altitude > ds.attrs["Range_m"]))
                     print(f"Trimming {var}")
 
                 histtext = "{}: Trimmed altimeter data using Altimeter_m = 0.\n".format(
