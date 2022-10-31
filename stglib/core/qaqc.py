@@ -295,3 +295,21 @@ def trim_mask(ds, var):
                 )
 
     return ds
+
+
+def trim_maxabs_diff(ds, var):
+    if var + "_maxabs_diff" in ds.attrs:
+        val = ds.attrs[var + "_maxabs_diff"]
+        print(f"{var}: Trimming using maximum absolute diff of {val}")
+        ds[var][
+            np.abs(np.ediff1d(ds[var], to_begin=0)) > ds.attrs[var + "_maxabs_diff"]
+        ] = np.nan
+
+        notetxt = (
+            f"Values filled where data increases or decreases by more than {val} "
+            "units in a single time step. "
+        )
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
