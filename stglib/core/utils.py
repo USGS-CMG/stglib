@@ -1,11 +1,11 @@
 import csv
+import datetime
 import inspect
 import os
 import platform
 import sqlite3
 import sys
 import warnings
-import datetime
 
 import netCDF4
 import numpy as np
@@ -24,7 +24,7 @@ def is_cf(ds):
 
 
 def check_compliance(nc_file, conventions="CF-1.8"):
-    from compliance_checker.runner import ComplianceChecker, CheckSuite
+    from compliance_checker.runner import CheckSuite, ComplianceChecker
 
     check_suite = CheckSuite()
     check_suite.load_all_available_checkers()
