@@ -76,3 +76,41 @@ class TestClip(unittest.TestCase):
         result = stglib.utils.clip_ds(self.ds)
 
         np.testing.assert_array_equal(expected["time"], result["time"])
+
+
+class TestClock(unittest.TestCase):
+    def setUp(self):
+        self.ds = xr.Dataset()
+        self.ds["time"] = xr.DataArray(
+            pd.date_range("2000-01-01 00:00", "2000-01-30 00:00", freq="15min"),
+            dims="time",
+        )
+        self.ds.attrs["AQDAverageInterval"] = 120
+
+    def test_clock_shift(self):
+        origtime = self.ds["time"]
+        result = stglib.utils.shift_time(
+            self.ds, self.ds.attrs["AQDAverageInterval"] / 2
+        )
+        np.testing.assert_array_equal(
+            result["time"],
+            origtime
+            + np.timedelta64(int(self.ds.attrs["AQDAverageInterval"] / 2), "s"),
+        )
+
+    def test_clock_error(self):
+        origtime = self.ds["time"]
+        self.ds.attrs["ClockError"] = 10
+        result = stglib.utils.shift_time(self.ds, 0)
+        np.testing.assert_array_equal(
+            result["time"], origtime - np.timedelta64(self.ds.attrs["ClockError"], "s")
+        )
+
+    def test_clock_drift(self):
+        origtime = self.ds["time"]
+        self.ds.attrs["ClockDrift"] = 30
+        result = stglib.utils.shift_time(self.ds, 0)
+        assert result["time"][0] == origtime[0]
+        assert result["time"][-1] == origtime[-1] - np.timedelta64(
+            self.ds.attrs["ClockDrift"], "s"
+        )
