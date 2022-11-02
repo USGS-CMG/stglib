@@ -32,7 +32,8 @@ Options common to most (all?) instrument config files:
 - ``basefile``: the input filename without extension
 - ``filename``: output filename, to which ``-raw.cdf``, ``-a.nc``, etc. will be appended
 - ``LatLonDatum``: will likely be ``'NAD83'``. TODO: should this be in glob_att instead?
-- ``ClockError``: number, in seconds, negative is slow.
+- ``ClockError``: number, in seconds, negative is slow. Applies a simple offset for times. Useful if the instrument was deployed in an incorrect time zone.
+- ``ClockDrift``: number, in seconds, negative is slow. Linearly interpolates times for when the instrument clock has drifted.
 - ``initial_instrument_height``: elevation of instrument in meters
 - ``initial_instrument_height_note``
 - ``P_1ac_note``: a note on the atmospheric pressure source used
