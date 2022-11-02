@@ -184,6 +184,8 @@ def add_min_max(ds):
 
 
 def insert_history(ds, histtext):
+    print(histtext.rstrip())
+
     if "history" in ds.attrs:
         ds.attrs["history"] = ds.attrs["history"] + histtext
     else:
