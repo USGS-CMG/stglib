@@ -1,5 +1,5 @@
-Processing YSI EXO data
-***********************
+YSI EXO
+*******
 
 Data will generally be processed using a series of run scripts. The first script for each instrument type
 depends on two :doc:`configuration files </config>`.
@@ -19,7 +19,7 @@ runexocsv2cdf.py
 Raw .cdf to clean .nc
 =====================
 
-Convert the raw .cdf data into an EPIC-compliant netCDF file with .nc extension using ``runexocdf2nc.py``, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.
+Convert the raw .cdf data into an CF-compliant netCDF file with .nc extension using ``runexocdf2nc.py``, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.
 
 runexocdf2nc.py
 ---------------

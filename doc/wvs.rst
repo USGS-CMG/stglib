@@ -1,5 +1,5 @@
-Processing Aquadopp (waves) data
-***********************************
+Aquadopp (waves)
+****************
 
 Data will generally be processed using a series of run scripts that use command line arguments.  For AQD waves it's a 3 step process.
 
@@ -17,10 +17,10 @@ runwvswad2cdf.py
    :prog: runwvswad2cdf.py
 
 
-Step 2 : Convert the raw .cdf to clean, EPIC format .nc using runaqdcdf2nc.py.
-==============================================================================
+Step 2 : Convert the raw .cdf to clean, CF-compliant format .nc using runwvscdf2nc.py
+=====================================================================================
 
-Convert the raw .cdf data into an EPIC-compliant netCDF file with .nc extension, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.  Correcting pressure for atmospheric is a side-bar task- use the .ipynb examples to see what to do.
+Convert the raw .cdf data into an CF-compliant netCDF file with .nc extension, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.  Correcting pressure for atmospheric is a side-bar task- use the .ipynb examples to see what to do.
 
 runwvscdf2nc.py
 ---------------

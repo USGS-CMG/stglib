@@ -21,7 +21,7 @@ runiqmat2cdf.py
 Raw .cdf to clean .nc
 =====================
 
-Convert the raw .cdf data into an EPIC-compliant netCDF file with .nc extension using ``runiqcdf2nc.py``.
+Convert the raw .cdf data into an CF-compliant netCDF file with .nc extension using ``runiqcdf2nc.py``.
 
 runiqcdf2nc.py
 ---------------

@@ -1,5 +1,5 @@
-Processing Vaisala WXT536 data
-******************************
+Vaisala WXT536
+**************
 
 Data will generally be processed using a series of run scripts. The first script for each instrument type
 depends on two :doc:`configuration files </config>`.
