@@ -35,6 +35,8 @@ def prf_to_cdf(metadata):
     del metadata
     del instmeta
 
+    ds = utils.ensure_cf(ds)
+
     # Deal with metadata peculiarities
     ds = aqdutils.check_attrs(ds)
 

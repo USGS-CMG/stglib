@@ -38,6 +38,8 @@ def wad_to_cdf(metadata, writefile=True):
     del metadata
     del instmeta
 
+    ds = utils.ensure_cf(ds)
+
     ds = load_wad(ds)
 
     # Deal with metadata peculiarities

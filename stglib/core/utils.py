@@ -23,6 +23,15 @@ def is_cf(ds):
         return False
 
 
+def ensure_cf(ds):
+    if not is_cf(ds):
+        raise ValueError(
+            "Non-CF Conventions are not supported. Ensure you are setting Conventions appropriately."
+        )
+
+    return ds
+
+
 def check_compliance(nc_file, conventions="CF-1.8"):
     from compliance_checker.runner import CheckSuite, ComplianceChecker
 
