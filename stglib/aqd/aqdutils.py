@@ -1,5 +1,6 @@
 import datetime
 import math
+import warnings
 
 import numpy as np
 import xarray as xr
@@ -154,7 +155,6 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs, out="
         or (cs == "BEAM" and out == "ENU")
         or (cs == "ENU" and out == "BEAM")
     ):
-        print(f"Data are in {cs} coordinates; transforming to {out} coordinates")
 
         hh = np.pi * (heading - 90) / 180
         pp = np.pi * pitch / 180
@@ -293,37 +293,42 @@ def magvar_correct(ds):
     elif "magnetic_variation" in ds.attrs:
         magvardeg = ds.attrs["magnetic_variation"]
     else:
-        print(
-            "No magnetic variation information provided; "
-            "using zero for compass correction"
+        warnings.warn(
+            "No magnetic variation information provided; not correcting compass orientation"
         )
         magvardeg = 0
 
-    print("Rotating heading and horizontal velocities by %f degrees" % magvardeg)
+    if magvardeg != 0:
 
-    if "Heading" in ds:
-        headvar = "Heading"
-    elif "Hdg" in ds:
-        headvar = "Hdg"
+        histtext = "Rotating heading and horizontal velocities by {} degrees.".format(
+            magvardeg
+        )
 
-    ds[headvar].values = ds[headvar].values + magvardeg
-    ds[headvar].values[ds[headvar].values >= 360] = (
-        ds[headvar].values[ds[headvar].values >= 360] - 360
-    )
-    ds[headvar].values[ds[headvar].values < 0] = (
-        ds[headvar].values[ds[headvar].values < 0] + 360
-    )
+        ds = utils.insert_history(ds, histtext)
 
-    if "U" in ds and "V" in ds:
-        uvar = "U"
-        vvar = "V"
-    elif "u_1205" in ds and "v_1206" in ds:
-        uvar = "u_1205"
-        vvar = "v_1206"
+        if "Heading" in ds:
+            headvar = "Heading"
+        elif "Hdg" in ds:
+            headvar = "Hdg"
 
-    ds[uvar].values, ds[vvar].values = rotate(
-        ds[uvar].values, ds[vvar].values, magvardeg
-    )
+        ds[headvar].values = ds[headvar].values + magvardeg
+        ds[headvar].values[ds[headvar].values >= 360] = (
+            ds[headvar].values[ds[headvar].values >= 360] - 360
+        )
+        ds[headvar].values[ds[headvar].values < 0] = (
+            ds[headvar].values[ds[headvar].values < 0] + 360
+        )
+
+        if "U" in ds and "V" in ds:
+            uvar = "U"
+            vvar = "V"
+        elif "u_1205" in ds and "v_1206" in ds:
+            uvar = "u_1205"
+            vvar = "v_1206"
+
+        ds[uvar].values, ds[vvar].values = rotate(
+            ds[uvar].values, ds[vvar].values, magvardeg
+        )
 
     return ds
 
@@ -361,47 +366,46 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
     ):
 
         if "Pressure_ac" in ds:
-            print("Using atmospherically corrected pressure to trim")
-            WL = ds["Pressure_ac"] + ds.attrs["transducer_offset_from_bottom"]
             P = ds["Pressure_ac"]
+            Ptxt = "atmospherically corrected"
         elif "Pressure" in ds:
             # FIXME incorporate press_ ac below
-            print("Using NON-atmospherically corrected pressure to trim")
-            # WL = ds["Pressure"] + ds.attrs["transducer_offset_from_bottom"]
             P = ds["Pressure"]
+            Ptxt = "NON-atmospherically corrected"
 
         if ds.attrs["trim_method"].lower() == "water level":
-            print("Trimming using water level")
             for var in data_vars:
                 ds[var] = ds[var].where(ds["bindist"] < P)
 
-            histtext = "{}: Trimmed velocity data using water level.\n".format(
-                datetime.datetime.now(datetime.timezone.utc).isoformat()
+            histtext = "Trimmed velocity data using {} pressure (water level).".format(
+                Ptxt
             )
 
             ds = utils.insert_history(ds, histtext)
 
         elif ds.attrs["trim_method"].lower() == "water level sl":
-            print("Trimming using water level and sidelobes")
             for var in data_vars:
                 ds[var] = ds[var].where(
                     ds["bindist"] < P * np.cos(np.deg2rad(ds.attrs["AQDBeamAngle"]))
                 )
 
-            histtext = (
-                "{}: Trimmed velocity data using water level and sidelobes.\n".format(
-                    datetime.datetime.now(datetime.timezone.utc).isoformat()
-                )
+            histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
+                Ptxt
             )
 
             ds = utils.insert_history(ds, histtext)
 
         elif ds.attrs["trim_method"].lower() == "bin range":
-            print("Trimming using good_bins of %s" % str(ds.attrs["good_bins"]))
             for var in data_vars:
                 ds[var] = ds[var].isel(
                     bindist=slice(ds.attrs["good_bins"][0], ds.attrs["good_bins"][1])
                 )
+
+            histtext = "Trimmed velocity data using using good_bins of {}.".format(
+                ds.attrs["good_bins"]
+            )
+
+            ds = utils.insert_history(ds, histtext)
 
         # find first bin that is all bad values
         # there might be a better way to do this using xarray and named
@@ -675,9 +679,9 @@ def create_bindist(ds, waves=False):
     """Check instrument orientation and create variables that depend on this"""
 
     print("Instrument orientation:", ds.attrs["orientation"])
-    print("center_first_bin = %f" % ds.attrs["center_first_bin"])
-    print("bin_size = %f" % ds.attrs["bin_size"])
-    print("bin_count = %f" % ds.attrs["bin_count"])
+    print(f"{ds.attrs['center_first_bin']=}")
+    print(f"{ds.attrs['bin_size']=}")
+    print(f"{ds.attrs['bin_count']=}")
 
     if not waves:
         print(f"Cell center distance = {ds.attrs['AQDCCD']}")
@@ -1049,9 +1053,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
 
         add_attributes(ds["P_1ac"], ds.attrs)
 
-        histtext = "{}: Atmospheric pressure compensated.\n".format(
-            datetime.datetime.now().isoformat(),
-        )
+        histtext = "Atmospheric pressure compensated."
 
         ds = utils.insert_history(ds, histtext)
 
@@ -1216,8 +1218,7 @@ def apply_wave_coord_output(ds, T, T_orig):
             )
             return ds
 
-        histtext = "{}: Converting from {} to {} at user request.\n".format(
-            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        histtext = "Converting from {} to {} at user request.".format(
             ds.attrs["AQDCoordinateSystem"],
             ds.attrs["wave_coord_output"],
         )

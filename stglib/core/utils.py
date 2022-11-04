@@ -73,7 +73,6 @@ def clip_ds(ds, wvs=False):
     # date specified in metadata
     if "good_ens" in ds.attrs and not wvs:
         # we have good ensemble indices in the metadata
-        print("Clipping data using good_ens")
 
         # so we can deal with multiple good_ens ranges, or just a single range
         good_ens = ds.attrs["good_ens"]
@@ -84,30 +83,24 @@ def clip_ds(ds, wvs=False):
         goods = np.hstack(goods)
         ds = ds.isel(time=goods)
 
-        histtext = "{}: Data clipped using good_ens values of {}.\n".format(
-            datetime.datetime.now(datetime.timezone.utc).isoformat(), str(good_ens)
-        )
+        histtext = "Data clipped using good_ens values of {}.".format(str(good_ens))
 
         ds = insert_history(ds, histtext)
 
     elif "good_ens_wvs" in ds.attrs and wvs:
-        print("Clipping data using good_ens_wvs")
+
         good_ens = ds.attrs["good_ens_wvs"]
 
         goods = np.arange(good_ens[0], good_ens[1])
 
         ds = ds.isel(time=goods)
 
-        histtext = "{}: Data clipped using good_ens_wvs values of {}.\n".format(
-            datetime.datetime.now(datetime.timezone.utc).isoformat(), str(good_ens)
-        )
+        histtext = "Data clipped using good_ens_wvs values of {}.".format(str(good_ens))
 
         ds = insert_history(ds, histtext)
 
     elif "good_dates" in ds.attrs:
-        # clip by start/end dates that are not Deployment_date
-        # and Recovery_date
-        print("Clipping data using good_dates")
+        # clip by start/end dates that are not Deployment_date and Recovery_date
 
         where = np.where(
             (ds["time"].values >= np.datetime64(ds.attrs["good_dates"][0]))
@@ -117,8 +110,7 @@ def clip_ds(ds, wvs=False):
         print("good_dates[1] {}, idx {}".format(ds.attrs["good_dates"][1], where.max()))
         ds = ds.sel(time=slice(ds.attrs["good_dates"][0], ds.attrs["good_dates"][1]))
 
-        histtext = "{}: Data clipped using good_dates of {}.\n".format(
-            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        histtext = "Data clipped using good_dates of {}.".format(
             ds.attrs["good_dates"],
         )
 
@@ -126,13 +118,12 @@ def clip_ds(ds, wvs=False):
 
     elif "Deployment_date" in ds.attrs and "Recovery_date" in ds.attrs:
         # we clip by the times in/out of water as specified in the metadata
-        print("Clipping data using Deployment_date and Recovery_date")
+
         ds = ds.sel(time=slice(ds.attrs["Deployment_date"], ds.attrs["Recovery_date"]))
 
         histtext = (
-            "{}: Data clipped using Deployment_date of {} and Recovery_date of {}.\n"
+            "Data clipped using Deployment_date of {} and Recovery_date of {}."
         ).format(
-            datetime.datetime.now(datetime.timezone.utc).isoformat(),
             ds.attrs["Deployment_date"],
             ds.attrs["Recovery_date"],
         )
@@ -184,36 +175,38 @@ def add_min_max(ds):
 
 
 def insert_history(ds, histtext):
-    print(histtext.rstrip())
+
+    toinsert = "{}: {}\n".format(
+        datetime.datetime.now(datetime.timezone.utc).isoformat(), histtext
+    )
+
+    print(toinsert.rstrip())
 
     if "history" in ds.attrs:
-        ds.attrs["history"] = ds.attrs["history"] + histtext
+        ds.attrs["history"] = ds.attrs["history"] + toinsert
     else:
-        ds.attrs["history"] = histtext
+        ds.attrs["history"] = toinsert
 
     return ds
 
 
 def add_history(ds):
     if is_cf(ds):
-        histtext = "{}: Processed to {} using {}.\n".format(
-            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        histtext = "Processed to {} using {}.".format(
             ds.attrs["Conventions"],
             os.path.basename(sys.argv[0]),
         )
     else:
-        histtext = "Processed to EPIC using {}.\n".format(os.path.basename(sys.argv[0]))
+        histtext = "Processed to EPIC using {}.".format(os.path.basename(sys.argv[0]))
 
     return insert_history(ds, histtext)
 
 
 def ds_add_waves_history(ds):
     histtext = (
-        "{}: Wave statistics computed using scipy.signal.welch(), "
+        "Wave statistics computed using scipy.signal.welch(), "
         "assigning cutoff following Jones & Monismith (2007), and "
-        "applying f^-4 tail past cutoff.\n".format(
-            datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        )
+        "applying f^-4 tail past cutoff."
     )
 
     return insert_history(ds, histtext)
@@ -224,9 +217,7 @@ def ds_add_diwasp_history(ds):
     Add history indicating DIWASP has been applied
     """
 
-    histtext = "{}: Wave statistics computed using DIWASP 1.1GD.\n".format(
-        datetime.datetime.now(datetime.timezone.utc).isoformat(),
-    )
+    histtext = "Wave statistics computed using DIWASP 1.1GD."
 
     return insert_history(ds, histtext)
 
@@ -466,7 +457,6 @@ def trim_max_wp(ds):
     """
 
     if "wp_max" in ds.attrs:
-        print("Trimming using maximum period of {} seconds".format(ds.attrs["wp_max"]))
         for var in ["wp_peak", "wp_4060"]:
             ds[var] = ds[var].where(
                 (ds["wp_peak"] < ds.attrs["wp_max"])
@@ -474,14 +464,11 @@ def trim_max_wp(ds):
             )
 
         for var in ["wp_peak", "wp_4060"]:
-            notetxt = "Values filled where wp_peak, wp_4060 >= {}. ".format(
+            notetxt = "Values filled where wp_peak, wp_4060 >= {}.".format(
                 ds.attrs["wp_max"]
             )
 
-            if "note" in ds[var].attrs:
-                ds[var].attrs["note"] = notetxt + ds[var].attrs["note"]
-            else:
-                ds[var].attrs.update({"note": notetxt})
+            ds = insert_note(ds, var, notetxt)
 
     return ds
 
@@ -493,16 +480,12 @@ def trim_min_wh(ds):
     """
 
     if "wh_min" in ds.attrs:
-        print("Trimming using minimum wave height of {} m".format(ds.attrs["wh_min"]))
         for var in ["wp_peak", "wh_4061", "wp_4060"]:
             ds[var] = ds[var].where(ds["wh_4061"] > ds.attrs["wh_min"])
 
-            notetxt = "Values filled where wh_4061 <= {}. ".format(ds.attrs["wh_min"])
+            notetxt = "Values filled where wh_4061 <= {}.".format(ds.attrs["wh_min"])
 
-            if "note" in ds[var].attrs:
-                ds[var].attrs["note"] = notetxt + ds[var].attrs["note"]
-            else:
-                ds[var].attrs.update({"note": notetxt})
+            ds = insert_note(ds, var, notetxt)
 
     return ds
 
@@ -514,16 +497,12 @@ def trim_max_wh(ds):
     """
 
     if "wh_max" in ds.attrs:
-        print("Trimming using maximum wave height of {} m".format(ds.attrs["wh_max"]))
         for var in ["wp_peak", "wh_4061", "wp_4060"]:
             ds[var] = ds[var].where(ds["wh_4061"] < ds.attrs["wh_max"])
 
-            notetxt = "Values filled where wh_4061 >= {}. ".format(ds.attrs["wh_max"])
+            notetxt = "Values filled where wh_4061 >= {}.".format(ds.attrs["wh_max"])
 
-            if "note" in ds[var].attrs:
-                ds[var].attrs["note"] = notetxt + ds[var].attrs["note"]
-            else:
-                ds[var].attrs.update({"note": notetxt})
+            ds = insert_note(ds, var, notetxt)
 
     return ds
 
@@ -535,24 +514,17 @@ def trim_wp_ratio(ds):
     """
 
     if "wp_ratio" in ds.attrs:
-        print(
-            "Trimming using maximum ratio of wp_peak to wp_4060 of %f"
-            % ds.attrs["wp_ratio"]
-        )
         for var in ["wp_peak", "wp_4060"]:
             ds[var] = ds[var].where(
                 ds["wp_peak"] / ds["wp_4060"] < ds.attrs["wp_ratio"]
             )
 
         for var in ["wp_peak", "wp_4060"]:
-            notetxt = "Values filled where wp_peak:wp_4060 >= {}. ".format(
+            notetxt = "Values filled where wp_peak:wp_4060 >= {}.".format(
                 ds.attrs["wp_ratio"]
             )
 
-            if "note" in ds[var].attrs:
-                ds[var].attrs["note"] = notetxt + ds[var].attrs["note"]
-            else:
-                ds[var].attrs.update({"note": notetxt})
+            ds = insert_note(ds, var, notetxt)
 
     return ds
 
@@ -575,9 +547,8 @@ def write_metadata(ds, metadata):
     f = os.path.basename(inspect.stack()[1][1])
 
     histtext = (
-        "{}: Processed using {} with stglib {}, xarray {}, NumPy {}, netCDF4 {}, Python {}.\n"
+        "Processed using {} with stglib {}, xarray {}, NumPy {}, netCDF4 {}, Python {}."
     ).format(
-        datetime.datetime.now(datetime.timezone.utc).isoformat(),
         f,
         stglib.__version__,
         xr.__version__,
@@ -800,8 +771,7 @@ def shift_time(ds, timeshift):
                 % (timeshift, int(timeshift))
             )
 
-        histtext = "{}: Time shifted to middle of burst by {} s.\n".format(
-            datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        histtext = "Time shifted to middle of burst by {} s.".format(
             int(timeshift),
         )
 
@@ -812,8 +782,7 @@ def shift_time(ds, timeshift):
             # note negative on ds.attrs['ClockError']
             ds["time"] = ds["time"] + np.timedelta64(-ds.attrs["ClockError"], "s")
 
-            histtext = "{}: Time shifted by {:d} s from ClockError.\n".format(
-                datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            histtext = "Time shifted by {:d} s from ClockError.".format(
                 -ds.attrs["ClockError"],
             )
 
@@ -1105,10 +1074,16 @@ def no_p_add_depth(ds, var):
 
 
 def insert_note(ds, var, notetxt):
+    toinsert = "{}: {}\n".format(
+        datetime.datetime.now(datetime.timezone.utc).isoformat(), notetxt
+    )
+
+    print(f"{var}: {toinsert.rstrip()}")
+
     if "note" in ds[var].attrs:
-        ds[var].attrs["note"] = notetxt + ds[var].attrs["note"]
+        ds[var].attrs["note"] = ds[var].attrs["note"] + toinsert
     else:
-        ds[var].attrs.update({"note": notetxt})
+        ds[var].attrs["note"] = toinsert
 
     return ds
 

@@ -1,12 +1,12 @@
-import numpy as np
-import pandas as pd
-import xarray as xr
-import seawater as sw
 import datetime
 
-from .core import utils
-from .core import qaqc
+import numpy as np
+import pandas as pd
+import seawater as sw
+import xarray as xr
+
 from .aqd import aqdutils
+from .core import qaqc, utils
 
 
 def log_to_cdf(metadata):
@@ -856,9 +856,7 @@ def trim_alt(ds, data_vars=["Altitude_m", "Counts", "Temperature_C"]):
                     ds[var] = ds[var].where(~(altitude > ds.attrs["Range_m"]))
                     print(f"Trimming {var}")
 
-                histtext = "{}: Trimmed altimeter data using Altimeter_m = 0.\n".format(
-                    datetime.datetime.now(datetime.timezone.utc).isoformat()
-                )
+                histtext = "Trimmed altimeter data using Altimeter_m = 0."
 
                 ds = utils.insert_history(ds, histtext)
 
@@ -874,8 +872,8 @@ def trim_alt(ds, data_vars=["Altitude_m", "Counts", "Temperature_C"]):
                         ds.attrs["good_bins"][1] - ds.attrs["good_bins"][0]
                     )
 
-                histtext = "{}: Removed extra bins from altimeter data using good_bins attribute.\n".format(
-                    datetime.datetime.now(datetime.timezone.utc).isoformat()
+                histtext = (
+                    "Removed extra bins from altimeter data using good_bins attribute."
                 )
 
                 ds = utils.insert_history(ds, histtext)
