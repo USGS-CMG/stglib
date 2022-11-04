@@ -1,5 +1,5 @@
-Processing WET Labs ECO data
-****************************
+WET Labs ECO
+************
 
 Data will generally be processed using a series of run scripts. The first script for each instrument type
 depends on two :doc:`configuration files </config>`.
@@ -19,7 +19,7 @@ runecocsv2cdf.py
 Raw .cdf to clean .nc
 =====================
 
-Convert the raw .cdf data into an EPIC- or CF-compliant netCDF file with .nc extension using ``runecocdf2nc.py``.
+Convert the raw .cdf data into a CF-compliant netCDF file with .nc extension using ``runecocdf2nc.py``.
 
 runecocdf2nc.py
 ---------------

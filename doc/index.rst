@@ -17,6 +17,7 @@ stglib serves two distinct but related purposes:
 Currently, this package has at least partial support for:
 
 - Nortek Aquadopp profilers, in mean-current and wave-burst modes
+- Nortek Vector current meters
 - RBR pressure (including waves) and turbidity sensors
 - YSI EXO2 water-quality sondes
 - SonTek IQ flow monitors
@@ -40,6 +41,7 @@ Currently, this package has at least partial support for:
    atmos
    aqd
    wvs
+   vec
    rsk
    exo
    iq
