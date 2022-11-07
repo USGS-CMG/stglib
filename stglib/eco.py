@@ -269,12 +269,6 @@ def eco_qaqc(ds):
     # QA/QC ECO data
     if "ntu" in ds.attrs["INST_TYPE"].lower():
         for var in ["Turb"]:
-            ds = qaqc.trim_max_std(ds, var)
-
-            ds = qaqc.trim_min(ds, var)
-
-            ds = qaqc.trim_max(ds, var)
-
             ds = qaqc.trim_min_diff(ds, var)
 
             ds = qaqc.trim_max_diff(ds, var)
@@ -283,6 +277,20 @@ def eco_qaqc(ds):
 
             ds = qaqc.trim_med_diff_pct(ds, var)
 
+            ds = qaqc.trim_max_std(ds, var)
+
+            ds = qaqc.trim_maxabs_diff_2d(ds, var)
+        
+            ds = qaqc.trim_maxabs_diff(ds, var)
+
+            ds = qaqc.trim_min(ds, var)
+
+            ds = qaqc.trim_max(ds, var)
+
             ds = qaqc.trim_bad_ens(ds, var)
+
+        # after check for masking vars by others
+        for var in ["Turb"]:
+            ds = qaqc.trim_mask(ds, var)
 
     return ds
