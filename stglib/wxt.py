@@ -214,7 +214,7 @@ def ds_add_attrs(ds):
         ds["WD_gust"].attrs.update(
             {
                 "units": "degrees",
-                "long_name": "maximum wind from direction",
+                "long_name": "maximum wind from direction relative to true north",
                 "standard_name": "wind_gust_from_direction",
             }
         )
