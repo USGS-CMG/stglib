@@ -197,14 +197,14 @@ def ds_add_attrs(ds):
 
     if "WD_min" in ds:
         ds["WD_min"].attrs.update(
-            {"units": "degrees", "long_name": "minimum wind from direction"}
+            {"units": "degrees", "long_name": "minimum wind from direction relative to true north"}
         )
 
     if "WD_410" in ds:
         ds["WD_410"].attrs.update(
             {
                 "units": "degrees",
-                "long_name": "mean wind from direction",
+                "long_name": "mean wind from direction relative to true north",
                 "standard_name": "wind_from_direction",
                 "epic_code": "410",
             }
@@ -214,7 +214,7 @@ def ds_add_attrs(ds):
         ds["WD_gust"].attrs.update(
             {
                 "units": "degrees",
-                "long_name": "maximum wind from direction",
+                "long_name": "maximum wind from direction relative to true north",
                 "standard_name": "wind_gust_from_direction",
             }
         )
