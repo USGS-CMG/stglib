@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .core import qaqc
-from .core import utils
+from .core import qaqc, utils
 
 
 def read_par(filnam, spb=False, skiprows=None, skipfooter=0):
@@ -129,6 +128,8 @@ def csv_to_cdf(metadata):
     ds = utils.write_metadata(ds, metadata)
 
     del metadata
+
+    ds = utils.ensure_cf(ds)
 
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"

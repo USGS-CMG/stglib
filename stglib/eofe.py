@@ -51,6 +51,8 @@ def log_to_cdf(metadata):
             )
         )
 
+    ds = utils.ensure_cf(ds)
+
     ds = utils.shift_time(ds, 0)
 
     # configure file

@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .core import utils
-from .core import qaqc
+from .core import qaqc, utils
 
 
 def read_exo(filnam, skiprows=25, encoding="utf-8"):
@@ -174,6 +173,8 @@ def csv_to_cdf(metadata):
     ds = utils.write_metadata(ds, metadata)
 
     del metadata
+
+    ds = utils.ensure_cf(ds)
 
     ds = utils.shift_time(ds, 0)
 

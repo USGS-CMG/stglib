@@ -31,6 +31,8 @@ def dat_to_cdf(metadata):
 
     ds = utils.write_metadata(ds, metadata)
 
+    ds = utils.ensure_cf(ds)
+
     ds = aqdutils.check_attrs(ds, inst_type="VEC")
 
     dsvhd = load_vhd(basefile)

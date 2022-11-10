@@ -1,8 +1,10 @@
-import pandas as pd
-import yaml
-import numpy as np
-import xarray as xr
 import warnings
+
+import numpy as np
+import pandas as pd
+import xarray as xr
+import yaml
+
 from ..core import utils
 
 
@@ -32,6 +34,8 @@ def csv_to_cdf(metadata):
     ds = utils.write_metadata(ds, metadata)
 
     del metadata
+
+    ds = utils.ensure_cf(ds)
 
     ds["time"] = pd.DatetimeIndex(ds["time"])
 
