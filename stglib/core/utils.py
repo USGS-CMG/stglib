@@ -804,9 +804,10 @@ def shift_time(ds, timeshift):
                 np.linspace(0, -ds.attrs["ClockDrift"], len(ds["time"])), "s"
             )
 
+            ds["time"]=ds.time.dt.round("1s")
+            
             histtext = (
-                "{}: Time linearly interpolated by {} s using ClockDrift.\n".format(
-                    datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "Time linearly interpolated by {} s using ClockDrift and rounded to the nearest second.\n".format(
                     -ds.attrs["ClockDrift"],
                 )
             )
