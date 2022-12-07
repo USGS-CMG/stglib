@@ -1,7 +1,6 @@
 import xarray as xr
 
-from ..core import qaqc
-from ..core import utils
+from ..core import qaqc, utils
 from . import aqdutils
 
 
@@ -38,6 +37,13 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         thev = VEL["Y"].values
         thew = VEL["Z"].values
 
+    out = "ENU"
+
+    if VEL.attrs["AQDCoordinateSystem"] != out:
+        histtext = f"Transforming data from {VEL.attrs['AQDCoordinateSystem']} coordinates to {out} coordinates."
+
+        VEL = utils.insert_history(VEL, histtext)
+
     u, v, w = aqdutils.coord_transform(
         theu,
         thev,
@@ -48,6 +54,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         T,
         T_orig,
         VEL.attrs["AQDCoordinateSystem"],
+        out=out,
     )
 
     VEL["U"] = xr.DataArray(u, dims=("time", "bindist"))
