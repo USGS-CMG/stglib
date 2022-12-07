@@ -80,7 +80,19 @@ def wad_to_cdf(metadata, writefile=True):
 
 
 def load_whd(metadata):
-    """Load data from .whd file"""
+    """Load data from .whd file
+
+    Parameters
+    ----------
+    metadata : dict
+        Dictionary of required metadata
+
+    Returns
+    -------
+    xarray.Dataset
+        Data from .whd file as an xarray Dataset
+
+    """
 
     whdfile = metadata["basefile"] + ".whd"
 
@@ -123,7 +135,19 @@ def load_whd(metadata):
 
 
 def load_wad(ds):
+    """Load data from .wad file and add to existing xarray Dataset
 
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        Existing xarray Dataset
+
+    Returns
+    -------
+    xarray.Dataset
+        xarray Dataset including data from .wad file
+
+    """
     wadfile = ds.attrs["basefile"] + ".wad"
     print("Loading wave data from " + wadfile + "; this may take some time")
     # pd.read_csv is ~10x faster than np.loadtxt or np.genfromtxt
