@@ -20,6 +20,8 @@ def mat_to_cdf(metadata):
 
     del metadata
 
+    ds = utils.ensure_cf(ds)
+
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 

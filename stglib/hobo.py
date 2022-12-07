@@ -65,6 +65,8 @@ def csv_to_cdf(metadata):
 
     del metadata
 
+    ds = utils.ensure_cf(ds)
+
     ds = utils.shift_time(ds, 0)
 
     ds = drop_vars(ds)

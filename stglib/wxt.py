@@ -45,7 +45,8 @@ def csv_to_cdf(metadata):
     ds = read_wxt(basefile + ".csv", skiprows=metadata["skiprows"])
     metadata.pop("skiprows")
     ds = utils.write_metadata(ds, metadata)
-    # ds['time'] = xr.DataArray(time, dims='time')
+
+    ds = utils.ensure_cf(ds)
 
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
@@ -197,14 +198,17 @@ def ds_add_attrs(ds):
 
     if "WD_min" in ds:
         ds["WD_min"].attrs.update(
-            {"units": "degrees", "long_name": "minimum wind from direction"}
+            {
+                "units": "degrees",
+                "long_name": "minimum wind from direction relative to true north",
+            }
         )
 
     if "WD_410" in ds:
         ds["WD_410"].attrs.update(
             {
                 "units": "degrees",
-                "long_name": "mean wind from direction",
+                "long_name": "mean wind from direction relative to true north",
                 "standard_name": "wind_from_direction",
                 "epic_code": "410",
             }
@@ -214,7 +218,7 @@ def ds_add_attrs(ds):
         ds["WD_gust"].attrs.update(
             {
                 "units": "degrees",
-                "long_name": "maximum wind from direction",
+                "long_name": "maximum wind from direction relative to true north",
                 "standard_name": "wind_gust_from_direction",
             }
         )

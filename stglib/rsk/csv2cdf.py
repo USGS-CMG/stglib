@@ -35,6 +35,8 @@ def csv_to_cdf(metadata):
 
     del metadata
 
+    ds = utils.ensure_cf(ds)
+
     ds["time"] = pd.DatetimeIndex(ds["time"])
 
     ds = create_lat_lon_vars_from_attrs(ds)

@@ -1,10 +1,11 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 import xarray as xr
-import warnings
 
-from .core import utils
 from . import exo
+from .core import utils
 
 
 def csv_to_cdf(metadata):
@@ -39,6 +40,8 @@ def csv_to_cdf(metadata):
     ds = utils.write_metadata(ds, metadata)
 
     del metadata
+
+    ds = utils.ensure_cf(ds)
 
     ds = troll_shift_time(ds)
 

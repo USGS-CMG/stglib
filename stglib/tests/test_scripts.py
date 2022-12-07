@@ -1,4 +1,5 @@
 import subprocess
+
 import pytest
 
 
@@ -52,7 +53,6 @@ def test_aqd():
     aqd_nc("1118ABaqd-raw.cdf")
     aqd_raw("glob_att1121a_msl_aqd.txt", "aqd1121A_config.yaml")
     aqd_nc("11211Aaqd-raw.cdf")
-
 
 
 def wxt_raw(glob_att, config_yaml):
@@ -177,3 +177,24 @@ def test_eofe():
     eofe_nc("11231Aea_example-raw.cdf")
     eofe_raw("glob_att1137.txt", "1137aa_config.yaml")
     eofe_nc("11373aa-raw.cdf")
+
+
+def ensure_cf(script, glob_att, config_yaml):
+    result = subprocess.run(
+        ["python", script, glob_att, config_yaml],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "ValueError: Non-CF Conventions are not supported." in result.stderr.decode(
+        "utf8"
+    )
+    assert result.returncode != 0
+
+
+def test_ensure_cf():
+    # ensure scripts fail if non-CF Conventions are specified
+    ensure_cf(
+        "../../../scripts/runeofelog2cdf.py",
+        "glob_att1123A_msl_EPIC.txt",
+        "1123Aea_example_config.yaml",
+    )

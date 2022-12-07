@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .core import qaqc
-from .core import utils
+from .core import qaqc, utils
 
 
 def read_par(filnam, spb=False, skiprows=None, skipfooter=0):
@@ -129,6 +128,8 @@ def csv_to_cdf(metadata):
     ds = utils.write_metadata(ds, metadata)
 
     del metadata
+
+    ds = utils.ensure_cf(ds)
 
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
@@ -269,12 +270,6 @@ def eco_qaqc(ds):
     # QA/QC ECO data
     if "ntu" in ds.attrs["INST_TYPE"].lower():
         for var in ["Turb"]:
-            ds = qaqc.trim_max_std(ds, var)
-
-            ds = qaqc.trim_min(ds, var)
-
-            ds = qaqc.trim_max(ds, var)
-
             ds = qaqc.trim_min_diff(ds, var)
 
             ds = qaqc.trim_max_diff(ds, var)
@@ -283,6 +278,20 @@ def eco_qaqc(ds):
 
             ds = qaqc.trim_med_diff_pct(ds, var)
 
+            ds = qaqc.trim_maxabs_diff_2d(ds, var)
+
+            ds = qaqc.trim_maxabs_diff(ds, var)
+
+            ds = qaqc.trim_max_std(ds, var)
+
+            ds = qaqc.trim_min(ds, var)
+
+            ds = qaqc.trim_max(ds, var)
+
             ds = qaqc.trim_bad_ens(ds, var)
+
+        # after check for masking vars by others
+        for var in ["Turb"]:
+            ds = qaqc.trim_mask(ds, var)
 
     return ds
