@@ -1,8 +1,10 @@
-import pandas as pd
-import yaml
-import numpy as np
-import xarray as xr
 import warnings
+
+import numpy as np
+import pandas as pd
+import xarray as xr
+import yaml
+
 from ..core import utils
 
 
@@ -13,12 +15,12 @@ def csv_to_cdf(metadata):
     with open(basefile + "_metadata.txt") as f:
         meta = yaml.safe_load(f)
 
-    print(f"Reading {basefile}.txt")
+    print(f"Reading {basefile}_data.txt")
     try:
         df = pd.read_csv(basefile + "_data.txt", engine="pyarrow")
     except ValueError:
         warnings.warn(
-            "Failed to load file using pyarrow; falling back to the slower default loader. Are you sure you have installed pyarrow?"
+            "Failed to load file using pyarrow; falling back to the slower default loader. Are you sure pyarrow is installed?"
         )
         df = pd.read_csv(
             basefile + "_data.txt"
@@ -35,73 +37,15 @@ def csv_to_cdf(metadata):
 
     ds["time"] = pd.DatetimeIndex(ds["time"])
 
-    ds.attrs["serial_number"] = str(meta["instrument"]["serial"])
-    for v in ["model", "fwtype", "fwversion"]:
-        ds.attrs[v] = str(meta["instrument"][v])
-    ds.attrs["sample_mode"] = meta["sampling"]["mode"]
+    ds = create_lat_lon_vars_from_attrs(ds)
 
-    ds["latitude"] = xr.DataArray(
-        [ds.attrs["latitude"]],
-        dims="latitude",
-        attrs={"units": "degree_north", "standard_name": "latitude", "axis": "Y"},
-    )
+    ds = replace_spaces_in_var_names(ds)
 
-    ds["longitude"] = xr.DataArray(
-        [ds.attrs["longitude"]],
-        dims="longitude",
-        attrs={"units": "degree_east", "standard_name": "longitude", "axis": "X"},
-    )
+    ds = rename_vars(ds, meta)
 
-    for k in ds.data_vars:
-        if " " in k:
-            ds = ds.rename({k: k.replace(" ", "_")})
+    ds = drop_unused_vars(ds)
 
-    if "Turbidity" in ds:
-        ds = get_metadata(ds, "Turbidity", meta)
-        ds = ds.rename({"Turbidity": "Turb"})
-
-        # ds["Turb"].attrs.update(
-        #     {"units": "Nephelometric turbidity units (NTU)", "long_name": "Turbidity"}
-        # )
-
-    if "Pressure" in ds:
-        ds = get_metadata(ds, "Pressure", meta)
-        ds = ds.rename({"Pressure": "P_1"})
-
-    if "Depth" in ds:
-        ds = ds.drop("Depth")
-
-    if "Conductivity" in ds:
-        ds = get_metadata(ds, "Conductivity", meta)
-        ds = ds.rename({"Conductivity": "C_51"})
-
-    if "Salinity" in ds:
-        ds = get_metadata(ds, "Salinity", meta)
-        ds = ds.rename({"Salinity": "S_41"})
-
-    if "Temperature" in ds:
-        ds = get_metadata(ds, "Temperature", meta)
-        ds = ds.rename({"Temperature": "T_28"})
-
-    if "Specific_conductivity" in ds:
-        ds = get_metadata(ds, "Specific_conductivity", meta)
-        ds = ds.rename({"Specific_conductivity": "SpC_48"})
-
-    for var in [
-        "Sea_pressure",
-        "Depth",
-        "Speed_of_sound",
-        "Density_anomaly",
-        "Tidal_slope",
-    ]:
-        if var in ds:
-            ds = ds.drop(var)
-
-    ds.attrs["sample_interval"] = int(meta["sampling"]["period"]) / 1000
-    if "burstinterval" in meta["sampling"]:
-        ds.attrs["burst_interval"] = meta["sampling"]["burstinterval"] / 1000
-    if "burstcount" in meta["sampling"]:
-        ds.attrs["samples_per_burst"] = meta["sampling"]["burstcount"]
+    ds = set_up_instrument_and_sampling_attrs(ds, meta)
 
     if ds.attrs["sample_mode"] == "WAVE":
         burst = pd.read_csv(basefile + "_burst.txt", infer_datetime_format=True)
@@ -197,14 +141,105 @@ def csv_to_cdf(metadata):
 
     ds = utils.shift_time(ds, 0)
 
-    print(ds.attrs)
-
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
     ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
 
     print("Finished writing data to %s" % cdf_filename)
+
+    return ds
+
+
+def create_lat_lon_vars_from_attrs(ds):
+    ds["latitude"] = xr.DataArray(
+        [ds.attrs["latitude"]],
+        dims="latitude",
+        attrs={"units": "degree_north", "standard_name": "latitude", "axis": "Y"},
+    )
+
+    ds["longitude"] = xr.DataArray(
+        [ds.attrs["longitude"]],
+        dims="longitude",
+        attrs={"units": "degree_east", "standard_name": "longitude", "axis": "X"},
+    )
+
+    return ds
+
+
+def replace_spaces_in_var_names(ds):
+    for k in ds.data_vars:
+        if " " in k:
+            ds = ds.rename({k: k.replace(" ", "_")})
+
+    return ds
+
+
+def rename_vars(ds, meta):
+    if "Turbidity" in ds:
+        ds = get_metadata(ds, "Turbidity", meta)
+        ds = ds.rename({"Turbidity": "Turb"})
+
+        # ds["Turb"].attrs.update(
+        #     {"units": "Nephelometric turbidity units (NTU)", "long_name": "Turbidity"}
+        # )
+
+    if "Pressure" in ds:
+        ds = get_metadata(ds, "Pressure", meta)
+        ds = ds.rename({"Pressure": "P_1"})
+
+    if "Depth" in ds:
+        ds = ds.drop("Depth")
+
+    if "Conductivity" in ds:
+        ds = get_metadata(ds, "Conductivity", meta)
+        ds = ds.rename({"Conductivity": "C_51"})
+
+    if "Salinity" in ds:
+        ds = get_metadata(ds, "Salinity", meta)
+        ds = ds.rename({"Salinity": "S_41"})
+
+    if "Temperature" in ds:
+        ds = get_metadata(ds, "Temperature", meta)
+        ds = ds.rename({"Temperature": "T_28"})
+
+    if "Specific_conductivity" in ds:
+        ds = get_metadata(ds, "Specific_conductivity", meta)
+        ds = ds.rename({"Specific_conductivity": "SpC_48"})
+
+    return ds
+
+
+def drop_unused_vars(ds):
+    for var in [
+        "Sea_pressure",
+        "Depth",
+        "Speed_of_sound",
+        "Density_anomaly",
+        "Tidal_slope",
+    ]:
+        if var in ds:
+            ds = ds.drop(var)
+
+    return ds
+
+
+def set_up_instrument_and_sampling_attrs(ds, meta):
+
+    ds.attrs["serial_number"] = str(meta["instrument"]["serial"])
+
+    for v in ["model", "fwtype", "fwversion"]:
+        ds.attrs[v] = str(meta["instrument"][v])
+
+    ds.attrs["sample_mode"] = meta["sampling"]["mode"]
+
+    ds.attrs["sample_interval"] = int(meta["sampling"]["period"]) / 1000
+
+    if "burstinterval" in meta["sampling"]:
+        ds.attrs["burst_interval"] = meta["sampling"]["burstinterval"] / 1000
+
+    if "burstcount" in meta["sampling"]:
+        ds.attrs["samples_per_burst"] = meta["sampling"]["burstcount"]
 
     return ds
 
