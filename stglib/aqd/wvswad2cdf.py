@@ -47,22 +47,12 @@ def wad_to_cdf(metadata, writefile=True):
 
     ds.attrs["center_first_bin"] = ds["cellpos"][0].values
 
-    print("BIN SIZE:", ds.attrs["bin_size"])
-
     ds = aqdutils.create_bindist(ds, waves=True)
 
     # Compute time stamps
     fs = float(ds.attrs["WaveSampleRate"].split()[0])
     ds.attrs["sample_interval"] = 1 / fs
     ds.attrs["samples_per_burst"] = ds.attrs["WaveNumberOfSamples"]
-
-    if utils.is_cf(ds):
-        pass
-    else:
-        print("about to create epic times")
-        ds = utils.create_epic_times(ds, waves=True)
-
-        ds = utils.create_2d_time(ds)
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
