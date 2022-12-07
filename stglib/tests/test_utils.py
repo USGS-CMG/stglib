@@ -66,6 +66,27 @@ class TestClip(unittest.TestCase):
 
         np.testing.assert_array_equal(expected["time"], result["time"])
 
+    def test_clip_multiple_good_dates(self):
+        expected = xr.Dataset()
+        expected["time"] = xr.DataArray(
+            np.hstack(
+                [
+                    pd.date_range("2000-01-10 15:45", "2000-01-19 00:00", freq="15min"),
+                    pd.date_range("2000-01-21 15:45", "2000-01-23 00:00", freq="15min"),
+                ]
+            ),
+            dims="time",
+        )
+        self.ds.attrs["good_dates"] = [
+            "2000-01-10 15:41",
+            "2000-01-19 00:00",
+            "2000-01-21 15:41",
+            "2000-01-23 00:00",
+        ]
+        result = stglib.utils.clip_ds(self.ds)
+
+        np.testing.assert_array_equal(expected["time"], result["time"])
+
     def test_clip_good_ens(self):
         expected = xr.Dataset()
         expected["time"] = xr.DataArray(

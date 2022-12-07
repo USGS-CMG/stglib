@@ -111,13 +111,28 @@ def clip_ds(ds, wvs=False):
     elif "good_dates" in ds.attrs:
         # clip by start/end dates that are not Deployment_date and Recovery_date
 
-        where = np.where(
-            (ds["time"].values >= np.datetime64(ds.attrs["good_dates"][0]))
-            & (ds["time"].values <= np.datetime64(ds.attrs["good_dates"][1]))
-        )[0]
-        print("good_dates[0] {}, idx {}".format(ds.attrs["good_dates"][0], where.min()))
-        print("good_dates[1] {}, idx {}".format(ds.attrs["good_dates"][1], where.max()))
-        ds = ds.sel(time=slice(ds.attrs["good_dates"][0], ds.attrs["good_dates"][1]))
+        good_dates = ds.attrs["good_dates"]
+        goods = []
+
+        for n in range(0, len(good_dates), 2):
+            toappend = (ds.time > np.datetime64(good_dates[n])) & (
+                ds.time <= np.datetime64(good_dates[n + 1])
+            )
+            where = np.where(toappend)[0]
+            print(f"{good_dates[n]=}, {where.min()=}")
+            print(f"{good_dates[n+1]=}, {where.max()=}")
+            goods.append(toappend)
+
+        goods = np.any(goods, axis=0)
+        ds = ds.isel(time=goods)
+
+        # where = np.where(
+        #     (ds["time"].values >= np.datetime64(ds.attrs["good_dates"][0]))
+        #     & (ds["time"].values <= np.datetime64(ds.attrs["good_dates"][1]))
+        # )[0]
+        # print("good_dates[0] {}, idx {}".format(ds.attrs["good_dates"][0], where.min()))
+        # print("good_dates[1] {}, idx {}".format(ds.attrs["good_dates"][1], where.max()))
+        # ds = ds.sel(time=slice(ds.attrs["good_dates"][0], ds.attrs["good_dates"][1]))
 
         histtext = "Data clipped using good_dates of {}.".format(
             ds.attrs["good_dates"],
