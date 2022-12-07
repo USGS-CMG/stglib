@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .core import utils
-from .core import qaqc
+from .core import qaqc, utils
 
 
 def read_exo(filnam, skiprows=25, encoding="utf-8"):
@@ -574,7 +573,8 @@ def read_exo_header(filnam, encoding="utf-8"):
         # new version of KOR export file
         hdr = pd.read_csv(filnam, skiprows=4, encoding=encoding)
         hdr = pd.DataFrame(hdr.iloc[:, 3:-1])
-        header["serial_number"] = "unknown"
+        # get instrument SN from filename -- this will fail on files not named according to the Kor default file-naming convention but I'm not sure how else to get it
+        header["serial_number"] = filnam.split("/")[-1].split("_")[1]
         row = np.where(hdr.iloc[:, 0] == "SENSOR SERIAL NUMBER:")
         a = np.vstack([hdr.iloc[row[0] + 1, :].values, hdr.iloc[row[0], :].values]).T
         for v in a:
