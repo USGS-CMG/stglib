@@ -63,7 +63,8 @@ def parse_qrev_xml(doc, negateq=False):
 
     adcp["qnegated"] = negateq
     if negateq:
-        adcp["q"][adcp["qnegated"]] = -adcp["q"][adcp["qnegated"]]
+        for v in ["q", "QoverA"]:
+            adcp[v][adcp["qnegated"]] = -adcp[v][adcp["qnegated"]]
 
     df = pd.DataFrame(
         adcp,
