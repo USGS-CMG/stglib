@@ -131,13 +131,9 @@ def ds_add_attrs(ds):
     if "condlo_uScm" in ds:
         ds = ds.rename({"condlo_uScm": "SpC_48_lo"})
 
-        ds["SpC_48_lo"].values = (
-            ds["SpC_48_lo"].values / 1000
-        )  # convert from µS/cm to mS/cm
-
         ds["SpC_48_lo"].attrs.update(
             {
-                "units": "mS/cm",
+                "units": "uS/cm",
                 "long_name": "Conductivity",
                 "comment": "Temperature compensated to 25 °C; low range",
                 "epic_code": 48,
@@ -159,13 +155,9 @@ def ds_add_attrs(ds):
     if "condhi_uScm" in ds:
         ds = ds.rename({"condhi_uScm": "SpC_48_hi"})
 
-        ds["SpC_48_hi"].values = (
-            ds["SpC_48_hi"].values / 1000
-        )  # convert from µS/cm to mS/cm
-
         ds["SpC_48_hi"].attrs.update(
             {
-                "units": "mS/cm",
+                "units": "uS/cm",
                 "long_name": "Conductivity",
                 "comment": "Temperature compensated to 25 °C; high range",
                 "epic_code": 48,

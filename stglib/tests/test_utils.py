@@ -34,6 +34,27 @@ class TestUtils(unittest.TestCase):
         result = stglib.aqd.aqdutils.rotate(0, 1, 270)
         np.testing.assert_almost_equal(expected, result)
 
+    def test_spcon_salinity(self):
+        # Test the the roundtrip conversion results in the same as the input value.
+        # This is an simplified conversion so we relax the relative tolerance.
+
+        spcon = np.array([10000, 20000])
+        salinity = np.array([5.63, 11.92])
+
+        expected = salinity
+        result = stglib.utils.salinity_from_spcon(spcon)
+        np.testing.assert_allclose(expected, result, rtol=1e-3)
+
+        expected = spcon
+        result = stglib.utils.spcon_from_salinity(salinity)
+        np.testing.assert_allclose(expected, result, rtol=1e-3)
+
+        expected = spcon
+        result = stglib.utils.spcon_from_salinity(
+            stglib.utils.salinity_from_spcon(spcon)
+        )
+        np.testing.assert_allclose(expected, result, rtol=1e-3)
+
 
 class TestClip(unittest.TestCase):
     def setUp(self):

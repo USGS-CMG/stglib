@@ -1221,10 +1221,10 @@ def salinity_from_spcon(spcon):
     Interagency Ecological Program Newsletter
     By: Laurence E. Schemel
     https://pubs.er.usgs.gov/publication/70174311
-    spcon must be in mS/cm
+    spcon must be in uS/cm
     """
 
-    R = spcon / 53.087
+    R = spcon / 53087
     K1 = 0.0120
     K2 = -0.2174
     K3 = 25.3283
@@ -1239,6 +1239,26 @@ def salinity_from_spcon(spcon):
         + K4 * R ** (3 / 2)
         + K5 * R**2
         + K6 * R ** (5 / 2)
+    )
+
+
+def spcon_from_salinity(S):
+    """
+    Derive specific conductance from salinity following
+    Simplified conversions between specific conductance and salinity units for use with data from monitoring stations
+    Interagency Ecological Program Newsletter
+    By: Laurence E. Schemel
+    https://pubs.er.usgs.gov/publication/70174311
+    Returns spcon in uS/cm
+    """
+
+    J1 = -16.072
+    J2 = 4.1495
+    J3 = -0.5345
+    J4 = 0.0261
+
+    return S / 35 * 53087 + S * (S - 35) * (
+        J1 + (J2 * S ** (1 / 2)) + (J3 * S) + (J4 * S ** (3 / 2))
     )
 
 
