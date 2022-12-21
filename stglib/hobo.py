@@ -97,15 +97,6 @@ def ds_add_attrs(ds):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
-    if not utils.is_cf(ds):
-        ds["epic_time"].attrs.update(
-            {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
-        )
-
-        ds["epic_time2"].attrs.update(
-            {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
-        )
-
     if "abspres_dbar" in ds:
         ds = ds.rename({"abspres_dbar": "BPR_915"})
 
