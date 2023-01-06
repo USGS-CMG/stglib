@@ -201,20 +201,17 @@ def ds_add_attrs(ds):
                 "standard_name": "sea_water_pressure_due_to_sea_water",
             }
         )
-        # ds["P_1ac"].encoding["_FillValue"] = 1e35
         if "P_1ac_note" in ds.attrs:
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
     if "burst" in ds:
         ds["burst"].attrs["units"] = "1"
-        # ds["burst"].encoding["_FillValue"] = 1e35
         ds["burst"].attrs["long_name"] = "Burst number"
 
     if "Turb" in ds:
         ds["Turb"].attrs.update(
             {"long_name": "Turbidity (NTU)", "standard_name": "sea_water_turbidity"}
         )
-        # ds["Turb"].encoding["_FillValue"] = 1e35
 
     if "T_28" in ds:
         ds["T_28"].attrs.update({"standard_name": "sea_water_temperature"})
@@ -232,10 +229,6 @@ def ds_add_attrs(ds):
                 "comment": "Temperature compensated to 25 °C",
             }
         )
-
-    if not utils.is_cf(ds):
-        ds.attrs["COMPOSITE"] = np.int32(0)
-        ds.attrs["COORD_SYSTEM"] = "GEOGRAPHIC + sample"
 
     return ds
 

@@ -86,7 +86,6 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
     hdr = read_exo_header(filnam, encoding=encoding)
     exo.attrs["serial_number"] = hdr["serial_number"]
     exo.attrs["INST_TYPE"] = "YSI EXO2 Multiparameter Sonde"
-    exo.attrs["COMPOSITE"] = np.int32(0)
 
     # Apply sensor serial numbers to each sensor
     for k in exo.variables:
@@ -536,7 +535,6 @@ def ds_add_attrs(ds):
                 "height_depth_units": "m",
             }
         )
-        # var.encoding["_FillValue"] = 1e35
 
     for var in ds.variables:
         if (var not in ds.coords) and ("time" not in var):

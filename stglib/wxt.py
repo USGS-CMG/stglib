@@ -281,12 +281,6 @@ def ds_add_attrs(ds):
         if "sensor_type" not in dsattrs:
             var.attrs["sensor_type"] = "Vaisala WXT536"
 
-    # for var in ds.variables:
-    #     if ds[var].dtype == "float32":
-    #         ds[var].encoding["_FillValue"] = 1e35
-    #     elif ds[var].dtype == "int32":
-    #         ds[var].encoding["_FillValue"] = -2147483648
-
     # don't include all attributes for coordinates that are also variables
     for var in ds.variables:
         if (var not in ds.coords) and ("time" not in var):

@@ -377,12 +377,9 @@ def ds_add_attrs(ds):
                 "height_depth_units": "m",
             }
         )
-        # var.encoding["_FillValue"] = 1e35
 
     for var in ds.variables:
         if (var not in ds.coords) and ("time" not in var):
             add_attributes(ds[var], ds.attrs)
-
-    ds.attrs["COMPOSITE"] = np.int32(0)
 
     return ds

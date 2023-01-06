@@ -823,9 +823,6 @@ def update_attrs(ds, waves=False):
     ds["TransMatrix"].attrs["long_name"] = "Transformation Matrix " "for this Aquadopp"
     if "burst" in ds:
         ds["burst"].attrs.update({"units": "count", "long_name": "Record number"})
-        # ds['burst'].encoding['_FillValue'] = 1e35 # don't want this to have a _FillValue
-
-        # ds['cellpos'].encoding['_FillValue'] = 1e35 # don't want this to have a _FillValue
 
     return ds
 
@@ -869,9 +866,6 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
                 "sensor_type": dsattrs["INST_TYPE"],
             }
         )
-        # var.encoding["_FillValue"] = 1e35
-
-    ds.attrs["COMPOSITE"] = np.int32(0)
 
     if utils.is_cf(ds):
         ds.attrs["featureType"] = "timeSeriesProfile"
@@ -1001,8 +995,6 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
                     "epic_code": 1279,
                 }
             )
-
-        ds.attrs["COORD_SYSTEM"] = "GEOGRAPHIC + sample"
 
     if "AGC1_1221" in ds:
         ds["AGC1_1221"].attrs.update(
