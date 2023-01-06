@@ -79,6 +79,7 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
             "*** Could not find pressure (Press_psi_a, Pressure_psi_a) in source data file. Have you exported pressure if this instrument was equipped with a pressure sensor?"
         )
     if pvar:
+        # Convert from PSI to dbar
         exo["Press_dbar"] = exo[pvar] * 0.689476
 
     exo = xr.Dataset(exo)
