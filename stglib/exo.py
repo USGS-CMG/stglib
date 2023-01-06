@@ -509,7 +509,7 @@ def ds_add_attrs(ds):
         ds["P_1"].attrs.update(
             {
                 "units": "dbar",
-                "long_name": "Pressure",
+                "long_name": "Uncorrected pressure",
                 "epic_code": 1,
                 "standard_name": "sea_water_pressure",
             }

@@ -1,11 +1,11 @@
 import sqlite3
+import warnings
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 
 from ..core import utils
-import warnings
 
 
 def rsk_to_cdf(metadata):
@@ -136,7 +136,7 @@ def rsk_to_xr(metadata):
         dims=("time", "sample"),
         name="Pressure",
         attrs={
-            "long_name": "Pressure",
+            "long_name": "Uncorrected pressure",
             "units": "dbar",
             "epic_code": 1,
             "height_depth_units": "m",

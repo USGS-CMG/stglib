@@ -340,7 +340,7 @@ def ds_add_attrs(ds):
     ds["NoiseLevel"].attrs["long_name"] = "Acoustic noise level"
     ds["Range"].attrs["long_name"] = "Acoustically measured distance to water surface"
     ds["T_28"].attrs["long_name"] = "Water temperature"
-    ds["P_1"].attrs["long_name"] = "Pressure"
+    ds["P_1"].attrs["long_name"] = "Uncorrected pressure"
     ds["PressOffsetAdjust"].attrs[
         "long_name"
     ] = "Atmospheric pressure adjustment (see SonTek-IQ User's Manual for details)"

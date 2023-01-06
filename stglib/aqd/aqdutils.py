@@ -748,7 +748,7 @@ def update_attrs(ds, waves=False):
     ds["Pressure"].attrs.update(
         {
             "units": "dbar",
-            "long_name": "Pressure",
+            "long_name": "Uncorrected pressure",
             "generic_name": "press",
             "note": (
                 "Raw pressure from instrument, not corrected for changes "
@@ -1038,7 +1038,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
         {
             "units": "dbar",
             "name": "P",
-            "long_name": "Pressure",
+            "long_name": "Uncorrected pressure",
             "generic_name": "depth",
             "epic_code": 1,
         }
