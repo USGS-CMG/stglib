@@ -1,8 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from ..core import utils
-from ..core import qaqc
+from ..core import qaqc, utils
 
 
 def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
@@ -61,12 +60,14 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     # trim by minimum pressure for instruments that go out of water_depth
     for v in ["P_1", "P_1ac"]:
         ds = trim_min(ds, v)
+        ds = qaqc.trim_bad_ens(ds, v)
 
     if "Turb" in ds:
         ds = qaqc.trim_min(ds, "Turb")
         ds = qaqc.trim_max(ds, "Turb")
         ds = qaqc.trim_min_diff(ds, "Turb")
         ds = qaqc.trim_max_diff(ds, "Turb")
+        ds = qaqc.trim_bad_ens(ds, "Turb")
 
     ds = utils.add_min_max(ds)
 
