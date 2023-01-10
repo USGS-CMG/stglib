@@ -21,7 +21,7 @@ def read_qrev_xml(filename, encoding="utf-8"):
         return xmltodict.parse(fd.read())
 
 
-def parse_qrev_xml(doc, negateq=False):
+def parse_qrev_xml(doc, negateq=False, xarray=False):
     """
     Parse XML output from QRev and return as a Pandas DataFrame
 
@@ -36,11 +36,15 @@ def parse_qrev_xml(doc, negateq=False):
         If negateq is a single bool, negate all transects.
 
         If negateq is a a list of bools, only negate those whose value is True
+    xarray : bool, optional, default False
+        If True, return an xarray Dataset
 
     Returns
     -------
     pandas.DataFrame
         pandas DataFrame of relevant values extracted from the QRev XML tree.
+
+        if xarray is True, returns an xarray Dataset
     """
 
     adcp = {}
@@ -81,7 +85,12 @@ def parse_qrev_xml(doc, negateq=False):
         ],
     )
 
-    return df.set_index("time")
+    df = df.set_index("time")
+
+    if xarray:
+        return df.to_xarray()
+    else:
+        return df
 
 
 def linregress(adcp):
