@@ -69,9 +69,9 @@ def load_cdf(cdf_filename, atmpres=False):
     """
 
     ds = xr.load_dataset(cdf_filename)
-    ds.time.encoding.pop(
-        "units"
-    )  # remove units in case we change and we can use larger time steps
+
+    # remove units in case we change and we can use larger time steps
+    ds.time.encoding.pop("units")
 
     if atmpres is not False:
         p = xr.load_dataset(atmpres)

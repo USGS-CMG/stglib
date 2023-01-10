@@ -106,9 +106,8 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
 
 def open_raw_cdf(cdf_filename):
     ds = xr.load_dataset(cdf_filename)
-    ds.time.encoding.pop(
-        "units"
-    )  # remove units in case we change and we can use larger time steps
+    # remove units in case we change and we can use larger time steps
+    ds.time.encoding.pop("units")
     return ds
 
 

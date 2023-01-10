@@ -195,9 +195,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # Load raw .cdf data
     ds = xr.load_dataset(cdf_filename)
-    ds.time.encoding.pop(
-        "units"
-    )  # remove units in case we change and we can use larger time steps
+
+    # remove units in case we change and we can use larger time steps
+    ds.time.encoding.pop("units")
 
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
