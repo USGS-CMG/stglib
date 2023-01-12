@@ -449,11 +449,11 @@ def ds_add_attrs(ds):
 
     ds["S_41"].attrs.update(
         {
-            "units": "1e-3",
+            "units": "1",
             "long_name": "Salinity, PSU",
             "comments": "Practical salinity units (PSU)",
             "epic_code": 41,
-            "standard_name": "sea_water_salinity",
+            "standard_name": "sea_water_practical_salinity",
         }
     )
 

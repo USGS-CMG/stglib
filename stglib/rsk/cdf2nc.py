@@ -216,7 +216,7 @@ def ds_add_attrs(ds):
         ds["T_28"].attrs.update({"standard_name": "sea_water_temperature"})
 
     if "S_41" in ds:
-        ds["S_41"].attrs.update({"standard_name": "sea_water_salinity"})
+        ds["S_41"].attrs.update({"standard_name": "sea_water_practical_salinity"})
 
     if "C_51" in ds:
         ds["C_51"].attrs.update({"standard_name": "sea_water_electrical_conductivity"})

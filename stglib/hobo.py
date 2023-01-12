@@ -136,10 +136,10 @@ def ds_add_attrs(ds):
 
         ds["S_41_lo"].attrs.update(
             {
-                "units": "1e-3",
-                "long_name": "Salinity; low range",
+                "units": "1",
+                "long_name": "Salinity; low range, PSU",
                 "epic_code": 41,
-                "standard_name": "sea_water_salinity",
+                "standard_name": "sea_water_practical_salinity",
             }
         )
 
@@ -160,10 +160,10 @@ def ds_add_attrs(ds):
 
         ds["S_41_hi"].attrs.update(
             {
-                "units": "1e-3",
-                "long_name": "Salinity; high range",
+                "units": "1",
+                "long_name": "Salinity; high range, PSU",
                 "epic_code": 41,
-                "standard_name": "sea_water_salinity",
+                "standard_name": "sea_water_practical_salinity",
             }
         )
 
