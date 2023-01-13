@@ -17,7 +17,7 @@ stglib serves two distinct but related purposes:
 Currently, this package has at least partial support for:
 
 - Nortek Aquadopp profilers, in mean-current and wave-burst modes
-- Nortek Vector current meters
+- Nortek Vector velocimeters
 - RBR pressure (including waves) and turbidity sensors
 - YSI EXO2 water-quality sondes
 - SonTek IQ flow monitors
@@ -30,6 +30,11 @@ Currently, this package has at least partial support for:
 - EofE ECHOLOGGER altimeters
 
 .. _QRev: https://hydroacoustics.usgs.gov/movingboat/QRev.shtml
+
+We have plans to support:
+
+- Nortek Aquadopp profiles in HR mode
+- Nortek Signature profilers
 
 .. toctree::
    :maxdepth: 2
