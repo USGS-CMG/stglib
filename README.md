@@ -9,6 +9,7 @@ This package contains code to process data from a variety of oceanographic instr
 Currently, this package has at least partial support for:
 
 - Nortek Aquadopp profilers, in mean-current and wave-burst modes
+- Nortek Vector velocimeters
 - RBR pressure (including waves) and turbidity sensors
 - YSI EXO2 water-quality sondes
 - SonTek IQ flow monitors
@@ -18,6 +19,12 @@ Currently, this package has at least partial support for:
 - In-Situ Aqua TROLL sensors
 - RD Instruments ADCPs
 - Moving-boat ADCP data processed using [QRev](https://hydroacoustics.usgs.gov/movingboat/QRev.shtml), for use in index-velocity computation
+- EofE ECHOLOGGER altimeters
+
+We have plans to support:
+
+- Nortek Aquadopp profiles in HR mode
+- Nortek Signature profilers
 
 This package makes heavy use of [NumPy](http://www.numpy.org), [xarray](http://xarray.pydata.org/en/stable/), and [netCDF4](http://unidata.github.io/netcdf4-python/). It works on Python 3.8+.
 
