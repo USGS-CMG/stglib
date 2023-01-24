@@ -62,7 +62,7 @@ def wad_to_cdf(metadata, writefile=True):
     ds = ds.drop_vars("datetime")
 
     if writefile:
-        cdf_filename = ds.attrs["filename"] + "wvs-raw.cdf"
+        cdf_filename = ds.attrs["filename"] + "wv-raw.cdf"
         ds.to_netcdf(cdf_filename)
         print("Finished writing data to %s" % cdf_filename)
 

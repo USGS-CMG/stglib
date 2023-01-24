@@ -1,9 +1,9 @@
-import xarray as xr
 import numpy as np
+import xarray as xr
+from tqdm import tqdm
 
 from ..core import utils, waves
 from . import aqdutils
-from tqdm import tqdm
 
 
 def nc_to_waves(nc_filename):
@@ -188,6 +188,9 @@ def nc_to_waves(nc_filename):
         "U",
         "V",
         "W",
+        "u_1205",
+        "v_1206",
+        "w_1204",
         "avgamp1",
         "avgamp2",
         "avgamp3",
