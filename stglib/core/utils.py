@@ -249,8 +249,8 @@ def ds_add_diwasp_history(ds):
 def ds_coord_no_fillvalue(ds):
 
     for var in [
-        "lat",
-        "lon",
+        "latitude",
+        "longitude",
         "depth",
         "time",
         "time2",
@@ -751,24 +751,26 @@ def add_lat_lon(ds, var):
 
 
 def ds_add_lat_lon(ds):
-    ds["lat"] = xr.DataArray(
+    ds["latitude"] = xr.DataArray(
         [ds.attrs["latitude"]],
-        dims=("lat"),
-        name="lat",
+        dims=("latitude"),
+        name="latitude",
         attrs={
             "units": "degree_north",
+            "axis": "Y",
             "long_name": "Latitude",
             "standard_name": "latitude",
             "epic_code": 500,
         },
     )
 
-    ds["lon"] = xr.DataArray(
+    ds["longitude"] = xr.DataArray(
         [ds.attrs["longitude"]],
-        dims=("lon"),
-        name="lon",
+        dims=("longitude"),
+        name="longitude",
         attrs={
             "units": "degree_east",
+            "axis": "X",
             "long_name": "Longitude",
             "standard_name": "longitude",
             "epic_code": 502,
@@ -851,6 +853,8 @@ def create_water_depth_var(ds):
 
     ds["water_depth"].attrs["long_name"] = "Total water depth"
     ds["water_depth"].attrs["units"] = "m"
+    ds["water_depth"].attrs["standard_name"] = "sea_floor_depth_below_sea_surface"
+    ds["water_depth"].attrs["epic_code"] = 3
 
     return ds
 
