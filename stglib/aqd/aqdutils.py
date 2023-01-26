@@ -877,23 +877,6 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
-    if "epic_time" in ds:
-        ds["epic_time"].attrs.update(
-            {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
-        )
-
-    if "epic_time2" in ds:
-        ds["epic_time2"].attrs.update(
-            {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
-        )
-
-    if "epic_time_2d" in ds:
-        ds["epic_time_2d"].attrs = ds["epic_time"].attrs
-        ds["epic_time_2d"].attrs["type"] = "UNEVEN"
-    if "epic_time2_2d" in ds:
-        ds["epic_time2_2d"].attrs = ds["epic_time2"].attrs
-        ds["epic_time2_2d"].attrs["type"] = "UNEVEN"
-
     # ds["depth"].attrs.update(
     #     {
     #         "units": "m",

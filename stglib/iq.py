@@ -303,16 +303,6 @@ def ds_add_attrs(ds):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
-    if "epic_time" in ds:
-        ds["epic_time"].attrs.update(
-            {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
-        )
-
-    if "epic_time2" in ds:
-        ds["epic_time2"].attrs.update(
-            {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
-        )
-
     ds["D_3"].attrs.update(
         {"long_name": "Depth (relative to the top of the instrument)", "epic_code": 3}
     )
