@@ -582,43 +582,6 @@ def set_var_dtype(ds, var, dtype="float32"):
     return ds
 
 
-def rename_time(ds):
-    """
-    Rename time variables for EPIC compliance, keeping a time_cf coorindate.
-    """
-
-    if is_cf(ds):
-        pass
-    else:
-        ds = ds.rename({"time": "time_cf"})
-        ds = ds.rename({"epic_time": "time"})
-        ds = ds.rename({"epic_time2": "time2"})
-        ds = ds.set_coords(["time", "time2"])
-        ds = ds.swap_dims({"time_cf": "time"})
-        # output int32 time_cf for THREDDS compatibility
-        ds["time_cf"].encoding["dtype"] = "i4"
-
-    return ds
-
-
-def rename_time_2d(nc_filename, ds):
-    if is_cf(ds):
-        print("not renaming 2D time because CF==1.6")
-        pass
-    else:
-        # Need to do this in two steps after renaming the variable.
-        # Not sure why, but it works this way.
-        with netCDF4.Dataset(nc_filename, "r+") as nc:
-            nc.renameVariable("time", "time_cf")
-            # nc.renameVariable('time_2d', 'time_cf_2d')
-            timebak = nc["epic_time_2d"][:]
-            nc.renameVariable("epic_time_2d", "time")
-            nc.renameVariable("epic_time2_2d", "time2")
-
-        with netCDF4.Dataset(nc_filename, "r+") as nc:
-            nc["time"][:] = timebak
-
-
 def open_time_2d_dataset(filename):
     # need to drop 'time' variable because of xarray limitations related
     # to coordinates and variables with the same name, otherwise it raises a

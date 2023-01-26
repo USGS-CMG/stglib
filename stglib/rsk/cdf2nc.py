@@ -38,14 +38,6 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     #                       ds.attrs['burst_interval'] *
     #                       ds.attrs['sample_interval'] / 2)
 
-    if utils.is_cf(ds):
-        pass
-    else:
-        print("about to create epic times")
-        ds = utils.create_epic_times(ds)
-
-        ds = utils.create_2d_time(ds)
-
     ds = ds_add_attrs(ds)
 
     # if "P_1" in ds:
@@ -172,21 +164,6 @@ def ds_add_attrs(ds):
         ds["sample"].encoding["dtype"] = "i4"
         ds["sample"].attrs["long_name"] = "sample number"
         ds["sample"].attrs["units"] = "1"
-
-    if "epic_time" in ds:
-        ds["epic_time"].attrs.update(
-            {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
-        )
-
-    if "epic_time2" in ds:
-        ds["epic_time2"].attrs.update(
-            {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
-        )
-
-    if "epic_time_2d" in ds:
-        ds["epic_time_2d"].attrs = ds["epic_time"].attrs
-    if "epic_time2_2d" in ds:
-        ds["epic_time2_2d"].attrs = ds["epic_time2"].attrs
 
     if "P_1" in ds:
         ds["P_1"].attrs["standard_name"] = "sea_water_pressure"

@@ -5,13 +5,6 @@ def nc_to_waves(nc_filename):
 
     ds = utils.open_time_2d_dataset(nc_filename)  # this will deal with a cf file, too
 
-    if utils.is_cf(ds):
-        pass
-    else:
-        ds = utils.epic_to_cf_time(ds)
-
-        ds = utils.create_epic_times(ds)
-
     spec = waves.make_waves_ds(ds)
 
     for k in ["wp_peak", "wh_4061", "wp_4060", "pspec"]:
@@ -35,12 +28,6 @@ def nc_to_waves(nc_filename):
 
     # Add attrs
     ds = utils.ds_add_wave_attrs(ds)
-
-    # Reshape and associate dimensions with lat/lon
-    # if not utils.is_cf:
-    #     for var in ["wp_peak", "wh_4061", "wp_4060", "pspec", "water_depth"]:
-    #         if var in ds:
-    #             ds = utils.add_lat_lon(ds, var)
 
     # assign min/max (need to do this after trimming):
     ds = utils.add_min_max(ds)
