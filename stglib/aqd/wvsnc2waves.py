@@ -226,7 +226,7 @@ def nc_to_waves(nc_filename):
         ds = waves.puv_qaqc(ds)
 
     # Add attrs
-    ds = utils.ds_add_attrs(ds)
+    ds = utils.ds_add_wave_attrs(ds)
 
     nc_filename = ds.attrs["filename"] + "wvs-a.nc"
 

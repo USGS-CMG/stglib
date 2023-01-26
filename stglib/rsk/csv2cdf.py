@@ -39,8 +39,6 @@ def csv_to_cdf(metadata):
 
     ds["time"] = pd.DatetimeIndex(ds["time"])
 
-    ds = create_lat_lon_vars_from_attrs(ds)
-
     ds = replace_spaces_in_var_names(ds)
 
     ds = rename_vars(ds, meta)
@@ -87,6 +85,7 @@ def csv_to_cdf(metadata):
 
         if "Burst" in dsburst:
             dsburst = dsburst.rename({"Burst": "burst"})
+            dsburst["burst"] = dsburst["burst"].astype("int")
 
         if "Wave" in dsburst:
             dsburst = dsburst.drop("Wave")
@@ -229,8 +228,9 @@ def drop_unused_vars(ds):
 def set_up_instrument_and_sampling_attrs(ds, meta):
 
     ds.attrs["serial_number"] = str(meta["instrument"]["serial"])
+    ds.attrs["instrument_type"] = str(meta["instrument"]["model"])
 
-    for v in ["model", "fwtype", "fwversion"]:
+    for v in ["fwtype", "fwversion"]:
         ds.attrs[v] = str(meta["instrument"][v])
 
     ds.attrs["sample_mode"] = meta["sampling"]["mode"]

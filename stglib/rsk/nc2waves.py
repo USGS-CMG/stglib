@@ -34,7 +34,7 @@ def nc_to_waves(nc_filename):
     ds = utils.trim_wp_ratio(ds)
 
     # Add attrs
-    ds = utils.ds_add_attrs(ds)
+    ds = utils.ds_add_wave_attrs(ds)
 
     # Reshape and associate dimensions with lat/lon
     # if not utils.is_cf:
@@ -46,11 +46,6 @@ def nc_to_waves(nc_filename):
     ds = utils.add_min_max(ds)
 
     nc_filename = ds.attrs["filename"] + "s-a.nc"
-
-    for var in ds.data_vars:
-        if "time" not in var:
-            # cast as float32
-            ds = utils.set_var_dtype(ds, var)
 
     ds.to_netcdf(nc_filename, unlimited_dims=["time"])
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])

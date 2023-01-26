@@ -182,7 +182,7 @@ def add_min_max(ds):
     [exclude.append(k) for k in ds.variables if "time" in k]
     exclude.extend(["TIM", "TransMatrix"])
 
-    alloweddims = ["time", "sample", "depth", "z"]
+    alloweddims = ["time", "sample", "depth", "z", "frequency"]
 
     for k in ds.variables:
         if k not in exclude:
@@ -249,8 +249,8 @@ def ds_add_diwasp_history(ds):
 def ds_coord_no_fillvalue(ds):
 
     for var in [
-        "lat",
-        "lon",
+        "latitude",
+        "longitude",
         "depth",
         "time",
         "time2",
@@ -319,9 +319,9 @@ def add_standard_names(ds):
     return ds
 
 
-def ds_add_attrs(ds):
+def ds_add_wave_attrs(ds):
     """
-    Add EPIC and other attributes to variables
+    Add wave attributes to variables
     """
 
     # Update attributes for EPIC and STG compliance
@@ -333,27 +333,17 @@ def ds_add_attrs(ds):
 
     ds["time"].encoding["dtype"] = "i4"
 
-    if "epic_time" in ds:
-        ds["epic_time"].attrs.update(
-            {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
-        )
-
-    if "epic_time2" in ds:
-        ds["epic_time2"].attrs.update(
-            {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
-        )
-
     def add_attributes(var, dsattrs):
         var.attrs.update(
             {
                 "serial_number": dsattrs["serial_number"],
-                "initial_instrument_height": dsattrs["initial_instrument_height"],
-                "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
-                "height_depth_units": "m",
+                # "initial_instrument_height": dsattrs["initial_instrument_height"],
+                # "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
+                # "height_depth_units": "m",
             }
         )
-        if "INST_TYPE" in dsattrs:
-            var.attrs["sensor_type"] = dsattrs["INST_TYPE"]
+        # if "INST_TYPE" in dsattrs:
+        #    var.attrs["sensor_type"] = dsattrs["INST_TYPE"]
 
     ds["wp_peak"].attrs.update(
         {
@@ -407,6 +397,7 @@ def ds_add_attrs(ds):
                 "long_name": "Directional wave energy spectrum",
                 "units": "m^2/Hz/degree",
                 "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_directional_variance_spectral_density",
             }
         )
 
@@ -422,6 +413,7 @@ def ds_add_attrs(ds):
                     "defined by the direction with the greatest energy at "
                     "the peak period"
                 ),
+                "standard_name": "sea_surface_wave_from_direction_at_variance_spectral_density_maximum",
             }
         )
 
@@ -447,6 +439,7 @@ def ds_add_attrs(ds):
                 "units": "degrees",
                 "epic_code": 4062,
                 "note": "Compass direction from which waves are propagating",
+                "standard_name": "sea_surface_wave_from_direction",
             }
         )
 
@@ -751,24 +744,26 @@ def add_lat_lon(ds, var):
 
 
 def ds_add_lat_lon(ds):
-    ds["lat"] = xr.DataArray(
+    ds["latitude"] = xr.DataArray(
         [ds.attrs["latitude"]],
-        dims=("lat"),
-        name="lat",
+        dims=("latitude"),
+        name="latitude",
         attrs={
             "units": "degree_north",
+            "axis": "Y",
             "long_name": "Latitude",
             "standard_name": "latitude",
             "epic_code": 500,
         },
     )
 
-    ds["lon"] = xr.DataArray(
+    ds["longitude"] = xr.DataArray(
         [ds.attrs["longitude"]],
-        dims=("lon"),
-        name="lon",
+        dims=("longitude"),
+        name="longitude",
         attrs={
             "units": "degree_east",
+            "axis": "X",
             "long_name": "Longitude",
             "standard_name": "longitude",
             "epic_code": 502,
@@ -851,6 +846,8 @@ def create_water_depth_var(ds):
 
     ds["water_depth"].attrs["long_name"] = "Total water depth"
     ds["water_depth"].attrs["units"] = "m"
+    ds["water_depth"].attrs["standard_name"] = "sea_floor_depth_below_sea_surface"
+    ds["water_depth"].attrs["epic_code"] = 3
 
     return ds
 
