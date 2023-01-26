@@ -280,7 +280,7 @@ def add_standard_names(ds):
         "Ptch_1216": "platform_pitch",
         "Roll_1217": "platform_roll",
         "P_1": "sea_water_pressure",
-        "Tx_1211": "sea_water_temperature",
+        #"Tx_1211": "sea_water_temperature",
         "P_1ac": "sea_water_pressure_due_to_sea_water",
         "u_1205": "eastward_sea_water_velocity",
         "v_1206": "northward_sea_water_velocity",
@@ -308,13 +308,13 @@ def add_standard_names(ds):
             if f"AnalogInput2_{v}" in ds.attrs:
                 ds["AnalogInput2"].attrs[v] = ds.attrs[f"AnalogInput2_{v}"]
 
-    ds["feature_type_instance"] = xr.DataArray(
-        [f"{ds.attrs['MOORING']}aqd"], dims="feature_type_instance"
-    )
-    ds["feature_type_instance"].attrs["cf_role"] = "timeseries_id"
+    #ds["feature_type_instance"] = xr.DataArray(
+    #    [f"{ds.attrs['MOORING']}aqd"], dims="feature_type_instance"
+    #)
+    #ds["feature_type_instance"].attrs["cf_role"] = "timeseries_id"
 
-    for k in ds.data_vars:
-        ds[k].attrs["coverage_content_type"] = "physicalMeasurement"
+    #for k in ds.data_vars:
+    #    ds[k].attrs["coverage_content_type"] = "physicalMeasurement"
 
     return ds
 

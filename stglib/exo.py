@@ -85,7 +85,7 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
     exo = xr.Dataset(exo)
     hdr = read_exo_header(filnam, encoding=encoding)
     exo.attrs["serial_number"] = hdr["serial_number"]
-    exo.attrs["INST_TYPE"] = "YSI EXO2 Multiparameter Sonde"
+    exo.attrs["instrument_type"] = "YSI EXO2 Multiparameter Sonde"
 
     # Apply sensor serial numbers to each sensor
     for k in exo.variables:
@@ -378,7 +378,10 @@ def ds_add_attrs(ds):
 
     if "Fch_906" in ds:
         ds["Fch_906"].attrs.update(
-            {"units": "ug/L", "long_name": "Chlorophyll A", "epic_code": 906}
+            {"units": "ug/L", "long_name": "Chlorophyll A", "epic_code": 906,
+             "standard_name": "mass_concentration_of_chlorophyll_in_sea_water",
+             "comments": "from calibration of sensor with rhodamine W/T in lab"
+            }
         )
 
     if "BGAPErfu" in ds:
@@ -536,6 +539,23 @@ def ds_add_attrs(ds):
 def read_exo_header(filnam, encoding="utf-8"):
     header = {}
     try:
+        # new version of KOR export file
+        hdr = pd.read_csv(filnam, skiprows=4, encoding=encoding)
+        hdr = pd.DataFrame(hdr.iloc[:, 3:])
+        row = np.where(hdr.iloc[:, 0] == "SENSOR SERIAL NUMBER:")
+        a = np.vstack([hdr.iloc[row[0] + 1, :].values, hdr.iloc[row[0], :].values]).T
+        for v in a:
+            if v[0] != "Site Name":
+                header[v[0]] = {}
+                header[v[0]]["sensor_serial_number"] = v[1]
+                if v[0] == "Battery V":
+                    header["serial_number"]=v[1]
+
+        #if "serial_number" not in header:
+            # get instrument SN from filename -- this will fail on files not named according to the Kor default file-naming convention but I'm not sure how else to get it
+        #    header["serial_number"] = filnam.split("/")[-1].split("_")[1]
+
+    except (pd.errors.ParserError, KeyError):
         # Old version of KOR export file
         hdr = pd.read_csv(filnam, skiprows=None, encoding=encoding)
         hdr = pd.DataFrame(hdr.iloc[:, 0:4])
@@ -560,19 +580,7 @@ def read_exo_header(filnam, encoding="utf-8"):
                 header[var]["data_columns"] = [
                     int(x) for x in vals.values[0][3].split(";")
                 ]
-    except (pd.errors.ParserError, KeyError):
-        # new version of KOR export file
-        hdr = pd.read_csv(filnam, skiprows=4, encoding=encoding)
-        hdr = pd.DataFrame(hdr.iloc[:, 3:-1])
-        # get instrument SN from filename -- this will fail on files not named according to the Kor default file-naming convention but I'm not sure how else to get it
-        header["serial_number"] = filnam.split("/")[-1].split("_")[1]
-        row = np.where(hdr.iloc[:, 0] == "SENSOR SERIAL NUMBER:")
-        a = np.vstack([hdr.iloc[row[0] + 1, :].values, hdr.iloc[row[0], :].values]).T
-        for v in a:
-            if v[0] != "Site Name":
-                header[v[0]] = {}
-                header[v[0]]["sensor_serial_number"] = v[1]
-
+       
     return header
 
 
