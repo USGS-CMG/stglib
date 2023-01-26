@@ -238,9 +238,9 @@ def ds_add_attrs(ds):
             }
         )
 
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            add_attributes(ds[var], ds.attrs)
+    # for var in ds.variables:
+    #    if (var not in ds.coords) and ("time" not in var):
+    #        add_attributes(ds[var], ds.attrs)
 
     return ds
 
