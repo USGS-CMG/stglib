@@ -22,6 +22,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Create depth variable depending on orientation
     VEL, T, T_orig = aqdutils.set_orientation(VEL, VEL["TransMatrix"].values)
 
+    # add z coordinate dim
+    VEL = utils.create_z(VEL)
+
     # Transform coordinates from, most likely, BEAM to ENU
 
     if "VEL1" in VEL:
@@ -130,10 +133,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     VEL = utils.add_standard_names(VEL)
 
-    #for var in VEL.variables:
+    # for var in VEL.variables:
     #    if (var not in VEL.coords) and ("time" not in var):
-            # cast as float32
-            #VEL = utils.set_var_dtype(VEL, var)
+    # cast as float32
+    # VEL = utils.set_var_dtype(VEL, var)
 
     if "prefix" in VEL.attrs:
         nc_filename = VEL.attrs["prefix"] + VEL.attrs["filename"] + "-a.nc"

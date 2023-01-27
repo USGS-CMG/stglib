@@ -202,7 +202,7 @@ def set_orientation(VEL, T):
     """
     Create z variable depending on instrument orientation
     """
-
+    """
     if "Pressure_ac" in VEL:
         presvar = "Pressure_ac"
     else:
@@ -232,9 +232,10 @@ def set_orientation(VEL, T):
         # if we don't have NAVD88 elevations, reference to sea-bed elevation
         elev = VEL.attrs["transducer_offset_from_bottom"]
         long_name = "height relative to sea bed"
-
+    """
     T_orig = T.copy()
 
+    """
     if VEL.attrs["orientation"] == "UP":
         print("User instructed that instrument was pointing UP")
 
@@ -242,12 +243,14 @@ def set_orientation(VEL, T):
         VEL["depth"] = xr.DataArray(
             np.nanmean(VEL[presvar]) - VEL["bindist"].values, dims="depth"
         )
-
+    
     elif VEL.attrs["orientation"] == "DOWN":
+    """
+    if VEL.attrs["orientation"] == "DOWN":
         print("User instructed that instrument was pointing DOWN")
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
-
+    """
         VEL["z"] = xr.DataArray(elev - VEL["bindist"].values, dims="z")
         VEL["depth"] = xr.DataArray(
             np.nanmean(VEL[presvar]) + VEL["bindist"].values, dims="depth"
@@ -265,7 +268,7 @@ def set_orientation(VEL, T):
     VEL["depth"].attrs["units"] = "m"
     VEL["depth"].attrs["positive"] = "down"
     VEL["depth"].attrs["long_name"] = "depth below mean sea level"
-
+    """
     return VEL, T, T_orig
 
 
@@ -697,8 +700,8 @@ def create_bindist(ds, waves=False):
 def update_attrs(ds, waves=False):
     """Define dimensions and variables in NetCDF file"""
 
-    ds["latitude"] = xr.DataArray([ds.attrs["latitude"]], dims=("lat"), name="lat")
-    ds["longitude"] = xr.DataArray([ds.attrs["longitude"]], dims=("lon"), name="lon")
+    ds["latitude"] = xr.DataArray([ds.attrs["latitude"]], dims=("latitude"))
+    ds["longitude"] = xr.DataArray([ds.attrs["longitude"]], dims=("longitude"))
 
     ds["TransMatrix"] = xr.DataArray(ds.attrs["AQDTransMatrix"])
     # Need to remove AQDTransMatrix from attrs for netCDF3 compliance
@@ -711,6 +714,7 @@ def update_attrs(ds, waves=False):
     ds["latitude"].attrs.update(
         {
             "units": "degree_north",
+            "axis": "Y",
             "long_name": "Latitude",
             "standard_name": "latitude",
             "epic_code": 500,
@@ -720,15 +724,16 @@ def update_attrs(ds, waves=False):
     ds["longitude"].attrs.update(
         {
             "units": "degree_east",
+            "axis": "X",
             "long_name": "Longitude",
             "standard_name": "longitude",
             "epic_code": 502,
         }
     )
 
-    if "position_datum" in ds.attrs:
-        ds["latitude"].attrs["datum"] = ds.attrs["position_datum"]
-        ds["longitude"].attrs["datum"] = ds.attrs["position_datum"]
+    # if "position_datum" in ds.attrs:
+    #    ds["latitude"].attrs["datum"] = ds.attrs["position_datum"]
+    #    ds["longitude"].attrs["datum"] = ds.attrs["position_datum"]
 
     ds["bindist"].attrs.update(
         {
@@ -737,19 +742,20 @@ def update_attrs(ds, waves=False):
             "bin_size": ds.attrs["bin_size"],
             "center_first_bin": ds.attrs["center_first_bin"],
             "bin_count": ds.attrs["bin_count"],
-            "transducer_offset_from_bottom": ds.attrs["transducer_offset_from_bottom"],
+            # "transducer_offset_from_bottom": ds.attrs["transducer_offset_from_bottom"],
         }
     )
 
     ds["Temperature"].attrs.update(
-        {"units": "C", "long_name": "Temperature", "generic_name": "temp"}
+        # {"units": "C", "long_name": "Temperature", "generic_name": "temp"}
+        {"units": "C", "long_name": "Temperature"}
     )
 
     ds["Pressure"].attrs.update(
         {
             "units": "dbar",
             "long_name": "Uncorrected pressure",
-            "generic_name": "press",
+            # "generic_name": "press",
             "note": (
                 "Raw pressure from instrument, not corrected for changes "
                 "in atmospheric pressure"
@@ -762,18 +768,18 @@ def update_attrs(ds, waves=False):
             ds["VEL" + str(n)].attrs.update(
                 {
                     "units": "m s-1",
-                    "transducer_offset_from_bottom": ds.attrs[
-                        "transducer_offset_from_bottom"
-                    ],
+                    # "transducer_offset_from_bottom": ds.attrs[
+                    #    "transducer_offset_from_bottom"
+                    # ],
                 }
             )
         ds["AMP" + str(n)].attrs.update(
             {
                 "long_name": "Beam " + str(n) + " Echo Amplitude",
                 "units": "counts",
-                "transducer_offset_from_bottom": ds.attrs[
-                    "transducer_offset_from_bottom"
-                ],
+                # "transducer_offset_from_bottom": ds.attrs[
+                #    "transducer_offset_from_bottom"
+                # ],
             }
         )
 
@@ -805,7 +811,7 @@ def update_attrs(ds, waves=False):
         {
             "units": "degrees",
             "long_name": "Instrument Heading",
-            #"datum": "magnetic north",
+            # "datum": "magnetic north",
         }
     )
 
@@ -822,7 +828,7 @@ def update_attrs(ds, waves=False):
 
     ds["TransMatrix"].attrs["long_name"] = "Transformation Matrix " "for this Aquadopp"
     if "burst" in ds:
-        ds["burst"].attrs.update({"units": "count", "long_name": "Record number"})
+        ds["burst"].attrs.update({"units": "count", "long_name": "Burst number"})
 
     return ds
 
@@ -859,15 +865,15 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             sn = dsattrs["VECSerialNumber"]
         var.attrs.update(
             {
-                "serial_number": sn,
-                "initial_instrument_height": dsattrs["initial_instrument_height"],
-                #"nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
-                "height_depth_units": "m",
-                #"sensor_type": dsattrs["INST_TYPE"],
+                # "serial_number": sn,
+                # "initial_instrument_height": dsattrs["initial_instrument_height"],
+                # "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
+                # "height_depth_units": "m",
+                # "sensor_type": dsattrs["INST_TYPE"],
             }
         )
 
-    #if utils.is_cf(ds):
+    # if utils.is_cf(ds):
     #    ds.attrs["featureType"] = "timeSeriesProfile"
 
     # Update attributes for EPIC and STG compliance
@@ -898,9 +904,9 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     if "u_1205" in ds:
         ds["u_1205"].attrs.update(
             {
-                "name": "u",
+                # "name": "u",
                 "long_name": "Eastward Velocity",
-                #"generic_name": "u",
+                # "generic_name": "u",
                 "epic_code": 1205,
             }
         )
@@ -908,9 +914,9 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     if "v_1206" in ds:
         ds["v_1206"].attrs.update(
             {
-                "name": "v",
+                # "name": "v",
                 "long_name": "Northward Velocity",
-                #"generic_name": "v",
+                # "generic_name": "v",
                 "epic_code": 1206,
             }
         )
@@ -918,9 +924,9 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     if "w_1204" in ds:
         ds["w_1204"].attrs.update(
             {
-                "name": "w",
+                # "name": "w",
                 "long_name": "Vertical Velocity",
-                #"generic_name": "w",
+                # "generic_name": "w",
                 "epic_code": 1204,
             }
         )
@@ -929,10 +935,10 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
         ds["AGC_1202"].attrs.update(
             {
                 "units": "counts",
-                "name": "AGC",
+                # "name": "AGC",
                 "long_name": "Average Echo Intensity",
                 "generic_name": "AGC",
-                #"epic_code": 1202,
+                # "epic_code": 1202,
             }
         )
 
@@ -956,7 +962,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
                 {
                     "units": "m s-1",
                     "long_name": "Beam 1 Velocity",
-                    #"generic_name": "vel1",
+                    # "generic_name": "vel1",
                     "epic_code": 1277,
                 }
             )
@@ -965,7 +971,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
                 {
                     "units": "m s-1",
                     "long_name": "Beam 2 Velocity",
-                    #"generic_name": "vel2",
+                    # "generic_name": "vel2",
                     "epic_code": 1278,
                 }
             )
@@ -974,7 +980,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
                 {
                     "units": "m s-1",
                     "long_name": "Beam 3 Velocity",
-                    #"generic_name": "vel3",
+                    # "generic_name": "vel3",
                     "epic_code": 1279,
                 }
             )
@@ -984,7 +990,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             {
                 "units": "counts",
                 "long_name": "Echo Intensity (AGC) Beam 1",
-                #"generic_name": "AGC1",
+                # "generic_name": "AGC1",
                 "epic_code": 1221,
             }
         )
@@ -994,7 +1000,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             {
                 "units": "counts",
                 "long_name": "Echo Intensity (AGC) Beam 2",
-                #"generic_name": "AGC2",
+                # "generic_name": "AGC2",
                 "epic_code": 1222,
             }
         )
@@ -1004,7 +1010,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             {
                 "units": "counts",
                 "long_name": "Echo Intensity (AGC) Beam 3",
-                #"generic_name": "AGC3",
+                # "generic_name": "AGC3",
                 "epic_code": 1223,
             }
         )
@@ -1012,16 +1018,17 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     ds["P_1"].attrs.update(
         {
             "units": "dbar",
-            "name": "P",
+            # "name": "P",
             "long_name": "Uncorrected pressure",
-            #"generic_name": "depth",
+            # "generic_name": "depth",
             "epic_code": 1,
         }
     )  # TODO: is this generic name correct?
 
     if "P_1ac" in ds:
         ds["P_1ac"].attrs.update(
-            {"units": "dbar", "name": "Pac", "long_name": "Corrected pressure"}
+            # {"units": "dbar", "name": "Pac", "long_name": "Corrected pressure"}
+            {"units": "dbar", "long_name": "Corrected pressure"}
         )
         if "P_1ac_note" in ds.attrs:
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
@@ -1034,7 +1041,8 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
 
     if "bin_depth" in ds:
         ds["bin_depth"].attrs.update(
-            {"units": "m", "name": "bin depth", "long_name": "bin depth"}
+            # {"units": "m", "name": "bin depth", "long_name": "bin depth"}
+            {"units": "m", "long_name": "bin depth"}
         )
 
         if "P_1ac" in ds:
@@ -1059,9 +1067,9 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     ds["Tx_1211"].attrs.update(
         {
             "units": "C",
-            "name": "Tx",
+            # "name": "Tx",
             "long_name": "Instrument Internal Temperature",
-            #"generic_name": "temp",
+            # "generic_name": "temp",
             "epic_code": 1211,
         }
     )
@@ -1069,9 +1077,9 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     ds["Hdg_1215"].attrs.update(
         {
             "units": "degrees",
-            "name": "Hdg",
+            # "name": "Hdg",
             "long_name": "Instrument Heading",
-            #"generic_name": "hdg",
+            # "generic_name": "hdg",
             "epic_code": 1215,
         }
     )
@@ -1092,9 +1100,9 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     ds["Ptch_1216"].attrs.update(
         {
             "units": "degrees",
-            "name": "Ptch",
+            # "name": "Ptch",
             "long_name": "Instrument Pitch",
-            #"generic_name": "ptch",
+            # "generic_name": "ptch",
             "epic_code": 1216,
         }
     )
@@ -1102,9 +1110,9 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     ds["Roll_1217"].attrs.update(
         {
             "units": "degrees",
-            "name": "Roll",
+            # "name": "Roll",
             "long_name": "Instrument Roll",
-            #"generic_name": "roll",
+            # "generic_name": "roll",
             "epic_code": 1217,
         }
     )

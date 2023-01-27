@@ -378,9 +378,12 @@ def ds_add_attrs(ds):
 
     if "Fch_906" in ds:
         ds["Fch_906"].attrs.update(
-            {"units": "ug/L", "long_name": "Chlorophyll A", "epic_code": 906,
-             "standard_name": "mass_concentration_of_chlorophyll_in_sea_water",
-             "comments": "from calibration of sensor with rhodamine W/T in lab"
+            {
+                "units": "ug/L",
+                "long_name": "Chlorophyll A",
+                "epic_code": 906,
+                "standard_name": "mass_concentration_of_chlorophyll_in_sea_water",
+                "comments": "from calibration of sensor with rhodamine W/T in lab",
             }
         )
 
@@ -529,9 +532,9 @@ def ds_add_attrs(ds):
             }
         )
 
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            add_attributes(ds[var], ds.attrs)
+    # for var in ds.variables:
+    #    if (var not in ds.coords) and ("time" not in var):
+    #        add_attributes(ds[var], ds.attrs)
 
     return ds
 
@@ -549,10 +552,10 @@ def read_exo_header(filnam, encoding="utf-8"):
                 header[v[0]] = {}
                 header[v[0]]["sensor_serial_number"] = v[1]
                 if v[0] == "Battery V":
-                    header["serial_number"]=v[1]
+                    header["serial_number"] = v[1]
 
-        #if "serial_number" not in header:
-            # get instrument SN from filename -- this will fail on files not named according to the Kor default file-naming convention but I'm not sure how else to get it
+        # if "serial_number" not in header:
+        # get instrument SN from filename -- this will fail on files not named according to the Kor default file-naming convention but I'm not sure how else to get it
         #    header["serial_number"] = filnam.split("/")[-1].split("_")[1]
 
     except (pd.errors.ParserError, KeyError):
@@ -580,7 +583,7 @@ def read_exo_header(filnam, encoding="utf-8"):
                 header[var]["data_columns"] = [
                     int(x) for x in vals.values[0][3].split(";")
                 ]
-       
+
     return header
 
 
