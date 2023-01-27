@@ -19,10 +19,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # VEL = utils.create_water_depth(VEL)
     VEL = utils.create_nominal_instrument_depth(VEL)
 
-    # Create depth variable depending on orientation
+    # create T depending on orientation
     VEL, T, T_orig = aqdutils.set_orientation(VEL, VEL["TransMatrix"].values)
 
-    # add z coordinate dim
+    # add z coordinate dim using core.utils.py def
     VEL = utils.create_z(VEL)
 
     # Transform coordinates from, most likely, BEAM to ENU

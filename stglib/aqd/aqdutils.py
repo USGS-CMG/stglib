@@ -200,7 +200,7 @@ def swap_bindist_to_depth(ds):
 
 def set_orientation(VEL, T):
     """
-    Create z variable depending on instrument orientation
+    Create T variable depending on instrument orientation
     """
     """
     if "Pressure_ac" in VEL:
