@@ -200,8 +200,7 @@ def swap_bindist_to_depth(ds):
 
 def set_orientation(VEL, T):
     """
-    Create T variable depending on instrument orientation
-    """
+    Create Z variable depending on instrument orientation
     """
     if "Pressure_ac" in VEL:
         presvar = "Pressure_ac"
@@ -232,10 +231,9 @@ def set_orientation(VEL, T):
         # if we don't have NAVD88 elevations, reference to sea-bed elevation
         elev = VEL.attrs["transducer_offset_from_bottom"]
         long_name = "height relative to sea bed"
-    """
+   
     T_orig = T.copy()
 
-    """
     if VEL.attrs["orientation"] == "UP":
         print("User instructed that instrument was pointing UP")
 
@@ -244,13 +242,10 @@ def set_orientation(VEL, T):
             np.nanmean(VEL[presvar]) - VEL["bindist"].values, dims="depth"
         )
     
-    elif VEL.attrs["orientation"] == "DOWN":
-    """
     if VEL.attrs["orientation"] == "DOWN":
         print("User instructed that instrument was pointing DOWN")
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
-    """
         VEL["z"] = xr.DataArray(elev - VEL["bindist"].values, dims="z")
         VEL["depth"] = xr.DataArray(
             np.nanmean(VEL[presvar]) + VEL["bindist"].values, dims="depth"
@@ -268,7 +263,7 @@ def set_orientation(VEL, T):
     VEL["depth"].attrs["units"] = "m"
     VEL["depth"].attrs["positive"] = "down"
     VEL["depth"].attrs["long_name"] = "depth below mean sea level"
-    """
+    
     return VEL, T, T_orig
 
 
