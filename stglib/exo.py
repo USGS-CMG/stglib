@@ -542,23 +542,6 @@ def ds_add_attrs(ds):
 def read_exo_header(filnam, encoding="utf-8"):
     header = {}
     try:
-        # new version of KOR export file
-        hdr = pd.read_csv(filnam, skiprows=4, encoding=encoding)
-        hdr = pd.DataFrame(hdr.iloc[:, 3:])
-        row = np.where(hdr.iloc[:, 0] == "SENSOR SERIAL NUMBER:")
-        a = np.vstack([hdr.iloc[row[0] + 1, :].values, hdr.iloc[row[0], :].values]).T
-        for v in a:
-            if v[0] != "Site Name":
-                header[v[0]] = {}
-                header[v[0]]["sensor_serial_number"] = v[1]
-                if v[0] == "Battery V":
-                    header["serial_number"] = v[1]
-
-        # if "serial_number" not in header:
-        # get instrument SN from filename -- this will fail on files not named according to the Kor default file-naming convention but I'm not sure how else to get it
-        #    header["serial_number"] = filnam.split("/")[-1].split("_")[1]
-
-    except (pd.errors.ParserError, KeyError):
         # Old version of KOR export file
         hdr = pd.read_csv(filnam, skiprows=None, encoding=encoding)
         hdr = pd.DataFrame(hdr.iloc[:, 0:4])
@@ -583,6 +566,22 @@ def read_exo_header(filnam, encoding="utf-8"):
                 header[var]["data_columns"] = [
                     int(x) for x in vals.values[0][3].split(";")
                 ]
+
+    except (pd.errors.ParserError, KeyError):
+        # new version of KOR export file
+        hdr = pd.read_csv(filnam, skiprows=4, encoding=encoding)
+        hdr = pd.DataFrame(hdr.iloc[:, 3:])
+        # get instrument SN from filename -- this will fail on files not named according to the Kor default file-naming convention but I'm not sure how else to get it
+        header["serial_number"] = filnam.split("/")[-1].split("_")[1]
+        row = np.where(hdr.iloc[:, 0] == "SENSOR SERIAL NUMBER:")
+        a = np.vstack([hdr.iloc[row[0] + 1, :].values, hdr.iloc[row[0], :].values]).T
+        for v in a:
+            if v[0] != "Site Name":
+                header[v[0]] = {}
+                header[v[0]]["sensor_serial_number"] = v[1]
+                # try to get serial_number attribute from Battery V
+                if v[0] == "Battery V":
+                    header["serial_number"] = v[1]
 
     return header
 

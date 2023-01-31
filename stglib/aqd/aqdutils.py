@@ -231,7 +231,7 @@ def set_orientation(VEL, T):
         # if we don't have NAVD88 elevations, reference to sea-bed elevation
         elev = VEL.attrs["transducer_offset_from_bottom"]
         long_name = "height relative to sea bed"
-   
+
     T_orig = T.copy()
 
     if VEL.attrs["orientation"] == "UP":
@@ -241,7 +241,7 @@ def set_orientation(VEL, T):
         VEL["depth"] = xr.DataArray(
             np.nanmean(VEL[presvar]) - VEL["bindist"].values, dims="depth"
         )
-    
+
     if VEL.attrs["orientation"] == "DOWN":
         print("User instructed that instrument was pointing DOWN")
         T[1, :] = -T[1, :]
@@ -263,7 +263,7 @@ def set_orientation(VEL, T):
     VEL["depth"].attrs["units"] = "m"
     VEL["depth"].attrs["positive"] = "down"
     VEL["depth"].attrs["long_name"] = "depth below mean sea level"
-    
+
     return VEL, T, T_orig
 
 
@@ -858,6 +858,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             sn = dsattrs["AQDSerial_Number"]
         elif inst_type == "VEC":
             sn = dsattrs["VECSerialNumber"]
+        """
         var.attrs.update(
             {
                 # "serial_number": sn,
@@ -867,6 +868,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
                 # "sensor_type": dsattrs["INST_TYPE"],
             }
         )
+        """
 
     # if utils.is_cf(ds):
     #    ds.attrs["featureType"] = "timeSeriesProfile"
