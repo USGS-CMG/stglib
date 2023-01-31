@@ -106,9 +106,12 @@ def csv_to_cdf(metadata):
 
     basefile = metadata["basefile"]
 
-    if "par" in metadata["INST_TYPE"].lower():
+    if "INST_TYPE" in metadata:
+        metadata["instrument_type"] = metadata.pop("INST_TYPE")
+
+    if "par" in metadata["instrument_type"].lower():
         f = read_par
-    elif "ntu" in metadata["INST_TYPE"].lower():
+    elif "ntu" in metadata["instrument_type"].lower():
         f = read_ntu
     kwargs = {
         "spb": metadata["spb"],
@@ -161,14 +164,14 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Document No. par170706, 2017-07-06, Version B
     # https://www.seabird.com/asset-get.download.jsa?id=54627862518
 
-    if "par" in ds.attrs["INST_TYPE"].lower():
+    if "par" in ds.attrs["instrument_type"].lower():
         ds["PAR_905"] = ds.attrs["Im"] * 10 ** (
             (ds["counts"].mean(dim="sample") - ds.attrs["a0"]) / ds.attrs["a1"]
         )
         ds["PAR_905"].attrs["units"] = "umol m-2 s-1"
         ds["PAR_905"].attrs["long_name"] = "Photosynthetically active " "radiation"
 
-    if "ntu" in ds.attrs["INST_TYPE"].lower():
+    if "ntu" in ds.attrs["instrument_type"].lower():
         if "user_ntucal_coeffs" in ds.attrs:
             ds["Turb"] = xr.DataArray(
                 np.polyval(ds.attrs["user_ntucal_coeffs"], ds["counts"]),
@@ -177,6 +180,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             ds["Turb"].attrs["units"] = "1"
             ds["Turb"].attrs["long_name"] = "Turbidity (NTU)"
             ds["Turb"].attrs["standard_name"] = "sea_water_turbidity"
+            ds["Turb"].attrs["comments"] = "Nephelometric turbidity units (NTU)"
             ds["Turb_std"] = xr.DataArray(
                 np.polyval(ds.attrs["user_ntucal_coeffs"], ds["counts"]),
                 dims=["time", "sample"],
@@ -186,6 +190,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
                 "long_name"
             ] = "Turbidity burst standard deviation (NTU)"
             ds["Turb_std"].attrs["standard_name"] = "sea_water_turbidity"
+            ds["Turb_std"].attrs["comments"] = "Nephelometric turbidity units (NTU)"
             ds["Turb_std"].attrs["cell_methods"] = "time: standard_deviation"
 
     ds = ds.drop(["counts", "sample"])
@@ -208,6 +213,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = ds_add_attrs(ds)
 
     ds = utils.create_z(ds)
+
+    ds = utils.ds_coord_no_fillvalue(ds)
 
     # add lat/lon coordinates to each variable
     # for var in ds.variables:
@@ -237,6 +244,7 @@ def ds_add_attrs(ds):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
+    """
     def add_attributes(var, dsattrs):
         var.attrs.update(
             {
@@ -246,16 +254,16 @@ def ds_add_attrs(ds):
             }
         )
 
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            add_attributes(ds[var], ds.attrs)
-
+    #for var in ds.variables:
+    #    if (var not in ds.coords) and ("time" not in var):
+    #        add_attributes(ds[var], ds.attrs)
+    """
     return ds
 
 
 def eco_qaqc(ds):
     # QA/QC ECO data
-    if "ntu" in ds.attrs["INST_TYPE"].lower():
+    if "ntu" in ds.attrs["instrument_type"].lower():
         for var in ["Turb"]:
             ds = qaqc.trim_min_diff(ds, var)
 

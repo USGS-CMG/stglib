@@ -85,7 +85,7 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
     exo = xr.Dataset(exo)
     hdr = read_exo_header(filnam, encoding=encoding)
     exo.attrs["serial_number"] = hdr["serial_number"]
-    exo.attrs["INST_TYPE"] = "YSI EXO2 Multiparameter Sonde"
+    exo.attrs["instrument_type"] = "YSI EXO2 Multiparameter Sonde"
 
     # Apply sensor serial numbers to each sensor
     for k in exo.variables:
@@ -378,7 +378,13 @@ def ds_add_attrs(ds):
 
     if "Fch_906" in ds:
         ds["Fch_906"].attrs.update(
-            {"units": "ug/L", "long_name": "Chlorophyll A", "epic_code": 906}
+            {
+                "units": "ug/L",
+                "long_name": "Chlorophyll A",
+                "epic_code": 906,
+                "standard_name": "mass_concentration_of_chlorophyll_in_sea_water",
+                "comments": "from calibration of sensor with rhodamine W/T in lab",
+            }
         )
 
     if "BGAPErfu" in ds:
@@ -526,9 +532,9 @@ def ds_add_attrs(ds):
             }
         )
 
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            add_attributes(ds[var], ds.attrs)
+    # for var in ds.variables:
+    #    if (var not in ds.coords) and ("time" not in var):
+    #        add_attributes(ds[var], ds.attrs)
 
     return ds
 
@@ -560,10 +566,11 @@ def read_exo_header(filnam, encoding="utf-8"):
                 header[var]["data_columns"] = [
                     int(x) for x in vals.values[0][3].split(";")
                 ]
+
     except (pd.errors.ParserError, KeyError):
         # new version of KOR export file
         hdr = pd.read_csv(filnam, skiprows=4, encoding=encoding)
-        hdr = pd.DataFrame(hdr.iloc[:, 3:-1])
+        hdr = pd.DataFrame(hdr.iloc[:, 3:])
         # get instrument SN from filename -- this will fail on files not named according to the Kor default file-naming convention but I'm not sure how else to get it
         header["serial_number"] = filnam.split("/")[-1].split("_")[1]
         row = np.where(hdr.iloc[:, 0] == "SENSOR SERIAL NUMBER:")
@@ -572,6 +579,9 @@ def read_exo_header(filnam, encoding="utf-8"):
             if v[0] != "Site Name":
                 header[v[0]] = {}
                 header[v[0]]["sensor_serial_number"] = v[1]
+                # try to get serial_number attribute from Battery V
+                if v[0] == "Battery V":
+                    header["serial_number"] = v[1]
 
     return header
 
