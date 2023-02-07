@@ -22,21 +22,31 @@ if args.orientation == "DOWN":
     T[1, :] = -T[1, :]
     T[2, :] = -T[2, :]
 
-u, v, w = stglib.aqd.aqdutils.coord_transform(
-    ds["VEL1"].values,
-    ds["VEL2"].values,
-    ds["VEL3"].values,
-    ds["Heading"].values,
-    ds["Pitch"].values,
-    ds["Roll"].values,
-    T,
-    T_orig,
-    meta["AQDCoordinateSystem"],
-)
+if meta["AQDCoordinateSystem"] != "ENU":
+    if "VEL1" in ds:
+        v1 = "VEL1"
+        v2 = "VEL2"
+        v3 = "VEL3"
+    elif "X" in ds:
+        v1 = "X"
+        v2 = "Y"
+        v3 = "Z"
 
-ds["U"] = xr.DataArray(u, dims=("time", "bindist"))
-ds["V"] = xr.DataArray(v, dims=("time", "bindist"))
-ds["W"] = xr.DataArray(w, dims=("time", "bindist"))
+    u, v, w = stglib.aqd.aqdutils.coord_transform(
+        ds[v1].values,
+        ds[v2].values,
+        ds[v3].values,
+        ds["Heading"].values,
+        ds["Pitch"].values,
+        ds["Roll"].values,
+        T,
+        T_orig,
+        meta["AQDCoordinateSystem"],
+    )
+
+    ds["U"] = xr.DataArray(u, dims=("time", "bindist"))
+    ds["V"] = xr.DataArray(v, dims=("time", "bindist"))
+    ds["W"] = xr.DataArray(w, dims=("time", "bindist"))
 
 ds.attrs["AQDTransMatrix"] = []
 
@@ -120,6 +130,8 @@ ds["AnalogInput1"].plot()
 plt.subplot(4, 1, 4)
 ds["AnalogInput2"].plot()
 plt.savefig(args.basefile + "_aqd_sensor_ts2.png")
+
+print("Finished creating turnaround plots")
 
 # plt.figure(figsize=(11,9))
 # sp = plt.subplot(1, 1, 1, projection='polar')
