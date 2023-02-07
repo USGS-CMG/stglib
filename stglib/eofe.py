@@ -172,6 +172,8 @@ def cdf_to_nc(cdf_filename):
     # assign min/max
     ds = utils.add_min_max(ds)
 
+    ds = utils.ds_coord_no_fillvalue(ds)
+
     nc_filename = ds.attrs["filename"] + "-a.nc"
 
     # ds['time']=ds['time'].astype('datetime64[s]')
@@ -365,7 +367,9 @@ def ds_add_attrs(ds):
     # modified from exo.ds_add_attrs
     ds = utils.ds_coord_no_fillvalue(ds)
 
-    ds["time"].attrs.update({"standard_name": "time", "axis": "T"})
+    ds["time"].attrs.update(
+        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
+    )
 
     ds["sample"].attrs.update({"units": "1", "long_name": "Sample in burst"})
 
@@ -373,9 +377,9 @@ def ds_add_attrs(ds):
         {
             "units": "1",
             "long_name": "Burst number",
-            "generic_name": "record",
-            "epic_code": "1207",
-            "coverage_content_type": "physicalMeasurement",
+            # "generic_name": "record",
+            # "epic_code": "1207",
+            # "coverage_content_type": "physicalMeasurement",
         }
     )
 
@@ -383,7 +387,7 @@ def ds_add_attrs(ds):
         {
             "units": "degree_C",
             "long_name": "Instrument Internal Temperature",
-            "standard_name": "sea_water_temperature",
+            # "standard_name": "sea_water_temperature",
             "epic_code": "1211",
         }
     )
@@ -393,7 +397,7 @@ def ds_add_attrs(ds):
             {
                 "units": "counts",
                 "long_name": "Average Echo Intensity",
-                "generic_name": "AGC",
+                # "generic_name": "AGC",
                 "epic_code": "1202",
             }
         )
@@ -425,7 +429,9 @@ def ds_add_attrs(ds):
             }
         )
 
+    """
     # add initial height information and fill values to variabels
+
     def add_attributes(var, dsattrs):
         if "ea" in dsattrs["instrument_type"]:
             var.attrs.update(
@@ -443,11 +449,17 @@ def ds_add_attrs(ds):
                     "sensor_type": "ECHOLOGGER AA400",
                 }
             )
-
+    
     # don't include all attributes for coordinates that are also variables
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            add_attributes(ds[var], ds.attrs)
+    #for var in ds.variables:
+    #    if (var not in ds.coords) and ("time" not in var):
+    #        add_attributes(ds[var], ds.attrs)
+    """
+    # rename instrument_type for global attributes
+    if "aa" in ds.attrs["instrument_type"]:
+        ds.attrs["instrument_type"] = "EofE ECHOLOGGER AA400 altimeter"
+    elif "ea" in ds.attrs["instrument_type"]:
+        ds.attrs["instrument_type"] = "EofE ECHOLOGGER EA400 profiling altimeter"
 
     return ds
 
