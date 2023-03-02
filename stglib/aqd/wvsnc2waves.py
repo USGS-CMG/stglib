@@ -8,16 +8,7 @@ from . import aqdutils
 
 def nc_to_waves(nc_filename):
 
-    ds = xr.load_dataset(nc_filename, decode_times=False)
-
-    if utils.is_cf(ds):
-        for k in ds:
-            if "_time" in k:
-                ds = ds.drop(k)
-        ds = xr.decode_cf(ds)
-    else:
-        ds = utils.epic_to_cf_time(ds)
-        ds = utils.create_epic_times(ds)
+    ds = xr.load_dataset(nc_filename)
 
     spec = waves.make_waves_ds(ds)
 
@@ -226,7 +217,7 @@ def nc_to_waves(nc_filename):
         ds = waves.puv_qaqc(ds)
 
     # Add attrs
-    ds = utils.ds_add_attrs(ds)
+    ds = utils.ds_add_wave_attrs(ds)
 
     nc_filename = ds.attrs["filename"] + "wvs-a.nc"
 

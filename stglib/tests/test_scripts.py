@@ -55,6 +55,24 @@ def test_aqd():
     aqd_nc("11211Aaqd-raw.cdf")
 
 
+def aqdturnaround(basefile):
+    result = subprocess.run(
+        ["python", "../../../scripts/aqdturnaround.py", basefile],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "Finished creating turnaround plots" in result.stdout.decode("utf8")
+
+
+def test_aqdturnaround():
+    # ensure plots are created for data collected in BEAM coordinates
+    aqdturnaround("1121AQ04")
+    # and XYZ coordinates
+    aqdturnaround("NBMCCE02")
+    # and ENU coordinates
+    aqdturnaround("BEL503")
+
+
 def wxt_raw(glob_att, config_yaml):
     result = subprocess.run(
         ["python", "../../../scripts/runwxtcsv2cdf.py", glob_att, config_yaml],

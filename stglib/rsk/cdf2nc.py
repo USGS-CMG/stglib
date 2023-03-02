@@ -38,18 +38,10 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     #                       ds.attrs['burst_interval'] *
     #                       ds.attrs['sample_interval'] / 2)
 
-    if utils.is_cf(ds):
-        pass
-    else:
-        print("about to create epic times")
-        ds = utils.create_epic_times(ds)
-
-        ds = utils.create_2d_time(ds)
-
     ds = ds_add_attrs(ds)
 
-    if "P_1" in ds:
-        ds = ds_add_depth_dim(ds)
+    # if "P_1" in ds:
+    #    ds = ds_add_depth_dim(ds)
 
     # add lat/lon coordinates to each variable
     # no longer want to do this according to the canonical forms on stellwagen
@@ -69,20 +61,20 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         ds = qaqc.trim_max_diff(ds, "Turb")
         ds = qaqc.trim_bad_ens(ds, "Turb")
 
+    # add z coordinate dim
+    ds = utils.create_z(ds)
+
     ds = utils.add_min_max(ds)
 
     ds = utils.add_start_stop_time(ds)
+
+    ds = utils.ds_add_lat_lon(ds)
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
     ds = utils.add_history(ds)
 
     ds = dw_add_delta_t(ds)
-
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            # cast as float32
-            ds = utils.set_var_dtype(ds, var)
 
     # if we are dealing with continuous instruments, drop sample since it is a singleton dimension
     if "sample" in ds:
@@ -173,30 +165,16 @@ def ds_add_attrs(ds):
         ds["sample"].attrs["long_name"] = "sample number"
         ds["sample"].attrs["units"] = "1"
 
-    if "epic_time" in ds:
-        ds["epic_time"].attrs.update(
-            {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
-        )
-
-    if "epic_time2" in ds:
-        ds["epic_time2"].attrs.update(
-            {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
-        )
-
-    if "epic_time_2d" in ds:
-        ds["epic_time_2d"].attrs = ds["epic_time"].attrs
-    if "epic_time2_2d" in ds:
-        ds["epic_time2_2d"].attrs = ds["epic_time2"].attrs
-
     if "P_1" in ds:
         ds["P_1"].attrs["standard_name"] = "sea_water_pressure"
         ds["P_1"].attrs["long_name"] = "Uncorrected pressure"
+        ds["P_1"].attrs["epic_code"] = 1
 
     if "P_1ac" in ds:
         ds["P_1ac"].attrs.update(
             {
                 "name": "Pac",
-                "long_name": "Pressure corrected for changes in atmospheric pressure",
+                "long_name": "Corrected pressure",
                 "standard_name": "sea_water_pressure_due_to_sea_water",
             }
         )
@@ -228,6 +206,18 @@ def ds_add_attrs(ds):
                 "comment": "Temperature compensated to 25 °C",
             }
         )
+
+    def add_attributes(var, dsattrs):
+        var.attrs.update(
+            {
+                "initial_instrument_height": dsattrs["initial_instrument_height"],
+                "height_depth_units": "m",
+            }
+        )
+
+    # for var in ds.variables:
+    #    if (var not in ds.coords) and ("time" not in var):
+    #        add_attributes(ds[var], ds.attrs)
 
     return ds
 

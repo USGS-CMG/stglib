@@ -182,7 +182,7 @@ def add_min_max(ds):
     [exclude.append(k) for k in ds.variables if "time" in k]
     exclude.extend(["TIM", "TransMatrix"])
 
-    alloweddims = ["time", "sample", "depth", "z"]
+    alloweddims = ["time", "sample", "depth", "z", "frequency"]
 
     for k in ds.variables:
         if k not in exclude:
@@ -249,8 +249,8 @@ def ds_add_diwasp_history(ds):
 def ds_coord_no_fillvalue(ds):
 
     for var in [
-        "lat",
-        "lon",
+        "latitude",
+        "longitude",
         "depth",
         "time",
         "time2",
@@ -266,6 +266,7 @@ def ds_coord_no_fillvalue(ds):
         "sample",
         "frequency",
         "z",
+        "bindist",
     ]:
         if var in ds:
             ds[var].encoding["_FillValue"] = None
@@ -280,7 +281,7 @@ def add_standard_names(ds):
         "Ptch_1216": "platform_pitch",
         "Roll_1217": "platform_roll",
         "P_1": "sea_water_pressure",
-        "Tx_1211": "sea_water_temperature",
+        # "Tx_1211": "sea_water_temperature",
         "P_1ac": "sea_water_pressure_due_to_sea_water",
         "u_1205": "eastward_sea_water_velocity",
         "v_1206": "northward_sea_water_velocity",
@@ -308,20 +309,20 @@ def add_standard_names(ds):
             if f"AnalogInput2_{v}" in ds.attrs:
                 ds["AnalogInput2"].attrs[v] = ds.attrs[f"AnalogInput2_{v}"]
 
-    ds["feature_type_instance"] = xr.DataArray(
-        [f"{ds.attrs['MOORING']}aqd"], dims="feature_type_instance"
-    )
-    ds["feature_type_instance"].attrs["cf_role"] = "timeseries_id"
+    # ds["feature_type_instance"] = xr.DataArray(
+    #    [f"{ds.attrs['MOORING']}aqd"], dims="feature_type_instance"
+    # )
+    # ds["feature_type_instance"].attrs["cf_role"] = "timeseries_id"
 
-    for k in ds.data_vars:
-        ds[k].attrs["coverage_content_type"] = "physicalMeasurement"
+    # for k in ds.data_vars:
+    #    ds[k].attrs["coverage_content_type"] = "physicalMeasurement"
 
     return ds
 
 
-def ds_add_attrs(ds):
+def ds_add_wave_attrs(ds):
     """
-    Add EPIC and other attributes to variables
+    Add wave attributes to variables
     """
 
     # Update attributes for EPIC and STG compliance
@@ -333,27 +334,17 @@ def ds_add_attrs(ds):
 
     ds["time"].encoding["dtype"] = "i4"
 
-    if "epic_time" in ds:
-        ds["epic_time"].attrs.update(
-            {"units": "True Julian Day", "type": "EVEN", "epic_code": 624}
-        )
-
-    if "epic_time2" in ds:
-        ds["epic_time2"].attrs.update(
-            {"units": "msec since 0:00 GMT", "type": "EVEN", "epic_code": 624}
-        )
-
     def add_attributes(var, dsattrs):
         var.attrs.update(
             {
                 "serial_number": dsattrs["serial_number"],
-                "initial_instrument_height": dsattrs["initial_instrument_height"],
-                "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
-                "height_depth_units": "m",
+                # "initial_instrument_height": dsattrs["initial_instrument_height"],
+                # "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
+                # "height_depth_units": "m",
             }
         )
-        if "INST_TYPE" in dsattrs:
-            var.attrs["sensor_type"] = dsattrs["INST_TYPE"]
+        # if "INST_TYPE" in dsattrs:
+        #    var.attrs["sensor_type"] = dsattrs["INST_TYPE"]
 
     ds["wp_peak"].attrs.update(
         {
@@ -407,6 +398,7 @@ def ds_add_attrs(ds):
                 "long_name": "Directional wave energy spectrum",
                 "units": "m^2/Hz/degree",
                 "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_directional_variance_spectral_density",
             }
         )
 
@@ -422,6 +414,7 @@ def ds_add_attrs(ds):
                     "defined by the direction with the greatest energy at "
                     "the peak period"
                 ),
+                "standard_name": "sea_surface_wave_from_direction_at_variance_spectral_density_maximum",
             }
         )
 
@@ -447,6 +440,7 @@ def ds_add_attrs(ds):
                 "units": "degrees",
                 "epic_code": 4062,
                 "note": "Compass direction from which waves are propagating",
+                "standard_name": "sea_surface_wave_from_direction",
             }
         )
 
@@ -589,43 +583,6 @@ def set_var_dtype(ds, var, dtype="float32"):
     return ds
 
 
-def rename_time(ds):
-    """
-    Rename time variables for EPIC compliance, keeping a time_cf coorindate.
-    """
-
-    if is_cf(ds):
-        pass
-    else:
-        ds = ds.rename({"time": "time_cf"})
-        ds = ds.rename({"epic_time": "time"})
-        ds = ds.rename({"epic_time2": "time2"})
-        ds = ds.set_coords(["time", "time2"])
-        ds = ds.swap_dims({"time_cf": "time"})
-        # output int32 time_cf for THREDDS compatibility
-        ds["time_cf"].encoding["dtype"] = "i4"
-
-    return ds
-
-
-def rename_time_2d(nc_filename, ds):
-    if is_cf(ds):
-        print("not renaming 2D time because CF==1.6")
-        pass
-    else:
-        # Need to do this in two steps after renaming the variable.
-        # Not sure why, but it works this way.
-        with netCDF4.Dataset(nc_filename, "r+") as nc:
-            nc.renameVariable("time", "time_cf")
-            # nc.renameVariable('time_2d', 'time_cf_2d')
-            timebak = nc["epic_time_2d"][:]
-            nc.renameVariable("epic_time_2d", "time")
-            nc.renameVariable("epic_time2_2d", "time2")
-
-        with netCDF4.Dataset(nc_filename, "r+") as nc:
-            nc["time"][:] = timebak
-
-
 def open_time_2d_dataset(filename):
     # need to drop 'time' variable because of xarray limitations related
     # to coordinates and variables with the same name, otherwise it raises a
@@ -751,24 +708,26 @@ def add_lat_lon(ds, var):
 
 
 def ds_add_lat_lon(ds):
-    ds["lat"] = xr.DataArray(
+    ds["latitude"] = xr.DataArray(
         [ds.attrs["latitude"]],
-        dims=("lat"),
-        name="lat",
+        dims=("latitude"),
+        name="latitude",
         attrs={
             "units": "degree_north",
+            "axis": "Y",
             "long_name": "Latitude",
             "standard_name": "latitude",
             "epic_code": 500,
         },
     )
 
-    ds["lon"] = xr.DataArray(
+    ds["longitude"] = xr.DataArray(
         [ds.attrs["longitude"]],
-        dims=("lon"),
-        name="lon",
+        dims=("longitude"),
+        name="longitude",
         attrs={
             "units": "degree_east",
+            "axis": "X",
             "long_name": "Longitude",
             "standard_name": "longitude",
             "epic_code": 502,
@@ -851,6 +810,8 @@ def create_water_depth_var(ds):
 
     ds["water_depth"].attrs["long_name"] = "Total water depth"
     ds["water_depth"].attrs["units"] = "m"
+    ds["water_depth"].attrs["standard_name"] = "sea_floor_depth_below_sea_surface"
+    ds["water_depth"].attrs["epic_code"] = 3
 
     return ds
 

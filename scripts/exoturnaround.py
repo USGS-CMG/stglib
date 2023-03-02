@@ -35,23 +35,41 @@ if "Turbidity_NTU" in ds.variables:
 
 plt.savefig(args.basefile + "_press_sal_temp_turb.png")
 
+if (
+    "Chlorophyll_RFU" in ds.variables
+    or "BGA-PE_RFU" in ds.variables
+    or "ODO_%_sat" in ds.variables
+    or "pH" in ds.variables
+):
+    plt.figure(figsize=(8.5, 11))
+    plt.subplot(4, 1, 1)
+    if "Chlorophyll_RFU" in ds.variables:
+        ds["Chlorophyll_RFU"].plot()
+    plt.title(args.basefile)
 
-plt.figure(figsize=(8.5, 11))
-plt.subplot(4, 1, 1)
-if "Chlorophyll_RFU" in ds.variables:
-    ds["Chlorophyll_RFU"].plot()
-plt.title(args.basefile)
+    plt.subplot(4, 1, 2)
+    if "BGA-PE_RFU" in ds.variables:
+        ds["BGA-PE_RFU"].plot()
 
-plt.subplot(4, 1, 2)
-if "BGA-PE_RFU" in ds.variables:
-    ds["BGA-PE_RFU"].plot()
+    plt.subplot(4, 1, 3)
+    if "ODO_%_sat" in ds.variables:
+        ds["ODO_%_sat"].plot()
 
-plt.subplot(4, 1, 3)
-if "ODO_%_sat" in ds.variables:
-    ds["ODO_%_sat"].plot()
+    plt.subplot(4, 1, 4)
+    if "pH" in ds.variables:
+        ds["pH"].plot()
 
-plt.subplot(4, 1, 4)
-if "pH" in ds.variables:
-    ds["pH"].plot()
+    plt.savefig(args.basefile + "_chl_bga_odo_ph.png")
 
-plt.savefig(args.basefile + "_chl_bga_odo_ph.png")
+if "Battery_V" in ds.variables or "Wiper_Position_volt" in ds.variables:
+    plt.figure(figsize=(8.5, 11))
+    plt.subplot(4, 1, 1)
+    if "Battery_V" in ds.variables:
+        ds["Battery_V"].plot()
+    plt.title(args.basefile)
+
+    plt.subplot(4, 1, 2)
+    if "Wiper_Position_volt" in ds.variables:
+        ds["Wiper_Position_volt"].plot()
+
+    plt.savefig(args.basefile + "_batt_wiper.png")
