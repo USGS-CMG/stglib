@@ -89,24 +89,27 @@ def load_mat_file(filnam):
     return dsbra, dsi, dsb
 
 
-dsbras = []
-dsis = []
-dsbs = []
+def mat_to_cdf():
+    dsbras = []
+    dsis = []
+    dsbs = []
 
-for f in glob.glob("/Users/dnowacki/Downloads/sig1k/S100151A012_CSF20CHT_*.mat"):
-    a, b, c = load_mat_file(f)
-    filstub = f.split("/")[-1].split(".mat")[0]
-    a.to_netcdf(f"/Users/dnowacki/Downloads/sig1k/{filstub}_bra.nc")
-    b.to_netcdf(f"/Users/dnowacki/Downloads/sig1k/{filstub}_i.nc")
-    c.to_netcdf(f"/Users/dnowacki/Downloads/sig1k/{filstub}_b.nc")
-    dsbras.append(a)
-    dsis.append(b)
-    dsbs.append(c)
+    fildir = "/Users/dnowacki/OneDrive - DOI/stglib/sig1k/"
 
-dsbra = xr.merge(dsbras)
-dsi = xr.merge(dsis)
-dsb = xr.merge(dsbs)
+    for f in glob.glob(fildir + "S100151A012_CSF20CHT_*.mat"):
+        a, b, c = load_mat_file(f)
+        filstub = f.split("/")[-1].split(".mat")[0]
+        # a.to_netcdf(f"{fildir}{filstub}_bra.nc")
+        # b.to_netcdf(f"{fildir}{filstub}_i.nc")
+        # c.to_netcdf(f"{fildir}{filstub}_b.nc")
+        dsbras.append(a)
+        dsis.append(b)
+        dsbs.append(c)
 
-# dsbra.to_netcdf("/Users/dnowacki/Downloads/sig1k/dsbra.nc")
-# dsi.to_netcdf("/Users/dnowacki/Downloads/sig1k/dsi.nc")
-# dsb.to_netcdf("/Users/dnowacki/Downloads/sig1k/dsb.nc")
+    dsbra = xr.merge(dsbras)
+    dsi = xr.merge(dsis)
+    dsb = xr.merge(dsbs)
+
+    dsbra.to_netcdf(f"{fildir}dsbra.cdf")
+    dsi.to_netcdf(f"{fildir}dsi.cdf")
+    dsb.to_netcdf(f"{fildir}dsb.cdf")
