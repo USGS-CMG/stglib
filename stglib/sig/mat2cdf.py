@@ -7,7 +7,7 @@ import pandas as pd
 import scipy.io
 import xarray as xr
 
-from stglib.core.utils import loadmat
+from ..core import utils
 
 
 def matlab2datetime(matlab_datenum):
@@ -17,7 +17,7 @@ def matlab2datetime(matlab_datenum):
 
 
 def load_mat_file(filnam):
-    mat = loadmat(filnam)
+    mat = utils.loadmat(filnam)
     bindist = (
         mat["Config"]["Burst_BlankingDistance"]
         + mat["Config"]["Burst_CellSize"] / 2
@@ -61,8 +61,7 @@ def load_mat_file(filnam):
                 if mat["Data"][k].ndim == 1:
                     dsbra[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
-                    print(k)
-                    print(mat["Data"][k].shape)
+                    print("still need to process", k, mat["Data"][k].shape)
         elif "IBurst" in k:
             if "_Time" not in k:
                 if mat["Data"][k].ndim == 1:
@@ -89,14 +88,25 @@ def load_mat_file(filnam):
     return dsbra, dsi, dsb
 
 
-def mat_to_cdf():
+def mat_to_cdf(metadata):
+
+    basefile = metadata["basefile"]
+
+    if "prefix" in metadata:
+        prefix = metadata["prefix"]
+    else:
+        prefix = ""
+    basefile = prefix + basefile
+
+    utils.check_valid_globalatts_metadata(metadata)
+
     dsbras = []
     dsis = []
     dsbs = []
 
     fildir = "/Users/dnowacki/OneDrive - DOI/stglib/sig1k/"
 
-    for f in glob.glob(fildir + "S100151A012_CSF20CHT_*.mat"):
+    for f in glob.glob(f"{basefile}_*.mat"):
         a, b, c = load_mat_file(f)
         filstub = f.split("/")[-1].split(".mat")[0]
         # a.to_netcdf(f"{fildir}{filstub}_bra.nc")
@@ -110,6 +120,21 @@ def mat_to_cdf():
     dsi = xr.merge(dsis)
     dsb = xr.merge(dsbs)
 
-    dsbra.to_netcdf(f"{fildir}dsbra.cdf")
-    dsi.to_netcdf(f"{fildir}dsi.cdf")
-    dsb.to_netcdf(f"{fildir}dsb.cdf")
+    for ds in [dsbra, dsi, dsb]:
+        ds = utils.write_metadata(ds, metadata)
+
+    cdf_filename = prefix + dsbra.attrs["filename"] + "bra-raw.cdf"
+    dsbra.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    print(f"Finished writing data to {cdf_filename}")
+
+    cdf_filename = prefix + dsi.attrs["filename"] + "iburst-raw.cdf"
+    dsi.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    print(f"Finished writing data to {cdf_filename}")
+
+    cdf_filename = prefix + dsb.attrs["filename"] + "burst-raw.cdf"
+    dsb.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    print(f"Finished writing data to {cdf_filename}")
+
+    # dsbra.to_netcdf(f"{fildir}dsbra.cdf")
+    # dsi.to_netcdf(f"{fildir}dsi.cdf")
+    # dsb.to_netcdf(f"{fildir}dsb.cdf")

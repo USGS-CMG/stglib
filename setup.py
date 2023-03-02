@@ -2,8 +2,9 @@
 from codecs import open
 from os import path
 
-import versioneer
 from setuptools import find_packages, setup
+
+import versioneer
 
 here = path.abspath(path.dirname(__file__))
 
@@ -67,6 +68,7 @@ setup(
         "scripts/runeofecdf2nc.py",
         "scripts/runvecdat2cdf.py",
         "scripts/runveccdf2nc.py",
+        "scripts/runsigmat2cdf.py",
     ],
     include_package_data=True,
 )

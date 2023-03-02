@@ -1,4 +1,5 @@
 from . import (
+    _version,
     aqd,
     argonaut,
     core,
@@ -10,13 +11,12 @@ from . import (
     iq,
     rdi,
     rsk,
+    sig,
     troll,
     vec,
 )
+from .aqd import aqdutils
 from .core import cmd, utils, waves
 from .core.utils import read_globalatts
-from .aqd import aqdutils
-
-from . import _version
 
 __version__ = _version.get_versions()["version"]
