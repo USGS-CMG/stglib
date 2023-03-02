@@ -196,19 +196,27 @@ def trim_by_any(ds, var):
 
 
 def trim_max_std(ds, var):
-    if var + "_std_max" in ds.attrs:
-        print(
-            "%s: Trimming using maximum standard deviation of %f"
-            % (var, ds.attrs[var + "_std_max"])
-        )
-        ds[var][ds["Turb_std"] > ds.attrs[var + "_std_max"]] = np.nan
+    if var + "_max_std" in ds.attrs:
+        if var + "_std" in ds.data_vars:  # check to see that std var exists
+            print(
+                "%s: Trimming using maximum standard deviation of %f"
+                % (var, ds.attrs[var + "_max_std"])
+            )
 
-        notetxt = (
-            "Values filled where standard deviation greater than %f "
-            "units. " % ds.attrs[var + "_std_max"]
-        )
+            varstd = var + "_std"
+            ds[var][ds[varstd] > ds.attrs[var + "_max_std"]] = np.nan
 
-        ds = utils.insert_note(ds, var, notetxt)
+            notetxt = (
+                "Values filled where standard deviation greater than %f "
+                "units. " % ds.attrs[var + "_max_std"]
+            )
+
+            ds = utils.insert_note(ds, var, notetxt)
+
+        else:
+            print(
+                f"{var}_std does not exist was NOT able to trim using maximum standard deviation method"
+            )
 
     return ds
 
@@ -311,5 +319,32 @@ def trim_maxabs_diff(ds, var):
         )
 
         ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
+def trim_std_ratio(ds, var):
+    """trim values using ratio of standard deviation value to variable value (requires var_std to exists)"""
+    if var + "_std_ratio" in ds.attrs:
+        if var + "_std" in ds.data_vars:  # check to see that std var exists
+            print(
+                "%s: Trimming using standard deviation ratio of %f"
+                % (var, ds.attrs[var + "_std_ratio"])
+            )
+
+            varstd = var + "_std"
+            ds[var][ds[varstd] / ds[var] > ds.attrs[var + "_std_ratio"]] = np.nan
+
+            notetxt = (
+                "Values filled where standard deviation ratio threshold of %f was exceeded"
+                % (ds.attrs[var + "_std_ratio"])
+            )
+
+            ds = utils.insert_note(ds, var, notetxt)
+
+        else:
+            print(
+                f"{var}_std does not exist was NOT able to trim using standard deviation ratio method"
+            )
 
     return ds

@@ -285,8 +285,10 @@ def eco_qaqc(ds):
 
             ds = qaqc.trim_bad_ens(ds, var)
 
+            ds = qaqc.trim_std_ratio(ds, var)
+
         # after check for masking vars by others
-        for var in ["Turb"]:
+        for var in ["Turb", "Turb_std"]:
             ds = qaqc.trim_mask(ds, var)
 
     return ds
