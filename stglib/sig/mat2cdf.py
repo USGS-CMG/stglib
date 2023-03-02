@@ -7,6 +7,7 @@ import pandas as pd
 import scipy.io
 import xarray as xr
 
+from ..aqd import aqdutils
 from ..core import utils
 
 
@@ -99,6 +100,7 @@ def mat_to_cdf(metadata):
     basefile = prefix + basefile
 
     utils.check_valid_globalatts_metadata(metadata)
+    aqdutils.check_valid_config_metadata(metadata)
 
     dsbras = []
     dsis = []
@@ -109,9 +111,6 @@ def mat_to_cdf(metadata):
     for f in glob.glob(f"{basefile}_*.mat"):
         a, b, c = load_mat_file(f)
         filstub = f.split("/")[-1].split(".mat")[0]
-        # a.to_netcdf(f"{fildir}{filstub}_bra.nc")
-        # b.to_netcdf(f"{fildir}{filstub}_i.nc")
-        # c.to_netcdf(f"{fildir}{filstub}_b.nc")
         dsbras.append(a)
         dsis.append(b)
         dsbs.append(c)
@@ -120,19 +119,24 @@ def mat_to_cdf(metadata):
     dsi = xr.merge(dsis)
     dsb = xr.merge(dsbs)
 
-    for ds in [dsbra, dsi, dsb]:
+    # Won't deal with BurstRawAltimeter data for now
+    for ds in [dsi, dsb]:
         ds = utils.write_metadata(ds, metadata)
+        ds = utils.ensure_cf(ds)
 
-    cdf_filename = prefix + dsbra.attrs["filename"] + "bra-raw.cdf"
-    dsbra.to_netcdf(cdf_filename, unlimited_dims=["time"])
-    print(f"Finished writing data to {cdf_filename}")
+    # Won't deal with BurstRawAltimeter data for now
+    # cdf_filename = prefix + dsbra.attrs["filename"] + "bra-raw.cdf"
+    # dsbra.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    # print(f"Finished writing data to {cdf_filename}")
 
     cdf_filename = prefix + dsi.attrs["filename"] + "iburst-raw.cdf"
-    dsi.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    print(dsi)
+    # dsi.to_netcdf(cdf_filename, unlimited_dims=["time"])
     print(f"Finished writing data to {cdf_filename}")
 
     cdf_filename = prefix + dsb.attrs["filename"] + "burst-raw.cdf"
-    dsb.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    print(dsb)
+    # dsb.to_netcdf(cdf_filename, unlimited_dims=["time"])
     print(f"Finished writing data to {cdf_filename}")
 
     # dsbra.to_netcdf(f"{fildir}dsbra.cdf")
