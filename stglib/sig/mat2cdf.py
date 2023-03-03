@@ -111,9 +111,9 @@ def load_mat_file(filnam):
 def read_config_mat(mat, ds):
     for k in mat["Config"]:
         if k == "Burst_Beam2xyz":
-            ds.attrs[f"Sig{k}"] = str(mat["Config"][k])
+            ds.attrs[f"SIG{k}"] = str(mat["Config"][k])
         else:
-            ds.attrs[f"Sig{k}"] = mat["Config"][k]
+            ds.attrs[f"SIG{k}"] = mat["Config"][k]
 
 
 def add_descriptions(mat, ds):

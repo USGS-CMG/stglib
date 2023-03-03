@@ -69,6 +69,7 @@ setup(
         "scripts/runvecdat2cdf.py",
         "scripts/runveccdf2nc.py",
         "scripts/runsigmat2cdf.py",
+        "scripts/runsigcdf2nc.py",
     ],
     include_package_data=True,
 )
