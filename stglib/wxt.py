@@ -253,7 +253,11 @@ def ds_add_attrs(ds):
 
     if "RH_910" in ds:
         ds["RH_910"].attrs.update(
-            {"units": "%", "standard_name": "relative_humidity", "epic_code": "910"}
+            {
+                "units": "percent",
+                "standard_name": "relative_humidity",
+                "epic_code": "910",
+            }
         )
 
     if "BPR_915" in ds:

@@ -457,7 +457,7 @@ def ds_add_attrs(ds):
     if "OST_62" in ds:
         ds["OST_62"].attrs.update(
             {
-                "units": "%",
+                "units": "percent",
                 "long_name": "Oxygen percent saturation",
                 "epic_code": 62,
                 "standard_name": "fractional_saturation_of_oxygen_in_sea_water",
