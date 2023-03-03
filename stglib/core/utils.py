@@ -549,9 +549,18 @@ def write_metadata(ds, metadata):
     for k in metadata:
         # recursively write out instmeta
         if k == "instmeta":
-            ds.attrs.update({x: metadata[k][x] for x in metadata[k]})
+            for x in metadata[k]:
+                if x in ds.attrs:
+                    warnings.warn(
+                        f"attrs collision. Replacing {ds.attrs[x]=} with {metadata[k][x]}."
+                    )
+                ds.attrs[x] = metadata[k][x]
         else:
-            ds.attrs.update({k: metadata[k]})
+            if k in ds.attrs:
+                warnings.warn(
+                    f"attrs collision. Replacing {ds.attrs[k]=} with {metadata[k]}."
+                )
+            ds.attrs[k] = metadata[k]
 
     for v in ["Deployment_date", "Recovery_date"]:
         if v in ds.attrs:

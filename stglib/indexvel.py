@@ -58,6 +58,23 @@ def parse_qrev_xml(doc, negateq=False, xarray=False):
     adcp["Width"] = np.asarray([float(dct[n]["Other"]["Width"]["#text"]) for n in r])
     adcp["QoverA"] = np.asarray([float(dct[n]["Other"]["QoverA"]["#text"]) for n in r])
     adcp["filename"] = np.asarray([dct[n]["Filename"]["#text"] for n in r])
+    adcp["qTop"] = np.asarray([float(dct[n]["Discharge"]["Top"]["#text"]) for n in r])
+    adcp["qMiddle"] = np.asarray(
+        [float(dct[n]["Discharge"]["Middle"]["#text"]) for n in r]
+    )
+    adcp["qBottom"] = np.asarray(
+        [float(dct[n]["Discharge"]["Bottom"]["#text"]) for n in r]
+    )
+    adcp["qLeft"] = np.asarray([float(dct[n]["Discharge"]["Left"]["#text"]) for n in r])
+    adcp["qRight"] = np.asarray(
+        [float(dct[n]["Discharge"]["Right"]["#text"]) for n in r]
+    )
+    adcp["LeftDistance"] = np.asarray(
+        [float(dct[n]["Edge"]["LeftDistance"]["#text"]) for n in r]
+    )
+    adcp["RightDistance"] = np.asarray(
+        [float(dct[n]["Edge"]["RightDistance"]["#text"]) for n in r]
+    )
 
     adcp["time"] = pd.to_datetime(
         np.mean(
@@ -82,6 +99,13 @@ def parse_qrev_xml(doc, negateq=False, xarray=False):
             "starttime",
             "endtime",
             "filename",
+            "qTop",
+            "qMiddle",
+            "qBottom",
+            "qLeft",
+            "qRight",
+            "LeftDistance",
+            "RightDistance",
         ],
     )
 
