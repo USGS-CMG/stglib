@@ -1,6 +1,7 @@
 import datetime as dt
 import glob
 import re
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -33,6 +34,7 @@ def load_mat_file(filnam):
     )
     dsbra["time"] = pd.DatetimeIndex(dsbra["time"])
     dsbra["time"] = pd.DatetimeIndex(dsbra["time"])
+    dsbra.attrs["data_type"] = "BurstRawAltimeter"
 
     # IBurst
     dsi = xr.Dataset()
@@ -44,6 +46,7 @@ def load_mat_file(filnam):
     )
     dsi["time"] = pd.DatetimeIndex(dsi["time"])
     dsi["bindist"] = xr.DataArray(bindist, dims="bindist")
+    dsi.attrs["data_type"] = "IBurst"
 
     # Burst
     dsb = xr.Dataset()
@@ -55,6 +58,7 @@ def load_mat_file(filnam):
     )
     dsb["time"] = pd.DatetimeIndex(dsb["time"])
     dsb["bindist"] = xr.DataArray(bindist, dims="bindist")
+    dsb.attrs["data_type"] = "Burst"
 
     for k in mat["Data"]:
         if "BurstRawAltimeter" in k:
@@ -62,7 +66,8 @@ def load_mat_file(filnam):
                 if mat["Data"][k].ndim == 1:
                     dsbra[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
-                    print("still need to process", k, mat["Data"][k].shape)
+                    # print("still need to process", k, mat["Data"][k].shape)
+                    pass
         elif "IBurst" in k:
             if "_Time" not in k:
                 if mat["Data"][k].ndim == 1:
@@ -73,6 +78,8 @@ def load_mat_file(filnam):
                         dsi[k.split("_")[1]] = xr.DataArray(
                             mat["Data"][k], dims=["time", "bindist"]
                         )
+                else:
+                    print("still need to process", k, mat["Data"][k].shape)
         elif re.match("^Burst_", k):
             if "_Time" not in k:
                 if mat["Data"][k].ndim == 1:
@@ -83,10 +90,54 @@ def load_mat_file(filnam):
                         dsb[k.split("_")[1]] = xr.DataArray(
                             mat["Data"][k], dims=["time", "bindist"]
                         )
+                else:
+                    print("still need to process", k, mat["Data"][k].shape)
         else:
             print("missing variable:", k)
 
+    for ds in [dsbra, dsi, dsb]:
+        read_config_mat(mat, ds)
+
+    for ds in [dsbra, dsi, dsb]:
+        print(ds.attrs["data_type"])
+        add_descriptions(mat, ds)
+
+    for ds in [dsbra, dsi, dsb]:
+        add_units(mat, ds)
+
     return dsbra, dsi, dsb
+
+
+def read_config_mat(mat, ds):
+    for k in mat["Config"]:
+        if k == "Burst_Beam2xyz":
+            ds.attrs[f"Sig{k}"] = str(mat["Config"][k])
+        else:
+            ds.attrs[f"Sig{k}"] = mat["Config"][k]
+
+
+def add_descriptions(mat, ds):
+    for k in mat["Descriptions"]:
+        var = k.split("_")[1]
+        if var in ds:
+            if "long_name" not in ds[var].attrs:
+                ds[var].attrs["long_name"] = mat["Descriptions"][k]
+            else:
+                warnings.warn(
+                    f"long_name already exists for {ds.attrs['data_type']} {var} {k}"
+                )
+
+
+def add_units(mat, ds):
+    for k in mat["Units"]:
+        var = k.split("_")[1]
+        if var in ds:
+            if "units" not in ds[var].attrs:
+                ds[var].attrs["units"] = mat["Units"][k]
+            else:
+                warnings.warn(
+                    f"units already exists for {ds.attrs['data_type']} {var} {k}"
+                )
 
 
 def mat_to_cdf(metadata):
@@ -130,15 +181,11 @@ def mat_to_cdf(metadata):
     # print(f"Finished writing data to {cdf_filename}")
 
     cdf_filename = prefix + dsi.attrs["filename"] + "iburst-raw.cdf"
-    print(dsi)
-    # dsi.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    print(dsi.data_vars)
+    dsi.to_netcdf(cdf_filename, unlimited_dims=["time"])
     print(f"Finished writing data to {cdf_filename}")
 
     cdf_filename = prefix + dsb.attrs["filename"] + "burst-raw.cdf"
-    print(dsb)
-    # dsb.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    print(dsb.data_vars)
+    dsb.to_netcdf(cdf_filename, unlimited_dims=["time"])
     print(f"Finished writing data to {cdf_filename}")
-
-    # dsbra.to_netcdf(f"{fildir}dsbra.cdf")
-    # dsi.to_netcdf(f"{fildir}dsi.cdf")
-    # dsb.to_netcdf(f"{fildir}dsb.cdf")
