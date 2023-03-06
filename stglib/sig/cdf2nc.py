@@ -65,12 +65,29 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # ds = utils.add_standard_names(ds)
 
+    e, n, u1, u2 = coord_transform_4beam(
+        ds["VelBeam1"].values,
+        ds["VelBeam2"].values,
+        ds["VelBeam3"].values,
+        ds["VelBeam4"].values,
+        ds["Heading"].values,
+        ds["Pitch"].values,
+        ds["Roll"].values,
+        ds["Burst_Beam2xyz"].values,
+        cs=ds.attrs["SIGBurst_CoordSystem"],
+    )
+
+    ds["e"] = xr.DataArray(e, dims=("time", "bindist"))
+    ds["n"] = xr.DataArray(n, dims=("time", "bindist"))
+    ds["u1"] = xr.DataArray(u1, dims=("time", "bindist"))
+    ds["u2"] = xr.DataArray(u2, dims=("time", "bindist"))
+
     if "prefix" in ds.attrs:
         nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "-a.nc"
     else:
         nc_filename = ds.attrs["filename"] + "-a.nc"
 
-    ds.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    ds.to_netcdf(nc_filename)
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done writing netCDF file", nc_filename)
@@ -78,97 +95,79 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     return ds
 
 
-def set_orientation(VEL, T):
-    """
-    Create z variable depending on instrument orientation
-    Mostly taken from ../aqd/aqdutils.py
-    """
+def coord_transform_4beam(
+    vel1, vel2, vel3, vel4, heading, pitch, roll, T, cs="BEAM", out="ENU"
+):
+    # https://github.com/NortekSupport/coordinatetransforms
+    hh = np.pi * (heading - 90) / 180
+    pp = np.pi * pitch / 180
+    rr = np.pi * roll / 180
 
-    if "Pressure_ac" in VEL:
-        presvar = "Pressure_ac"
+    row, col = vel1.shape
+    print(f"{row=}")
+    print(f"{col=}")
+
+    Tmat = np.tile(T, (1, 1, row))
+    print(Tmat)
+
+    pmat = aqdutils.make_tilt_np(pp, rr)
+    hmat = aqdutils.make_heading_np(hh)
+
+    # print(f"{pmat.shape=}")
+    # print(f"{hmat.shape=}")
+
+    r1mat = np.zeros((4, 4, row))
+
+    # print(f"{r1mat.shape=}")
+
+    for i in range(row):
+        r1mat[0:3, 0:3, i] = hmat[:, :, i] * pmat[:, :, i]
+        r1mat[3, 0:4, i] = r1mat[2, 0:4, i]
+        r1mat[0:4, 3, i] = r1mat[0:4, 2, i]
+
+    r1mat[2, 3, :] = 0
+    r1mat[3, 2, :] = 0
+
+    rmat = np.zeros_like(r1mat)
+    for i in range(row):
+        rmat[:, :, i] = r1mat[:, :, i] * Tmat[:, :, i]
+
+    if cs == "BEAM":
+        ENU = np.zeros((row, col, 4))
+
+        # print(f"{vel1.shape=}")
+        print(np.array([vel1, vel2, vel3, vel4]).shape)
+        print(f"{rmat.shape=}")
+        print(f"{np.array([vel1[:,0], vel2[:,0], vel3[:,0], vel4[:,0], ]).shape=}")
+        ENU2 = rmat @ np.array([vel1, vel2, vel3, vel4])
+        print(f"{ENU2.shape=}")
+
+        # for j in range(col):
+        #     ENU[:,j,:] = rmat[:,:,:] @ np.array([vel1[:,j], vel2[:,j], vel3[:,j], vel4[:,j], ]).T
+
+        for i in tqdm(range(row)):
+            for j in range(col):
+                ENU[i, j, :] = rmat[:, :, i] @ np.array(
+                    [
+                        vel1[i, j],
+                        vel2[i, j],
+                        vel3[i, j],
+                        vel4[i, j],
+                    ]
+                )
+
+        print(ENU.shape)
+        # print(ENU2.shape)
+
+        # np.testing.assert_array_equal(ENU, ENU2)
+
+        E = ENU[:, :, 0]
+        N = ENU[:, :, 1]
+        U1 = ENU[:, :, 2]
+        U2 = ENU[:, :, 3]
+
+        return E, N, U1, U2
     else:
-        presvar = "Pressure"
-
-    geopotential_datum_name = None
-
-    if "NAVD88_ref" in VEL.attrs or "NAVD88_elevation_ref" in VEL.attrs:
-        # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
-        if "NAVD88_ref" in VEL.attrs:
-            elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
-        elif "NAVD88_elevation_ref" in VEL.attrs:
-            elev = (
-                VEL.attrs["NAVD88_elevation_ref"]
-                + VEL.attrs["transducer_offset_from_bottom"]
-            )
-        long_name = "height relative to NAVD88"
-        geopotential_datum_name = "NAVD88"
-    elif "height_above_geopotential_datum" in VEL.attrs:
-        elev = (
-            VEL.attrs["height_above_geopotential_datum"]
-            + VEL.attrs["transducer_offset_from_bottom"]
+        raise NotImplementedError(
+            f"stglib does not currently support input of {cs} and output of {out} coordinates"
         )
-        long_name = f"height relative to {VEL.attrs['geopotential_datum_name']}"
-        geopotential_datum_name = VEL.attrs["geopotential_datum_name"]
-    else:
-        # if we don't have NAVD88 elevations, reference to sea-bed elevation
-        elev = VEL.attrs["transducer_offset_from_bottom"]
-        long_name = "height relative to sea bed"
-
-    T_orig = T.copy()
-
-    if VEL.attrs["orientation"] == "UP":
-        print("User instructed that instrument was pointing UP")
-
-        VEL["z"] = xr.DataArray(elev + [0.15], dims="z")
-        VEL["depth"] = xr.DataArray(np.nanmean(VEL[presvar]) - [0.15], dims="depth")
-
-    elif VEL.attrs["orientation"] == "DOWN":
-        print("User instructed that instrument was pointing DOWN")
-        T[1, :] = -T[1, :]
-        T[2, :] = -T[2, :]
-
-        VEL["z"] = xr.DataArray(elev - [0.15], dims="z")
-        VEL["depth"] = xr.DataArray(np.nanmean(VEL[presvar]) + [0.15], dims="depth")
-
-    VEL["z"].attrs["standard_name"] = "height"
-    VEL["z"].attrs["units"] = "m"
-    VEL["z"].attrs["positive"] = "up"
-    VEL["z"].attrs["axis"] = "Z"
-    VEL["z"].attrs["long_name"] = long_name
-    if geopotential_datum_name:
-        VEL["z"].attrs["geopotential_datum_name"] = geopotential_datum_name
-
-    VEL["depth"].attrs["standard_name"] = "depth"
-    VEL["depth"].attrs["units"] = "m"
-    VEL["depth"].attrs["positive"] = "down"
-    VEL["depth"].attrs["long_name"] = "depth below mean sea level"
-
-    return VEL, T, T_orig
-
-
-def ds_drop(ds):
-    """
-    Drop old DataArrays from Dataset that won't make it into the final .nc file
-    """
-
-    todrop = [
-        "VEL1",
-        "VEL2",
-        "VEL3",
-        "AMP1",
-        "AMP2",
-        "AMP3",
-        "TransMatrix",
-        "AnalogInput1",
-        "AnalogInput2",
-        "Depth",
-        "Checksum",
-    ]
-
-    if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"].lower() == "true"):
-        todrop.remove("AnalogInput1")
-
-    if ("AnalogInput2" in ds.attrs) and (ds.attrs["AnalogInput2"].lower() == "true"):
-        todrop.remove("AnalogInput2")
-
-    return ds.drop([t for t in todrop if t in ds.variables])

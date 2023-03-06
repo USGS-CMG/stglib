@@ -104,6 +104,7 @@ def load_mat_file(filnam):
 
     for ds in [dsbra, dsi, dsb]:
         add_units(mat, ds)
+        add_transmatrix(mat, ds)
 
     return dsbra, dsi, dsb
 
@@ -138,6 +139,12 @@ def add_units(mat, ds):
                 warnings.warn(
                     f"units already exists for {ds.attrs['data_type']} {var} {k}"
                 )
+
+
+def add_transmatrix(mat, ds):
+    for k in mat["Config"]:
+        if "Beam2xyz" in k:
+            ds[f"{k}"] = xr.DataArray(mat["Config"][k])
 
 
 def mat_to_cdf(metadata):
@@ -182,10 +189,10 @@ def mat_to_cdf(metadata):
 
     cdf_filename = prefix + dsi.attrs["filename"] + "iburst-raw.cdf"
     print(dsi.data_vars)
-    dsi.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    dsi.to_netcdf(cdf_filename)
     print(f"Finished writing data to {cdf_filename}")
 
     cdf_filename = prefix + dsb.attrs["filename"] + "burst-raw.cdf"
     print(dsb.data_vars)
-    dsb.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    dsb.to_netcdf(cdf_filename)
     print(f"Finished writing data to {cdf_filename}")
