@@ -103,6 +103,7 @@ def csv_to_cdf(metadata):
         ds = ds.drop("P_1")
         ds = xr.merge([ds, dsburst])
 
+    """
     # Set burst interval, [sec], USER DEFINED in instrument attr for continuous mode sampling
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
         # wave_interval is [sec] interval for wave statistics for continuous data
@@ -139,6 +140,7 @@ def csv_to_cdf(metadata):
         ds = ds.rename({"time": "timeold"})
         ds = ds.rename({"timenew": "time"})
         ds = ds.drop("timeold")
+    """
 
     ds = utils.shift_time(ds, 0)
 

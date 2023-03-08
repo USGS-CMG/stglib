@@ -86,12 +86,31 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         print("Writing cleaned/trimmed data to .nc file")
         if "burst" in ds or "sample" in ds:
             nc_filename = ds.attrs["filename"] + "b-cal.nc"
+
+        elif (ds.attrs["sample_mode"] == "CONTINUOUS") and (
+            "burst" not in ds or "sample" not in ds
+        ):
+            nc_filename = ds.attrs["filename"] + "-cal.nc"
+
         else:
             nc_filename = ds.attrs["filename"] + "-a.nc"
 
         ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
         utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
         print("Done writing netCDF file", nc_filename)
+
+    # check to see if need to make wave burst from continuous data
+    if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
+        # make wave burst ncfile from continuous data if wave_interval is specified
+        ds = make_wave_bursts(ds)
+
+        print("Writing cleaned/trimmed burst data to .nc file")
+        if "burst" in ds or "sample" in ds:
+            nc_filename = ds.attrs["filename"] + "b-cal.nc"
+
+            ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
+            utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+            print("Done writing netCDF file", nc_filename)
 
     return ds
 
@@ -226,5 +245,45 @@ def dw_add_delta_t(ds):
 
     if "burst_interval" in ds:
         ds.attrs["DELTA_T"] = int(ds.attrs["burst_interval"])
+
+    return ds
+
+
+def make_wave_bursts(ds):
+
+    # wave_interval is [sec] interval for wave statistics for continuous data
+    ds.attrs["samples_per_burst"] = int(
+        ds.attrs["wave_interval"] / ds.attrs["sample_interval"]
+    )
+    # burst_interval is equivalent to wave_interval [sec]
+    ds.attrs["burst_interval"] = ds.attrs["wave_interval"]
+    # burst_length is the number of data points in the burst
+    ds.attrs["burst_length"] = ds.attrs["samples_per_burst"]
+    r = np.shape(ds.P_1)[0]
+    mod = r % ds.attrs["samples_per_burst"]
+    if mod:
+        print(
+            "Number of rows is not a multiple of samples_per_burst; truncating to last full burst"
+        )
+        ds = ds.sel(time=ds.time[0:-mod])
+
+    ds["timenew"] = xr.DataArray(
+        ds.time[0 :: int(ds.attrs["samples_per_burst"])].values, dims="timenew"
+    )
+
+    ds["sample"] = xr.DataArray(range(ds.attrs["samples_per_burst"]), dims="sample")
+
+    for v in ["P_1", "P_1ac", "T_28"]:
+        if v in ds:
+            attrsbak = ds[v].attrs
+            ds[v] = xr.DataArray(
+                np.reshape(ds[v].values, (-1, int(ds.attrs["samples_per_burst"]))),
+                dims=["timenew", "sample"],
+            )
+            ds[v].attrs = attrsbak
+
+    ds = ds.rename({"time": "timeold"})
+    ds = ds.rename({"timenew": "time"})
+    ds = ds.drop("timeold")
 
     return ds
