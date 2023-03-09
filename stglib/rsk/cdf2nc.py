@@ -90,7 +90,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         elif (ds.attrs["sample_mode"] == "CONTINUOUS") and (
             "burst" not in ds or "sample" not in ds
         ):
-            nc_filename = ds.attrs["filename"] + "-cal.nc"
+            nc_filename = ds.attrs["filename"] + "cont-cal.nc"
 
         else:
             nc_filename = ds.attrs["filename"] + "-a.nc"
@@ -132,10 +132,9 @@ def trim_min(ds, var):
 
         if "sample" in ds:
             bads = (ds[var] < ds.attrs[var + "_min"]).any(dim="sample")
+            ds[var][bads, :] = np.nan
         else:
-            bads = (ds[var] < ds.attrs[var + "_min"]).any(dim="time")
-
-        ds[var][bads, :] = np.nan
+            ds[var][ds[var] < ds.attrs[var + "_min"]] = np.nan
 
         notetxt = "Values filled where less than %f units. " % ds.attrs[var + "_min"]
 
