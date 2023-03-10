@@ -86,12 +86,37 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         print("Writing cleaned/trimmed data to .nc file")
         if "burst" in ds or "sample" in ds:
             nc_filename = ds.attrs["filename"] + "b-cal.nc"
+
+        elif (ds.attrs["sample_mode"] == "CONTINUOUS") and (
+            "burst" not in ds or "sample" not in ds
+        ):
+            nc_filename = ds.attrs["filename"] + "cont-cal.nc"
+
         else:
             nc_filename = ds.attrs["filename"] + "-a.nc"
 
         ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
         utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
         print("Done writing netCDF file", nc_filename)
+
+    # check to see if need to make wave burst from continuous data
+    if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
+        # make wave burst ncfile from continuous data if wave_interval is specified
+        ds = make_wave_bursts(ds)
+
+        ds = ds_add_attrs(ds)
+
+        ds = utils.ds_coord_no_fillvalue(ds)
+        ds = utils.add_history(ds)
+        ds = dw_add_delta_t(ds)
+
+        print("Writing cleaned/trimmed burst data to .nc file")
+        if "burst" in ds or "sample" in ds:
+            nc_filename = ds.attrs["filename"] + "b-cal.nc"
+
+            ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
+            utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+            print("Done writing netCDF file", nc_filename)
 
     return ds
 
@@ -108,8 +133,12 @@ def trim_min(ds, var):
         print("%s: Trimming using minimum value of %f" % (var, ds.attrs[var + "_min"]))
         # remove full burst if any of the burst values are less than
         # the indicated value
-        bads = (ds[var] < ds.attrs[var + "_min"]).any(dim="sample")
-        ds[var][bads, :] = np.nan
+
+        if "sample" in ds:
+            bads = (ds[var] < ds.attrs[var + "_min"]).any(dim="sample")
+            ds[var][bads, :] = np.nan
+        else:
+            ds[var][ds[var] < ds.attrs[var + "_min"]] = np.nan
 
         notetxt = "Values filled where less than %f units. " % ds.attrs[var + "_min"]
 
@@ -158,7 +187,11 @@ def ds_add_attrs(ds):
     ds["time"].attrs.update(
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
-    ds["time"].encoding["dtype"] = "i4"
+
+    if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("sample" not in ds):
+        ds["time"].encoding["dtype"] = "double"
+    else:
+        ds["time"].encoding["dtype"] = "i4"
 
     if "sample" in ds:
         ds["sample"].encoding["dtype"] = "i4"
@@ -224,7 +257,49 @@ def ds_add_attrs(ds):
 
 def dw_add_delta_t(ds):
 
-    if "burst_interval" in ds:
+    if "burst_interval" in ds.attrs:
         ds.attrs["DELTA_T"] = int(ds.attrs["burst_interval"])
+
+    return ds
+
+
+def make_wave_bursts(ds):
+
+    # wave_interval is [sec] interval for wave statistics for continuous data
+    ds.attrs["samples_per_burst"] = int(
+        ds.attrs["wave_interval"] / ds.attrs["sample_interval"]
+    )
+    # burst_interval is equivalent to wave_interval [sec]
+    ds.attrs["burst_interval"] = ds.attrs["wave_interval"]
+    # burst_length is the number of data points in the burst
+    ds.attrs["burst_length"] = ds.attrs["samples_per_burst"]
+    r = np.shape(ds.P_1)[0]
+    mod = r % ds.attrs["samples_per_burst"]
+    if mod:
+        print(
+            "Number of rows is not a multiple of samples_per_burst; truncating to last full burst"
+        )
+        ds = ds.sel(time=ds.time[0:-mod])
+
+    ds.time.encoding.pop("dtype")
+
+    ds["timenew"] = xr.DataArray(
+        ds.time[0 :: int(ds.attrs["samples_per_burst"])].values, dims="timenew"
+    )
+
+    ds["sample"] = xr.DataArray(range(ds.attrs["samples_per_burst"]), dims="sample")
+
+    for v in ["P_1", "P_1ac", "T_28"]:
+        if v in ds:
+            attrsbak = ds[v].attrs
+            ds[v] = xr.DataArray(
+                np.reshape(ds[v].values, (-1, int(ds.attrs["samples_per_burst"]))),
+                dims=["timenew", "sample"],
+            )
+            ds[v].attrs = attrsbak
+
+    ds = ds.rename({"time": "timeold"})
+    ds = ds.rename({"timenew": "time"})
+    ds = ds.drop("timeold")
 
     return ds
