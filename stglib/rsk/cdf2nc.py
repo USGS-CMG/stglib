@@ -188,9 +188,7 @@ def ds_add_attrs(ds):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
-    if (ds.attrs["sample_mode"] == "CONTINUOUS") and (
-        "burst" not in ds or "sample" not in ds
-    ):
+    if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("sample" not in ds):
         ds["time"].encoding["dtype"] = "double"
     else:
         ds["time"].encoding["dtype"] = "i4"
