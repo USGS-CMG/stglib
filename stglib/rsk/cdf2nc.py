@@ -104,11 +104,15 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         # make wave burst ncfile from continuous data if wave_interval is specified
         ds = make_wave_bursts(ds)
 
+        ds = ds_add_attrs(ds)
+
+        ds = utils.ds_coord_no_fillvalue(ds)
+        ds = utils.add_history(ds)
+        ds = dw_add_delta_t(ds)
+
         print("Writing cleaned/trimmed burst data to .nc file")
         if "burst" in ds or "sample" in ds:
             nc_filename = ds.attrs["filename"] + "b-cal.nc"
-
-            ds["time"].encoding["dtype"] = "i4"
 
             ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
             utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
@@ -184,9 +188,7 @@ def ds_add_attrs(ds):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
-    if (ds.attrs["sample_mode"] == "CONTINUOUS") and (
-        "burst" not in ds or "sample" not in ds
-    ):
+    if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("sample" not in ds):
         ds["time"].encoding["dtype"] = "double"
     else:
         ds["time"].encoding["dtype"] = "i4"
@@ -255,7 +257,7 @@ def ds_add_attrs(ds):
 
 def dw_add_delta_t(ds):
 
-    if "burst_interval" in ds:
+    if "burst_interval" in ds.attrs:
         ds.attrs["DELTA_T"] = int(ds.attrs["burst_interval"])
 
     return ds
