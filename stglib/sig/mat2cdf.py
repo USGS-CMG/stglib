@@ -148,7 +148,6 @@ def add_transmatrix(mat, ds):
 
 
 def mat_to_cdf(metadata):
-
     basefile = metadata["basefile"]
 
     if "prefix" in metadata:
@@ -163,8 +162,6 @@ def mat_to_cdf(metadata):
     dsbras = []
     dsis = []
     dsbs = []
-
-    fildir = "/Users/dnowacki/OneDrive - DOI/stglib/sig1k/"
 
     for f in glob.glob(f"{basefile}_*.mat"):
         a, b, c = load_mat_file(f)
