@@ -23,48 +23,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     #
     # ds, T, T_orig = set_orientation(ds, ds["TransMatrix"].values)
     #
-    # u, v, w = aqdutils.coord_transform(
-    #     ds["VEL1"],
-    #     ds["VEL2"],
-    #     ds["VEL3"],
-    #     ds["Heading"].values,
-    #     ds["Pitch"].values,
-    #     ds["Roll"].values,
-    #     T,
-    #     T_orig,
-    #     ds.attrs["VECCoordinateSystem"],
-    # )
-    #
-    # ds["U"] = xr.DataArray(u, dims=("time", "sample"))
-    # ds["V"] = xr.DataArray(v, dims=("time", "sample"))
-    # ds["W"] = xr.DataArray(w, dims=("time", "sample"))
-    #
-    # ds = aqdutils.magvar_correct(ds)
-    #
-    # # Rename DataArrays for EPIC compliance
-    # ds = aqdutils.ds_rename(ds)
-    #
-    # # Drop unused variables
-    # ds = ds_drop(ds)
-    #
-    # # Add EPIC and CMG attributes
-    # ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
-    #
-    # ds = ds.rename({"Burst": "burst"})
-    # for v in ds.data_vars:
-    #     # need to do this or else a "coordinates" attribute with value of "Burst" hangs around
-    #     ds[v].encoding["coordinates"] = None
-    #
-    # ds["burst"].encoding["dtype"] = "i4"
-
-    # Add start_time and stop_time attrs
-    ds = utils.add_start_stop_time(ds)
-
-    # Add history showing file used
-    ds = utils.add_history(ds)
-
-    # ds = utils.add_standard_names(ds)
-
     e, n, u1, u2 = coord_transform_4beam(
         ds["VelBeam1"].values,
         ds["VelBeam2"].values,
@@ -77,10 +35,26 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         cs=ds.attrs["SIGBurst_CoordSystem"],
     )
 
-    ds["e"] = xr.DataArray(e, dims=("time", "bindist"))
-    ds["n"] = xr.DataArray(n, dims=("time", "bindist"))
-    ds["u1"] = xr.DataArray(u1, dims=("time", "bindist"))
-    ds["u2"] = xr.DataArray(u2, dims=("time", "bindist"))
+    ds["U"] = xr.DataArray(e, dims=("time", "bindist"))
+    ds["V"] = xr.DataArray(n, dims=("time", "bindist"))
+    ds["W1"] = xr.DataArray(u1, dims=("time", "bindist"))
+    ds["W2"] = xr.DataArray(u2, dims=("time", "bindist"))
+
+    ds = aqdutils.magvar_correct(ds)
+
+    # Rename DataArrays for EPIC compliance
+    ds = aqdutils.ds_rename(ds)
+
+    # Add EPIC and CMG attributes
+    ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")
+
+    # Add start_time and stop_time attrs
+    ds = utils.add_start_stop_time(ds)
+
+    # Add history showing file used
+    ds = utils.add_history(ds)
+
+    ds = utils.add_standard_names(ds)
 
     if "prefix" in ds.attrs:
         nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "-a.nc"
@@ -104,11 +78,10 @@ def coord_transform_4beam(
     rr = np.pi * roll / 180
 
     row, col = vel1.shape
-    print(f"{row=}")
-    print(f"{col=}")
+    # print(f"{row=}")
+    # print(f"{col=}")
 
     Tmat = np.tile(T, (1, 1, row))
-    print(Tmat)
 
     pmat = aqdutils.make_tilt_np(pp, rr)
     hmat = aqdutils.make_heading_np(hh)
@@ -136,14 +109,20 @@ def coord_transform_4beam(
         ENU = np.zeros((row, col, 4))
 
         # print(f"{vel1.shape=}")
-        print(np.array([vel1, vel2, vel3, vel4]).shape)
-        print(f"{rmat.shape=}")
-        print(f"{np.array([vel1[:,0], vel2[:,0], vel3[:,0], vel4[:,0], ]).shape=}")
-        ENU2 = rmat @ np.array([vel1, vel2, vel3, vel4])
-        print(f"{ENU2.shape=}")
+        # print('about to print')
+        # print(np.array([vel1, vel2, vel3, vel4]).shape)
+        # print(f"{row=}")
+        # print(f"{col=}")
+        # print(f"{rmat.shape=}")
+        # print(f"{np.array([vel1[:,0], vel2[:,0], vel3[:,0], vel4[:,0], ]).shape=}")
+        # ENU2 = rmat @ np.array([vel1, vel2, vel3, vel4])
+        # print(f"{ENU2.shape=}")
 
+        # ENU3 = np.zeros((row, col, 4))
         # for j in range(col):
-        #     ENU[:,j,:] = rmat[:,:,:] @ np.array([vel1[:,j], vel2[:,j], vel3[:,j], vel4[:,j], ]).T
+        #
+        #     print(f"{(rmat @ np.array([vel1[:,j], vel2[:,j], vel3[:,j], vel4[:,j], ])).shape=}")
+        # print(f"{ENU3.shape=}")
 
         for i in tqdm(range(row)):
             for j in range(col):
@@ -156,7 +135,7 @@ def coord_transform_4beam(
                     ]
                 )
 
-        print(ENU.shape)
+        # print(f"{ENU.shape=}")
         # print(ENU2.shape)
 
         # np.testing.assert_array_equal(ENU, ENU2)
