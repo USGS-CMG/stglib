@@ -294,10 +294,14 @@ def ds_rename_vars(ds):
         ds["Cond_µS_per_cm"].values = (
             ds["Cond_µS_per_cm"].values / 10000
         )  # convert from µS/cm to S/m
+    if "SpCond_mS_per_cm" in ds:
+        ds["SpCond_mS_per_cm"].values = (
+            ds["SpCond_mS_per_cm"].values / 10
+        )  # convert from mS/cm to S/m
     if "SpCond_µS_per_cm" in ds:
         ds["SpCond_µS_per_cm"].values = (
-            ds["SpCond_µS_per_cm"].values / 10
-        )  # convert from µS/cm to mS/cm
+            ds["SpCond_µS_per_cm"].values / 10000
+        )  # convert from µS/cm to S/m
 
     # set up dict of instrument -> EPIC variable names
     varnames = {
@@ -353,7 +357,7 @@ def ds_add_attrs(ds):
     if "fDOMRFU" in ds:
         ds["fDOMRFU"].attrs.update(
             {
-                "units": "percent",
+                "units": "100",
                 "long_name": "Fluorescent dissolved organic matter, RFU",
                 "comments": "Relative fluorescence units (RFU)",
             }
@@ -371,7 +375,7 @@ def ds_add_attrs(ds):
     if "CHLrfu" in ds:
         ds["CHLrfu"].attrs.update(
             {
-                "units": "percent",
+                "units": "100",
                 "long_name": "Chlorophyll A, RFU",
                 "comments": "Relative fluorescence units (RFU)",
             }
@@ -391,7 +395,7 @@ def ds_add_attrs(ds):
     if "BGAPErfu" in ds:
         ds["BGAPErfu"].attrs.update(
             {
-                "units": "percent",
+                "units": "100",
                 "long_name": "Blue green algae phycoerythrin, RFU",
                 "comments": "Relative fluorescence units (RFU)",
             }
@@ -405,7 +409,7 @@ def ds_add_attrs(ds):
     if "TALPErfu" in ds:
         ds["TALPErfu"].attrs.update(
             {
-                "units": "percent",
+                "units": "100",
                 "long_name": "Total algae phycoerythrin, RFU",
                 "comments": "Relative fluorescence units (RFU)",
             }
@@ -436,11 +440,11 @@ def ds_add_attrs(ds):
 
     ds["SpC_48"].attrs.update(
         {
-            "units": "mS/cm",
-            "long_name": "Conductivity",
+            "units": "S/m",
+            "long_name": "Specific Conductivity",
             "comment": "Temperature compensated to 25 °C",
             "epic_code": 48,
-            "standard_name": "sea_water_electrical_conductivity",
+            # "standard_name": "sea_water_electrical_conductivity",
         }
     )
 
@@ -457,7 +461,7 @@ def ds_add_attrs(ds):
     if "OST_62" in ds:
         ds["OST_62"].attrs.update(
             {
-                "units": "percent",
+                "units": "100",
                 "long_name": "Oxygen percent saturation",
                 "epic_code": 62,
                 "standard_name": "fractional_saturation_of_oxygen_in_sea_water",
