@@ -357,7 +357,7 @@ def ds_add_attrs(ds):
     if "fDOMRFU" in ds:
         ds["fDOMRFU"].attrs.update(
             {
-                "units": "100",
+                "units": "percent",
                 "long_name": "Fluorescent dissolved organic matter, RFU",
                 "comments": "Relative fluorescence units (RFU)",
             }
@@ -375,7 +375,7 @@ def ds_add_attrs(ds):
     if "CHLrfu" in ds:
         ds["CHLrfu"].attrs.update(
             {
-                "units": "100",
+                "units": "percent",
                 "long_name": "Chlorophyll A, RFU",
                 "comments": "Relative fluorescence units (RFU)",
             }
@@ -395,7 +395,7 @@ def ds_add_attrs(ds):
     if "BGAPErfu" in ds:
         ds["BGAPErfu"].attrs.update(
             {
-                "units": "100",
+                "units": "percent",
                 "long_name": "Blue green algae phycoerythrin, RFU",
                 "comments": "Relative fluorescence units (RFU)",
             }
@@ -409,7 +409,7 @@ def ds_add_attrs(ds):
     if "TALPErfu" in ds:
         ds["TALPErfu"].attrs.update(
             {
-                "units": "100",
+                "units": "percent",
                 "long_name": "Total algae phycoerythrin, RFU",
                 "comments": "Relative fluorescence units (RFU)",
             }
@@ -461,7 +461,7 @@ def ds_add_attrs(ds):
     if "OST_62" in ds:
         ds["OST_62"].attrs.update(
             {
-                "units": "100",
+                "units": "percent",
                 "long_name": "Oxygen percent saturation",
                 "epic_code": 62,
                 "standard_name": "fractional_saturation_of_oxygen_in_sea_water",
