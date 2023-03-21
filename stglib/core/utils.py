@@ -548,7 +548,7 @@ def write_metadata(ds, metadata):
             for x in metadata[k]:
                 ds = check_update_attrs(ds, x, metadata[k][x])
         else:
-            ds = check_update_attrs(k, metadata[k])
+            ds = check_update_attrs(ds, k, metadata[k])
 
     for v in ["Deployment_date", "Recovery_date"]:
         if v in ds.attrs:
