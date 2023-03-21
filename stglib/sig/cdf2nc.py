@@ -14,7 +14,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     """
 
     # TODO: Add atmospheric pressure offset
-    ds = xr.open_dataset(cdf_filename)
+    ds = xr.open_mfdataset(cdf_filename)
 
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
@@ -23,24 +23,24 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     #
     # ds, T, T_orig = set_orientation(ds, ds["TransMatrix"].values)
     #
-    e, n, u1, u2 = coord_transform_4beam(
-        ds["VelBeam1"].values,
-        ds["VelBeam2"].values,
-        ds["VelBeam3"].values,
-        ds["VelBeam4"].values,
-        ds["Heading"].values,
-        ds["Pitch"].values,
-        ds["Roll"].values,
-        ds["Burst_Beam2xyz"].values,
-        cs=ds.attrs["SIGBurst_CoordSystem"],
-    )
+    # e, n, u1, u2 = coord_transform_4beam(
+    #     ds["VelBeam1"].data,
+    #     ds["VelBeam2"].data,
+    #     ds["VelBeam3"].data,
+    #     ds["VelBeam4"].data,
+    #     ds["Heading"].data,
+    #     ds["Pitch"].data,
+    #     ds["Roll"].data,
+    #     ds["Burst_Beam2xyz"].data,
+    #     cs=ds.attrs["SIGBurst_CoordSystem"],
+    # )
+    #
+    # ds["U"] = xr.DataArray(e, dims=("time", "bindist"))
+    # ds["V"] = xr.DataArray(n, dims=("time", "bindist"))
+    # ds["W1"] = xr.DataArray(u1, dims=("time", "bindist"))
+    # ds["W2"] = xr.DataArray(u2, dims=("time", "bindist"))
 
-    ds["U"] = xr.DataArray(e, dims=("time", "bindist"))
-    ds["V"] = xr.DataArray(n, dims=("time", "bindist"))
-    ds["W1"] = xr.DataArray(u1, dims=("time", "bindist"))
-    ds["W2"] = xr.DataArray(u2, dims=("time", "bindist"))
-
-    ds = aqdutils.magvar_correct(ds)
+    # ds = aqdutils.magvar_correct(ds)
 
     # Rename DataArrays for EPIC compliance
     ds = aqdutils.ds_rename(ds)

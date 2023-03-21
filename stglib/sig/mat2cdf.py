@@ -99,7 +99,6 @@ def load_mat_file(filnam):
         read_config_mat(mat, ds)
 
     for ds in [dsbra, dsi, dsb]:
-        print(ds.attrs["data_type"])
         add_descriptions(mat, ds)
 
     for ds in [dsbra, dsi, dsb]:
@@ -123,10 +122,10 @@ def add_descriptions(mat, ds):
         if var in ds:
             if "long_name" not in ds[var].attrs:
                 ds[var].attrs["long_name"] = mat["Descriptions"][k]
-            else:
-                warnings.warn(
-                    f"long_name already exists for {ds.attrs['data_type']} {var} {k}"
-                )
+            # else:
+            #     warnings.warn(
+            #         f"long_name already exists for {ds.attrs['data_type']} {var} {k}"
+            #     )
 
 
 def add_units(mat, ds):
@@ -135,10 +134,10 @@ def add_units(mat, ds):
         if var in ds:
             if "units" not in ds[var].attrs:
                 ds[var].attrs["units"] = mat["Units"][k]
-            else:
-                warnings.warn(
-                    f"units already exists for {ds.attrs['data_type']} {var} {k}"
-                )
+            # else:
+            #     warnings.warn(
+            #         f"units already exists for {ds.attrs['data_type']} {var} {k}"
+            #     )
 
 
 def add_transmatrix(mat, ds):
@@ -164,32 +163,48 @@ def mat_to_cdf(metadata):
     dsbs = []
 
     for f in glob.glob(f"{basefile}_*.mat"):
+        print(f)
         a, b, c = load_mat_file(f)
         filstub = f.split("/")[-1].split(".mat")[0]
-        dsbras.append(a)
-        dsis.append(b)
-        dsbs.append(c)
+        num = filstub.split("_")[-1]
+        # dsbras.append(a.chunk({'time': 1000}))
+        # dsis.append(b.chunk({'time': 1000}))
+        # dsbs.append(c.chunk({'time': 1000}))
+        for ds in [b, c]:
+            ds = utils.write_metadata(ds, metadata)
+            ds = utils.ensure_cf(ds)
+            cdf_filename = (
+                prefix
+                + ds.attrs["filename"]
+                + "-"
+                + ds.attrs["data_type"]
+                + "-"
+                + num
+                + "-raw.cdf"
+            )
+            ds.to_netcdf(cdf_filename)
+            print(f"Finished writing data to {cdf_filename}")
 
-    dsbra = xr.merge(dsbras)
-    dsi = xr.merge(dsis)
-    dsb = xr.merge(dsbs)
+    # dsbra = xr.concat(dsbras, dim='time')
+    # dsi = xr.concat(dsis, dim='time')
+    # dsb = xr.concat(dsbs, dim='time')
 
     # Won't deal with BurstRawAltimeter data for now
-    for ds in [dsi, dsb]:
-        ds = utils.write_metadata(ds, metadata)
-        ds = utils.ensure_cf(ds)
+    # for ds in [dsi, dsb]:
+    #     ds = utils.write_metadata(ds, metadata)
+    #     ds = utils.ensure_cf(ds)
 
     # Won't deal with BurstRawAltimeter data for now
     # cdf_filename = prefix + dsbra.attrs["filename"] + "bra-raw.cdf"
     # dsbra.to_netcdf(cdf_filename, unlimited_dims=["time"])
     # print(f"Finished writing data to {cdf_filename}")
 
-    cdf_filename = prefix + dsi.attrs["filename"] + "iburst-raw.cdf"
-    print(dsi.data_vars)
-    dsi.to_netcdf(cdf_filename)
-    print(f"Finished writing data to {cdf_filename}")
-
-    cdf_filename = prefix + dsb.attrs["filename"] + "burst-raw.cdf"
-    print(dsb.data_vars)
-    dsb.to_netcdf(cdf_filename)
-    print(f"Finished writing data to {cdf_filename}")
+    # cdf_filename = prefix + dsi.attrs["filename"] + "iburst-raw.cdf"
+    # print("about to write to netcdf")
+    # dsi.to_netcdf(cdf_filename)
+    # print(f"Finished writing data to {cdf_filename}")
+    #
+    # cdf_filename = prefix + dsb.attrs["filename"] + "burst-raw.cdf"
+    # print("about to write to netcdf")
+    # dsb.to_netcdf(cdf_filename)
+    # print(f"Finished writing data to {cdf_filename}")
