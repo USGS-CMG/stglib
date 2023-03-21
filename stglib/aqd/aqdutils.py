@@ -1010,15 +1010,16 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             }
         )
 
-    ds["P_1"].attrs.update(
-        {
-            "units": "dbar",
-            # "name": "P",
-            "long_name": "Uncorrected pressure",
-            # "generic_name": "depth",
-            "epic_code": 1,
-        }
-    )  # TODO: is this generic name correct?
+    if "P_1" in ds:
+        ds["P_1"].attrs.update(
+            {
+                "units": "dbar",
+                # "name": "P",
+                "long_name": "Uncorrected pressure",
+                # "generic_name": "depth",
+                "epic_code": 1,
+            }
+        )  # TODO: is this generic name correct?
 
     if "P_1ac" in ds:
         ds["P_1ac"].attrs.update(

@@ -97,7 +97,6 @@ def clip_ds(ds, wvs=False):
         ds = insert_history(ds, histtext)
 
     elif "good_ens_wvs" in ds.attrs and wvs:
-
         good_ens = ds.attrs["good_ens_wvs"]
 
         goods = np.arange(good_ens[0], good_ens[1])
@@ -199,7 +198,6 @@ def add_min_max(ds):
 
 
 def insert_history(ds, histtext):
-
     toinsert = "{}: {}\n".format(
         datetime.datetime.now(datetime.timezone.utc).isoformat(), histtext
     )
@@ -247,7 +245,6 @@ def ds_add_diwasp_history(ds):
 
 
 def ds_coord_no_fillvalue(ds):
-
     for var in [
         "latitude",
         "longitude",
@@ -275,7 +272,6 @@ def ds_coord_no_fillvalue(ds):
 
 
 def add_standard_names(ds):
-
     standard_names = {
         "Hdg_1215": "platform_orientation",
         "Ptch_1216": "platform_pitch",
@@ -550,17 +546,9 @@ def write_metadata(ds, metadata):
         # recursively write out instmeta
         if k == "instmeta":
             for x in metadata[k]:
-                if x in ds.attrs:
-                    warnings.warn(
-                        f"attrs collision. Replacing {ds.attrs[x]=} with {metadata[k][x]}."
-                    )
-                ds.attrs[x] = metadata[k][x]
+                ds = check_update_attrs(ds, x, metadata[k][x])
         else:
-            if k in ds.attrs:
-                warnings.warn(
-                    f"attrs collision. Replacing {ds.attrs[k]=} with {metadata[k]}."
-                )
-            ds.attrs[k] = metadata[k]
+            ds = check_update_attrs(k, metadata[k])
 
     for v in ["Deployment_date", "Recovery_date"]:
         if v in ds.attrs:
@@ -586,7 +574,6 @@ def write_metadata(ds, metadata):
 
 
 def set_var_dtype(ds, var, dtype="float32"):
-
     ds[var].encoding["dtype"] = dtype
 
     return ds
@@ -687,15 +674,21 @@ def create_2d_time(ds):
     return ds
 
 
+def check_update_attrs(ds, key, value):
+    """Update attr and raise warning if attr already exists"""
+    if key in ds.attrs:
+        warnings.warn(f"attrs collision. Replacing {ds.attrs[key]=} with '{value}'.")
+
+    ds.attrs[key] = value
+
+    return ds
+
+
 def add_start_stop_time(ds):
     """Add start_time and stop_time attrs"""
 
-    ds.attrs.update(
-        {
-            "start_time": ds["time"][0].values.astype(str),
-            "stop_time": ds["time"][-1].values.astype(str),
-        }
-    )
+    ds = check_update_attrs(ds, "start_time", ds["time"][0].values.astype(str))
+    ds = check_update_attrs(ds, "stop_time", ds["time"][-1].values.astype(str))
 
     return ds
 
@@ -795,7 +788,6 @@ def shift_time(ds, timeshift):
 
 
 def create_water_depth_var(ds):
-
     press = None
 
     if "Pressure_ac" in ds:
@@ -916,7 +908,6 @@ def create_z(ds):
                     dims="z",
                 )
         else:
-
             ds["z"] = xr.DataArray(
                 [ds.attrs["NAVD88_ref"] + ds.attrs["initial_instrument_height"]],
                 dims="z",
@@ -943,7 +934,6 @@ def create_z(ds):
                 )
 
         else:
-
             ds["z"] = xr.DataArray(
                 [
                     ds.attrs["height_above_geopotential_datum"]
