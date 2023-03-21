@@ -155,7 +155,6 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs, out="
         or (cs == "BEAM" and out == "ENU")
         or (cs == "ENU" and out == "BEAM")
     ):
-
         hh = np.pi * (heading - 90) / 180
         pp = np.pi * pitch / 180
         rr = np.pi * roll / 180
@@ -297,7 +296,6 @@ def magvar_correct(ds):
         magvardeg = 0
 
     if magvardeg != 0:
-
         histtext = "Rotating heading and horizontal velocities by {} degrees.".format(
             magvardeg
         )
@@ -362,7 +360,6 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
         and ds.attrs["trim_method"].lower() != "none"
         and ds.attrs["trim_method"] is not None
     ):
-
         if "Pressure_ac" in ds:
             P = ds["Pressure_ac"]
             Ptxt = "atmospherically corrected"
@@ -620,7 +617,6 @@ def read_aqd_hdr(basefile):
 
 
 def check_attrs(ds, waves=False, inst_type="AQD"):
-
     # Add some metadata originally in the run scripts
     ds.attrs["nominal_sensor_depth_note"] = "WATER_DEPTH - " "initial_instrument_height"
     ds.attrs["nominal_sensor_depth"] = (
@@ -1012,15 +1008,16 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             }
         )
 
-    ds["P_1"].attrs.update(
-        {
-            "units": "dbar",
-            # "name": "P",
-            "long_name": "Uncorrected pressure",
-            # "generic_name": "depth",
-            "epic_code": 1,
-        }
-    )  # TODO: is this generic name correct?
+    if "P_1" in ds:
+        ds["P_1"].attrs.update(
+            {
+                "units": "dbar",
+                # "name": "P",
+                "long_name": "Uncorrected pressure",
+                # "generic_name": "depth",
+                "epic_code": 1,
+            }
+        )  # TODO: is this generic name correct?
 
     if "P_1ac" in ds:
         ds["P_1ac"].attrs.update(
