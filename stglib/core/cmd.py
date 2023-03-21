@@ -362,6 +362,15 @@ def sigmat2cdf_parser():
     return parser
 
 
+def sigraw2cdf_parser():
+    description = "Convert raw Signature .ad2cp files to raw .cdf format. Run this script from the directory containing Signature files."
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
 def sigcdf2nc_parser():
     description = "Convert raw Signature .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
     parser = argparse.ArgumentParser(description=description)

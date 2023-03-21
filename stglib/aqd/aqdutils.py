@@ -306,6 +306,8 @@ def magvar_correct(ds):
             headvar = "Heading"
         elif "Hdg" in ds:
             headvar = "Hdg"
+        elif "heading" in ds:
+            headvar = "heading"
 
         ds[headvar].values = ds[headvar].values + magvardeg
         ds[headvar].values[ds[headvar].values >= 360] = (
