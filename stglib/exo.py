@@ -294,10 +294,14 @@ def ds_rename_vars(ds):
         ds["Cond_µS_per_cm"].values = (
             ds["Cond_µS_per_cm"].values / 10000
         )  # convert from µS/cm to S/m
+    if "SpCond_mS_per_cm" in ds:
+        ds["SpCond_mS_per_cm"].values = (
+            ds["SpCond_mS_per_cm"].values / 10
+        )  # convert from mS/cm to S/m
     if "SpCond_µS_per_cm" in ds:
         ds["SpCond_µS_per_cm"].values = (
-            ds["SpCond_µS_per_cm"].values / 10
-        )  # convert from µS/cm to mS/cm
+            ds["SpCond_µS_per_cm"].values / 10000
+        )  # convert from µS/cm to S/m
 
     # set up dict of instrument -> EPIC variable names
     varnames = {
@@ -436,11 +440,11 @@ def ds_add_attrs(ds):
 
     ds["SpC_48"].attrs.update(
         {
-            "units": "mS/cm",
-            "long_name": "Conductivity",
+            "units": "S/m",
+            "long_name": "Specific Conductivity",
             "comment": "Temperature compensated to 25 °C",
             "epic_code": 48,
-            "standard_name": "sea_water_electrical_conductivity",
+            # "standard_name": "sea_water_electrical_conductivity",
         }
     )
 
