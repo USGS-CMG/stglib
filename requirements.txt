@@ -1,5 +1,6 @@
 python
 compliance-checker
+dolfyn
 git-lfs
 matplotlib-base
 netcdf4
