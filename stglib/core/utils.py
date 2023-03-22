@@ -289,7 +289,8 @@ def add_standard_names(ds):
     for k in standard_names:
         if k in ds:
             if "standard_name" not in ds[k].attrs:
-                ds[k].attrs["standard_name"] = standard_names[k]
+                ds[k] = check_update_attrs(ds[k], "standard_name", standard_names[k])
+                # ds[k].attrs["standard_name"] = standard_names[k]
 
     if "Tx_1211" in ds:
         if ds["Tx_1211"].attrs["units"] == "C":
@@ -298,12 +299,18 @@ def add_standard_names(ds):
     if "AnalogInput1" in ds:
         for v in ["standard_name", "long_name", "units"]:
             if f"AnalogInput1_{v}" in ds.attrs:
-                ds["AnalogInput1"].attrs[v] = ds.attrs[f"AnalogInput1_{v}"]
+                ds[k] = check_update_attrs(
+                    ds["AnalogInput1"], v, ds.attrs[f"AnalogInput1_{v}"]
+                )
+                # ds["AnalogInput1"].attrs[v] = ds.attrs[f"AnalogInput1_{v}"]
 
     if "AnalogInput2" in ds:
         for v in ["standard_name", "long_name", "units"]:
             if f"AnalogInput2_{v}" in ds.attrs:
-                ds["AnalogInput2"].attrs[v] = ds.attrs[f"AnalogInput2_{v}"]
+                ds[k] = check_update_attrs(
+                    ds["AnalogInput2"], v, ds.attrs[f"AnalogInput2_{v}"]
+                )
+                # ds["AnalogInput2"].attrs[v] = ds.attrs[f"AnalogInput2_{v}"]
 
     # ds["feature_type_instance"] = xr.DataArray(
     #    [f"{ds.attrs['MOORING']}aqd"], dims="feature_type_instance"
