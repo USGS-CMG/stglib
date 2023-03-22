@@ -16,11 +16,16 @@ def ds_rename(ds, waves=False):
 
     varnames = {
         "Pressure": "P_1",
+        "pressure": "P_1",
         "Temperature": "Tx_1211",
         "Heading": "Hdg_1215",
+        "heading": "Hdg_1215",
         "Pitch": "Ptch_1216",
+        "pitch": "Ptch_1216",
         "Roll": "Roll_1217",
+        "roll": "Roll_1217",
         "Battery": "Bat_106",
+        "batt": "Bat_106",
         "Soundspeed": "SV_80",
     }
 
@@ -56,6 +61,7 @@ def ds_rename(ds, waves=False):
         "Depth",
         "water_depth",
         "cellpos",
+        "vel",  # Signature velocity
     ]:
         if v in ds:
             ds = ds.drop_vars(v)

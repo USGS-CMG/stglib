@@ -32,7 +32,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds["W1"] = ds["vel"].sel(dir="U1")
     ds["W2"] = ds["vel"].sel(dir="U2")
 
-    ds = aqdutils.magvar_correct(ds, inst_type="SIG")
+    ds = aqdutils.magvar_correct(ds)
 
     # Rename DataArrays for EPIC compliance
     ds = aqdutils.ds_rename(ds)
