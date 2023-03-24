@@ -53,14 +53,47 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # ds = utils.add_standard_names(ds)
 
+    # split up into multiple files:
+    ds_b5 = ds.copy()
+    ds_echo = ds.copy()
+
+    todrop = []
+    for v in ds.data_vars:
+        if "_b5" in v:
+            todrop.append(v)
+
+    ds = ds.drop_vars(todrop)
+
+    todrop = []
+    for v in ds_b5.data_vars:
+        if "_b5" not in v:
+            todrop.append(v)
+
+    ds_b5 = ds_b5.drop_vars(todrop)
+
+    todrop = []
+    for v in ds_echo.data_vars:
+        if "_echo" not in v:
+            todrop.append(v)
+
+    ds_echo = ds_echo.drop_vars(todrop)
+
     if "prefix" in ds.attrs:
         nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "-a.nc"
     else:
         nc_filename = ds.attrs["filename"] + "-a.nc"
 
-    dolfyn.save(ds, nc_filename, compression=True)
-    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+    for datatype, dsout in zip(["", "_b5", "_echo"], [ds, ds_b5, ds_echo]):
+        if datatype == "":
+            nc_out = nc_filename
+        elif datatype == "_b5":
+            nc_out = nc_filename[:-5] + "_b5-a.nc"
+        elif datatype == "_echo":
+            nc_out = nc_filename[:-5] + "_echo-a.nc"
 
-    print("Done writing netCDF file", nc_filename)
+        dolfyn.save(dsout, nc_out, compression=True)
+        utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
+
+        print("Done writing netCDF file", nc_filename)
 
     return ds
