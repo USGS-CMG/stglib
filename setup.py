@@ -1,16 +1,13 @@
-# To use a consistent encoding
-from codecs import open
-from os import path
+import pathlib
 
 from setuptools import find_packages, setup
 
 import versioneer
 
-here = path.abspath(path.dirname(__file__))
+here = pathlib.Path(__file__).parent.resolve()
 
 # Get the long description from the README file
-with open(path.join(here, "README.md"), encoding="utf-8") as f:
-    long_description = f.read()
+long_description = (here / "README.md").read_text(encoding="utf-8")
 
 # used https://github.com/pypa/sampleproject/blob/master/setup.py
 
@@ -21,12 +18,12 @@ setup(
     description=("Process data from a variety of oceanographic instrumentation"),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Dan Nowacki",
+    author="U.S. Geological Survey",
     author_email="dnowacki@usgs.gov",
     url="https://github.com/USGS-CMG/stglib",
     license="Public domain",
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
