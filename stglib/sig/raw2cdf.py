@@ -17,7 +17,7 @@ def raw_to_cdf(metadata):
     print(basefile)
 
     utils.check_valid_globalatts_metadata(metadata)
-    aqdutils.check_valid_config_metadata(metadata)
+    aqdutils.check_valid_config_metadata(metadata, inst_type="SIG")
 
     ds = dolfyn.read(f"{basefile}.ad2cp")
 

@@ -1174,14 +1174,18 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     return ds
 
 
-def check_valid_config_metadata(metadata):
-    for k in [
+def check_valid_config_metadata(metadata, inst_type="AQD"):
+    vars = [
         "initial_instrument_height",
-        "orientation",
         "basefile",
         "filename",
         "Conventions",
-    ]:
+    ]
+
+    if inst_type == "AQD":
+        vars.append("orientation")
+
+    for k in vars:
         if k not in metadata:
             raise KeyError(f"{k} must be defined, most likely in config.yaml")
 
