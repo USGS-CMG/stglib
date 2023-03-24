@@ -1,3 +1,5 @@
+import time
+
 import dolfyn
 import pandas as pd
 from dolfyn.adv import api
@@ -14,12 +16,14 @@ def raw_to_cdf(metadata):
     else:
         prefix = ""
     basefile = prefix + basefile
-    print(basefile)
 
     utils.check_valid_globalatts_metadata(metadata)
     aqdutils.check_valid_config_metadata(metadata, inst_type="SIG")
 
+    start_time = time.time()
     ds = dolfyn.read(f"{basefile}.ad2cp")
+    end_time = time.time()
+    print(f"Finished loading {basefile}.ad2cp in {end_time-start_time:.1f} seconds")
 
     ds = utils.write_metadata(ds, metadata)
     ds = utils.ensure_cf(ds)

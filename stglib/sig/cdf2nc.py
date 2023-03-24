@@ -1,4 +1,5 @@
 import math
+import time
 
 import dolfyn
 import numpy as np
@@ -15,7 +16,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     """
 
     # TODO: Add atmospheric pressure offset
+    print(f"Loading {cdf_filename[0]}")
+    start_time = time.time()
     ds = dolfyn.load(cdf_filename[0])
+    end_time = time.time()
+    print(f"Finished loading {cdf_filename[0]} in {end_time-start_time:.1f} seconds")
 
     ds = utils.create_nominal_instrument_depth(ds)
 
