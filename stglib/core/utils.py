@@ -288,9 +288,9 @@ def add_standard_names(ds):
 
     for k in standard_names:
         if k in ds:
-            if "standard_name" not in ds[k].attrs:
-                ds[k] = check_update_attrs(ds[k], "standard_name", standard_names[k])
-                # ds[k].attrs["standard_name"] = standard_names[k]
+            # if "standard_name" not in ds[k].attrs:
+            ds[k] = check_update_attrs(ds[k], "standard_name", standard_names[k])
+            # ds[k].attrs["standard_name"] = standard_names[k]
 
     if "Tx_1211" in ds:
         if ds["Tx_1211"].attrs["units"] == "C":
@@ -682,8 +682,8 @@ def create_2d_time(ds):
 
 
 def check_update_attrs(ds, key, value):
-    """Update attr and raise warning if attr already exists"""
-    if key in ds.attrs:
+    """Update attr and raise warning if attr already exists and is different from replacement value"""
+    if key in ds.attrs and ds.attrs[key] != value:
         warnings.warn(f"attrs collision. Replacing {ds.attrs[key]=} with '{value}'.")
 
     ds.attrs[key] = value

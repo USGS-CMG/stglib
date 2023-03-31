@@ -838,7 +838,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     """
 
     def add_vel_attributes(vel, dsattrs):
-        vel.attrs.update({"units": "m s-1"})
+        vel = utils.check_update_attrs(vel, "units", "m s-1")
         if inst_type == "AQD":
             vel.attrs.update(
                 {
