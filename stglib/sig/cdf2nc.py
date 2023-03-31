@@ -1,6 +1,8 @@
+import pkgutil
 import time
 
 import dolfyn
+import xmltodict
 
 from ..aqd import aqdutils
 from ..core import utils
@@ -49,9 +51,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = clean_dolfyn_standard_names(ds)
 
-    ds = set_dolfyn_data_types(ds)
+    ds = utils.add_standard_names(ds)
 
-    # ds = utils.add_standard_names(ds)
+    ds = fix_dolfyn_encoding(ds)
 
     # split up into multiple files:
     ds_b5 = ds.copy()
@@ -91,20 +93,18 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         elif datatype == "_echo":
             nc_out = nc_filename[:-5] + "_echo-a.nc"
 
-        if datatype != "":
-            dolfyn.save(dsout, nc_out, compression=True)
-            utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
+        dolfyn.save(dsout, nc_out)
+        utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
 
-            print("Done writing netCDF file", nc_filename)
+        print("Done writing netCDF file", nc_filename)
 
     return ds
 
 
 def clean_dolfyn_standard_names(ds):
-    import xmltodict
-
-    with open("cf-standard-name-table.xml", encoding="utf-8") as fd:
-        doc = xmltodict.parse(fd.read())
+    """remove non-compliant standard_names set by dolfyn"""
+    data = pkgutil.get_data(__name__, "../data/cf-standard-name-table.xml")
+    doc = xmltodict.parse(data)
 
     entries = doc["standard_name_table"]["entry"]
     allnames = [x["@id"] for x in entries]
@@ -112,17 +112,19 @@ def clean_dolfyn_standard_names(ds):
     for v in ds.data_vars:
         if "standard_name" in ds[v].attrs:
             if ds[v].attrs["standard_name"] not in allnames:
-                print("removing", v, "standard_name")
                 del ds[v].attrs["standard_name"]
-                print(v, f"{ds[v].attrs}")
 
     return ds
 
 
-def set_dolfyn_data_types(ds):
-    """make datatypes for time, etc not be int64"""
-    for d in ds.dims:
-        print(d)
-        print(ds[d].dtype)
-        print(ds[d].max())
+def fix_dolfyn_encoding(ds):
+    """ensure we don't set dtypes of int64 for CF compliance"""
+    for var in ds.dims:
+        if ds[var].dtype == "int64":
+            if ds[var].max() > 2**31 - 1 or ds[var].min() < -(2**31):
+                print(
+                    f"warning {var} may be too big to fit in int32: min {ds[var].min().values}, max {ds[var].max().values}"
+                )
+            ds[var].encoding["dtype"] = "int32"
+
     return ds
