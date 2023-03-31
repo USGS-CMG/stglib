@@ -1,13 +1,9 @@
-import math
 import time
 
 import dolfyn
-import numpy as np
-import xarray as xr
-from tqdm import tqdm
 
 from ..aqd import aqdutils
-from ..core import qaqc, utils
+from ..core import utils
 
 
 def cdf_to_nc(cdf_filename, atmpres=False):
@@ -51,6 +47,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Add history showing file used
     ds = utils.add_history(ds)
 
+    ds = clean_dolfyn_standard_names(ds)
+
+    ds = set_dolfyn_data_types(ds)
+
     # ds = utils.add_standard_names(ds)
 
     # split up into multiple files:
@@ -91,9 +91,38 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         elif datatype == "_echo":
             nc_out = nc_filename[:-5] + "_echo-a.nc"
 
-        dolfyn.save(dsout, nc_out, compression=True)
-        utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
+        if datatype != "":
+            dolfyn.save(dsout, nc_out, compression=True)
+            utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
 
-        print("Done writing netCDF file", nc_filename)
+            print("Done writing netCDF file", nc_filename)
 
+    return ds
+
+
+def clean_dolfyn_standard_names(ds):
+    import xmltodict
+
+    with open("cf-standard-name-table.xml", encoding="utf-8") as fd:
+        doc = xmltodict.parse(fd.read())
+
+    entries = doc["standard_name_table"]["entry"]
+    allnames = [x["@id"] for x in entries]
+
+    for v in ds.data_vars:
+        if "standard_name" in ds[v].attrs:
+            if ds[v].attrs["standard_name"] not in allnames:
+                print("removing", v, "standard_name")
+                del ds[v].attrs["standard_name"]
+                print(v, f"{ds[v].attrs}")
+
+    return ds
+
+
+def set_dolfyn_data_types(ds):
+    """make datatypes for time, etc not be int64"""
+    for d in ds.dims:
+        print(d)
+        print(ds[d].dtype)
+        print(ds[d].max())
     return ds

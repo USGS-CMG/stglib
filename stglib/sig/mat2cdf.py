@@ -147,6 +147,12 @@ def add_transmatrix(mat, ds):
 
 
 def mat_to_cdf(metadata):
+    warnings.warn(
+        "The use of mat_to_cdf is deprecated. Use raw_to_cdf instead. Refer to the stglib documentation for more details.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     basefile = metadata["basefile"]
 
     if "prefix" in metadata:

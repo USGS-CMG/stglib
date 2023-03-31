@@ -1,8 +1,6 @@
 import time
 
 import dolfyn
-import pandas as pd
-from dolfyn.adv import api
 
 from ..aqd import aqdutils
 from ..core import utils
