@@ -55,16 +55,17 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = fix_dolfyn_encoding(ds)
 
-    # split up into multiple files:
+    # split up into multiple files and write them separately
     ds_b5 = ds.copy()
     ds_echo = ds.copy()
 
     todrop = []
     for v in ds.data_vars:
-        if "_b5" in v:
+        if "_b5" in v or "_echo" in v:
             todrop.append(v)
 
     ds = ds.drop_vars(todrop)
+    ds = drop_unused_dims(ds)
 
     todrop = []
     for v in ds_b5.data_vars:
@@ -72,6 +73,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             todrop.append(v)
 
     ds_b5 = ds_b5.drop_vars(todrop)
+    ds_b5 = drop_unused_dims(ds_b5)
 
     todrop = []
     for v in ds_echo.data_vars:
@@ -79,6 +81,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             todrop.append(v)
 
     ds_echo = ds_echo.drop_vars(todrop)
+    ds_echo = drop_unused_dims(ds_echo)
 
     if "prefix" in ds.attrs:
         nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "-a.nc"
@@ -97,6 +100,20 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
 
         print("Done writing netCDF file", nc_filename)
+
+    return ds
+
+
+def drop_unused_dims(ds):
+    """only keep dims that will be in the final files"""
+    thedims = []
+    for v in ds.data_vars:
+        for x in ds[v].dims:
+            thedims.append(x)
+
+    for x in ds.dims:
+        if x not in thedims:
+            ds = ds.drop_vars(x)
 
     return ds
 
