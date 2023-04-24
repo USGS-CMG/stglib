@@ -380,3 +380,14 @@ def sigcdf2nc_parser():
     )
 
     return parser
+
+
+def sigdolfyncdf2nc_parser():
+    description = "Convert raw Signature .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("cdfname", help="raw .CDF filename(s)", nargs="*")
+    parser.add_argument(
+        "--atmpres", help=("path to cdf file containing atmopsheric pressure data")
+    )
+
+    return parser
