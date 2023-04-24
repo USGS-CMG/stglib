@@ -389,7 +389,7 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
         elif ds.attrs["trim_method"].lower() == "water level sl":
             for var in data_vars:
                 ds[var] = ds[var].where(
-                    ds["bindist"] < P * np.cos(np.deg2rad(ds.attrs["AQDBeamAngle"]))
+                    ds["bindist"] < P * np.cos(np.deg2rad(ds.attrs["beam_angle"]))
                 )
 
             histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
@@ -674,6 +674,19 @@ def check_attrs(ds, waves=False, inst_type="AQD"):
         ds.attrs["frequency"] = ds.attrs["VECFrequency"]
         ds.attrs["instrument_type"] = "Nortek Vector"
 
+    elif inst_type == "SIG":
+        ds.attrs["serial_number"] = ds.attrs["SIGSerialNo"]
+        ds.attrs["frequency"] = ds.attrs["SIGHeadFrequency"]
+        ds.attrs["instrument_type"] = ds.attrs["SIGInstrumentName"]
+        if ds.attrs["frequency"] == 1000 or ds.attrs["frequency"] == 500:
+            ds.attrs["beam_angle"]=25
+        elif ds.attrs["frequency"] == 250:
+            ds.attrs["beam_angle"]=20
+        freq=ds.attrs["frequency"]
+        bang=ds.attrs["beam_angle"]
+        print(f"Signature slant beam acoustic frequency = {freq} with beam_angle = {bang} from vertical")
+        
+
     return ds
 
 
@@ -862,6 +875,8 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             sn = dsattrs["AQDSerial_Number"]
         elif inst_type == "VEC":
             sn = dsattrs["VECSerialNumber"]
+        elif inst_type == "SIG":
+            sn = dsattrs["SIGSerialNo"]
         """
         var.attrs.update(
             {

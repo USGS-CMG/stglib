@@ -2,12 +2,15 @@ import datetime as dt
 import glob
 import re
 import warnings
+import time
 
 import numpy as np
 import pandas as pd
 import scipy.io
 import xarray as xr
 
+#import sys
+#sys.path.append("C:/Users/ssuttles/Git/stglib/stglib/")
 from ..aqd import aqdutils
 from ..core import utils
 
@@ -26,39 +29,48 @@ def load_mat_file(filnam):
         + mat["Config"]["Burst_CellSize"] * np.arange(mat["Config"]["Burst_NCells"])
     )
 
-    # BurstRawAltimeter
-    dsbra = xr.Dataset()
-    dsbra["time"] = xr.DataArray(
-        [matlab2datetime(x) for x in mat["Data"]["BurstRawAltimeter_Time"]],
-        dims="time",
-    )
-    dsbra["time"] = pd.DatetimeIndex(dsbra["time"])
-    dsbra["time"] = pd.DatetimeIndex(dsbra["time"])
-    dsbra.attrs["data_type"] = "BurstRawAltimeter"
+    ds_dict={} #initialize dictionary for xarray datasets
+    if mat["Config"]["Plan_BurstEnabled"] == 'True' and mat["Config"]["Burst_RawAltimeter"] == 1:
 
-    # IBurst
-    dsi = xr.Dataset()
-    dsi["time"] = pd.DatetimeIndex(
-        xr.DataArray(
-            [matlab2datetime(x) for x in mat["Data"]["IBurst_Time"]],
+        # BurstRawAltimeter
+        dsbra = xr.Dataset()
+        dsbra["time"] = xr.DataArray(
+            [matlab2datetime(x) for x in mat["Data"]["BurstRawAltimeter_Time"]],
             dims="time",
         )
-    )
-    dsi["time"] = pd.DatetimeIndex(dsi["time"])
-    dsi["bindist"] = xr.DataArray(bindist, dims="bindist")
-    dsi.attrs["data_type"] = "IBurst"
+        dsbra["time"] = pd.DatetimeIndex(dsbra["time"])
+        dsbra["time"] = pd.DatetimeIndex(dsbra["time"])
+        dsbra.attrs["data_type"] = "BurstRawAltimeter"
+        ds_dict["dsbra"]=dsbra
 
-    # Burst
-    dsb = xr.Dataset()
-    dsb["time"] = pd.DatetimeIndex(
-        xr.DataArray(
-            [matlab2datetime(x) for x in mat["Data"]["Burst_Time"]],
-            dims="time",
+
+    if mat["Config"]["Plan_BurstEnabled"] == 'True' and mat["Config"]["Burst_NBeams"] == 5:
+        # IBurst
+        dsi = xr.Dataset()
+        dsi["time"] = pd.DatetimeIndex(
+            xr.DataArray(
+                [matlab2datetime(x) for x in mat["Data"]["IBurst_Time"]],
+                dims="time",
+            )
         )
-    )
-    dsb["time"] = pd.DatetimeIndex(dsb["time"])
-    dsb["bindist"] = xr.DataArray(bindist, dims="bindist")
-    dsb.attrs["data_type"] = "Burst"
+        dsi["time"] = pd.DatetimeIndex(dsi["time"])
+        dsi["bindist"] = xr.DataArray(bindist, dims="bindist")
+        dsi.attrs["data_type"] = "IBurst"
+        ds_dict["dsi"]=dsi
+
+    if mat["Config"]["Plan_BurstEnabled"] == 'True':
+        # Burst
+        dsb = xr.Dataset()
+        dsb["time"] = pd.DatetimeIndex(
+            xr.DataArray(
+                [matlab2datetime(x) for x in mat["Data"]["Burst_Time"]],
+                dims="time",
+            )
+        )
+        dsb["time"] = pd.DatetimeIndex(dsb["time"])
+        dsb["bindist"] = xr.DataArray(bindist, dims="bindist")
+        dsb.attrs["data_type"] = "Burst"
+        ds_dict["dsb"]=dsb
 
     for k in mat["Data"]:
         if "BurstRawAltimeter" in k:
@@ -73,8 +85,14 @@ def load_mat_file(filnam):
                 if mat["Data"][k].ndim == 1:
                     dsi[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
+                    if "AHRSRotationMatrix" in k:
+                        #save orientation matrix using AHRS
+                        #dsi["earth"]=xr.DataArray(["E","N","U"],dims="earth")
+                        #dsi["inst"]=xr.DataArray(["X","Y","Z"],dims="inst")
+                        #dsi["AHRSRotationMatrix"]=xr.DataArray(mat['Data'][k].reshape(-1,3,3).transpose((2,1,0)),dims=["earth","inst","time"])
+                        dsi["AHRSRotationMatrix"]=xr.DataArray(mat['Data'][k])
                     # only checks to see if cells match on first sample
-                    if mat["Data"][k].shape[1] == mat["Data"]["IBurst_NCells"][0]:
+                    elif mat["Data"][k].shape[1] == mat["Data"]["IBurst_NCells"][0]:
                         dsi[k.split("_")[1]] = xr.DataArray(
                             mat["Data"][k], dims=["time", "bindist"]
                         )
@@ -85,8 +103,15 @@ def load_mat_file(filnam):
                 if mat["Data"][k].ndim == 1:
                     dsb[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
+                    if "AHRSRotationMatrix" in k:
+                        #save orientation matrix using AHRS
+                        #dsb["earth"]=xr.DataArray(["E","N","U"],dims="earth")
+                        #dsb["inst"]=xr.DataArray(["X","Y","Z"],dims="inst")
+                        ##dsb["AHRSRotationMatrix"]=xr.DataArray(mat['Data'][k].reshape(-1,3,3).transpose((0,2,1)),dims=["time","earth","inst"])
+                        #dsb["AHRSRotationMatrix"]=xr.DataArray(mat['Data'][k].reshape(-1,3,3,).transpose((2,1,0)),dims=["earth","inst","time"])
+                        dsb["AHRSRotationMatrix"]=xr.DataArray(mat['Data'][k])
                     # only checks to see if cells match on first sample
-                    if mat["Data"][k].shape[1] == mat["Data"]["Burst_NCells"][0]:
+                    elif mat["Data"][k].shape[1] == mat["Data"]["Burst_NCells"][0]:
                         dsb[k.split("_")[1]] = xr.DataArray(
                             mat["Data"][k], dims=["time", "bindist"]
                         )
@@ -95,17 +120,18 @@ def load_mat_file(filnam):
         else:
             print("missing variable:", k)
 
-    for ds in [dsbra, dsi, dsb]:
-        read_config_mat(mat, ds)
+    for ds in ds_dict:
+        read_config_mat(mat, ds_dict[ds])
+        
 
-    for ds in [dsbra, dsi, dsb]:
-        add_descriptions(mat, ds)
+    for ds in ds_dict:
+        add_descriptions(mat, ds_dict[ds])
 
-    for ds in [dsbra, dsi, dsb]:
-        add_units(mat, ds)
-        add_transmatrix(mat, ds)
-
-    return dsbra, dsi, dsb
+    for ds in ds_dict:
+        add_units(mat, ds_dict[ds])
+        add_transmatrix(mat, ds_dict[ds])
+    
+    return ds_dict
 
 
 def read_config_mat(mat, ds):
@@ -143,16 +169,18 @@ def add_units(mat, ds):
 def add_transmatrix(mat, ds):
     for k in mat["Config"]:
         if "Beam2xyz" in k:
-            ds[f"{k}"] = xr.DataArray(mat["Config"][k])
+            var = k.split("_")[1]
+            ds[var] = xr.DataArray(mat["Config"][k])
 
 
 def mat_to_cdf(metadata):
-    warnings.warn(
+    """warnings.warn(
         "The use of mat_to_cdf is deprecated. Use raw_to_cdf instead. Refer to the stglib documentation for more details.",
         DeprecationWarning,
         stacklevel=2,
     )
-
+    """
+    tic=time.time()
     basefile = metadata["basefile"]
 
     if "prefix" in metadata:
@@ -161,26 +189,35 @@ def mat_to_cdf(metadata):
         prefix = ""
     basefile = prefix + basefile
 
+    if "outdir" in metadata:
+        outdir = metadata["outdir"]
+    else:
+        outdir = ""
+
     utils.check_valid_globalatts_metadata(metadata)
     aqdutils.check_valid_config_metadata(metadata)
-
-    dsbras = []
-    dsis = []
-    dsbs = []
-
+    
+    #read in mat files in proper order
+    nn=[]
     for f in glob.glob(f"{basefile}_*.mat"):
+        n=int(f.split("_")[-1].split(".mat")[0])
+        nn.append(n)
+    nn=np.array(nn)
+    nn.sort()
+    for k in nn:
+        f=(f"{basefile}_{k}.mat")
         print(f)
-        a, b, c = load_mat_file(f)
+        dsd = load_mat_file(f)
         filstub = f.split("/")[-1].split(".mat")[0]
         num = filstub.split("_")[-1]
-        # dsbras.append(a.chunk({'time': 1000}))
-        # dsis.append(b.chunk({'time': 1000}))
-        # dsbs.append(c.chunk({'time': 1000}))
-        for ds in [b, c]:
+        
+        for dsn in dsd:
+            ds=dsd[dsn]
             ds = utils.write_metadata(ds, metadata)
             ds = utils.ensure_cf(ds)
             cdf_filename = (
-                prefix
+                outdir
+                +prefix
                 + ds.attrs["filename"]
                 + "-"
                 + ds.attrs["data_type"]
@@ -191,26 +228,41 @@ def mat_to_cdf(metadata):
             ds.to_netcdf(cdf_filename)
             print(f"Finished writing data to {cdf_filename}")
 
-    # dsbra = xr.concat(dsbras, dim='time')
-    # dsi = xr.concat(dsis, dim='time')
-    # dsb = xr.concat(dsbs, dim='time')
+    #read in Burst -raw.cdf and make one combined per data_type
+    if "dsb" in dsd:
+        fin= outdir + '*-Burst-*.cdf'
+        ds = xr.open_mfdataset(fin,parallel=True)
+        ds = aqdutils.check_attrs(ds,inst_type="SIG")
+        if "Beam2xyz" in ds:
+            ds["Beam2xyz"]=ds["Beam2xyz"].isel(time=0, drop=True)        
+        #write out all into single -raw.cdf files per data_type
+        cdf_filename = prefix + ds.attrs["filename"] + "_burst-raw.cdf"
+        print("writing Burst to netcdf")
+        ds.to_netcdf(cdf_filename)
+        print(f"Finished writing data to {cdf_filename}")
 
-    # Won't deal with BurstRawAltimeter data for now
-    # for ds in [dsi, dsb]:
-    #     ds = utils.write_metadata(ds, metadata)
-    #     ds = utils.ensure_cf(ds)
+    if "dsi" in dsd:
+        fin= outdir + '*-IBurst-*.cdf'
+        ds = xr.open_mfdataset(fin,parallel=True)
+        ds = aqdutils.check_attrs(ds,inst_type="SIG")
+        if "Beam2xyz" in ds:
+            ds["Beam2xyz"]=ds["Beam2xyz"].isel(time=0, drop=True)
+        #write out all into single -raw.cdf files per data_type
+        cdf_filename = prefix + ds.attrs["filename"] + "_iburst-raw.cdf"
+        print("writing IBurst to netcdf")
+        ds.to_netcdf(cdf_filename)
+        print(f"Finished writing data to {cdf_filename}")
+        
+    if "dsbra" in dsd:
+        fin= outdir + '*-BurstRawAltimeter-*.cdf'
+        ds = xr.open_mfdataset(fin,parallel=True)
+        ds = aqdutils.check_attrs(ds,inst_type="SIG")
+        #write out all into single -raw.cdf files per data_type
+        cdf_filename = prefix + ds.attrs["filename"] + "_burstrawalt-raw.cdf"
+        print("writing BurstRawAltimeter to netcdf")
+        ds.to_netcdf(cdf_filename)
+        print(f"Finished writing data to {cdf_filename}")
 
-    # Won't deal with BurstRawAltimeter data for now
-    # cdf_filename = prefix + dsbra.attrs["filename"] + "bra-raw.cdf"
-    # dsbra.to_netcdf(cdf_filename, unlimited_dims=["time"])
-    # print(f"Finished writing data to {cdf_filename}")
-
-    # cdf_filename = prefix + dsi.attrs["filename"] + "iburst-raw.cdf"
-    # print("about to write to netcdf")
-    # dsi.to_netcdf(cdf_filename)
-    # print(f"Finished writing data to {cdf_filename}")
-    #
-    # cdf_filename = prefix + dsb.attrs["filename"] + "burst-raw.cdf"
-    # print("about to write to netcdf")
-    # dsb.to_netcdf(cdf_filename)
-    # print(f"Finished writing data to {cdf_filename}")
+    toc=time.time()
+    etime=round(toc-tic,0)
+    print(f"elapsed time = {etime}")
