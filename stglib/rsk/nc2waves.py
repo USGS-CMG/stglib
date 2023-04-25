@@ -2,8 +2,11 @@ from ..core import utils, waves
 
 
 def nc_to_waves(nc_filename):
-
     ds = utils.open_time_2d_dataset(nc_filename)  # this will deal with a cf file, too
+
+    if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
+        # make wave burst ncfile from continuous data if wave_interval is specified
+        ds = make_wave_bursts(ds)
 
     spec = waves.make_waves_ds(ds)
 
