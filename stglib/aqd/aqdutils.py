@@ -51,6 +51,7 @@ def ds_rename(ds, waves=False):
         if v in ds:
             ds = ds.rename({v: varnames[v]})
 
+    """
     for v in [
         "avgamp1",
         "avgamp2",
@@ -61,10 +62,11 @@ def ds_rename(ds, waves=False):
         "Depth",
         "water_depth",
         "cellpos",
-        "vel",  # Signature velocity
+        #"vel",  # Signature velocity
     ]:
         if v in ds:
             ds = ds.drop_vars(v)
+    """
 
     return ds
 

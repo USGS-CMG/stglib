@@ -9,8 +9,6 @@ import pandas as pd
 import scipy.io
 import xarray as xr
 
-# import sys
-# sys.path.append("C:/Users/ssuttles/Git/stglib/stglib/")
 from ..aqd import aqdutils
 from ..core import utils
 
@@ -91,10 +89,6 @@ def load_mat_file(filnam):
                     dsi[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
                     if "AHRSRotationMatrix" in k:
-                        # save orientation matrix using AHRS
-                        # dsi["earth"]=xr.DataArray(["E","N","U"],dims="earth")
-                        # dsi["inst"]=xr.DataArray(["X","Y","Z"],dims="inst")
-                        # dsi["AHRSRotationMatrix"]=xr.DataArray(mat['Data'][k].reshape(-1,3,3).transpose((2,1,0)),dims=["earth","inst","time"])
                         coords = {"dimRM": np.arange(9)}
                         dsi["AHRSRotationMatrix"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimRM"]
@@ -112,11 +106,6 @@ def load_mat_file(filnam):
                     dsb[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
                     if "AHRSRotationMatrix" in k:
-                        # save orientation matrix using AHRS
-                        # dsb["earth"]=xr.DataArray(["E","N","U"],dims="earth")
-                        # dsb["inst"]=xr.DataArray(["X","Y","Z"],dims="inst")
-                        ##dsb["AHRSRotationMatrix"]=xr.DataArray(mat['Data'][k].reshape(-1,3,3).transpose((0,2,1)),dims=["time","earth","inst"])
-                        # dsb["AHRSRotationMatrix"]=xr.DataArray(mat['Data'][k].reshape(-1,3,3,).transpose((2,1,0)),dims=["earth","inst","time"])
                         coords = {"dimRM": np.arange(9)}
                         dsb["AHRSRotationMatrix"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimRM"]
