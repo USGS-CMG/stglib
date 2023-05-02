@@ -205,7 +205,6 @@ def ds_drop(ds):
         "CorBeam3",
         "CorBeam4", 
         "AltimeterStatus",
-        "NominalCorrelation",                  
     ]
 
     if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"].lower() == "true"):
@@ -251,6 +250,7 @@ def ds_rename_sig(ds, waves=False):
         "AltimeterQualityAST": "ast_quality",
         "AltimeterTimeOffsetAST": "ast_offset_time",
         "AltimeterPressure": "ast_pressure",
+        "NominalCorrelation": "corr_nominal",
     }
 
     for v in varnames:
@@ -305,7 +305,9 @@ def fix_encoding(ds):
     for var in ds.data_vars:
         if ds[var].dtype == 'uint32' or ds[var].dtype == 'uint8':
             ds[var].encoding["dtype"]='int32'
-        if var in ["cor"]:
+        if var in ["corr"]:
+            ds[var].encoding["dtype"]='float32'
+        if ds[var].dtype == 'float64':
             ds[var].encoding["dtype"]='float32'
         
     return ds
@@ -435,6 +437,14 @@ def ds_add_attrs_sig(ds):
             }
         )
 
+    if "corr_nominal" in ds:
+        ds["corr_nominal"].attrs.update(
+            {
+                "units": "percent",
+                "long_name": "Nominal Correlation",
+            }
+        )
+
     if "SV_80" in ds:
         ds["SV_80"].attrs.update(
             {
@@ -461,6 +471,8 @@ def ds_add_attrs_sig(ds):
         )
 
     if "alt_quality" in ds:
+        ds["alt_quality"]=ds["ast_quality"]/100
+        ds["alt_quality"].encoding["dtype"]='float32'
         ds["alt_quality"].attrs.update(
             {
                 "units": "dB",
@@ -478,6 +490,8 @@ def ds_add_attrs_sig(ds):
         )
 
     if "ast_quality" in ds:
+        ds["ast_quality"]=ds["ast_quality"]/100
+        ds["ast_quality"].encoding["dtype"]='float32'
         ds["ast_quality"].attrs.update(
             {
                 "units": "dB",
@@ -496,7 +510,7 @@ def ds_add_attrs_sig(ds):
     if "ast_offset_time" in ds:
         ds["ast_offset_time"].attrs.update(
             {
-                "units": "dbar",
+                "units": "s",
                 "long_name": "Acoustic Surface Tracking (AST) Offset Time",
             }
         )
