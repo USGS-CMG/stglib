@@ -373,6 +373,9 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
         if "Pressure_ac" in ds:
             P = ds["Pressure_ac"]
             Ptxt = "atmospherically corrected"
+        elif "P_1ac" in ds:
+            P = ds["P_1ac"]
+            Ptxt = "atmospherically corrected"
         elif "Pressure" in ds:
             # FIXME incorporate press_ ac below
             P = ds["Pressure"]
@@ -949,6 +952,16 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             }
         )
 
+    if "w2_1204" in ds:
+        ds["w2_1204"].attrs.update(
+            {
+                # "name": "w",
+                "long_name": "Vertical Velocity (2nd)",
+                # "generic_name": "w",
+                "epic_code": 1204,
+            }
+        )
+
     if "AGC_1202" in ds:
         ds["AGC_1202"].attrs.update(
             {
@@ -1160,7 +1173,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
         for v in ["AGC_1202", "u_1205", "v_1206", "w_1204"]:
             if v in ds:
                 add_attributes(ds[v], ds.attrs)
-        for v in ["u_1205", "v_1206", "w_1204"]:
+        for v in ["u_1205", "v_1206", "w_1204","w2_1204"]:
             if v in ds:
                 add_vel_attributes(ds[v], ds.attrs)
     elif waves:

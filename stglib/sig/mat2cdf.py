@@ -93,6 +93,16 @@ def load_mat_file(filnam):
                         dsi["AHRSRotationMatrix"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimRM"]
                         )
+                    if "Magnetometer" in k:
+                        coords= {"dimM": np.arange(3)}
+                        dsi["Magnetometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimM"]
+                        )
+                    if "Accelerometer" in k:
+                        coords= {"dimA": np.arange(3)}
+                        dsi["Accelerometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimA"]
+                        )
                     # only checks to see if cells match on first sample
                     elif mat["Data"][k].shape[1] == mat["Data"]["IBurst_NCells"][0]:
                         dsi[k.split("_")[1]] = xr.DataArray(
@@ -109,6 +119,16 @@ def load_mat_file(filnam):
                         coords = {"dimRM": np.arange(9)}
                         dsb["AHRSRotationMatrix"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimRM"]
+                        )
+                    if "Magnetometer" in k:
+                        coords= {"dimM": np.arange(3)}
+                        dsb["Magnetometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimM"]
+                        )
+                    if "Accelerometer" in k:
+                        coords= {"dimA": np.arange(3)}
+                        dsb["Accelerometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimA"]
                         )
                     # only checks to see if cells match on first sample
                     elif mat["Data"][k].shape[1] == mat["Data"]["Burst_NCells"][0]:
