@@ -19,7 +19,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     print(f"Finished loading {cdf_filename} in {end_time-start_time:.1f} seconds")
 
     # Add atmospheric pressure offset
-    if atmpres is not None:
+    if atmpres is not False:
         print("Atmospherically correcting data")
 
         met = xr.load_dataset(atmpres)
@@ -35,7 +35,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         )
         print("Correcting using offset of %f" % met["atmpres"].offset)
         ds["P_1ac"].attrs = attrs
-
 
     ds = utils.create_nominal_instrument_depth(ds)
 
@@ -57,26 +56,34 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = aqdutils.magvar_correct(ds)
         ds = aqdutils.trim_vel(ds, data_vars=["U", "V", "W1", "W2"])
 
-        #make beam shape data for beam data (vel,amp & cor)
-        ds["beam"] = xr.DataArray(range(1,ds["NBeams"][0].values+1), dims="beam")
+        # make beam shape data for beam data (vel,amp & cor)
+        ds["beam"] = xr.DataArray(range(1, ds["NBeams"][0].values + 1), dims="beam")
         if "VelBeam1" in ds:
-            ds["vel"]=xr.concat([ds[f"VelBeam{i}"] for i in range(1, ds["NBeams"][0].values + 1)], dim='beam')
+            ds["vel"] = xr.concat(
+                [ds[f"VelBeam{i}"] for i in range(1, ds["NBeams"][0].values + 1)],
+                dim="beam",
+            )
         if "CorBeam1" in ds:
-            ds["corr"]=xr.concat([ds[f"CorBeam{i}"] for i in range(1, ds["NBeams"][0].values + 1)], dim='beam')
+            ds["corr"] = xr.concat(
+                [ds[f"CorBeam{i}"] for i in range(1, ds["NBeams"][0].values + 1)],
+                dim="beam",
+            )
 
         if "AmpBeam1" in ds:
-            ds["amp"]=xr.concat([ds[f"AmpBeam{i}"] for i in range(1, ds["NBeams"][0].values + 1)], dim='beam')
-        
-  
+            ds["amp"] = xr.concat(
+                [ds[f"AmpBeam{i}"] for i in range(1, ds["NBeams"][0].values + 1)],
+                dim="beam",
+            )
+
     ds = aqdutils.make_bin_depth(ds)
 
     ds = ds_make_magaccel_vars(ds)
 
-    ds = ds_make_ahrs_vars(ds) 
-   
+    ds = ds_make_ahrs_vars(ds)
+
     # Rename DataArrays for EPIC compliance
     ds = fix_encoding(ds)
-    ds = aqdutils.ds_rename(ds)  #for common variables
+    ds = aqdutils.ds_rename(ds)  # for common variables
     ds = ds_drop(ds)
     ds = ds_rename_sig(ds)  # for signature vars not in aqds or vecs
     # swap_dims from bindist to depth
@@ -85,8 +92,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = utils.ds_add_lat_lon(ds)
 
     # Add EPIC and CMG attributes
-    ds = aqdutils.ds_add_attrs(ds, inst_type="SIG") #for common adcp vars
-    ds = ds_add_attrs_sig(ds) #for signature vars
+    ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
+    ds = ds_add_attrs_sig(ds)  # for signature vars
 
     # Add min/max values
     ds = utils.add_min_max(ds)
@@ -100,11 +107,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Add history showing file used
     ds = utils.add_history(ds)
 
-    ds = utils.add_standard_names(ds) #add common standard names
+    ds = utils.add_standard_names(ds)  # add common standard names
 
-    #ds = drop_unused_dims(ds)
+    # ds = drop_unused_dims(ds)
 
-    #ds = fix_encoding(ds)
+    # ds = fix_encoding(ds)
 
     ds = utils.ds_add_lat_lon(ds)
 
@@ -121,18 +128,18 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         nc_filename = ds.attrs["filename"]
 
     if ds.attrs["data_type"] == "Burst":
-        
+
         nc_out = nc_filename + "b-cal.nc"
         print("writing Burst (b) data to netCDF nc file")
         ds.to_netcdf(nc_out)
-        print(f"Finished writing data to {nc_out}")
+        print("Done writing netCDF file", nc_out)
 
     elif ds.attrs["data_type"] == "IBurst":
-        
+
         nc_out = nc_filename + "b5-cal.nc"
         print("writing IBurst (b5) data to netCDF nc file")
         ds.to_netcdf(nc_out)
-        print(f"Finished writing data to {nc_out}")
+        print("Done writing netCDF file", nc_out)
 
     utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
 
@@ -203,7 +210,7 @@ def ds_drop(ds):
         "CorBeam1",
         "CorBeam2",
         "CorBeam3",
-        "CorBeam4", 
+        "CorBeam4",
         "AltimeterStatus",
     ]
 
@@ -244,8 +251,8 @@ def ds_rename_sig(ds, waves=False):
         "CorBeam2": "cor2_1286",
         "CorBeam3": "cor3_1287",
         "CorBeam4": "cor4_1288",
-        "AltimeterDistanceLE":"brangeLE",
-        "AltimeterQualityLE":"alt_quality",
+        "AltimeterDistanceLE": "brangeLE",
+        "AltimeterQualityLE": "alt_quality",
         "AltimeterDistanceAST": "brangeAST",
         "AltimeterQualityAST": "ast_quality",
         "AltimeterTimeOffsetAST": "ast_offset_time",
@@ -287,30 +294,34 @@ def ds_swap_dims(ds):
 
     return ds
 
+
 def fix_encoding(ds):
     """ensure we don't set dtypes uint for CF compliance"""
     if "sample" not in ds.dims:
-            print("make time encoding to dtype double because no sample dimension, round to milliseconds first")
-            ds["time"]=ds["time"].dt.round('ms') #round time to milliseconds first
-            ds["time"].encoding["dtype"] = "double"
-            """if ds[var].max() > 2**31 - 1 or ds[var].min() < -(2**31):
+        print(
+            "make time encoding to dtype double because no sample dimension, round to milliseconds first"
+        )
+        ds["time"] = ds["time"].dt.round("ms")  # round time to milliseconds first
+        ds["time"].encoding["dtype"] = "double"
+        """if ds[var].max() > 2**31 - 1 or ds[var].min() < -(2**31):
                 print(
                     f"warning {var} may be too big to fit in int32: min {ds[var].min().values}, max {ds[var].max().values} so make double"
                 )
                ds[var].encoding["dtype"] = "double"    
                """
     else:
-            ds["time"].encoding["dtype"] = "i4"
-                            
+        ds["time"].encoding["dtype"] = "i4"
+
     for var in ds.data_vars:
-        if ds[var].dtype == 'uint32' or ds[var].dtype == 'uint8':
-            ds[var].encoding["dtype"]='int32'
+        if ds[var].dtype == "uint32" or ds[var].dtype == "uint8":
+            ds[var].encoding["dtype"] = "int32"
         if var in ["corr"]:
-            ds[var].encoding["dtype"]='float32'
-        if ds[var].dtype == 'float64':
-            ds[var].encoding["dtype"]='float32'
-        
+            ds[var].encoding["dtype"] = "float32"
+        if ds[var].dtype == "float64":
+            ds[var].encoding["dtype"] = "float32"
+
     return ds
+
 
 def ds_add_attrs_sig(ds):
     """
@@ -409,7 +420,6 @@ def ds_add_attrs_sig(ds):
             }
         )
 
-
     if "vel" in ds:
         ds["vel"].attrs.update(
             {
@@ -471,8 +481,8 @@ def ds_add_attrs_sig(ds):
         )
 
     if "alt_quality" in ds:
-        ds["alt_quality"]=ds["ast_quality"]/100
-        ds["alt_quality"].encoding["dtype"]='float32'
+        ds["alt_quality"] = ds["ast_quality"] / 100
+        ds["alt_quality"].encoding["dtype"] = "float32"
         ds["alt_quality"].attrs.update(
             {
                 "units": "dB",
@@ -484,21 +494,21 @@ def ds_add_attrs_sig(ds):
         ds["brangeAST"].attrs.update(
             {
                 "units": "m",
-                #"standard_name": "altimeter_range",
+                # "standard_name": "altimeter_range",
                 "long_name": "Acoustic Surface Tracking (AST) Range",
             }
         )
 
     if "ast_quality" in ds:
-        ds["ast_quality"]=ds["ast_quality"]/100
-        ds["ast_quality"].encoding["dtype"]='float32'
+        ds["ast_quality"] = ds["ast_quality"] / 100
+        ds["ast_quality"].encoding["dtype"] = "float32"
         ds["ast_quality"].attrs.update(
             {
                 "units": "dB",
                 "long_name": "Acoustic Surface Tracking (AST) Quality",
             }
         )
-    
+
     if "ast_pressure" in ds:
         ds["ast_pressure"].attrs.update(
             {
@@ -522,7 +532,7 @@ def ds_add_attrs_sig(ds):
                 "long_name": "Transmit Energy",
             }
         )
-    
+
     if "vel1_1277" in ds:
         ds["vel1_1277"].attrs.update(
             {
@@ -531,7 +541,7 @@ def ds_add_attrs_sig(ds):
                 "epic_code": 1277,
             }
         )
-   
+
     if "vel2_1278" in ds:
         ds["vel2_1278"].attrs.update(
             {
@@ -629,8 +639,9 @@ def ds_add_attrs_sig(ds):
                 "epic_code": 1286,
             }
         )
-    
+
     return ds
+
 
 def ds_make_magaccel_vars(ds):
     """
@@ -641,36 +652,27 @@ def ds_make_magaccel_vars(ds):
         if "inst" not in ds.dims:
             ds["inst"] = xr.DataArray(["X", "Y", "Z"], dims="inst")
         ds["mag"] = xr.DataArray(
-            ds["Magnetometer"]
-            .values.reshape(
-                -1,
-                3
-            ).transpose(),
-            dims=["inst", "time"]
+            ds["Magnetometer"].values.reshape(-1, 3).transpose(), dims=["inst", "time"]
         )
-        ds["mag"]=ds["mag"]/10 #convert milligauss to microtesla
+        ds["mag"] = ds["mag"] / 10  # convert milligauss to microtesla
 
     if "Accelerometer" in ds:
         if "inst" not in ds.dims:
             ds["inst"] = xr.DataArray(["X", "Y", "Z"], dims="inst")
         ds["accel"] = xr.DataArray(
-            ds["Accelerometer"]
-            .values.reshape(
-                -1,
-                3
-            ).transpose(),
-            dims=["inst", "time"]
+            ds["Accelerometer"].values.reshape(-1, 3).transpose(), dims=["inst", "time"]
         )
-        ds["accel"]=ds["accel"]*9.81 #convert gravity (g) to m s-2
-    
+        ds["accel"] = ds["accel"] * 9.81  # convert gravity (g) to m s-2
+
     return ds
+
 
 def ds_make_ahrs_vars(ds):
     """
     add AHRS vars to xarray Dataset (if they exists)
     """
-    #if AHRS will have these 
-    # make rotation/orientation matrix if exists in dataset   
+    # if AHRS will have these
+    # make rotation/orientation matrix if exists in dataset
     if "AHRSRotationMatrix" in ds:
         if "earth" not in ds.dims:
             ds["earth"] = xr.DataArray(["E", "N", "U"], dims="earth")
@@ -686,22 +688,24 @@ def ds_make_ahrs_vars(ds):
             .transpose((2, 1, 0)),
             dims=["earth", "inst", "time"],
         )
-    
+
     # make gyro var
     if "AHRSGyroX" in ds:
         if "inst" not in ds.dims:
             ds["inst"] = xr.DataArray(["X", "Y", "Z"], dims="inst")
-        
-        ds["gyro"]=xr.concat([ds[f"AHRSGyro{i}"] for i in ds["inst"].values], dim='inst')
 
-        ds["gyro"]=ds["gyro"]*np.pi/180 #convert to rad s-1
+        ds["gyro"] = xr.concat(
+            [ds[f"AHRSGyro{i}"] for i in ds["inst"].values], dim="inst"
+        )
+
+        ds["gyro"] = ds["gyro"] * np.pi / 180  # convert to rad s-1
 
     if "AHRSQuaternionW" in ds:
         if "q" not in ds.dims:
-            ds["q"] = xr.DataArray(["W","X", "Y", "Z"], dims="q")
-        
-        ds["quaternions"]=xr.concat([ds[f"AHRSQuaternion{i}"] for i in ds["q"].values], dim='q')
+            ds["q"] = xr.DataArray(["W", "X", "Y", "Z"], dims="q")
 
-    return(ds)
-        
+        ds["quaternions"] = xr.concat(
+            [ds[f"AHRSQuaternion{i}"] for i in ds["q"].values], dim="q"
+        )
 
+    return ds

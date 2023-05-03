@@ -197,6 +197,29 @@ def test_eofe():
     eofe_nc("11373aa-raw.cdf")
 
 
+def sig_mat(glob_att, config_yaml):
+    result = subprocess.run(
+        ["python", "../../../scripts/runsigmat2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def sig_nc(nc_file):
+    result = subprocess.run(
+        ["python", "../../../scripts/runsigcdf2nc.py", nc_file],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_sig():
+    sig_mat("glob_att1126_sig1.txt", "sig1126_config.yaml")
+    sig_nc("11261sig_burst-raw.cdf")
+
+
 def ensure_cf(script, glob_att, config_yaml):
     result = subprocess.run(
         ["python", script, glob_att, config_yaml],

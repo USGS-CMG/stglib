@@ -94,12 +94,12 @@ def load_mat_file(filnam):
                             mat["Data"][k], dims=["time", "dimRM"]
                         )
                     if "Magnetometer" in k:
-                        coords= {"dimM": np.arange(3)}
+                        coords = {"dimM": np.arange(3)}
                         dsi["Magnetometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimM"]
                         )
                     if "Accelerometer" in k:
-                        coords= {"dimA": np.arange(3)}
+                        coords = {"dimA": np.arange(3)}
                         dsi["Accelerometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimA"]
                         )
@@ -121,12 +121,12 @@ def load_mat_file(filnam):
                             mat["Data"][k], dims=["time", "dimRM"]
                         )
                     if "Magnetometer" in k:
-                        coords= {"dimM": np.arange(3)}
+                        coords = {"dimM": np.arange(3)}
                         dsb["Magnetometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimM"]
                         )
                     if "Accelerometer" in k:
-                        coords= {"dimA": np.arange(3)}
+                        coords = {"dimA": np.arange(3)}
                         dsb["Accelerometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimA"]
                         )

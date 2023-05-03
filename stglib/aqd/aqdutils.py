@@ -684,13 +684,14 @@ def check_attrs(ds, waves=False, inst_type="AQD"):
         ds.attrs["frequency"] = ds.attrs["SIGHeadFrequency"]
         ds.attrs["instrument_type"] = ds.attrs["SIGInstrumentName"]
         if ds.attrs["frequency"] == 1000 or ds.attrs["frequency"] == 500:
-            ds.attrs["beam_angle"]=25
+            ds.attrs["beam_angle"] = 25
         elif ds.attrs["frequency"] == 250:
-            ds.attrs["beam_angle"]=20
-        freq=ds.attrs["frequency"]
-        bang=ds.attrs["beam_angle"]
-        print(f"Signature slant beam acoustic frequency = {freq} with beam_angle = {bang} from vertical")
-        
+            ds.attrs["beam_angle"] = 20
+        freq = ds.attrs["frequency"]
+        bang = ds.attrs["beam_angle"]
+        print(
+            f"Signature slant beam acoustic frequency = {freq} with beam_angle = {bang} from vertical"
+        )
 
     return ds
 
@@ -1173,7 +1174,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
         for v in ["AGC_1202", "u_1205", "v_1206", "w_1204"]:
             if v in ds:
                 add_attributes(ds[v], ds.attrs)
-        for v in ["u_1205", "v_1206", "w_1204","w2_1204"]:
+        for v in ["u_1205", "v_1206", "w_1204", "w2_1204"]:
             if v in ds:
                 add_vel_attributes(ds[v], ds.attrs)
     elif waves:
