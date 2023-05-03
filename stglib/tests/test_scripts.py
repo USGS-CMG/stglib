@@ -216,3 +216,17 @@ def test_ensure_cf():
         "glob_att1123A_msl_EPIC.txt",
         "1123Aea_example_config.yaml",
     )
+
+
+def test_big_files():
+    with open("1mbfile.out", "wb") as h:
+        h.write(b"0" * 1024 * 1024)
+
+    with open("1mbfile.out") as h:
+        print("successfully opened")
+
+    with open("150mbfile.out", "wb") as h:
+        h.write(b"0" * 150 * 1024 * 1024)
+
+    with open("150mbfile.out") as h:
+        print("successfully opened")
