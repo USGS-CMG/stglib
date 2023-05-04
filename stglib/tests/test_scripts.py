@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 import pytest
@@ -223,10 +224,12 @@ def test_big_files():
         h.write(b"0" * 1024 * 1024)
 
     with open("1mbfile.out") as h:
+        assert os.path.getsize("1mbfile.out") == 1024 * 1024
         print("successfully opened")
 
-    with open("150mbfile.out", "wb") as h:
-        h.write(b"0" * 150 * 1024 * 1024)
+    with open("250mbfile.out", "wb") as h:
+        h.write(b"0" * 250 * 1024 * 1024)
 
-    with open("150mbfile.out") as h:
+    with open("250mbfile.out") as h:
+        assert os.path.getsize("250mbfile.out") == 250 * 1024 * 1024
         print("successfully opened")
