@@ -1,6 +1,7 @@
 import subprocess
 
 import pytest
+import os
 
 
 def exo_raw(glob_att, config_yaml):
@@ -217,6 +218,7 @@ def sig_nc(nc_file):
 
 def test_sig():
     sig_mat("glob_att1126_sig1.txt", "sig1126_config.yaml")
+    print(os.listdir())
     sig_nc("11261sig_burst-raw.cdf")
 
 

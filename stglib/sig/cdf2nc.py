@@ -7,12 +7,15 @@ import numpy as np
 from ..aqd import aqdutils
 from ..core import utils
 
+import os
+
 
 def cdf_to_nc(cdf_filename, atmpres=False):
     """
     Load a "raw" .cdf file and generate a processed .nc file
     """
     print(f"Loading {cdf_filename}")
+    print(os.listdir())
     start_time = time.time()
     ds = xr.open_dataset(cdf_filename, chunks="auto")
     end_time = time.time()
