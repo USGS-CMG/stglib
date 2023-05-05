@@ -14,6 +14,7 @@ from . import (
     sig,
     troll,
     vec,
+    wxt,
 )
 from .aqd import aqdutils
 from .core import cmd, utils, waves
