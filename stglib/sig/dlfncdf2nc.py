@@ -1,9 +1,8 @@
 import pkgutil
 import time
 
-import xarray as xr
-
 import dolfyn
+import xarray as xr
 import xmltodict
 
 from ..aqd import aqdutils

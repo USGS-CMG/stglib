@@ -1,7 +1,7 @@
+import os
 import subprocess
 
 import pytest
-import os
 
 
 def exo_raw(glob_att, config_yaml):

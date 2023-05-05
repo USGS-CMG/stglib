@@ -1,8 +1,8 @@
 import datetime as dt
 import glob
 import re
-import warnings
 import time
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -32,7 +32,6 @@ def load_mat_file(filnam):
         mat["Config"]["Plan_BurstEnabled"] == "True"
         and mat["Config"]["Burst_RawAltimeter"] == 1
     ):
-
         # BurstRawAltimeter
         dsbra = xr.Dataset()
         dsbra["time"] = xr.DataArray(

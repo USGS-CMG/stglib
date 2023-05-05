@@ -1,8 +1,8 @@
 import pkgutil
 import time
 
-import xarray as xr
 import numpy as np
+import xarray as xr
 
 from ..aqd import aqdutils
 from ..core import utils
@@ -131,14 +131,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         nc_filename = ds.attrs["filename"]
 
     if ds.attrs["data_type"] == "Burst":
-
         nc_out = nc_filename + "b-cal.nc"
         print("writing Burst (b) data to netCDF nc file")
         ds.to_netcdf(nc_out)
         print("Done writing netCDF file", nc_out)
 
     elif ds.attrs["data_type"] == "IBurst":
-
         nc_out = nc_filename + "b5-cal.nc"
         print("writing IBurst (b5) data to netCDF nc file")
         ds.to_netcdf(nc_out)

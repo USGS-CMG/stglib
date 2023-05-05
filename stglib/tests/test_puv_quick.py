@@ -11,8 +11,9 @@ here = Path(__file__).parent
 
 @pytest.fixture
 def puvq_puv_quick():
-    from stglib.core.waves import puv_quick as puv
     import numpy as np
+
+    from stglib.core.waves import puv_quick as puv
 
     metadata, p, u, v = define_data()
 
@@ -39,7 +40,6 @@ def puvq_puv_quick():
 
 
 def test_ws(puvq_puv_quick):
-
     ws = puvq_puv_quick
 
     assert ws["variance_test_passed"] is True
