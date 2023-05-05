@@ -29,6 +29,5 @@ jobs:
           conda info
           conda list
           pip install --no-deps -e .
+          pre-commit run --from-ref origin/HEAD --to-ref HEAD
           pytest
-      - uses: pre-commit-ci/lite-action@v1.0.1
-        if: always()
