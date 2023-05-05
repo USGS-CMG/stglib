@@ -9,6 +9,8 @@ depends on two :doc:`configuration files </config>`.
 IQ-exported Matlab file to raw .cdf
 ===================================
 
+First, export .mat files from the instrument software.
+
 Convert from exported .mat to a raw netCDF file with .cdf extension using ``runiqmat2cdf.py``.
 
 runiqmat2cdf.py
@@ -18,8 +20,8 @@ runiqmat2cdf.py
    :ref: stglib.core.cmd.iqmat2cdf_parser
    :prog: runiqmat2cdf.py
 
-Raw .cdf to clean .nc
-=====================
+Raw .cdf to CF-compliant .nc
+============================
 
 Convert the raw .cdf data into an CF-compliant netCDF file with .nc extension using ``runiqcdf2nc.py``.
 

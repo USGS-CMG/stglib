@@ -12,7 +12,7 @@ Aquadopp (currents)
    stglib.aqd.cdf2nc.cdf_to_nc
 
 Aquadopp (waves)
-===================
+================
 
 .. autosummary::
    :toctree: generated/
