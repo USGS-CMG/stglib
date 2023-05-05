@@ -16,11 +16,16 @@ def ds_rename(ds, waves=False):
 
     varnames = {
         "Pressure": "P_1",
+        "pressure": "P_1",
         "Temperature": "Tx_1211",
         "Heading": "Hdg_1215",
+        "heading": "Hdg_1215",
         "Pitch": "Ptch_1216",
+        "pitch": "Ptch_1216",
         "Roll": "Roll_1217",
+        "roll": "Roll_1217",
         "Battery": "Bat_106",
+        "batt": "Bat_106",
         "Soundspeed": "SV_80",
     }
 
@@ -46,6 +51,7 @@ def ds_rename(ds, waves=False):
         if v in ds:
             ds = ds.rename({v: varnames[v]})
 
+    """
     for v in [
         "avgamp1",
         "avgamp2",
@@ -56,9 +62,11 @@ def ds_rename(ds, waves=False):
         "Depth",
         "water_depth",
         "cellpos",
+        #"vel",  # Signature velocity
     ]:
         if v in ds:
             ds = ds.drop_vars(v)
+    """
 
     return ds
 
@@ -306,6 +314,8 @@ def magvar_correct(ds):
             headvar = "Heading"
         elif "Hdg" in ds:
             headvar = "Hdg"
+        elif "heading" in ds:
+            headvar = "heading"
 
         ds[headvar].values = ds[headvar].values + magvardeg
         ds[headvar].values[ds[headvar].values >= 360] = (
@@ -363,6 +373,9 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
         if "Pressure_ac" in ds:
             P = ds["Pressure_ac"]
             Ptxt = "atmospherically corrected"
+        elif "P_1ac" in ds:
+            P = ds["P_1ac"]
+            Ptxt = "atmospherically corrected"
         elif "Pressure" in ds:
             # FIXME incorporate press_ ac below
             P = ds["Pressure"]
@@ -381,7 +394,7 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
         elif ds.attrs["trim_method"].lower() == "water level sl":
             for var in data_vars:
                 ds[var] = ds[var].where(
-                    ds["bindist"] < P * np.cos(np.deg2rad(ds.attrs["AQDBeamAngle"]))
+                    ds["bindist"] < P * np.cos(np.deg2rad(ds.attrs["beam_angle"]))
                 )
 
             histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
@@ -666,6 +679,20 @@ def check_attrs(ds, waves=False, inst_type="AQD"):
         ds.attrs["frequency"] = ds.attrs["VECFrequency"]
         ds.attrs["instrument_type"] = "Nortek Vector"
 
+    elif inst_type == "SIG":
+        ds.attrs["serial_number"] = ds.attrs["SIGSerialNo"]
+        ds.attrs["frequency"] = ds.attrs["SIGHeadFrequency"]
+        ds.attrs["instrument_type"] = ds.attrs["SIGInstrumentName"]
+        if ds.attrs["frequency"] == 1000 or ds.attrs["frequency"] == 500:
+            ds.attrs["beam_angle"] = 25
+        elif ds.attrs["frequency"] == 250:
+            ds.attrs["beam_angle"] = 20
+        freq = ds.attrs["frequency"]
+        bang = ds.attrs["beam_angle"]
+        print(
+            f"Signature slant beam acoustic frequency = {freq} with beam_angle = {bang} from vertical"
+        )
+
     return ds
 
 
@@ -854,6 +881,8 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             sn = dsattrs["AQDSerial_Number"]
         elif inst_type == "VEC":
             sn = dsattrs["VECSerialNumber"]
+        elif inst_type == "SIG":
+            sn = dsattrs["SIGSerialNo"]
         """
         var.attrs.update(
             {
@@ -919,6 +948,16 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
             {
                 # "name": "w",
                 "long_name": "Vertical Velocity",
+                # "generic_name": "w",
+                "epic_code": 1204,
+            }
+        )
+
+    if "w2_1204" in ds:
+        ds["w2_1204"].attrs.update(
+            {
+                # "name": "w",
+                "long_name": "Vertical Velocity (2nd)",
                 # "generic_name": "w",
                 "epic_code": 1204,
             }
@@ -1116,11 +1155,15 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     )
 
     if "bindist" in ds:
+        if inst_type == "AQD":
+            blanking_distance = ds.attrs["AQDBlankingDistance"]
+        elif inst_type == "SIG":
+            blanking_distance = ds.attrs["SIGBurst_BlankingDistance"]
         ds["bindist"].attrs.update(
             {
                 "units": "m",
                 "long_name": "distance from transducer head",
-                "blanking_distance": ds.attrs["AQDBlankingDistance"],
+                "blanking_distance": blanking_distance,
                 "note": (
                     "distance is along profile from instrument head to center of bin"
                 ),
@@ -1131,7 +1174,7 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
         for v in ["AGC_1202", "u_1205", "v_1206", "w_1204"]:
             if v in ds:
                 add_attributes(ds[v], ds.attrs)
-        for v in ["u_1205", "v_1206", "w_1204"]:
+        for v in ["u_1205", "v_1206", "w_1204", "w2_1204"]:
             if v in ds:
                 add_vel_attributes(ds[v], ds.attrs)
     elif waves:
@@ -1162,14 +1205,18 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     return ds
 
 
-def check_valid_config_metadata(metadata):
-    for k in [
+def check_valid_config_metadata(metadata, inst_type="AQD"):
+    vars = [
         "initial_instrument_height",
-        "orientation",
         "basefile",
         "filename",
         "Conventions",
-    ]:
+    ]
+
+    if inst_type == "AQD":
+        vars.append("orientation")
+
+    for k in vars:
         if k not in metadata:
             raise KeyError(f"{k} must be defined, most likely in config.yaml")
 

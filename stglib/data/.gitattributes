@@ -1,0 +1,1 @@
+cf-standard-name-table.xml filter=lfs diff=lfs merge=lfs -text
