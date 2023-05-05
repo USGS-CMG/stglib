@@ -12,7 +12,7 @@ meta = stglib.aqd.aqdutils.read_aqd_hdr(args.basefile)
 
 ds = stglib.aqd.hdr2cdf.load_sen(args.basefile)
 
-print('hi)
+print('hi')
 
 ds = stglib.utils.write_metadata(ds, meta)
 
