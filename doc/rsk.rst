@@ -7,7 +7,9 @@ depends on two :doc:`configuration files </config>`.
 Instrument data to raw .cdf
 ===========================
 
-Convert from .rsk binary to a raw netCDF file with .cdf extension. The recommended approach is to export to text (.zip) format (File -> Export -> Text (\*.zip)) from the Ruskin software. Then use ``runrskcsv2cdf.py``.
+First, export data to text (.zip) format (File -> Export -> Text (\*.zip)) from the Ruskin software.
+
+Then use ``runrskcsv2cdf.py`` to convert this exported data to a raw netCDF .cdf file.
 
 runrskcsv2cdf.py
 ----------------
@@ -16,8 +18,8 @@ runrskcsv2cdf.py
    :ref: stglib.core.cmd.rskcsv2cdf_parser
    :prog: runrskcsv2cdf.py
 
-Raw .cdf to clean .nc
-=====================
+Raw .cdf to CF-compliant .nc
+============================
 
 Convert the raw .cdf data into an CF-compliant netCDF file with .nc extension using ``runrskcdf2nc.py``, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.
 

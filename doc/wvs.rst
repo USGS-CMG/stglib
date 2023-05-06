@@ -3,10 +3,12 @@ Aquadopp (waves)
 
 Data will generally be processed using a series of run scripts that use command line arguments.  For AQD waves it's a 3 step process.
 
-Step 1 : Instrument data to raw .cdf
-=====================================
+Instrument data to raw .cdf
+===========================
 
-Step 1 : Convert from text to a raw netCDF file with ``.cdf`` extension using runaqdhdr2cdf.py. This script
+First, export data to text format using the AquaPro software and default options.
+
+Convert from text to a raw netCDF file with ``.cdf`` extension using runwvswad2cdf.py. This script
 depends on two arguments, the global attribute file and extra configuration information :doc:`configuration files </config>`.
 
 runwvswad2cdf.py
@@ -17,8 +19,8 @@ runwvswad2cdf.py
    :prog: runwvswad2cdf.py
 
 
-Step 2 : Convert the raw .cdf to clean, CF-compliant format .nc using runwvscdf2nc.py
-=====================================================================================
+Raw .cdf to CF-compliant .nc
+============================
 
 Convert the raw .cdf data into an CF-compliant netCDF file with .nc extension, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.  Correcting pressure for atmospheric is a side-bar task- use the .ipynb examples to see what to do.
 
@@ -29,8 +31,8 @@ runwvscdf2nc.py
   :ref: stglib.core.cmd.wvscdf2nc_parser
   :prog: runwvscdf2nc.py
 
-Step 3 : Compute waves statistics
-=================================
+Compute waves statistics
+========================
 
 Using DIWASP: This is run separately in Matlab using the DIWASP toolbox (docs TODO).
 

@@ -16,8 +16,8 @@ runecocsv2cdf.py
    :ref: stglib.core.cmd.ecolog2cdf_parser
    :prog: runecocsv2cdf.py
 
-Raw .cdf to clean .nc
-=====================
+Raw .cdf to CF-compliant .nc
+============================
 
 Convert the raw .cdf data into a CF-compliant netCDF file with .nc extension using ``runecocdf2nc.py``.
 

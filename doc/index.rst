@@ -35,6 +35,7 @@ We have plans to support:
 
 - Nortek Aquadopp profiles in HR mode
 - Nortek Signature profilers
+- RDI Sentinel V profilers
 
 .. toctree::
    :maxdepth: 2

@@ -16,8 +16,8 @@ runexocsv2cdf.py
    :ref: stglib.core.cmd.exocsv2cdf_parser
    :prog: runexocsv2cdf.py
 
-Raw .cdf to clean .nc
-=====================
+Raw .cdf to CF-compliant .nc
+============================
 
 Convert the raw .cdf data into an CF-compliant netCDF file with .nc extension using ``runexocdf2nc.py``, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.
 

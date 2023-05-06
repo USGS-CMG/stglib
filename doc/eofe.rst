@@ -16,8 +16,8 @@ runeofelog2cdf.py
    :ref: stglib.core.cmd.eofelog2cdf_parser
    :prog: runeofelog2cdf.py
 
-Raw .cdf to clean .nc
-=====================
+Raw .cdf to CF-compliant .nc
+============================
 
 Convert the raw .cdf data into CF-compliant netCDF file with .nc extension using ``runeofecdf2nc.py``.
 

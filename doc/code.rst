@@ -12,7 +12,7 @@ Aquadopp (currents)
    stglib.aqd.cdf2nc.cdf_to_nc
 
 Aquadopp (waves)
-===================
+================
 
 .. autosummary::
    :toctree: generated/
@@ -69,12 +69,7 @@ Onset HOBO
 Vaisala Weather Transmitter WXT
 ===============================
 
-.. autosummary::
-  :toctree: generated/
 
-  stglib.wxt.read_wxt
-  stglib.wxt.csv_to_cdf
-  stglib.wxt.cdf_to_nc
 
 QRev
 ====

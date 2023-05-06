@@ -29,6 +29,25 @@ Now you can start processing data!
 The easy (local machine) way
 ============================
 
+We recommend managing your Python packages using Mambaforge. Alternatively, you can use Anaconda/Miniconda.
+
+Mambaforge
+----------
+
+Install `Mambaforge <https://mamba.readthedocs.io/en/latest/installation.html>`_ by `following this link <https://github.com/conda-forge/miniforge#mambaforge>`_.
+
+Install and activate an stglib environment:
+
+::
+
+  mamba create -n stglib stglib
+  mamba activate stglib
+
+Now you can start processing data!
+
+Anaconda or Miniconda
+---------------------
+
 Ensure you have a working Anaconda or `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ installation.
 
 Set your channel priority to conda-forge:
@@ -50,7 +69,7 @@ Now you can start processing data!
 If you want to contribute to stglib development
 ===============================================
 
-Set up conda-forge channel priority as above. Obtain stglib by cloning the GitHub repo. Change to a directory where you'd like stglib to live and type:
+Set up Mambaforge or Anaconda as above. Obtain stglib by cloning the GitHub repo. Change to a directory where you'd like stglib to live and type:
 
 ``git clone https://github.com/USGS-CMG/stglib.git``
 

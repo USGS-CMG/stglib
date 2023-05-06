@@ -1,18 +1,28 @@
 Configuration files
 *******************
 
-There are two required configuration files for processing data. Contents of both files will be included as attributes in both the xarray Dataset and the netCDF files.
+There are two required configuration files for processing data: the global attributes file, which describes attributes that apply to the mooring, and the instrument configuration file, which describes attributes that apply to an instrument on a mooring. Contents of both files will be included as attributes in both the xarray Dataset and the netCDF files.
 
 Transitioning from EPIC to CF Conventions
 =========================================
 
-Historically, data have been released according to NOAA PMEL/EPIC conventions. Today, `CF Conventions <http://cfconventions.org>`_ are used much more frequently, and moving forward most data sets will be released following CF. This is supported within stglib by use of the ``Conventions`` keyword in the instrument configuration file. Setting this to:
+Historically, data have been released according to NOAA PMEL/EPIC conventions. Today, `CF Conventions <http://cfconventions.org>`_ are used much more frequently, and stglib supports only CF Conventions. Specifying conventions is done via ``Conventions`` keyword in either the global attributes file or the instrument configuration file.
+
+Setting CF in global attributes
+-------------------------------
+
+::
+
+  Conventions; CF-1.8
+
+Setting CF in the instrument configuration file
+-----------------------------------------------
 
 ::
 
   Conventions: 'CF-1.8'
 
-(or a later release of the standard) will enable straight-to-CF processing.
+Specifying CF-1.8 or a later release of the standard will enable straight-to-CF processing.
 
 Global attributes configuration file
 ====================================
@@ -29,9 +39,9 @@ This file is instrument-specific and is YAML formatted. A few examples are given
 
 Options common to most (all?) instrument config files:
 
+- ``Conventions``: version of the CF Conventions, ``'CF-1.8'`` presently
 - ``basefile``: the input filename without extension
 - ``filename``: output filename, to which ``-raw.cdf``, ``-a.nc``, etc. will be appended
-- ``LatLonDatum``: will likely be ``'NAD83'``. TODO: should this be in glob_att instead?
 - ``ClockError``: number, in seconds, negative is slow. Applies a simple offset for times. Useful if the instrument was deployed in an incorrect time zone.
 - ``ClockDrift``: number, in seconds, negative is slow. Linearly interpolates times for when the instrument clock has drifted.
 - ``initial_instrument_height``: elevation of instrument in meters
