@@ -175,7 +175,7 @@ def ds_add_attrs(ds):
         ds["time"].encoding["dtype"] = "i4"
 
     if "sample" in ds:
-        check_fits_in_int32(ds, "sample")
+        utils.check_fits_in_int32(ds, "sample")
         ds["sample"].encoding["dtype"] = "i4"
         ds["sample"].attrs["long_name"] = "sample number"
         ds["sample"].attrs["units"] = "1"
@@ -197,7 +197,7 @@ def ds_add_attrs(ds):
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
     if "burst" in ds:
-        check_fits_in_int32(ds, "burst")
+        utils.check_fits_in_int32(ds, "burst")
         ds["burst"].encoding["dtype"] = "i4"
         ds["burst"].attrs["units"] = "1"
         ds["burst"].attrs["long_name"] = "Burst number"
@@ -237,13 +237,6 @@ def ds_add_attrs(ds):
     #        add_attributes(ds[var], ds.attrs)
 
     return ds
-
-
-def check_fits_in_int32(ds, var):
-    if np.nanmax(np.abs(ds[var])) > (2**31 - 1):
-        warnings.warn(
-            f"32-bit integer overflow on {var}; setting encoding to i4 will fail"
-        )
 
 
 def dw_add_delta_t(ds):

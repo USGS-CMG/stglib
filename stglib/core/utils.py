@@ -337,6 +337,12 @@ def ds_add_wave_attrs(ds):
 
     ds["time"].encoding["dtype"] = "i4"
 
+    if "burst" in ds:
+        check_fits_in_int32(ds, "burst")
+        ds["burst"].encoding["dtype"] = "i4"
+        ds["burst"].attrs["units"] = "1"
+        ds["burst"].attrs["long_name"] = "Burst number"
+
     def add_attributes(var, dsattrs):
         var.attrs.update(
             {
@@ -1223,6 +1229,13 @@ def spcon_from_salinity(S):
     return S / 35 * 53087 + S * (S - 35) * (
         J1 + (J2 * S ** (1 / 2)) + (J3 * S) + (J4 * S ** (3 / 2))
     )
+
+
+def check_fits_in_int32(ds, var):
+    if np.nanmax(np.abs(ds[var])) > (2**31 - 1):
+        warnings.warn(
+            f"32-bit integer overflow on {var}; setting encoding to i4 will fail"
+        )
 
 
 def check_valid_globalatts_metadata(metadata):
