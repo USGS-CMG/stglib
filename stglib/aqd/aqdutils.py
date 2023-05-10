@@ -392,13 +392,22 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
             ds = utils.insert_history(ds, histtext)
 
         elif ds.attrs["trim_method"].lower() == "water level sl":
+            if "sl_bins" in ds.attrs:
+                sl_bins = ds.attrs["sl_bins"]
+                sltxt = ds.attrs["sl_bins"]
+            elif "sl_bins" not in ds.attrs:
+                sl_bins = 0
+                sltxt = 0
+
             for var in data_vars:
                 ds[var] = ds[var].where(
-                    ds["bindist"] < P * np.cos(np.deg2rad(ds.attrs["beam_angle"]))
+                    ds["bindist"]
+                    < (P * np.cos(np.deg2rad(ds.attrs["beam_angle"])))
+                    - (ds.attrs["bin_size"] * sl_bins)
                 )
 
-            histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
-                Ptxt
+            histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes (with {} additional surface bins removed).".format(
+                Ptxt, sltxt
             )
 
             ds = utils.insert_history(ds, histtext)
