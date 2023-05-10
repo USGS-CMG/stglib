@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 
 from ..core import qaqc, utils
@@ -22,47 +23,50 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # create Z depending on orientation
     VEL, T, T_orig = aqdutils.set_orientation(VEL, VEL["TransMatrix"].values)
 
-    if False:
-        # Transform coordinates from, most likely, BEAM to ENU
+    # Transform coordinates from, most likely, BEAM to ENU
 
-        if "VEL1" in VEL:
-            theu = VEL["VEL1"].values
-            thev = VEL["VEL2"].values
-            thew = VEL["VEL3"].values
-        elif "U" in VEL:
-            theu = VEL["U"].values
-            thev = VEL["V"].values
-            thew = VEL["W"].values
-        elif "X" in VEL:
-            theu = VEL["X"].values
-            thev = VEL["Y"].values
-            thew = VEL["Z"].values
+    if "VEL1" in VEL:
+        theu = VEL["VEL1"].values
+        thev = VEL["VEL2"].values
+        thew = VEL["VEL3"].values
+    elif "U" in VEL:
+        theu = VEL["U"].values
+        thev = VEL["V"].values
+        thew = VEL["W"].values
+    elif "X" in VEL:
+        theu = VEL["X"]
+        thev = VEL["Y"]
+        thew = VEL["Z"]
 
-        out = "ENU"
+    out = "ENU"
 
-        if VEL.attrs["AQDCoordinateSystem"] != out:
-            histtext = f"Transforming data from {VEL.attrs['AQDCoordinateSystem']} coordinates to {out} coordinates."
+    if VEL.attrs["AQDCoordinateSystem"] != out:
+        histtext = f"Transforming data from {VEL.attrs['AQDCoordinateSystem']} coordinates to {out} coordinates."
 
-            VEL = utils.insert_history(VEL, histtext)
+        VEL = utils.insert_history(VEL, histtext)
 
+    VEL["U"] = xr.zeros_like(theu)
+    VEL["V"] = xr.zeros_like(thev)
+    VEL["W"] = xr.zeros_like(thew)
+
+    for n in range(len(VEL.sample)):
         u, v, w = aqdutils.coord_transform(
-            theu,
-            thev,
-            thew,
-            VEL["Heading"].values,
-            VEL["Pitch"].values,
-            VEL["Roll"].values,
+            theu.isel(sample=n).values,
+            thev.isel(sample=n).values,
+            thew.isel(sample=n).values,
+            VEL["Heading"].isel(sample=n).values,
+            VEL["Pitch"].isel(sample=n).values,
+            VEL["Roll"].isel(sample=n).values,
             T,
             T_orig,
             VEL.attrs["AQDCoordinateSystem"],
             out=out,
         )
+        VEL["U"][:, n, :] = u
+        VEL["V"][:, n, :] = v
+        VEL["W"][:, n, :] = w
 
-        VEL["U"] = xr.DataArray(u, dims=("time", "bindist"))
-        VEL["V"] = xr.DataArray(v, dims=("time", "bindist"))
-        VEL["W"] = xr.DataArray(w, dims=("time", "bindist"))
-
-        VEL = aqdutils.magvar_correct(VEL)
+    VEL = aqdutils.magvar_correct(VEL)
 
     VEL["AGC"] = (VEL["AMP1"] + VEL["AMP2"] + VEL["AMP3"]) / 3
 

@@ -44,7 +44,7 @@ def prf_to_cdf(metadata):
     ds = aqdutils.check_attrs(ds)
 
     ds = aqdutils.create_bindist(ds)
-    print(ds)
+
     # Load amplitude and velocity data
     ds = load_amp_vel(ds, basefile)
 
@@ -153,9 +153,7 @@ def load_amp_vel(RAW, basefile):
             dims=("time", "sample", "bindist"),
             coords=coords,
         )
-        print(RAW)
-        print(RAW.isel(time=0, sample=1))
-        print("*** ENDRAW")
+
         vfile = basefile + ".v" + str(n)
         v = pd.read_csv(vfile, header=None, delim_whitespace=True)
 
