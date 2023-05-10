@@ -40,8 +40,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     out = "ENU"
 
-    if VEL.attrs["AQDCoordinateSystem"] != out:
-        histtext = f"Transforming data from {VEL.attrs['AQDCoordinateSystem']} coordinates to {out} coordinates."
+    if VEL.attrs["AQDHRCoordinateSystem"] != out:
+        histtext = f"Transforming data from {VEL.attrs['AQDHRCoordinateSystem']} coordinates to {out} coordinates."
 
         VEL = utils.insert_history(VEL, histtext)
 
@@ -59,7 +59,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             VEL["Roll"].isel(sample=n).values,
             T,
             T_orig,
-            VEL.attrs["AQDCoordinateSystem"],
+            VEL.attrs["AQDHRCoordinateSystem"],
             out=out,
         )
         VEL["U"][:, n, :] = u
@@ -84,7 +84,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = ds_drop(VEL)
 
     # Add EPIC and CMG attributes
-    VEL = aqdutils.ds_add_attrs(VEL)
+    VEL = aqdutils.ds_add_attrs(VEL, hr=True)
 
     # should function this
     for var in VEL.data_vars:

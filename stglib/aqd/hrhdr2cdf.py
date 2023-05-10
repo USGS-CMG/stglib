@@ -41,7 +41,7 @@ def prf_to_cdf(metadata):
     ds = utils.ensure_cf(ds)
 
     # Deal with metadata peculiarities
-    ds = aqdutils.check_attrs(ds)
+    ds = aqdutils.check_attrs(ds, hr=True)
 
     ds = aqdutils.create_bindist(ds)
 
@@ -57,7 +57,7 @@ def prf_to_cdf(metadata):
     else:
         cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
-    ds = aqdutils.update_attrs(ds)
+    ds = aqdutils.update_attrs(ds, hr=True)
 
     # need to drop datetime
     # ds = ds.drop("datetime")
@@ -157,11 +157,11 @@ def load_amp_vel(RAW, basefile):
         vfile = basefile + ".v" + str(n)
         v = pd.read_csv(vfile, header=None, delim_whitespace=True)
 
-        if RAW.attrs["AQDCoordinateSystem"] == "BEAM":
+        if RAW.attrs["AQDHRCoordinateSystem"] == "BEAM":
             thevars = {1: "VEL1", 2: "VEL2", 3: "VEL3"}
-        elif RAW.attrs["AQDCoordinateSystem"] == "ENU":
+        elif RAW.attrs["AQDHRCoordinateSystem"] == "ENU":
             thevars = {1: "U", 2: "V", 3: "W"}
-        elif RAW.attrs["AQDCoordinateSystem"] == "XYZ":
+        elif RAW.attrs["AQDHRCoordinateSystem"] == "XYZ":
             thevars = {1: "X", 2: "Y", 3: "Z"}
 
         RAW[thevars[n]] = xr.DataArray(
