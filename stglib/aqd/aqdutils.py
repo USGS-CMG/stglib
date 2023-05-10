@@ -461,11 +461,10 @@ def read_aqd_hdr(basefile):
     # check and make sure it's not an HR file.
     # FIXME: this will need to be removed when we start supporting HR
     # check for HR by seeing if extended velocity range is in .hdr
+    hr = False
     with open(hdrFile) as f:
         if "Extended velocity range" in f.read():
-            raise NotImplementedError(
-                "stglib does not currently support Aquadopp HR datasets"
-            )
+            hr = True
 
     f = open(hdrFile, "r")
     row = ""
@@ -474,6 +473,9 @@ def read_aqd_hdr(basefile):
 
     while "Hardware configuration" not in row:
         row = f.readline().rstrip()
+        if hr:
+            if "Samples per burst" in row:
+                Instmeta["AQDHRSamplesPerBurst"] = int(row[38:])
         if "Profile interval" in row:
             idx = row.find(" sec")
             Instmeta["AQDProfileInterval"] = int(row[38:idx])
@@ -481,7 +483,10 @@ def read_aqd_hdr(basefile):
             Instmeta["AQDNumberOfCells"] = int(row[38:])
         # required here to differentiate from the wave cell size
         elif row.find("Cell size", 0, 9) != -1:
-            idx = row.find(" cm")
+            if not hr:
+                idx = row.find(" cm")
+            else:
+                idx = row.find(" mm")
             Instmeta["AQDCellSize"] = int(row[38:idx])
         elif "Average interval" in row:
             idx = row.find(" sec")
@@ -577,7 +582,7 @@ def read_aqd_hdr(basefile):
         elif "Sync signal power down delay" in row:
             Instmeta["AQDSyncPowerDelay"] = row[38:]
 
-    while "Current profile cell center distance from head (m)" not in row:
+    while "Current profile cell center distance" not in row:
         row = f.readline().rstrip()
         if "Pressure sensor" in row:
             Instmeta["AQDPressureSensor"] = row[38:]
@@ -601,13 +606,26 @@ def read_aqd_hdr(basefile):
             Instmeta["AQDPressureCal"] = row[38:]
 
     bd = []
+    bdv = []
     while "Data file format" not in row:
         row = f.readline().rstrip()
         # avoid the header rule line
-        if "-" not in row and row != "" and row != "Data file format":
+        if (
+            "-" not in row
+            and row != ""
+            and row != "Data file format"
+            and "Beam" not in row
+            and "Distances" not in row
+        ):
             bd.append(float(row.split()[1]))
+            if hr:
+                bdv.append(float(row.split()[2]))
 
-    Instmeta["AQDCCD"] = np.array(bd)  # CCD = Cell Center Distance
+    if not hr:
+        Instmeta["AQDCCD"] = np.array(bd)  # CCD = Cell Center Distance
+    else:
+        Instmeta["AQDCCD"] = np.array(bdv)  # CCD = Cell Center Distance
+        Instmeta["AQDCCDBEAM"] = np.array(bd)  # CCD = Cell Center Distance
 
     # infer some things based on the Aquadopp brochure
     if Instmeta["AQDFrequency"] == 400:
