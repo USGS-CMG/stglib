@@ -799,6 +799,9 @@ def update_attrs(ds, waves=False):
         }
     )
 
+    if "Soundspeed" in ds:
+        ds["Soundspeed"].attrs["units"] = "m s-1"
+
     for n in [1, 2, 3]:
         if "VEL" + str(n) in ds:
             ds["VEL" + str(n)].attrs.update(
