@@ -40,6 +40,24 @@ def aqd_nc(nc_file):
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
+def aqdhr_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        ["python", "../../../scripts/runaqdhrhdr2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def aqdhr_nc(nc_file):
+    result = subprocess.run(
+        ["python", "../../../scripts/runaqdhrcdf2nc.py", nc_file],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
 def test_exo():
     exo_raw("glob_attbel5C.txt", "config_bel5C.yaml")
     exo_nc("bel53Cexo-raw.cdf")
@@ -54,6 +72,11 @@ def test_aqd():
     aqd_nc("1118ABaqd-raw.cdf")
     aqd_raw("glob_att1121a_msl_aqd.txt", "aqd1121A_config.yaml")
     aqd_nc("11211Aaqd-raw.cdf")
+
+
+def test_aqdhr():
+    aqdhr_raw("gatts_CHC14TDH.txt", "config_CHC14TDH.yaml")
+    aqdhr_nc("CHC14TDH-raw.cdf")
 
 
 def aqdturnaround(basefile):
