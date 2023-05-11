@@ -334,6 +334,9 @@ def fix_encoding(ds):
     else:
         ds["time"].encoding["dtype"] = "i4"
 
+    if "beam" in ds.dims:
+        ds["beam"].encoding["dtype"] = "i4"
+
     for var in ds.data_vars:
         if ds[var].dtype == "uint32" or ds[var].dtype == "uint8":
             ds[var].encoding["dtype"] = "int32"
