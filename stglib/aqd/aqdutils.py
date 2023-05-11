@@ -526,7 +526,7 @@ def read_aqd_hdr(basefile):
                 Instmeta["AQDNumberOfCells"] = int(row[38:])
             # required here to differentiate from the wave cell size
             elif row.find("Cell size", 0, 9) != -1:
-                idx = row.find(" mm")
+                idx = row.find(" cm")
                 Instmeta["AQDCellSize"] = int(row[38:idx])
             elif "Transmit pulse length" in row:
                 idx = row.find(" m")
