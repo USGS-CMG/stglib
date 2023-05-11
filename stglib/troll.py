@@ -116,7 +116,6 @@ def cdf_to_nc(cdf_filename):
 
 
 def read_aquatroll(filnam, skiprows=69, encoding="utf-8", skipfooter=0):
-
     # so we don't get fallback parser warnings when specifying skipfooter
     warnings.filterwarnings("ignore", category=pd.errors.ParserWarning)
 
@@ -124,7 +123,6 @@ def read_aquatroll(filnam, skiprows=69, encoding="utf-8", skipfooter=0):
         filnam,
         skiprows=skiprows,
         skipfooter=skipfooter,
-        infer_datetime_format=True,
         parse_dates=[0],
         encoding=encoding,
     )
@@ -361,7 +359,8 @@ def compute_S(T, AC):
     float
         Salinity
 
-    https://in-situ.com/uk/pub/media/support/documents/Aqua-TROLL-200-Measurement-Methodology-Tech-Note.pdf"""
+    https://in-situ.com/uk/pub/media/support/documents/Aqua-TROLL-200-Measurement-Methodology-Tech-Note.pdf
+    """
     a0 = 0.0080
     b0 = 0.0005
     a1 = -0.1692

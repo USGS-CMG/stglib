@@ -9,7 +9,6 @@ from ..core import utils
 
 
 def csv_to_cdf(metadata):
-
     basefile = metadata["basefile"]
 
     with open(basefile + "_metadata.txt") as f:
@@ -48,7 +47,7 @@ def csv_to_cdf(metadata):
     ds = set_up_instrument_and_sampling_attrs(ds, meta)
 
     if ds.attrs["sample_mode"] == "WAVE":
-        burst = pd.read_csv(basefile + "_burst.txt", infer_datetime_format=True)
+        burst = pd.read_csv(basefile + "_burst.txt")
 
         burst = burst.rename(columns={"Time": "time"}).set_index("time")
 
@@ -228,7 +227,6 @@ def drop_unused_vars(ds):
 
 
 def set_up_instrument_and_sampling_attrs(ds, meta):
-
     ds.attrs["serial_number"] = str(meta["instrument"]["serial"])
     ds.attrs["instrument_type"] = str(meta["instrument"]["model"])
 
