@@ -26,13 +26,13 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Transform coordinates from, most likely, BEAM to ENU
 
     if "VEL1" in VEL:
-        theu = VEL["VEL1"].values
-        thev = VEL["VEL2"].values
-        thew = VEL["VEL3"].values
+        theu = VEL["VEL1"]
+        thev = VEL["VEL2"]
+        thew = VEL["VEL3"]
     elif "U" in VEL:
-        theu = VEL["U"].values
-        thev = VEL["V"].values
-        thew = VEL["W"].values
+        theu = VEL["U"]
+        thev = VEL["V"]
+        thew = VEL["W"]
     elif "X" in VEL:
         theu = VEL["X"]
         thev = VEL["Y"]
