@@ -62,13 +62,11 @@ def read_ntu(filnam, spb=False, skiprows=None, skipfooter=0):
 
 
 def read_eco_csv(filnam, names, skiprows=None, skipfooter=0):
-
     return pd.read_csv(
         filnam,
         sep="\t",
         names=names,
         parse_dates=[["date", "time"]],
-        infer_datetime_format=True,
         engine="python",
         skiprows=skiprows,
         skipfooter=skipfooter,
@@ -76,7 +74,6 @@ def read_eco_csv(filnam, names, skiprows=None, skipfooter=0):
 
 
 def eco_pd_to_xr(df, spb=False):
-
     if spb:
         # get middle time
         times = df["date_time"].values.reshape((-1, spb))[:, int(spb / 2)]
