@@ -70,3 +70,15 @@ NBMCCE02.sen filter=lfs diff=lfs merge=lfs -text
 cdf/** filter=lfs diff=lfs merge=lfs -text
 mat/** filter=lfs diff=lfs merge=lfs -text
 mat2/** filter=lfs diff=lfs merge=lfs -text
+TDHAQD02.a3 filter=lfs diff=lfs merge=lfs -text
+TDHAQD02.hr2 filter=lfs diff=lfs merge=lfs -text
+TDHAQD02.sen filter=lfs diff=lfs merge=lfs -text
+TDHAQD02.ssl filter=lfs diff=lfs merge=lfs -text
+TDHAQD02.a1 filter=lfs diff=lfs merge=lfs -text
+TDHAQD02.hdr filter=lfs diff=lfs merge=lfs -text
+TDHAQD02.v1 filter=lfs diff=lfs merge=lfs -text
+TDHAQD02.v2 filter=lfs diff=lfs merge=lfs -text
+TDHAQD02.v3 filter=lfs diff=lfs merge=lfs -text
+TDHAQD02.a2 filter=lfs diff=lfs merge=lfs -text
+config_CHC14TDH.yaml filter=lfs diff=lfs merge=lfs -text
+gatts_CHC14TDH.txt filter=lfs diff=lfs merge=lfs -text

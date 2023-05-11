@@ -38,6 +38,8 @@ setup(
     scripts=[
         "scripts/runaqdhdr2cdf.py",
         "scripts/runaqdcdf2nc.py",
+        "scripts/runaqdhrhdr2cdf.py",
+        "scripts/runaqdhrcdf2nc.py",
         "scripts/runhwlbcsv2cdf.py",
         "scripts/runhwlbcdf2nc.py",
         "scripts/runiqmat2cdf.py",

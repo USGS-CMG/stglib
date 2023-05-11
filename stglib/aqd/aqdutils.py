@@ -461,11 +461,10 @@ def read_aqd_hdr(basefile):
     # check and make sure it's not an HR file.
     # FIXME: this will need to be removed when we start supporting HR
     # check for HR by seeing if extended velocity range is in .hdr
+    hr = False
     with open(hdrFile) as f:
         if "Extended velocity range" in f.read():
-            raise NotImplementedError(
-                "stglib does not currently support Aquadopp HR datasets"
-            )
+            hr = True
 
     f = open(hdrFile, "r")
     row = ""
@@ -474,70 +473,124 @@ def read_aqd_hdr(basefile):
 
     while "Hardware configuration" not in row:
         row = f.readline().rstrip()
-        if "Profile interval" in row:
+        if hr:
+            if "Measurement/Burst interval" in row:
+                idx = row.find(" sec")
+                Instmeta["AQDHRMeasurementBurstInterval"] = int(row[38:idx])
+            if "Cell size" in row:
+                idx = row.find(" mm")
+                Instmeta["AQDHRCellSize"] = int(row[38:idx])
+            if "Orientation" in row:
+                Instmeta["AQDHROrientation"] = row[38:]
+            if "Distance to surface" in row:
+                idx = row.find(" m")
+                Instmeta["AQDHRDistanceToSurface"] = float(row[38:idx])
+            if "Extended velocity range" in row:
+                Instmeta["AQDHRExtendedVelocityRange"] = row[38:]
+            if "Pulse distance (Lag1)" in row:
+                idx = row.find(" m")
+                Instmeta["AQDHRPulseLag1"] = float(row[38:idx])
+            if "Pulse distance (Lag2)" in row:
+                idx = row.find(" m")
+                Instmeta["AQDHRPulseLag2"] = float(row[38:idx])
+            if "Profile range" in row:
+                idx = row.find(" m")
+                Instmeta["AQDHRProfileRange"] = float(row[38:idx])
+            if "Horizontal velocity range" in row:
+                idx = row.find(" m/s")
+                Instmeta["AQDHRHorizontalVelRange"] = float(row[38:idx])
+            if "Vertical velocity range" in row:
+                idx = row.find(" m/s")
+                Instmeta["AQDHRVerticalVelRange"] = float(row[38:idx])
+            if "Number of cells" in row:
+                idx = row.find(" m/s")
+                Instmeta["AQDHRNumberOfCells"] = int(row[38:])
+            if "Blanking distance" in row:
+                idx = row.find(" m")
+                Instmeta["AQDHRBlankingDistance"] = float(row[38:idx])
+            if "Burst sampling" in row:
+                Instmeta["AQDHRBurstSampling"] = row[38:idx]
+            if "Samples per burst" in row:
+                Instmeta["AQDHRSamplesPerBurst"] = int(row[38:])
+            if "Sampling rate" in row:
+                Instmeta["AQDHRSamplingRate"] = row[38:]
+            if "Powerlevel first ping" in row:
+                Instmeta["AQDHRPowerlevelPing1"] = row[38:]
+            if "Powerlevel ping 2" in row:
+                Instmeta["AQDHRPowerlevelPing2"] = row[38:]
+        else:
+            if "Profile interval" in row:
+                idx = row.find(" sec")
+                Instmeta["AQDProfileInterval"] = int(row[38:idx])
+            elif "Number of cells" in row:
+                Instmeta["AQDNumberOfCells"] = int(row[38:])
+            # required here to differentiate from the wave cell size
+            elif row.find("Cell size", 0, 9) != -1:
+                idx = row.find(" cm")
+                Instmeta["AQDCellSize"] = int(row[38:idx])
+            elif "Transmit pulse length" in row:
+                idx = row.find(" m")
+                Instmeta["AQDTransmitPulseLength"] = float(row[38:idx])
+            elif "Blanking distance" in row:
+                idx = row.find(" m")
+                Instmeta["AQDBlankingDistance"] = float(row[38:idx])
+            elif "Wave measurements" in row:
+                Instmeta["WaveMeasurements"] = row[38:]
+            elif "Wave - Powerlevel" in row:
+                Instmeta["WavePower"] = row[38:]
+            elif "Wave - Interval" in row:
+                idx = row.find(" sec")
+                Instmeta["WaveInterval"] = int(row[38:idx])
+            elif "Wave - Number of samples" in row:
+                Instmeta["WaveNumberOfSamples"] = int(row[38:])
+            elif "Wave - Sampling rate" in row:
+                Instmeta["WaveSampleRate"] = row[38:]
+            elif "Wave - Cell size" in row:
+                idx = row.find(" m")
+                Instmeta["WaveCellSize"] = float(row[38:idx])
+            elif "Powerlevel" in row:
+                Instmeta["AQDPowerLevel"] = row[38:]
+
+        # these are shared between non hr and hr
+        if hr:
+            shim = "HR"
+        else:
+            shim = ""
+        if "Average interval" in row:
             idx = row.find(" sec")
-            Instmeta["AQDProfileInterval"] = int(row[38:idx])
-        elif "Number of cells" in row:
-            Instmeta["AQDNumberOfCells"] = int(row[38:])
-        # required here to differentiate from the wave cell size
-        elif row.find("Cell size", 0, 9) != -1:
-            idx = row.find(" cm")
-            Instmeta["AQDCellSize"] = int(row[38:idx])
-        elif "Average interval" in row:
-            idx = row.find(" sec")
-            Instmeta["AQDAverageInterval"] = int(row[38:idx])
+            Instmeta[f"AQD{shim}AverageInterval"] = int(row[38:idx])
         elif "Measurement load" in row:
             idx = row.find(" %")
-            Instmeta["AQDMeasurementLoad"] = int(row[38:idx])
-        elif "Transmit pulse length" in row:
-            idx = row.find(" m")
-            Instmeta["AQDTransmitPulseLength"] = float(row[38:idx])
-        elif "Blanking distance" in row:
-            idx = row.find(" m")
-            Instmeta["AQDBlankingDistance"] = float(row[38:idx])
+            Instmeta[f"AQD{shim}MeasurementLoad"] = int(row[38:idx])
         elif "Compass update rate" in row:
             idx = row.find(" sec")
-            Instmeta["AQDCompassUpdateRate"] = int(row[38:idx])
-        elif "Wave measurements" in row:
-            Instmeta["WaveMeasurements"] = row[38:]
-        elif "Wave - Powerlevel" in row:
-            Instmeta["WavePower"] = row[38:]
-        elif "Wave - Interval" in row:
-            idx = row.find(" sec")
-            Instmeta["WaveInterval"] = int(row[38:idx])
-        elif "Wave - Number of samples" in row:
-            Instmeta["WaveNumberOfSamples"] = int(row[38:])
-        elif "Wave - Sampling rate" in row:
-            Instmeta["WaveSampleRate"] = row[38:]
-        elif "Wave - Cell size" in row:
-            idx = row.find(" m")
-            Instmeta["WaveCellSize"] = float(row[38:idx])
+            Instmeta[f"AQD{shim}CompassUpdateRate"] = int(row[38:idx])
         elif "Analog input 1" in row:
-            Instmeta["AQDAnalogInput1"] = row[38:]
+            Instmeta[f"AQD{shim}AnalogInput1"] = row[38:]
         elif "Analog input 2" in row:
-            Instmeta["AQDAnalogInput2"] = row[38:]
+            Instmeta[f"AQD{shim}AnalogInput2"] = row[38:]
         elif "Power output" in row:
-            Instmeta["AQDAnalogPowerOutput"] = row[38:]
-        elif "Powerlevel" in row:
-            Instmeta["AQDPowerLevel"] = row[38:]
+            Instmeta[f"AQD{shim}AnalogPowerOutput"] = row[38:]
         elif "Coordinate system" in row:
-            Instmeta["AQDCoordinateSystem"] = row[38:]
+            Instmeta[f"AQD{shim}CoordinateSystem"] = row[38:]
         elif "Sound speed" in row:
-            Instmeta["AQDSoundSpeed"] = row[38:]
+            Instmeta[f"AQD{shim}SoundSpeed"] = row[38:]
         elif "Salinity" in row:
-            Instmeta["AQDSalinity"] = row[38:]
+            Instmeta[f"AQD{shim}Salinity"] = row[38:]
         elif "Number of beams" in row:
-            Instmeta["AQDNumberOfBeams"] = int(row[38:])
+            Instmeta[f"AQD{shim}NumberOfBeams"] = int(row[38:])
         elif "Number of pings per burst" in row:
-            Instmeta["AQDNumberOfPingsPerBurst"] = int(row[38:])
+            Instmeta[f"AQD{shim}NumberOfPingsPerBurst"] = int(row[38:])
         elif "Software version" in row:
-            Instmeta["AQDSoftwareVersion"] = row[38:]
+            Instmeta[f"AQD{shim}SoftwareVersion"] = row[38:]
         elif "Deployment name" in row:
-            Instmeta["AQDDeploymentName"] = row[38:]
+            Instmeta[f"AQD{shim}DeploymentName"] = row[38:]
         elif "Deployment time" in row:
-            Instmeta["AQDDeploymentTime"] = row[38:]
+            Instmeta[f"AQD{shim}DeploymentTime"] = row[38:]
+        elif "Wrap mode" in row:
+            Instmeta[f"AQD{shim}WrapMode"] = row[38:]
         elif "Comments" in row:
-            Instmeta["AQDComments"] = row[38:]
+            Instmeta[f"AQD{shim}Comments"] = row[38:]
             # There may be up to three lines of comments, but only if they were added during deployment.
             # These extra lines will be preceded by blanks instead of a field name.
             # After the comments lines are the System lines, which we currenty don't handle,
@@ -549,8 +602,8 @@ def read_aqd_hdr(basefile):
             for n in range(2):
                 row = f.readline().rstrip()
                 if len(row) and row[0] == " ":
-                    Instmeta["AQDComments"] += "\n"
-                    Instmeta["AQDComments"] += row[38:]
+                    Instmeta[f"AQD{shim}Comments"] += "\n"
+                    Instmeta[f"AQD{shim}Comments"] += row[38:]
 
     while "Head configuration" not in row:
         row = f.readline().rstrip()
@@ -577,7 +630,7 @@ def read_aqd_hdr(basefile):
         elif "Sync signal power down delay" in row:
             Instmeta["AQDSyncPowerDelay"] = row[38:]
 
-    while "Current profile cell center distance from head (m)" not in row:
+    while "Current profile cell center distance" not in row:
         row = f.readline().rstrip()
         if "Pressure sensor" in row:
             Instmeta["AQDPressureSensor"] = row[38:]
@@ -601,13 +654,26 @@ def read_aqd_hdr(basefile):
             Instmeta["AQDPressureCal"] = row[38:]
 
     bd = []
+    bdv = []
     while "Data file format" not in row:
         row = f.readline().rstrip()
         # avoid the header rule line
-        if "-" not in row and row != "" and row != "Data file format":
+        if (
+            "-" not in row
+            and row != ""
+            and row != "Data file format"
+            and "Beam" not in row
+            and "Distances" not in row
+        ):
             bd.append(float(row.split()[1]))
+            if hr:
+                bdv.append(float(row.split()[2]))
 
-    Instmeta["AQDCCD"] = np.array(bd)  # CCD = Cell Center Distance
+    if not hr:
+        Instmeta["AQDCCD"] = np.array(bd)  # CCD = Cell Center Distance
+    else:
+        Instmeta["AQDCCD"] = np.array(bdv)  # CCD = Cell Center Distance
+        Instmeta["AQDCCDBEAM"] = np.array(bd)  # CCD = Cell Center Distance
 
     # infer some things based on the Aquadopp brochure
     if Instmeta["AQDFrequency"] == 400:
@@ -629,7 +695,7 @@ def read_aqd_hdr(basefile):
     return Instmeta
 
 
-def check_attrs(ds, waves=False, inst_type="AQD"):
+def check_attrs(ds, waves=False, hr=False, inst_type="AQD"):
     # Add some metadata originally in the run scripts
     ds.attrs["nominal_sensor_depth_note"] = "WATER_DEPTH - " "initial_instrument_height"
     ds.attrs["nominal_sensor_depth"] = (
@@ -648,12 +714,15 @@ def check_attrs(ds, waves=False, inst_type="AQD"):
         ds.attrs["beam_width"] = ds.attrs["AQDBeamWidth"]
         ds.attrs["beam_pattern"] = ds.attrs["AQDBeamPattern"]
         ds.attrs["beam_angle"] = ds.attrs["AQDBeamAngle"]
-        ds.attrs["salinity_set_by_user"] = ds.attrs["AQDSalinity"]
+        if hr:
+            ds.attrs["salinity_set_by_user"] = ds.attrs["AQDHRSalinity"]
+        else:
+            ds.attrs["salinity_set_by_user"] = ds.attrs["AQDSalinity"]
         ds.attrs["salinity_set_by_user_units"] = "ppt"
 
         # update metadata from Aquadopp header to CMG standard so that various
         # profilers have the same attribute wording.  Redundant, but necessary
-        if not waves:
+        if not waves and not hr:
             ds.attrs["bin_count"] = ds.attrs["AQDNumberOfCells"]
             ds.attrs["bin_size"] = ds.attrs["AQDCellSize"] / 100  # from cm to m
             ds.attrs["blanking_distance"] = ds.attrs["AQDBlankingDistance"]
@@ -662,7 +731,16 @@ def check_attrs(ds, waves=False, inst_type="AQD"):
             ds.attrs["center_first_bin"] = (
                 ds.attrs["blanking_distance"] + ds.attrs["bin_size"]
             )  # in m
-        else:
+        elif hr and not waves:
+            ds.attrs["bin_count"] = ds.attrs["AQDHRNumberOfCells"]
+            ds.attrs["bin_size"] = ds.attrs["AQDHRCellSize"] / 1000  # from m to m
+            ds.attrs["blanking_distance"] = ds.attrs["AQDHRBlankingDistance"]
+            # Nortek lists the distance to the center of the first bin as the
+            # blanking distance plus one cell size
+            ds.attrs["center_first_bin"] = (
+                ds.attrs["blanking_distance"] + ds.attrs["bin_size"]
+            )  # in m
+        elif waves:
             ds.attrs["bin_count"] = 1  # only 1 wave bin
             ds.attrs["bin_size"] = ds.attrs["WaveCellSize"]
             ds.attrs["blanking_distance"] = ds.attrs["AQDBlankingDistance"]
@@ -715,7 +793,7 @@ def create_bindist(ds, waves=False):
     return ds
 
 
-def update_attrs(ds, waves=False):
+def update_attrs(ds, waves=False, hr=False):
     """Define dimensions and variables in NetCDF file"""
 
     ds["latitude"] = xr.DataArray([ds.attrs["latitude"]], dims=("latitude"))
@@ -781,6 +859,9 @@ def update_attrs(ds, waves=False):
         }
     )
 
+    if "Soundspeed" in ds:
+        ds["Soundspeed"].attrs["units"] = "m s-1"
+
     for n in [1, 2, 3]:
         if "VEL" + str(n) in ds:
             ds["VEL" + str(n)].attrs.update(
@@ -806,15 +887,19 @@ def update_attrs(ds, waves=False):
     else:
         veltxt = "wave-burst velocity"
 
-    if ds.attrs["AQDCoordinateSystem"] == "ENU":
+    if hr:
+        csname = "AQDHRCoordinateSystem"
+    else:
+        csname = "AQDCoordinateSystem"
+    if ds.attrs[csname] == "ENU":
         ds["U"].attrs["long_name"] = "Eastward " + veltxt
         ds["V"].attrs["long_name"] = "Northward " + veltxt
         ds["W"].attrs["long_name"] = "Vertical " + veltxt
-    elif ds.attrs["AQDCoordinateSystem"] == "XYZ":
+    elif ds.attrs[csname] == "XYZ":
         ds["X"].attrs["long_name"] = veltxt.capitalize() + " in X Direction"
         ds["Y"].attrs["long_name"] = veltxt.capitalize() + " in Y Direction"
         ds["Z"].attrs["long_name"] = veltxt.capitalize() + " in Z Direction"
-    elif ds.attrs["AQDCoordinateSystem"] == "BEAM":
+    elif ds.attrs[csname] == "BEAM":
         ds["VEL1"].attrs["long_name"] = "Beam 1 " + veltxt
         ds["VEL2"].attrs["long_name"] = "Beam 2 " + veltxt
         ds["VEL3"].attrs["long_name"] = "Beam 3 " + veltxt
@@ -851,7 +936,7 @@ def update_attrs(ds, waves=False):
     return ds
 
 
-def ds_add_attrs(ds, waves=False, inst_type="AQD"):
+def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
     """
     add EPIC and CMG attributes to xarray Dataset
     """
@@ -1155,8 +1240,10 @@ def ds_add_attrs(ds, waves=False, inst_type="AQD"):
     )
 
     if "bindist" in ds:
-        if inst_type == "AQD":
+        if inst_type == "AQD" and not hr:
             blanking_distance = ds.attrs["AQDBlankingDistance"]
+        elif inst_type == "AQD" and hr:
+            blanking_distance = ds.attrs["AQDHRBlankingDistance"]
         elif inst_type == "SIG":
             blanking_distance = ds.attrs["SIGBurst_BlankingDistance"]
         ds["bindist"].attrs.update(

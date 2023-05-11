@@ -99,25 +99,6 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
         print("Done writing netCDF file", nc_filename)
 
-    # check to see if need to make wave burst from continuous data
-    if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
-        # make wave burst ncfile from continuous data if wave_interval is specified
-        ds = make_wave_bursts(ds)
-
-        ds = ds_add_attrs(ds)
-
-        ds = utils.ds_coord_no_fillvalue(ds)
-        ds = utils.add_history(ds)
-        ds = dw_add_delta_t(ds)
-
-        print("Writing cleaned/trimmed burst data to .nc file")
-        if "burst" in ds or "sample" in ds:
-            nc_filename = ds.attrs["filename"] + "b-cal.nc"
-
-            ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
-            utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
-            print("Done writing netCDF file", nc_filename)
-
     return ds
 
 
@@ -194,7 +175,7 @@ def ds_add_attrs(ds):
         ds["time"].encoding["dtype"] = "i4"
 
     if "sample" in ds:
-        check_fits_in_int32(ds, "sample")
+        utils.check_fits_in_int32(ds, "sample")
         ds["sample"].encoding["dtype"] = "i4"
         ds["sample"].attrs["long_name"] = "sample number"
         ds["sample"].attrs["units"] = "1"
@@ -216,7 +197,7 @@ def ds_add_attrs(ds):
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
     if "burst" in ds:
-        check_fits_in_int32(ds, "burst")
+        utils.check_fits_in_int32(ds, "burst")
         ds["burst"].encoding["dtype"] = "i4"
         ds["burst"].attrs["units"] = "1"
         ds["burst"].attrs["long_name"] = "Burst number"
@@ -258,56 +239,8 @@ def ds_add_attrs(ds):
     return ds
 
 
-def check_fits_in_int32(ds, var):
-    if np.nanmax(np.abs(ds[var])) > (2**31 - 1):
-        warnings.warn(
-            f"32-bit integer overflow on {var}; setting encoding to i4 will fail"
-        )
-
-
 def dw_add_delta_t(ds):
     if "burst_interval" in ds.attrs:
         ds.attrs["DELTA_T"] = int(ds.attrs["burst_interval"])
-
-    return ds
-
-
-def make_wave_bursts(ds):
-    # wave_interval is [sec] interval for wave statistics for continuous data
-    ds.attrs["samples_per_burst"] = int(
-        ds.attrs["wave_interval"] / ds.attrs["sample_interval"]
-    )
-    # burst_interval is equivalent to wave_interval [sec]
-    ds.attrs["burst_interval"] = ds.attrs["wave_interval"]
-    # burst_length is the number of data points in the burst
-    ds.attrs["burst_length"] = ds.attrs["samples_per_burst"]
-    r = np.shape(ds.P_1)[0]
-    mod = r % ds.attrs["samples_per_burst"]
-    if mod:
-        print(
-            "Number of rows is not a multiple of samples_per_burst; truncating to last full burst"
-        )
-        ds = ds.sel(time=ds.time[0:-mod])
-
-    ds.time.encoding.pop("dtype")
-
-    ds["timenew"] = xr.DataArray(
-        ds.time[0 :: int(ds.attrs["samples_per_burst"])].values, dims="timenew"
-    )
-
-    ds["sample"] = xr.DataArray(range(ds.attrs["samples_per_burst"]), dims="sample")
-
-    for v in ["P_1", "P_1ac", "T_28"]:
-        if v in ds:
-            attrsbak = ds[v].attrs
-            ds[v] = xr.DataArray(
-                np.reshape(ds[v].values, (-1, int(ds.attrs["samples_per_burst"]))),
-                dims=["timenew", "sample"],
-            )
-            ds[v].attrs = attrsbak
-
-    ds = ds.rename({"time": "timeold"})
-    ds = ds.rename({"timenew": "time"})
-    ds = ds.drop("timeold")
 
     return ds
