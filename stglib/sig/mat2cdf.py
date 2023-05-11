@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import scipy.io
 import xarray as xr
+import os
 
 from ..aqd import aqdutils
 from ..core import utils
@@ -331,29 +332,20 @@ def mat_to_cdf(metadata):
     utils.check_valid_globalatts_metadata(metadata)
     aqdutils.check_valid_config_metadata(metadata)
 
-    # read in mat files in proper order
-    # nn = []
     for f in glob.glob(f"{basefile}_*.mat"):
-        #    n = int(f.split("_")[-1].split(".mat")[0])
-        #    nn.append(n)
-        # nn = np.array(nn)
-        # nn.sort()
-        # for k in nn:
-        #    f = f"{basefile}_{k}.mat"
         print(f)
         dsd = load_mat_file(f)
-        # filstub = f.split("/")[-1].split(".mat")[0]
-        # num = filstub.split("_")[-1]
-        num = f.split(f"{basefile}_")[-1].split(".mat")[0]
+        filstub = os.path.normpath(f).split("\\")[-1]
+        bf = basefile.split("/")[-1]
+        num = filstub.split(f"{bf}_")[-1].split(".mat")[0]
         print(num)
-        print(outdir)
         for dsn in dsd:
             ds = dsd[dsn]
             ds = utils.write_metadata(ds, metadata)
             ds = utils.ensure_cf(ds)
             cdf_filename = (
-                outdir
-                + prefix
+                prefix
+                + outdir
                 + ds.attrs["filename"]
                 + "-"
                 + ds.attrs["data_type"]
@@ -361,6 +353,7 @@ def mat_to_cdf(metadata):
                 + num
                 + "-raw.cdf"
             )
+            print(cdf_filename)
             ds.to_netcdf(cdf_filename)
             print(f"Finished writing data to {cdf_filename}")
 
@@ -371,7 +364,8 @@ def mat_to_cdf(metadata):
         ds = xr.open_mfdataset(fin, parallel=True)
         ds = aqdutils.check_attrs(ds, inst_type="SIG")
         if "Beam2xyz" in ds:
-            ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
+            if "time" in ds["Beam2xyz"].dims:
+                ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
         # write out all into single -raw.cdf files per data_type
         cdf_filename = prefix + ds.attrs["filename"] + "_burst-raw.cdf"
         print("writing Burst to netcdf")
@@ -384,7 +378,8 @@ def mat_to_cdf(metadata):
         ds = xr.open_mfdataset(fin, parallel=True)
         ds = aqdutils.check_attrs(ds, inst_type="SIG")
         if "Beam2xyz" in ds:
-            ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
+            if "time" in ds["Beam2xyz"].dims:
+                ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
         # write out all into single -raw.cdf files per data_type
         cdf_filename = prefix + ds.attrs["filename"] + "_iburst-raw.cdf"
         print("writing IBurst to netcdf")
@@ -408,7 +403,8 @@ def mat_to_cdf(metadata):
         ds = xr.open_mfdataset(fin, parallel=True)
         ds = aqdutils.check_attrs(ds, inst_type="SIG")
         if "Beam2xyz" in ds:
-            ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
+            if "time" in ds["Beam2xyz"].dims:
+                ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
         # write out all into single -raw.cdf files per data_type
         cdf_filename = prefix + ds.attrs["filename"] + "_echo1-raw.cdf"
         print("writing Echo1 to netcdf")

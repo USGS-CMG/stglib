@@ -22,14 +22,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     print(f"Finished loading {cdf_filename} in {end_time-start_time:.1f} seconds")
 
     ds = aqdutils.check_attrs(ds, inst_type="SIG")
-    """
-    #ds = xr.open_mfdataset(cdf_filename, parallel=True)
-    if "Beam2xyz" in ds:
-        ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
-        
-    end_time = time.time()
-    print(f"Finished loading {cdf_filename} using open_mfdataset in {end_time-start_time:.1f} seconds")
-    """
 
     # Add atmospheric pressure offset
     if atmpres is not False:

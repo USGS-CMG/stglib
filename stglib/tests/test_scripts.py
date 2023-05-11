@@ -221,6 +221,9 @@ def test_sig():
     sig_mat("glob_att1126_sig1.txt", "sig1126_config.yaml")
     print(os.listdir())
     sig_nc("11261sig_burst-raw.cdf")
+    sig_mat("glob_att1126_sig2.txt", "sig11262_config.yaml")
+    sig_nc("11262sig_burst-raw.cdf")
+    sig_nc("11262sig_echo1-raw.cdf")
 
 
 def ensure_cf(script, glob_att, config_yaml):
