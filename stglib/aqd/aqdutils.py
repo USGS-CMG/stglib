@@ -508,12 +508,16 @@ def read_aqd_hdr(basefile):
             if "Blanking distance" in row:
                 idx = row.find(" m")
                 Instmeta["AQDHRBlankingDistance"] = float(row[38:idx])
+            if "Burst sampling" in row:
+                Instmeta["AQDHRBurstSampling"] = row[38:idx]
             if "Samples per burst" in row:
                 Instmeta["AQDHRSamplesPerBurst"] = int(row[38:])
-            if "Salinity" in row:
-                Instmeta["AQDHRSalinity"] = row[38:]
-            if "Coordinate system" in row:
-                Instmeta["AQDHRCoordinateSystem"] = row[38:]
+            if "Sampling rate" in row:
+                Instmeta["AQDHRSamplingRate"] = row[38:]
+            if "Powerlevel first ping" in row:
+                Instmeta["AQDHRPowerlevelPing1"] = row[38:]
+            if "Powerlevel ping 2" in row:
+                Instmeta["AQDHRPowerlevelPing2"] = row[38:]
         else:
             if "Profile interval" in row:
                 idx = row.find(" sec")
@@ -524,21 +528,12 @@ def read_aqd_hdr(basefile):
             elif row.find("Cell size", 0, 9) != -1:
                 idx = row.find(" mm")
                 Instmeta["AQDCellSize"] = int(row[38:idx])
-            elif "Average interval" in row:
-                idx = row.find(" sec")
-                Instmeta["AQDAverageInterval"] = int(row[38:idx])
-            elif "Measurement load" in row:
-                idx = row.find(" %")
-                Instmeta["AQDMeasurementLoad"] = int(row[38:idx])
             elif "Transmit pulse length" in row:
                 idx = row.find(" m")
                 Instmeta["AQDTransmitPulseLength"] = float(row[38:idx])
             elif "Blanking distance" in row:
                 idx = row.find(" m")
                 Instmeta["AQDBlankingDistance"] = float(row[38:idx])
-            elif "Compass update rate" in row:
-                idx = row.find(" sec")
-                Instmeta["AQDCompassUpdateRate"] = int(row[38:idx])
             elif "Wave measurements" in row:
                 Instmeta["WaveMeasurements"] = row[38:]
             elif "Wave - Powerlevel" in row:
@@ -553,45 +548,62 @@ def read_aqd_hdr(basefile):
             elif "Wave - Cell size" in row:
                 idx = row.find(" m")
                 Instmeta["WaveCellSize"] = float(row[38:idx])
-            elif "Analog input 1" in row:
-                Instmeta["AQDAnalogInput1"] = row[38:]
-            elif "Analog input 2" in row:
-                Instmeta["AQDAnalogInput2"] = row[38:]
-            elif "Power output" in row:
-                Instmeta["AQDAnalogPowerOutput"] = row[38:]
             elif "Powerlevel" in row:
                 Instmeta["AQDPowerLevel"] = row[38:]
-            elif "Coordinate system" in row:
-                Instmeta["AQDCoordinateSystem"] = row[38:]
-            elif "Sound speed" in row:
-                Instmeta["AQDSoundSpeed"] = row[38:]
-            elif "Salinity" in row:
-                Instmeta["AQDSalinity"] = row[38:]
-            elif "Number of beams" in row:
-                Instmeta["AQDNumberOfBeams"] = int(row[38:])
-            elif "Number of pings per burst" in row:
-                Instmeta["AQDNumberOfPingsPerBurst"] = int(row[38:])
-            elif "Software version" in row:
-                Instmeta["AQDSoftwareVersion"] = row[38:]
-            elif "Deployment name" in row:
-                Instmeta["AQDDeploymentName"] = row[38:]
-            elif "Deployment time" in row:
-                Instmeta["AQDDeploymentTime"] = row[38:]
-            elif "Comments" in row:
-                Instmeta["AQDComments"] = row[38:]
-                # There may be up to three lines of comments, but only if they were added during deployment.
-                # These extra lines will be preceded by blanks instead of a field name.
-                # After the comments lines are the System lines, which we currenty don't handle,
-                # so we can read the next lines and add to Comments if present.
-                # Example showing a two-line comment followed by System1 field:
-                # Comments                              SP 15916 30 cmab
-                #                                       WTS21
-                # System1                               19
-                for n in range(2):
-                    row = f.readline().rstrip()
-                    if len(row) and row[0] == " ":
-                        Instmeta["AQDComments"] += "\n"
-                        Instmeta["AQDComments"] += row[38:]
+
+        # these are shared between non hr and hr
+        if hr:
+            shim = "HR"
+        else:
+            shim = ""
+        if "Average interval" in row:
+            idx = row.find(" sec")
+            Instmeta[f"AQD{shim}AverageInterval"] = int(row[38:idx])
+        elif "Measurement load" in row:
+            idx = row.find(" %")
+            Instmeta[f"AQD{shim}MeasurementLoad"] = int(row[38:idx])
+        elif "Compass update rate" in row:
+            idx = row.find(" sec")
+            Instmeta[f"AQD{shim}CompassUpdateRate"] = int(row[38:idx])
+        elif "Analog input 1" in row:
+            Instmeta[f"AQD{shim}AnalogInput1"] = row[38:]
+        elif "Analog input 2" in row:
+            Instmeta[f"AQD{shim}AnalogInput2"] = row[38:]
+        elif "Power output" in row:
+            Instmeta[f"AQD{shim}AnalogPowerOutput"] = row[38:]
+        elif "Coordinate system" in row:
+            Instmeta[f"AQD{shim}CoordinateSystem"] = row[38:]
+        elif "Sound speed" in row:
+            Instmeta[f"AQD{shim}SoundSpeed"] = row[38:]
+        elif "Salinity" in row:
+            Instmeta[f"AQD{shim}Salinity"] = row[38:]
+        elif "Number of beams" in row:
+            Instmeta[f"AQD{shim}NumberOfBeams"] = int(row[38:])
+        elif "Number of pings per burst" in row:
+            Instmeta[f"AQD{shim}NumberOfPingsPerBurst"] = int(row[38:])
+        elif "Software version" in row:
+            Instmeta[f"AQD{shim}SoftwareVersion"] = row[38:]
+        elif "Deployment name" in row:
+            Instmeta[f"AQD{shim}DeploymentName"] = row[38:]
+        elif "Deployment time" in row:
+            Instmeta[f"AQD{shim}DeploymentTime"] = row[38:]
+        elif "Wrap mode" in row:
+            Instmeta[f"AQD{shim}WrapMode"] = row[38:]
+        elif "Comments" in row:
+            Instmeta[f"AQD{shim}Comments"] = row[38:]
+            # There may be up to three lines of comments, but only if they were added during deployment.
+            # These extra lines will be preceded by blanks instead of a field name.
+            # After the comments lines are the System lines, which we currenty don't handle,
+            # so we can read the next lines and add to Comments if present.
+            # Example showing a two-line comment followed by System1 field:
+            # Comments                              SP 15916 30 cmab
+            #                                       WTS21
+            # System1                               19
+            for n in range(2):
+                row = f.readline().rstrip()
+                if len(row) and row[0] == " ":
+                    Instmeta[f"AQD{shim}Comments"] += "\n"
+                    Instmeta[f"AQD{shim}Comments"] += row[38:]
 
     while "Head configuration" not in row:
         row = f.readline().rstrip()
