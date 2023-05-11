@@ -1,4 +1,4 @@
-    title; Time-series measurements of oceanographic data in the nearshore zone in Cape Cod Bay, Barnstable, MA from an upward looking ADCP from March 10 to April 7, 2021
+    title; Time-series measurements of oceanographic data in the nearshore zone in Cape Cod Bay, Barnstable, MA from an Downward looking ADCP from March 10 to April 7, 2021
     SciPi; J.C. Warner
     PROJECT; USGS Coastal and Marine Hazards and Resources Program
     EXPERIMENT; Cape Cod Bay 2021

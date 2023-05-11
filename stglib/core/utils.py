@@ -905,7 +905,7 @@ def create_z(ds):
     # create z for exo
     if "NAVD88_ref" in ds.attrs:
         if "bindist" in ds:
-            if ds.attrs["orientation"] == "DOWN":
+            if ds.attrs["orientation"].upper() == "DOWN":
                 ds["z"] = xr.DataArray(
                     ds.attrs["NAVD88_ref"]
                     + ds.attrs["initial_instrument_height"]
@@ -913,7 +913,7 @@ def create_z(ds):
                     dims="z",
                 )
 
-            elif ds.attrs["orientation"] == "UP":
+            elif ds.attrs["orientation"].upper() == "UP":
                 ds["z"] = xr.DataArray(
                     ds.attrs["NAVD88_ref"]
                     + ds.attrs["initial_instrument_height"]
@@ -931,14 +931,14 @@ def create_z(ds):
 
     elif "height_above_geopotential_datum" in ds.attrs:
         if "bindist" in ds:
-            if ds.attrs["orientation"] == "DOWN":
+            if ds.attrs["orientation"].upper() == "DOWN":
                 ds["z"] = xr.DataArray(
                     ds.attrs["height_above_geopotential_datum"]
                     + ds.attrs["initial_instrument_height"]
                     - ds["bindist"].values,
                     dims="z",
                 )
-            elif ds.attrs["orientation"] == "UP":
+            elif ds.attrs["orientation"].upper() == "UP":
                 ds["z"] = xr.DataArray(
                     ds.attrs["height_above_geopotential_datum"]
                     + ds.attrs["initial_instrument_height"]
@@ -961,12 +961,12 @@ def create_z(ds):
         )
     else:
         if "bindist" in ds:
-            if ds.attrs["orientation"] == "DOWN":
+            if ds.attrs["orientation"].upper() == "DOWN":
                 ds["z"] = xr.DataArray(
                     ds.attrs["initial_instrument_height"] - ds["bindist"].values,
                     dims="z",
                 )
-            elif ds.attrs["orientation"] == "UP":
+            elif ds.attrs["orientation"].upper() == "UP":
                 ds["z"] = xr.DataArray(
                     ds.attrs["initial_instrument_height"] + ds["bindist"].values,
                     dims="z",
@@ -986,7 +986,7 @@ def create_z(ds):
 
     if "P_1ac" in ds:
         if "bindist" in ds:
-            if ds.attrs["orientation"] == "DOWN":
+            if ds.attrs["orientation"].upper() == "DOWN":
                 presvar = np.nanmean(ds["P_1ac"]) + ds["bindist"].values
             elif ds.attrs["orientation"] == "UP":
                 presvar = np.nanmean(ds["P_1ac"]) - ds["bindist"].values
@@ -994,7 +994,7 @@ def create_z(ds):
             presvar = np.nanmean(ds["P_1ac"])
     elif "P_1" in ds:
         if "bindist" in ds:
-            if ds.attrs["orientation"] == "DOWN":
+            if ds.attrs["orientation"].upper() == "DOWN":
                 presvar = np.nanmean(ds["P_1"]) + ds["bindist"].values
             elif ds.attrs["orientation"] == "UP":
                 presvar = np.nanmean(ds["P_1"]) - ds["bindist"].values
@@ -1002,7 +1002,7 @@ def create_z(ds):
             presvar = np.nanmean(ds["P_1"])
     else:
         if "bindist" in ds:
-            if ds.attrs["orientation"] == "DOWN":
+            if ds.attrs["orientation"].upper() == "DOWN":
                 presvar = ds.attrs["WATER_DEPTH"] + ds["bindist"].values
             elif ds.attrs["orientation"] == "UP":
                 presvar = ds.attrs["WATER_DEPTH"] - ds["bindist"].values
