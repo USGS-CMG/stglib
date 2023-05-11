@@ -17,9 +17,19 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     print(f"Loading {cdf_filename}")
     # print(os.listdir())
     start_time = time.time()
-    ds = xr.open_dataset(cdf_filename, chunks="auto")
+    ds = xr.open_dataset(cdf_filename, chunks={"time": 256000, "bindist": 32})
     end_time = time.time()
     print(f"Finished loading {cdf_filename} in {end_time-start_time:.1f} seconds")
+
+    ds = aqdutils.check_attrs(ds, inst_type="SIG")
+    """
+    #ds = xr.open_mfdataset(cdf_filename, parallel=True)
+    if "Beam2xyz" in ds:
+        ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
+        
+    end_time = time.time()
+    print(f"Finished loading {cdf_filename} using open_mfdataset in {end_time-start_time:.1f} seconds")
+    """
 
     # Add atmospheric pressure offset
     if atmpres is not False:
@@ -40,6 +50,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds["P_1ac"].attrs = attrs
 
     ds = utils.create_nominal_instrument_depth(ds)
+
+    # print(ds)
 
     # create Z depending on orientation
     # ds, T, T_orig = aqdutils.set_orientation(ds, ds["Burst_Beam2xyz"].values)
@@ -99,6 +111,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = ds_add_attrs_sig(ds)  # for signature vars
 
     # Add min/max values
+    # if ds.attrs["data_type"] not in ["Echo1"]:
     ds = utils.add_min_max(ds)
 
     # Add DELTA_T for EPIC compliance
@@ -130,19 +143,31 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     else:
         nc_filename = ds.attrs["filename"]
 
-    if ds.attrs["data_type"] == "Burst":
+    if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "BurstHR":
         nc_out = nc_filename + "b-cal.nc"
         print("writing Burst (b) data to netCDF nc file")
         ds.to_netcdf(nc_out)
         print("Done writing netCDF file", nc_out)
 
-    elif ds.attrs["data_type"] == "IBurst":
+    elif ds.attrs["data_type"] == "IBurst" or ds.attrs["data_type"] == "IBurstHR":
         nc_out = nc_filename + "b5-cal.nc"
         print("writing IBurst (b5) data to netCDF nc file")
         ds.to_netcdf(nc_out)
         print("Done writing netCDF file", nc_out)
 
+    elif ds.attrs["data_type"] == "Echo1":
+        nc_out = nc_filename + "e1-cal.nc"
+        print("writing Echo1 (echo1) data to netCDF nc file")
+        ds.to_netcdf(nc_out)
+        print("Done writing netCDF file", nc_out)
+
     utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
+
+    end_time = time.time()
+    print(
+        f"Proceesing cdf2nc for Signature data type {ds.attrs['data_type']} in deployment {ds.attrs['filename']} is complete!!"
+    )
+    print(f"elpased time = {end_time-start_time:.1f} seconds")
 
     return ds
 
@@ -259,6 +284,10 @@ def ds_rename_sig(ds, waves=False):
         "AltimeterTimeOffsetAST": "ast_offset_time",
         "AltimeterPressure": "ast_pressure",
         "NominalCorrelation": "corr_nominal",
+        "VelBeam5": "vel_b5",
+        "AmpBeam5": "amp_b5",
+        "CorBeam5": "corr_b5",
+        "Echo": "echo_amp",
     }
 
     for v in varnames:
@@ -316,7 +345,7 @@ def fix_encoding(ds):
     for var in ds.data_vars:
         if ds[var].dtype == "uint32" or ds[var].dtype == "uint8":
             ds[var].encoding["dtype"] = "int32"
-        if var in ["corr"]:
+        if var in ["corr", "corr_b5"]:
             ds[var].encoding["dtype"] = "float32"
         if ds[var].dtype == "float64":
             ds[var].encoding["dtype"] = "float32"
@@ -376,7 +405,7 @@ def ds_add_attrs_sig(ds):
     if "gyro" in ds:
         ds["gyro"].attrs.update(
             {
-                "units": "rads s-1",
+                "units": "rad s-1",
                 "long_name": "Angular Velocity from AHRS",
             }
         )
@@ -430,6 +459,15 @@ def ds_add_attrs_sig(ds):
             }
         )
 
+    if "vel_b5" in ds:
+        ds["vel_b5"].attrs.update(
+            {
+                "units": "m s-1",
+                "standard_name": "radial_sea_water_velocity_away_instrument",
+                "long_name": "Beam5 Velocity",
+            }
+        )
+
     if "amp" in ds:
         ds["amp"].attrs.update(
             {
@@ -439,12 +477,39 @@ def ds_add_attrs_sig(ds):
             }
         )
 
+    if "amp_b5" in ds:
+        ds["amp_b5"].attrs.update(
+            {
+                "units": "dB",
+                "standard_name": "signal_intensity_from_multibeam_acoustic_doppler_velocity_sensor_in_sea_water",
+                "long_name": "Beam5 Acoustic Signal Amplitude",
+            }
+        )
+
+    if "echo_amp" in ds:
+        ds["echo_amp"].attrs.update(
+            {
+                "units": "dB",
+                "standard_name": "signal_intensity_from_multibeam_acoustic_doppler_velocity_sensor_in_sea_water",
+                "long_name": "Echosounder Signal Amplitude",
+            }
+        )
+
     if "corr" in ds:
         ds["corr"].attrs.update(
             {
                 "units": "percent",
                 "standard_name": "beam_consistency_indicator_from_multibeam_acoustic_doppler_velocity_profiler_in_sea_water",
                 "long_name": "Acoustic Signal Correlation",
+            }
+        )
+
+    if "corr_b5" in ds:
+        ds["corr_b5"].attrs.update(
+            {
+                "units": "percent",
+                "standard_name": "beam_consistency_indicator_from_multibeam_acoustic_doppler_velocity_profiler_in_sea_water",
+                "long_name": "Beam5 Acoustic Signal Correlation",
             }
         )
 
