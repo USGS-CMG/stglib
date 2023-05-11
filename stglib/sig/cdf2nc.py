@@ -446,7 +446,7 @@ def ds_add_attrs_sig(ds):
         ds["vel"].attrs.update(
             {
                 "units": "m s-1",
-                "standard_name": "radial_sea_water_velocity_away_instrument",
+                "standard_name": "radial_sea_water_velocity_away_from_instrument",
                 "long_name": "Beam Velocity",
             }
         )
