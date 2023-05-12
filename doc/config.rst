@@ -81,7 +81,7 @@ Aquadopp-specific options include:
    :linenos:
 
 Signature
---------
+---------
 
 Signature-specific options include (see Aquadopp for others):
 
@@ -92,7 +92,7 @@ Signature-specific options include (see Aquadopp for others):
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml
    :linenos:
-   
+
 d|wave
 ------
 

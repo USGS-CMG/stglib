@@ -16,7 +16,7 @@ stglib serves two distinct but related purposes:
 
 Currently, this package has at least partial support for:
 
-- Nortek Aquadopp profilers, in mean-current and wave-burst modes
+- Nortek Aquadopp profilers, in mean-current wave-burst, and HR modes
 - Nortek Vector velocimeters
 - Nortek Signature profilers
 - RBR pressure (including waves) and turbidity sensors
@@ -34,7 +34,6 @@ Currently, this package has at least partial support for:
 
 We have plans to support:
 
-- Nortek Aquadopp profiles in HR mode
 - RDI Sentinel V profilers
 
 .. toctree::
@@ -47,6 +46,7 @@ We have plans to support:
    atmos
    aqd
    wvs
+   aqdhr
    vec
    sig
    rsk

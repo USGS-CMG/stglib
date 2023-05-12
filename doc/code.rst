@@ -21,6 +21,15 @@ Aquadopp (waves)
    stglib.aqd.wvscdf2nc.cdf_to_nc
    stglib.aqd.wvsnc2diwasp.nc_to_diwasp
 
+Aquadopp HR
+===========
+
+.. autosummary::
+  :toctree: generated/
+
+  stglib.aqd.hdr2cdf.prf_to_cdf
+  stglib.aqd.cdf2nc.cdf_to_nc
+
 d|wave
 ======
 
@@ -66,10 +75,23 @@ Onset HOBO
 
   stglib.hobo.read_hobo
 
+Signature
+=========
+
+.. autosummary::
+  :toctree: generated/
+
+  stglib.sig.mat2cdf.mat_to_cdf
+  stglib.sig.cdf2nc.cdf_to_nc
+
 Vaisala Weather Transmitter WXT
 ===============================
 
+.. autosummary::
+  :toctree: generated/
 
+  stglib.wxt.csv_to_cdf
+  stglib.wxt.cdf_to_nc
 
 QRev
 ====
