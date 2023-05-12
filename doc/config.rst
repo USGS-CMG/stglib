@@ -80,6 +80,19 @@ Aquadopp-specific options include:
    :language: yaml
    :linenos:
 
+Signature
+--------
+
+Signature-specific options include (see Aquadopp for others):
+
+- ``outdir``: output directory (make sure it exists) to write individual ``cdf`` files before being compiled into a single ``cdf`` file per data type
+- ``orientation``: can be ``UP`` or ``DOWN`` use this to identify orientation of profiler
+- ``head_rotation``: probably will be ``'horizontal'``
+
+.. literalinclude:: ../examples/aqd_config.yaml
+   :language: yaml
+   :linenos:
+   
 d|wave
 ------
 
