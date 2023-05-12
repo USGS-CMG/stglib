@@ -28,7 +28,6 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
         exo = pd.read_csv(
             filnam,
             skiprows=skiprows,
-            infer_datetime_format=True,
             # parse_dates=[['Date (MM/DD/YYYY)',
             #               'Time (HH:MM:SS)']],
             parse_dates=[[0, 1]],
@@ -38,7 +37,6 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
         exo = pd.read_csv(
             filnam,
             skiprows=skiprows,
-            infer_datetime_format=True,
             # parse_dates=[['Date (MM/DD/YYYY)',
             #               'Time (HH:MM:SS)']],
             parse_dates=[[0, 1]],
@@ -285,7 +283,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
 
 def ds_rename_vars(ds):
-
     if "Cond_mS_per_cm" in ds:
         ds["Cond_mS_per_cm"].values = (
             ds["Cond_mS_per_cm"].values / 10
