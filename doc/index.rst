@@ -18,6 +18,7 @@ Currently, this package has at least partial support for:
 
 - Nortek Aquadopp profilers, in mean-current and wave-burst modes
 - Nortek Vector velocimeters
+- Nortek Signature profilers
 - RBR pressure (including waves) and turbidity sensors
 - YSI EXO2 water-quality sondes
 - SonTek IQ flow monitors
@@ -34,7 +35,6 @@ Currently, this package has at least partial support for:
 We have plans to support:
 
 - Nortek Aquadopp profiles in HR mode
-- Nortek Signature profilers
 - RDI Sentinel V profilers
 
 .. toctree::
@@ -48,6 +48,7 @@ We have plans to support:
    aqd
    wvs
    vec
+   sig
    rsk
    exo
    iq
