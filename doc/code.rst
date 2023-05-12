@@ -78,20 +78,8 @@ Onset HOBO
 Signature
 =========
 
-.. autosummary::
-  :toctree: generated/
-
-  stglib.sig.mat2cdf.mat_to_cdf
-  stglib.sig.cdf2nc.cdf_to_nc
-
 Vaisala Weather Transmitter WXT
 ===============================
-
-.. autosummary::
-  :toctree: generated/
-
-  stglib.wxt.csv_to_cdf
-  stglib.wxt.cdf_to_nc
 
 QRev
 ====
