@@ -247,12 +247,12 @@ How to build the *stglib* documentation
 Requirements
 ~~~~~~~~~~~~
 Follow the instructions on creating a development environment above, and to build the docs
-you need to create a new environment with the environment file ``doc/doc-requirements.yml``.
+you need to create a new environment with the environment file ``doc/environment.yml``.
 
 .. code-block::
 
     # Create and activate the docs environment
-    conda env create -f doc/doc-requirements.yml
+    conda env create -f doc/environment.yml
     conda activate stglib-docs
 
     # Build and install stglib

@@ -1,4 +1,5 @@
 compliance-checker
+dolfyn
 matplotlib
 netcdf4
 numpy

@@ -5,6 +5,9 @@ from ..core import utils, waves
 
 
 def nc_to_diwasp(nc_filename):
+    """
+    Process burst data to wave statistics by using DIWASP output from Matlab
+    """
 
     ds = utils.open_time_2d_dataset(nc_filename)
 

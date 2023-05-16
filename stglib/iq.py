@@ -127,7 +127,6 @@ def read_iq(filnam):
 
 
 def rename_vars(ds):
-
     # set up dict of instrument -> EPIC variable names
     varnames = {
         "Batt": "Bat_106",
@@ -149,7 +148,6 @@ def rename_vars(ds):
 
 
 def remove_FlowData(ds):
-
     newvars = {}
     for k in ds:
         newvars[k] = k.replace("FlowData_", "")
@@ -233,7 +231,7 @@ def make_iq_plots(iq, directory="", savefig=False):
 
 def cdf_to_nc(cdf_filename):
     """
-    Load a "raw" .cdf file and generate a processed .nc file
+    Load a raw .cdf file and generate a processed .nc file
     """
 
     # Load raw .cdf data
@@ -292,7 +290,6 @@ def cdf_to_nc(cdf_filename):
 
 
 def ds_add_attrs(ds):
-
     ds.attrs["serial_number"] = ds.attrs["SerialNumber"]
     ds.attrs["INST_TYPE"] = "SonTek-IQ Plus"
 

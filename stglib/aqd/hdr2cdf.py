@@ -5,8 +5,8 @@ from ..core import utils
 from . import aqdutils
 
 
-def prf_to_cdf(metadata):
-    """Load a Aquadopp text files and output to netCDF format"""
+def hdr_to_cdf(metadata):
+    """Load Aquadopp text files and output to netCDF format"""
 
     # TODO: clock drift code
     # TODO: logmeta code

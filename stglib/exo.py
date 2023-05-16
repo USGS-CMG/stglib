@@ -188,7 +188,7 @@ def csv_to_cdf(metadata):
 
 def cdf_to_nc(cdf_filename, atmpres=False):
     """
-    Load a "raw" .cdf file and generate a processed .nc file
+    Load a raw .cdf file and generate a processed .nc file
     """
 
     # Load raw .cdf data

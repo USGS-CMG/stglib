@@ -89,7 +89,6 @@ def drop_vars(ds):
 
 
 def ds_add_attrs(ds):
-
     # Update attributes for EPIC and STG compliance
     ds = utils.ds_coord_no_fillvalue(ds)
 
@@ -196,7 +195,7 @@ def get_serial_number(filnam):
 
 def cdf_to_nc(cdf_filename):
     """
-    Load a "raw" .cdf file and generate a processed .nc file
+    Load a raw .cdf file and generate a processed .nc file
     """
 
     # Load raw .cdf data

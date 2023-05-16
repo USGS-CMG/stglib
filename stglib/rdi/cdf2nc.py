@@ -1,14 +1,13 @@
-import xarray as xr
 import numpy as np
-
-from ..core import utils
+import xarray as xr
 
 from ..aqd import aqdutils
+from ..core import utils
 
 
 def cdf_to_nc(cdf_filename, atmpres=None):
     """
-    Load a "raw" .cdf file and generate a processed .nc file
+    Load a raw .cdf file and generate a processed .nc file
     """
 
     # Load raw .cdf data
@@ -82,7 +81,7 @@ def cdf_to_nc(cdf_filename, atmpres=None):
         if ds[var].dtype == "uint16":
             ds[var].encoding["dtype"] = "int32"
         elif ds[var].dtype == "int64":
-            if ds[var].max() > 2 ** 31 - 1 or ds[var].min() < -(2 ** 31):
+            if ds[var].max() > 2**31 - 1 or ds[var].min() < -(2**31):
                 print(
                     f"warning {var} may be too big to fit in int32: min {ds[var].min().values}, max {ds[var].max().values}"
                 )
@@ -264,7 +263,6 @@ def ds_drop(ds):
 
 
 def change_units(ds):
-
     # pressure needs to be in db or m
     if "Pressure" in ds:
         pconvconst = 1  # when in doubt, do nothing
@@ -367,7 +365,7 @@ def calc_beam_rotmatrix(theta=20, convex=True, degrees=True):
         c = 1
     a = 1 / (2.0 * np.sin(theta))
     b = 1 / (4.0 * np.cos(theta))
-    d = a / (2.0 ** 0.5)
+    d = a / (2.0**0.5)
     return np.array(
         [[c * a, -c * a, 0, 0], [0, 0, -c * a, c * a], [b, b, b, b], [d, d, -d, -d]]
     )

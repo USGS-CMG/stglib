@@ -16,4 +16,4 @@ with open(args.config) as f:
 for k in config:
     metadata[k] = config[k]
 
-RAW = stglib.aqd.hrhdr2cdf.prf_to_cdf(metadata)
+RAW = stglib.aqd.hrhdr2cdf.hdr_to_cdf(metadata)

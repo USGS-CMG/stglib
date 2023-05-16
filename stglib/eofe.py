@@ -10,7 +10,6 @@ from .core import qaqc, utils
 
 
 def log_to_cdf(metadata):
-
     basefile = metadata["basefile"]
 
     if "prefix" in metadata:
@@ -75,7 +74,7 @@ def log_to_cdf(metadata):
 
 def cdf_to_nc(cdf_filename):
     """
-    Load a "raw" .cdf file and generate a processed .nc file
+    Load a raw .cdf file and generate a processed .nc file
     """
 
     # Load raw .cdf data
@@ -190,7 +189,6 @@ def cdf_to_nc(cdf_filename):
 
 def read_ea_instmet(basefile):
     with open(basefile, "r") as f:
-
         instmeta = {}
         row = ""
         while "##DataStart" not in row:
@@ -237,7 +235,6 @@ def read_ea_instmet(basefile):
 
 def load_ea_point(basefile, metadata):
     with open(basefile, "r") as f:
-
         data = f.read().splitlines()
 
         point = {}
@@ -308,7 +305,6 @@ def load_ea_point(basefile, metadata):
 
 
 def load_ea_profile(ds, basefile):
-
     profile = []
 
     with open(basefile) as f:  # read in profile echo data
@@ -334,7 +330,6 @@ def load_ea_profile(ds, basefile):
 
 
 def burst_num(ds):
-
     ds["burst"] = xr.DataArray(
         np.arange(1, len(ds["time"]) + 1, 1, dtype="int32"), dims="time"
     )
@@ -493,7 +488,6 @@ def calc_bin_height(ds):
     )
 
     if ds.attrs["orientation"] == "down" or ds.attrs["orientation"] == "DOWN":
-
         ds["bin_height"] = (
             ds.attrs["initial_instrument_height"] - ds["bindist"]
         )  # get bin distance referenced from sea floor
@@ -501,7 +495,6 @@ def calc_bin_height(ds):
         math_sign = "-"
 
     elif ds.attrs["orientation"] == "up" or ds.attrs["orientation"] == "UP":
-
         ds["bin_height"] = (
             ds.attrs["initial_instrument_height"] + ds["bindist"]
         )  # get bin distance referenced from sea floor
@@ -579,7 +572,6 @@ def calc_seabed_elev(ds):
         )
 
         if ds.attrs["orientation"] == "DOWN" or ds.attrs["orientation"] == "down":
-
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["NAVD88_ref"]
                 + (ds.brange * -1)
@@ -587,7 +579,6 @@ def calc_seabed_elev(ds):
             )
 
         elif ds.attrs["orientation"] == "UP" or ds.attrs["orientation"] == "up":
-
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["NAVD88_ref"]
                 + ds.brange
@@ -601,7 +592,6 @@ def calc_seabed_elev(ds):
         )
 
         if ds.attrs["orientation"] == "DOWN" or ds.attrs["orientation"] == "down":
-
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["height_above_geopotential_datum"]
                 + (ds.brange * -1)
@@ -609,7 +599,6 @@ def calc_seabed_elev(ds):
             )
 
         elif ds.attrs["orientation"] == "UP" or ds.attrs["orientation"] == "up":
-
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["height_above_geopotential_datum"]
                 + ds.brange
@@ -617,7 +606,6 @@ def calc_seabed_elev(ds):
             )
 
     else:
-
         ds.attrs["geopotential_datum_name"] = "LMSL"
         print(
             "Calculating seabed elevation on %s datum"
@@ -625,7 +613,6 @@ def calc_seabed_elev(ds):
         )
 
         if ds.attrs["orientation"] == "DOWN" or ds.attrs["orientation"] == "down":
-
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["WATER_DEPTH"]
                 + ds.brange
@@ -633,7 +620,6 @@ def calc_seabed_elev(ds):
             )
 
         if ds.attrs["orientation"] == "UP" or ds.attrs["orientation"] == "up":
-
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["WATER_DEPTH"]
                 + (ds.brange * -1)
@@ -735,7 +721,6 @@ def ds_swap_dims(ds):  # swap vert dim to z
 
 def read_aa_instmet(basefile):
     with open(basefile, "r") as f:
-
         instmeta = {}
         row = ""
         while "   Date       Time" not in row:
@@ -772,7 +757,6 @@ def read_aa_instmet(basefile):
 
 def load_aa_point(basefile, metadata):
     with open(basefile, "r") as f:
-
         if "skiprows" in metadata:
             for k in np.arange(0, metadata["skiprows"]):
                 line = f.readline()
@@ -852,14 +836,12 @@ def trim_alt(ds, data_vars=["Altitude_m", "Counts", "Temperature_C"]):
     """
 
     if "trim_method" in ds.attrs:
-
         trm_list = ds.attrs["trim_method"]
 
         if not isinstance(trm_list, list):  # make sure it is a list before looping
             trm_list = [trm_list]
 
         for trm_meth in trm_list:
-
             if trm_meth.lower() == "altitude":
                 print("Trimming using altitude data")
                 altitude = ds[

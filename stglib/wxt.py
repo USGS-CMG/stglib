@@ -39,7 +39,6 @@ def read_wxt(filnam, skiprows=7, encoding="utf-8"):
 
 # Make raw CDF
 def csv_to_cdf(metadata):
-
     basefile = metadata["basefile"]
 
     ds = read_wxt(basefile + ".csv", skiprows=metadata["skiprows"])
@@ -61,7 +60,7 @@ def csv_to_cdf(metadata):
 # Process data and write to .nc file
 def cdf_to_nc(cdf_filename):
     """
-    Load a "raw" .cdf file and generate a processed .nc file
+    Load a raw .cdf file and generate a processed .nc file
     """
 
     # Load raw .cdf data
@@ -189,7 +188,6 @@ def ds_convertfloat(ds):
 
 # Add attributes: units, standard name from CF website, epic code
 def ds_add_attrs(ds):
-
     ds = utils.ds_coord_no_fillvalue(ds)
 
     ds["time"].attrs.update(

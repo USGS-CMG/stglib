@@ -8,7 +8,7 @@ Aquadopp (currents)
 .. autosummary::
    :toctree: generated/
 
-   stglib.aqd.hdr2cdf.prf_to_cdf
+   stglib.aqd.hdr2cdf.hdr_to_cdf
    stglib.aqd.cdf2nc.cdf_to_nc
 
 Aquadopp (waves)
@@ -19,6 +19,7 @@ Aquadopp (waves)
 
    stglib.aqd.wvswad2cdf.wad_to_cdf
    stglib.aqd.wvscdf2nc.cdf_to_nc
+   stglib.aqd.wvsnc2waves.nc_to_waves
    stglib.aqd.wvsnc2diwasp.nc_to_diwasp
 
 Aquadopp HR
@@ -27,19 +28,18 @@ Aquadopp HR
 .. autosummary::
   :toctree: generated/
 
-  stglib.aqd.hdr2cdf.prf_to_cdf
+  stglib.aqd.hdr2cdf.hdr_to_cdf
   stglib.aqd.cdf2nc.cdf_to_nc
 
-d|wave
-======
+RBR Instruments
+===============
 
 .. autosummary::
    :toctree: generated/
 
    stglib.rsk.rsk2cdf.rsk_to_cdf
    stglib.rsk.cdf2nc.cdf_to_nc
-..
-   stglib.rsk.nc2diwasp.nc_to_diwasp
+   stglib.rsk.nc2waves.nc_to_waves
 
 EXO
 ===
@@ -78,8 +78,21 @@ Onset HOBO
 Signature
 =========
 
+.. autosummary::
+  :toctree: generated/
+
+  stglib.sig.mat2cdf.mat_to_cdf
+  stglib.sig.cdf2nc.cdf_to_nc
+
 Vaisala Weather Transmitter WXT
 ===============================
+
+.. autosummary::
+  :toctree: generated/
+
+  stglib.wxt.read_wxt
+  stglib.wxt.csv_to_cdf
+  stglib.wxt.cdf_to_nc
 
 QRev
 ====
