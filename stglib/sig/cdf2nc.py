@@ -12,7 +12,7 @@ from ..core import utils
 
 def cdf_to_nc(cdf_filename, atmpres=False):
     """
-    Load a "raw" .cdf file and generate a processed .nc file
+    Load a raw .cdf file and generate a processed .nc file
     """
     print(f"Loading {cdf_filename}")
     # print(os.listdir())
@@ -329,7 +329,7 @@ def fix_encoding(ds):
                 print(
                     f"warning {var} may be too big to fit in int32: min {ds[var].min().values}, max {ds[var].max().values} so make double"
                 )
-               ds[var].encoding["dtype"] = "double"    
+               ds[var].encoding["dtype"] = "double"
                """
     else:
         ds["time"].encoding["dtype"] = "i4"

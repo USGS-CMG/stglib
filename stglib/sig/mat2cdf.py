@@ -1,5 +1,6 @@
 import datetime as dt
 import glob
+import os
 import re
 import time
 import warnings
@@ -8,7 +9,6 @@ import numpy as np
 import pandas as pd
 import scipy.io
 import xarray as xr
-import os
 
 from ..aqd import aqdutils
 from ..core import utils
@@ -309,6 +309,10 @@ def add_transmatrix(mat, ds):
 
 
 def mat_to_cdf(metadata):
+    """
+    Load .mat files exported from Signature software and process to .cdf
+    """
+
     """warnings.warn(
         "The use of mat_to_cdf is deprecated. Use raw_to_cdf instead. Refer to the stglib documentation for more details.",
         DeprecationWarning,

@@ -15,7 +15,7 @@ runvechdr2cdf.py
 ----------------
 
 .. argparse::
-   :ref: stglib.core.cmd.vecdat2cdf_parser
+   :ref: stglib.core.cmd.vechdr2cdf_parser
    :prog: runvecdat2cdf.py
 
 Raw .cdf to CF-compliant .nc

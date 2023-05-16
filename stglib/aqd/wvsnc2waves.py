@@ -7,6 +7,9 @@ from . import aqdutils
 
 
 def nc_to_waves(nc_filename):
+    """
+    Process burst data to wave statistics
+    """
 
     ds = xr.load_dataset(nc_filename)
 
@@ -119,7 +122,9 @@ def nc_to_waves(nc_filename):
                 for k in puvs:
                     puvs[k][n] = puv[k]
 
-            except AttributeError:  # puv_quick will fail on some values and return AttributeError: 'float' object has no attribute 'astype'
+            except (
+                AttributeError
+            ):  # puv_quick will fail on some values and return AttributeError: 'float' object has no attribute 'astype'
                 continue
 
         for k in puvs:

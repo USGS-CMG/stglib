@@ -11,7 +11,7 @@ from ..core import utils
 
 def cdf_to_nc(cdf_filename, atmpres=False):
     """
-    Load a "raw" .cdf file and generate a processed .nc file
+    Load a raw .cdf file and generate a processed .nc file
     """
     # TODO: Add atmospheric pressure offset
     print(f"Loading {cdf_filename}")

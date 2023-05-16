@@ -2,6 +2,10 @@ from ..core import utils, waves
 
 
 def nc_to_waves(nc_filename):
+    """
+    Process burst data to wave statistics
+    """
+
     ds = utils.open_time_2d_dataset(nc_filename)  # this will deal with a cf file, too
 
     # check to see if need to make wave burst from continuous data

@@ -4,7 +4,7 @@ import yaml
 
 import stglib
 
-args = stglib.cmd.vecdat2cdf_parser().parse_args()
+args = stglib.cmd.vechdr2cdf_parser().parse_args()
 
 # initialize metadata from the globalatts file
 metadata = stglib.read_globalatts(args.gatts)

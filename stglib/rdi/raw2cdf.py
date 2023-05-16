@@ -1,13 +1,13 @@
+import matplotlib.dates
 import pandas as pd
 import xarray as xr
-import matplotlib.dates
 
 from ..core import utils
-from . import rdradcp, rdiadcpy
+from . import rdiadcpy, rdradcp
 
 
 def raw_to_cdf(metadata):
-    """Load a Aquadopp text files and output to netCDF format"""
+    """Load Aquadopp text files and output to netCDF format"""
 
     # TODO: clock drift code
     # TODO: logmeta code

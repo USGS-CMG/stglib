@@ -333,7 +333,7 @@ def eofecdf2nc_parser():
     return parser
 
 
-def vecdat2cdf_parser():
+def vechdr2cdf_parser():
     description = "Convert Vector text files to raw .cdf format. Run this script from the directory containing Vector files"
     parser = argparse.ArgumentParser(description=description)
     gattsarg(parser)
