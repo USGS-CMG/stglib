@@ -1,5 +1,9 @@
 import argparse
 
+import yaml
+
+import stglib
+
 
 def yamlarg(parser):
     parser.add_argument(
@@ -391,3 +395,29 @@ def sigdlfncdf2nc_parser():
     )
 
     return parser
+
+
+def runsigmat2cdf():
+    args = stglib.cmd.sigmat2cdf_parser().parse_args()
+
+    # initialize metadata from the globalatts file
+    metadata = stglib.read_globalatts(args.gatts)
+
+    # Add additional metadata from metadata config file
+    with open(args.config) as f:
+        config = yaml.safe_load(f)
+
+    for k in config:
+        metadata[k] = config[k]
+
+    RAW = stglib.sig.mat2cdf.mat_to_cdf(metadata)
+
+
+def runsigcdf2nc():
+    args = stglib.cmd.sigcdf2nc_parser().parse_args()
+
+    for f in args.cdfname:
+        if args.atmpres:
+            ds = stglib.sig.cdf2nc.cdf_to_nc(f, atmpres=args.atmpres)
+        else:
+            ds = stglib.sig.cdf2nc.cdf_to_nc(f)
