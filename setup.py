@@ -71,5 +71,11 @@ setup(
         "scripts/runsigraw2cdf.py",
         "scripts/runsigcdf2nc.py",
     ],
+    entry_points={
+        "console_scripts": [
+            "runsigmat2cdf=stglib.core.cmd:runsigmat2cdf",
+            "runsigcdf2nc=stglib.core.cmd:runsigcdf2nc",
+        ],
+    },
     include_package_data=True,
 )
