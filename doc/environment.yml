@@ -4,6 +4,7 @@ channels:
 dependencies:
   - python
   - compliance-checker
+  - dask
   - dolfyn
   - matplotlib-base
   - netcdf4

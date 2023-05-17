@@ -239,7 +239,7 @@ def sig_nc(nc_file):
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
-@pytest.mark.skip(reason="works locally but not on github built-in checks")
+# @pytest.mark.skip(reason="works locally but not on github built-in checks")
 def test_sig():
     sig_mat("glob_att1126_sig1.txt", "sig1126_config.yaml")
     print(os.listdir())
