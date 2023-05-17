@@ -1,5 +1,6 @@
 python
 compliance-checker
+dask
 dolfyn
 git-lfs
 matplotlib-base
