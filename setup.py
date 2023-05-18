@@ -75,6 +75,8 @@ setup(
         "console_scripts": [
             "runsigmat2cdf=stglib.core.cmd:runsigmat2cdf",
             "runsigcdf2nc=stglib.core.cmd:runsigcdf2nc",
+            'post_install_script = post_install:update_path',
+            'pre_uninstall_script = pre_uninstall:remove_from_path',
         ],
     },
     include_package_data=True,
