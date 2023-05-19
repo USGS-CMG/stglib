@@ -133,7 +133,7 @@ Before starting any development, you'll need to create an isolated stglib
 development environment:
 
 - We recommend installing the IOOS conda environment per these instructions\:
-  `Installing the IOOS Environment <http://ioos.github.io/notebooks_demos/other_resources/>`_
+  `Installing the IOOS Environment <https://ioos.github.io/ioos_code_lab/content/ioos_installation_conda.html/>`_
 - Make sure your conda is up to date with the command (``conda update conda``)
 - Make sure that you have cloned the repository
 - ``cd`` to the *stglib* source directory (your fork, locally, on your own machine)
