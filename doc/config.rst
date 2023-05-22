@@ -75,6 +75,7 @@ Aquadopp-specific options include:
 - ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``'bin range'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
 - ``<VAR>_trim_single_bins``: trim data where only a single bin of data (after trimming via ``trim_method``) remains. Set this value to ``true`` to enable.
 - ``<VAR>_maxabs_diff_2d``: trim values in a 2D DataArray when the absolute value of the increase is greater than a specified amount
+- ``sl_bins``: amount of surface bins to be filled due to sidelobe interference. If nothing specified, default will be ``0``
 
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml
