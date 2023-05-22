@@ -8,8 +8,9 @@ This package contains code to process data from a variety of oceanographic instr
 
 Currently, this package has at least partial support for:
 
-- Nortek Aquadopp profilers, in mean-current and wave-burst modes
+- Nortek Aquadopp profilers, in mean-current wave-burst, and HR modes
 - Nortek Vector velocimeters
+- Nortek Signature profilers
 - RBR pressure (including waves) and turbidity sensors
 - YSI EXO2 water-quality sondes
 - SonTek IQ flow monitors
@@ -23,8 +24,7 @@ Currently, this package has at least partial support for:
 
 We have plans to support:
 
-- Nortek Aquadopp profiles in HR mode
-- Nortek Signature profilers
+- RDI Sentinel V profilers
 
 This package makes heavy use of [NumPy](http://www.numpy.org), [xarray](http://xarray.pydata.org/en/stable/), and [netCDF4](http://unidata.github.io/netcdf4-python/). It works on Python 3.8+.
 
