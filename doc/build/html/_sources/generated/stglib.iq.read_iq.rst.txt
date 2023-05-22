@@ -1,0 +1,6 @@
+﻿stglib.iq.read\_iq
+==================
+
+.. currentmodule:: stglib.iq
+
+.. autofunction:: read_iq

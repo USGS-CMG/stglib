@@ -1,0 +1,6 @@
+﻿stglib.wxt.csv\_to\_cdf
+=======================
+
+.. currentmodule:: stglib.wxt
+
+.. autofunction:: csv_to_cdf

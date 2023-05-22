@@ -1,0 +1,6 @@
+﻿stglib.eco.read\_ntu
+====================
+
+.. currentmodule:: stglib.eco
+
+.. autofunction:: read_ntu

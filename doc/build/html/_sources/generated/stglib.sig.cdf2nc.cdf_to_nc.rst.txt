@@ -1,0 +1,6 @@
+﻿stglib.sig.cdf2nc.cdf\_to\_nc
+=============================
+
+.. currentmodule:: stglib.sig.cdf2nc
+
+.. autofunction:: cdf_to_nc

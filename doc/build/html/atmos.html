@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atmospheric compensation &mdash; stglib  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Aquadopp (currents)" href="aqd.html" />
+    <link rel="prev" title="Configuration files" href="config.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> stglib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Processing overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration files</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Atmospheric compensation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#steps-to-generate-an-atmospheric-pressure-file">Steps to generate an atmospheric pressure file</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aqd.html">Aquadopp (currents)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wvs.html">Aquadopp (waves)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqdhr.html">Aquadopp HR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vec.html">Vector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sig.html">Signature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsk.html">RBR instruments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exo.html">YSI EXO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iq.html">SonTek IQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wet.html">WET Labs ECO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hobo.html">Onset HOBO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wxt.html">Vaisala WXT536</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eofe.html">EofE ECHOLOGGER</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indexvel.html">QRev data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="turnaround.html">Turnaround scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to stglib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">stglib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Atmospheric compensation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/atmos.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="atmospheric-compensation">
+<h1>Atmospheric compensation<a class="headerlink" href="#atmospheric-compensation" title="Permalink to this heading"></a></h1>
+<p>Pressure can be atmospherically compensated using a special .cdf file in each instrument’s directory. Atmospheric pressure data is usually obtained from a nearby weather station, or a sensor deployed specifically for this purpose as part of the study. The .cdf file should have the following general structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;class &#39;netCDF4._netCDF4.Dataset&#39;&gt;
+root group (NETCDF4 data model, file format HDF5):
+  dimensions(sizes): time(8874)
+  variables(dimensions): int64 time(time), float64 atmpres(time)
+  groups:
+</pre></div>
+</div>
+<p>The file contains one dimension, <code class="docutils literal notranslate"><span class="pre">time</span></code>, and one variable, <code class="docutils literal notranslate"><span class="pre">atmpres</span></code>. The <code class="docutils literal notranslate"><span class="pre">atmpres</span></code> variable has one attribute, <code class="docutils literal notranslate"><span class="pre">offset</span></code>,
+which sets the zero offset for the pressure sensor. In the example below, the offset is -10.25 dbar.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;class &#39;netCDF4._netCDF4.Variable&#39;&gt;
+float64 atmpres(time)
+    _FillValue: nan
+    offset: -10.25
+unlimited dimensions:
+current shape = (8874,)
+filling on
+</pre></div>
+</div>
+<p>The time base of the atmospheric pressure file must be the same as that of the instrument pressure record. This file will be used by the run scripts to atmospherically compensate the pressure record.</p>
+<section id="steps-to-generate-an-atmospheric-pressure-file">
+<h2>Steps to generate an atmospheric pressure file<a class="headerlink" href="#steps-to-generate-an-atmospheric-pressure-file" title="Permalink to this heading"></a></h2>
+<p>The Jupyter notebooks <code class="docutils literal notranslate"><span class="pre">aqd_make_press_ac.ipynb</span></code>, <code class="docutils literal notranslate"><span class="pre">dw_make_press_ac.ipynb</span></code>, and <code class="docutils literal notranslate"><span class="pre">exo_make_press_ac.ipynb</span></code> may help you with this process; the outline is described below.</p>
+<ol class="arabic simple">
+<li><p>Obtain timeseries of atmospheric pressure. Useful sources include <a class="reference external" href="https://nwis.waterdata.usgs.gov/nwis">NWIS</a> (parameter code 00025), <a class="reference external" href="http://mesowest.utah.edu">MesoWest</a>, <a class="reference external" href="https://tidesandcurrents.noaa.gov">NOAA Tides &amp; Currents</a>, and <a class="reference external" href="https://cdmo.baruch.sc.edu">NERR sites</a>.</p></li>
+<li><p>Get the atmospheric pressure onto the same time base, with the same number of samples, as the instrument pressure record. For burst data, the atmospheric pressure should have the same length as the number of bursts.</p></li>
+<li><p>Generate the atmospheric-compensated pressure record by subtracting atmospheric and a suitable offset so that the instrument reads as close to zero as possible in air (before/after deployment). That is, <code class="docutils literal notranslate"><span class="pre">P_1ac</span> <span class="pre">=</span> <span class="pre">P_1</span> <span class="pre">-</span> <span class="pre">atmos</span> <span class="pre">-</span> <span class="pre">offset</span></code>. You will probably iterate on values for the offset until you end up with a <code class="docutils literal notranslate"><span class="pre">P_1ac</span></code> that has near-zero values in air.</p></li>
+<li><p>The resulting <code class="docutils literal notranslate"><span class="pre">atmpres.cdf</span></code> file (or any name of your choosing) should use CF conventions for time and should match the structure as reported by <code class="docutils literal notranslate"><span class="pre">ncinfo</span></code> shown above. Routines within stglib will read the atmospheric data and perform the compensation as part of the processing.</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="config.html" class="btn btn-neutral float-left" title="Configuration files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aqd.html" class="btn btn-neutral float-right" title="Aquadopp (currents)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

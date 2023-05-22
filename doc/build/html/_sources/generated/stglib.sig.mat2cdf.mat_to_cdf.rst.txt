@@ -1,0 +1,6 @@
+﻿stglib.sig.mat2cdf.mat\_to\_cdf
+===============================
+
+.. currentmodule:: stglib.sig.mat2cdf
+
+.. autofunction:: mat_to_cdf

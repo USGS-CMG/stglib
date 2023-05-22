@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; stglib  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Processing overview" href="overview.html" />
+    <link rel="prev" title="stglib Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> stglib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-easy-chs-way">The easy (CHS) way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-easy-local-machine-way">The easy (local machine) way</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mambaforge">Mambaforge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#anaconda-or-miniconda">Anaconda or Miniconda</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#if-you-want-to-contribute-to-stglib-development">If you want to contribute to stglib development</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Processing overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atmos.html">Atmospheric compensation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqd.html">Aquadopp (currents)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wvs.html">Aquadopp (waves)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqdhr.html">Aquadopp HR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vec.html">Vector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sig.html">Signature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsk.html">RBR instruments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exo.html">YSI EXO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iq.html">SonTek IQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wet.html">WET Labs ECO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hobo.html">Onset HOBO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wxt.html">Vaisala WXT536</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eofe.html">EofE ECHOLOGGER</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indexvel.html">QRev data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="turnaround.html">Turnaround scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to stglib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">stglib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/install.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<section id="the-easy-chs-way">
+<h2>The easy (CHS) way<a class="headerlink" href="#the-easy-chs-way" title="Permalink to this heading"></a></h2>
+<p><a class="reference external" href="https://taskmgr.chs.usgs.gov/servicedesk/customer/portal/10/create/251">Create a Pangeo CHS account</a>.</p>
+<p>Log in to CHS Pangeo JupyterHub, and edit/create your <code class="docutils literal notranslate"><span class="pre">~/.condarc</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">channels</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+  <span class="o">-</span> <span class="n">defaults</span>
+<span class="n">channel_priority</span><span class="p">:</span> <span class="n">strict</span>
+<span class="n">envs_dirs</span><span class="p">:</span>
+  <span class="o">-</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">jovyan</span><span class="o">/</span><span class="n">my</span><span class="o">-</span><span class="n">conda</span><span class="o">-</span><span class="n">envs</span>
+</pre></div>
+</div>
+<p>Then create the stglib environment, install stglib, and activate the environment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">stglib</span> <span class="n">stglib</span> <span class="n">ipykernel</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">stglib</span>
+</pre></div>
+</div>
+<p>Now you can start processing data!</p>
+</section>
+<section id="the-easy-local-machine-way">
+<h2>The easy (local machine) way<a class="headerlink" href="#the-easy-local-machine-way" title="Permalink to this heading"></a></h2>
+<p>We recommend managing your Python packages using Mambaforge. Alternatively, you can use Anaconda/Miniconda.</p>
+<section id="mambaforge">
+<h3>Mambaforge<a class="headerlink" href="#mambaforge" title="Permalink to this heading"></a></h3>
+<p>Install <a class="reference external" href="https://mamba.readthedocs.io/en/latest/installation.html">Mambaforge</a> by <a class="reference external" href="https://github.com/conda-forge/miniforge#mambaforge">following this link</a>.</p>
+<p>Install and activate an stglib environment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">stglib</span> <span class="n">stglib</span>
+<span class="n">mamba</span> <span class="n">activate</span> <span class="n">stglib</span>
+</pre></div>
+</div>
+<p>Now you can start processing data!</p>
+</section>
+<section id="anaconda-or-miniconda">
+<h3>Anaconda or Miniconda<a class="headerlink" href="#anaconda-or-miniconda" title="Permalink to this heading"></a></h3>
+<p>Ensure you have a working Anaconda or <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">Miniconda</a> installation.</p>
+<p>Set your channel priority to conda-forge:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">add</span> <span class="n">channels</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+<span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="nb">set</span> <span class="n">channel_priority</span> <span class="n">strict</span>
+</pre></div>
+</div>
+<p>Install and activate an stglib environment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">stglib</span> <span class="n">stglib</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">stglib</span>
+</pre></div>
+</div>
+<p>Now you can start processing data!</p>
+</section>
+</section>
+<section id="if-you-want-to-contribute-to-stglib-development">
+<h2>If you want to contribute to stglib development<a class="headerlink" href="#if-you-want-to-contribute-to-stglib-development" title="Permalink to this heading"></a></h2>
+<p>Set up Mambaforge or Anaconda as above. Obtain stglib by cloning the GitHub repo. Change to a directory where you’d like stglib to live and type:</p>
+<p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/USGS-CMG/stglib.git</span></code></p>
+<p>After <code class="docutils literal notranslate"><span class="pre">cd</span></code>ing to the directory containing stglib, type:</p>
+<p><code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">create</span> <span class="pre">-n</span> <span class="pre">stglib</span> <span class="pre">--file</span> <span class="pre">requirements.yml</span></code></p>
+<p>This will create a Conda environment with the requirements for stglib installed. Activate the stglib environment by typing:</p>
+<p><code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">stglib</span></code></p>
+<p>Then type:</p>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span> <span class="pre">--no-deps</span></code></p>
+<p>This will create an editable stglib installation so you can make changes to the codebase.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="stglib Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="overview.html" class="btn btn-neutral float-right" title="Processing overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

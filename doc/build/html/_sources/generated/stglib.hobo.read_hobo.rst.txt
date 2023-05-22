@@ -1,0 +1,6 @@
+﻿stglib.hobo.read\_hobo
+======================
+
+.. currentmodule:: stglib.hobo
+
+.. autofunction:: read_hobo

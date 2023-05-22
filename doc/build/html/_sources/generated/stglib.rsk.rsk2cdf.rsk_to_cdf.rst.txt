@@ -1,0 +1,6 @@
+﻿stglib.rsk.rsk2cdf.rsk\_to\_cdf
+===============================
+
+.. currentmodule:: stglib.rsk.rsk2cdf
+
+.. autofunction:: rsk_to_cdf

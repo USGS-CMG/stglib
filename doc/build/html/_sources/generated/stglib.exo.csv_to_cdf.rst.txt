@@ -1,0 +1,6 @@
+﻿stglib.exo.csv\_to\_cdf
+=======================
+
+.. currentmodule:: stglib.exo
+
+.. autofunction:: csv_to_cdf

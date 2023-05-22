@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration files &mdash; stglib  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Atmospheric compensation" href="atmos.html" />
+    <link rel="prev" title="Processing overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> stglib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Processing overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#transitioning-from-epic-to-cf-conventions">Transitioning from EPIC to CF Conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setting-cf-in-global-attributes">Setting CF in global attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting-cf-in-the-instrument-configuration-file">Setting CF in the instrument configuration file</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#global-attributes-configuration-file">Global attributes configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#instrument-configuration-file">Instrument configuration file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#multiple-instruments">Multiple instruments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#aquadopp">Aquadopp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#signature">Signature</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#d-wave">d|wave</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exo">EXO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wet-labs-eco-ntu">WET Labs ECO NTU</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vaisala-wxt536">Vaisala WXT536</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#eofe-echologger">EofE ECHOLOGGER</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="atmos.html">Atmospheric compensation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqd.html">Aquadopp (currents)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wvs.html">Aquadopp (waves)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqdhr.html">Aquadopp HR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vec.html">Vector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sig.html">Signature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsk.html">RBR instruments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exo.html">YSI EXO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iq.html">SonTek IQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wet.html">WET Labs ECO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hobo.html">Onset HOBO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wxt.html">Vaisala WXT536</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eofe.html">EofE ECHOLOGGER</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indexvel.html">QRev data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="turnaround.html">Turnaround scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to stglib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">stglib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Configuration files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="configuration-files">
+<h1>Configuration files<a class="headerlink" href="#configuration-files" title="Permalink to this heading"></a></h1>
+<p>There are two required configuration files for processing data: the global attributes file, which describes attributes that apply to the mooring, and the instrument configuration file, which describes attributes that apply to an instrument on a mooring. Contents of both files will be included as attributes in both the xarray Dataset and the netCDF files.</p>
+<section id="transitioning-from-epic-to-cf-conventions">
+<h2>Transitioning from EPIC to CF Conventions<a class="headerlink" href="#transitioning-from-epic-to-cf-conventions" title="Permalink to this heading"></a></h2>
+<p>Historically, data have been released according to NOAA PMEL/EPIC conventions. Today, <a class="reference external" href="http://cfconventions.org">CF Conventions</a> are used much more frequently, and stglib supports only CF Conventions. Specifying conventions is done via <code class="docutils literal notranslate"><span class="pre">Conventions</span></code> keyword in either the global attributes file or the instrument configuration file.</p>
+<section id="setting-cf-in-global-attributes">
+<h3>Setting CF in global attributes<a class="headerlink" href="#setting-cf-in-global-attributes" title="Permalink to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Conventions</span><span class="p">;</span> <span class="n">CF</span><span class="o">-</span><span class="mf">1.8</span>
+</pre></div>
+</div>
+</section>
+<section id="setting-cf-in-the-instrument-configuration-file">
+<h3>Setting CF in the instrument configuration file<a class="headerlink" href="#setting-cf-in-the-instrument-configuration-file" title="Permalink to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Conventions</span><span class="p">:</span> <span class="s1">&#39;CF-1.8&#39;</span>
+</pre></div>
+</div>
+<p>Specifying CF-1.8 or a later release of the standard will enable straight-to-CF processing.</p>
+</section>
+</section>
+<section id="global-attributes-configuration-file">
+<h2>Global attributes configuration file<a class="headerlink" href="#global-attributes-configuration-file" title="Permalink to this heading"></a></h2>
+<p>This file describes attributes that apply to the mooring, and uses a peculiar formatting as shown in the example below.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span>    <span class="n">SciPi</span><span class="p">;</span> <span class="n">N</span><span class="o">.</span> <span class="n">Ganju</span>
+<span class="linenos"> 2</span>    <span class="n">PROJECT</span><span class="p">;</span> <span class="n">USGS</span> <span class="n">Coastal</span> <span class="ow">and</span> <span class="n">Marine</span> <span class="n">Geology</span> <span class="n">Program</span>
+<span class="linenos"> 3</span>    <span class="n">EXPERIMENT</span><span class="p">;</span> <span class="n">Grand</span> <span class="n">Bay</span>
+<span class="linenos"> 4</span>    <span class="n">DESCRIPTION</span><span class="p">;</span> <span class="n">Site</span> <span class="n">GB1</span><span class="p">,</span> <span class="n">Heron</span> <span class="n">Bay</span>
+<span class="linenos"> 5</span>    <span class="n">DATA_SUBTYPE</span><span class="p">;</span> <span class="n">MOORED</span>
+<span class="linenos"> 6</span>    <span class="n">DATA_ORIGIN</span><span class="p">;</span> <span class="n">USGS</span> <span class="n">WHCMSC</span> <span class="n">Sed</span> <span class="n">Trans</span> <span class="n">Group</span>
+<span class="linenos"> 7</span>    <span class="n">COORD_SYSTEM</span><span class="p">;</span> <span class="n">GEOGRAPHIC</span>
+<span class="linenos"> 8</span>    <span class="n">Conventions</span><span class="p">;</span> <span class="n">PMEL</span><span class="o">/</span><span class="n">EPIC</span>
+<span class="linenos"> 9</span>    <span class="n">MOORING</span><span class="p">;</span> <span class="mi">1076</span>
+<span class="linenos">10</span>    <span class="n">WATER_DEPTH</span><span class="p">;</span> <span class="mf">1.55</span>
+<span class="linenos">11</span>    <span class="n">WATER_DEPTH_NOTE</span><span class="p">;</span> <span class="p">(</span><span class="n">meters</span><span class="p">),</span> <span class="n">nominal</span> <span class="n">depth</span>
+<span class="linenos">12</span>    <span class="n">latitude</span><span class="p">;</span> <span class="mf">30.37876</span>
+<span class="linenos">13</span>    <span class="n">longitude</span><span class="p">;</span> <span class="o">-</span><span class="mf">88.38794</span>
+<span class="linenos">14</span>    <span class="n">magnetic_variation</span><span class="p">;</span> <span class="o">-</span><span class="mf">1.88</span>
+<span class="linenos">15</span>    <span class="n">Deployment_date</span><span class="p">;</span> <span class="mi">2016</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mi">04</span> <span class="mi">15</span><span class="p">:</span><span class="mi">41</span>
+<span class="linenos">16</span>    <span class="n">Recovery_date</span><span class="p">;</span> <span class="mi">2016</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">19</span> <span class="mi">20</span><span class="p">:</span><span class="mi">10</span>
+<span class="linenos">17</span>    <span class="n">DATA_CMNT</span><span class="p">;</span> 
+<span class="linenos">18</span>    <span class="n">platform_type</span><span class="p">;</span> <span class="n">FG</span> <span class="n">Lander</span>
+<span class="linenos">19</span>    <span class="n">DRIFTER</span><span class="p">;</span> <span class="mi">0</span>
+<span class="linenos">20</span>    <span class="n">POS_CONST</span><span class="p">;</span> <span class="mi">0</span>
+<span class="linenos">21</span>    <span class="n">DEPTH_CONST</span><span class="p">;</span> <span class="mi">0</span>
+<span class="linenos">22</span>    <span class="n">WATER_MASS</span><span class="p">;</span> <span class="n">Grand</span> <span class="n">Bay</span><span class="p">,</span> <span class="n">AL</span><span class="o">/</span><span class="n">MS</span>
+<span class="linenos">23</span>    <span class="n">VAR_FILL</span><span class="p">;</span> <span class="mf">1.e+35</span>
+<span class="linenos">24</span>    <span class="n">institution</span><span class="p">;</span> <span class="n">United</span> <span class="n">States</span> <span class="n">Geological</span> <span class="n">Survey</span><span class="p">,</span> <span class="n">Woods</span> <span class="n">Hole</span> <span class="n">Coastal</span> <span class="ow">and</span> <span class="n">Marine</span> <span class="n">Science</span> <span class="n">Center</span>
+<span class="linenos">25</span>    <span class="n">institution_url</span><span class="p">;</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">woodshole</span><span class="o">.</span><span class="n">er</span><span class="o">.</span><span class="n">usgs</span><span class="o">.</span><span class="n">gov</span>
+</pre></div>
+</div>
+</section>
+<section id="instrument-configuration-file">
+<h2>Instrument configuration file<a class="headerlink" href="#instrument-configuration-file" title="Permalink to this heading"></a></h2>
+<p>This file is instrument-specific and is YAML formatted. A few examples are given below.</p>
+<p>Options common to most (all?) instrument config files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Conventions</span></code>: version of the CF Conventions, <code class="docutils literal notranslate"><span class="pre">'CF-1.8'</span></code> presently</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">basefile</span></code>: the input filename without extension</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filename</span></code>: output filename, to which <code class="docutils literal notranslate"><span class="pre">-raw.cdf</span></code>, <code class="docutils literal notranslate"><span class="pre">-a.nc</span></code>, etc. will be appended</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ClockError</span></code>: number, in seconds, negative is slow. Applies a simple offset for times. Useful if the instrument was deployed in an incorrect time zone.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ClockDrift</span></code>: number, in seconds, negative is slow. Linearly interpolates times for when the instrument clock has drifted.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_instrument_height</span></code>: elevation of instrument in meters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_instrument_height_note</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">P_1ac_note</span></code>: a note on the atmospheric pressure source used</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">zeroed_pressure</span></code>: a note detailing whether the pressure sensor was zeroed before deployment, and other pertinent details such as date and time of zeroing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">good_dates</span></code>: a list of dates to clip data by instead of the default <code class="docutils literal notranslate"><span class="pre">Deployment_date</span></code> and <code class="docutils literal notranslate"><span class="pre">Recovery_date</span></code>. Example: <code class="docutils literal notranslate"><span class="pre">good_dates:</span> <span class="pre">['2021-01-22</span> <span class="pre">18:32',</span> <span class="pre">'2021-04-13</span> <span class="pre">19:27']</span> <span class="pre">#</span> <span class="pre">first</span> <span class="pre">burst</span> <span class="pre">looked</span> <span class="pre">suspect</span></code>. Multiple date ranges can also be used. Example: <code class="docutils literal notranslate"><span class="pre">good_dates:</span> <span class="pre">['2021-01-22</span> <span class="pre">18:32',</span> <span class="pre">'2021-02-28</span> <span class="pre">23:59',</span> <span class="pre">'2021-04-01</span> <span class="pre">00:00',</span> <span class="pre">'2021-04-13</span> <span class="pre">19:27']</span> <span class="pre">#</span> <span class="pre">the</span> <span class="pre">month</span> <span class="pre">of</span> <span class="pre">March</span> <span class="pre">was</span> <span class="pre">bad</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">good_ens</span></code>: a list of good indices (based on the raw file, zero-based) to clip the data by. Example: <code class="docutils literal notranslate"><span class="pre">good_ens:</span> <span class="pre">[10,</span> <span class="pre">500]</span></code>. To specify multiple good ranges, add additional pairs of indices: <code class="docutils literal notranslate"><span class="pre">good_ens:</span> <span class="pre">[10,</span> <span class="pre">500,</span> <span class="pre">560,</span> <span class="pre">600]</span></code> will clip the data to samples 10-500 and 560-600 in the final file.</p></li>
+</ul>
+<section id="multiple-instruments">
+<h3>Multiple instruments<a class="headerlink" href="#multiple-instruments" title="Permalink to this heading"></a></h3>
+<p>Options applicable to many instrument types include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_bad_ens</span></code>: specify bad ensemble ranges (either index numbers or dates) that should be set to <code class="docutils literal notranslate"><span class="pre">_FillValue</span></code>. If you want multiple ranges, you can do this with additional values in the array. For example, <code class="docutils literal notranslate"><span class="pre">Turb_bad_ens:</span> <span class="pre">['2017-09-30</span> <span class="pre">21:15',</span> <span class="pre">'2017-10-02</span> <span class="pre">09:30',</span> <span class="pre">'2017-10-12</span> <span class="pre">20:45',</span> <span class="pre">'2017-10-16</span> <span class="pre">00:30']</span></code>. This will set the ranges in late September and early October, and again in mid-October, to <code class="docutils literal notranslate"><span class="pre">_FillValue</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_min</span></code>: fill values less than this minimum valid value. Values outside this range will become <code class="docutils literal notranslate"><span class="pre">_FillValue</span></code>. Substitute your variable for <code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">fDOMQSU_min</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_max</span></code>: fill values more than this maximum valid value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_min_diff</span></code>: fill values where data decreases by more than this number of units in a single time step. Should be a negative number.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_max_diff</span></code>: fill values where data increases by more than this number of units in a single time step.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_med_diff</span></code>: fill values where difference between a 5-point (default) median filter and original values is greater than this number.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_med_diff_pct</span></code>: fill values where percent difference between a 5-point (default) median filter and original values is greater than this number.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_trim_fliers</span></code>: fill flier values, which are data points surrounded by filled data. Set to the maximum size of flier clumps to remove.</p></li>
+</ul>
+</section>
+<section id="aquadopp">
+<h3>Aquadopp<a class="headerlink" href="#aquadopp" title="Permalink to this heading"></a></h3>
+<p>Aquadopp-specific options include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">head_rotation</span></code>: probably will be <code class="docutils literal notranslate"><span class="pre">'horizontal'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cutoff_ampl</span></code>: will probably always be <code class="docutils literal notranslate"><span class="pre">0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trim_method</span></code>: can be <code class="docutils literal notranslate"><span class="pre">'water</span> <span class="pre">level'</span></code>, <code class="docutils literal notranslate"><span class="pre">'water</span> <span class="pre">level</span> <span class="pre">sl'</span></code>, <code class="docutils literal notranslate"><span class="pre">'bin</span> <span class="pre">range'</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>, or <code class="docutils literal notranslate"><span class="pre">'none'</span></code>. Or just omit the option entirely if you don’t want to use it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_trim_single_bins</span></code>: trim data where only a single bin of data (after trimming via <code class="docutils literal notranslate"><span class="pre">trim_method</span></code>) remains. Set this value to <code class="docutils literal notranslate"><span class="pre">true</span></code> to enable.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_maxabs_diff_2d</span></code>: trim values in a 2D DataArray when the absolute value of the increase is greater than a specified amount</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sl_bins</span></code>: number of surface bins to fill due to sidelobe interference. If none specified, default will be <code class="docutils literal notranslate"><span class="pre">0</span></code></p></li>
+</ul>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="nt">basefile</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;AQ107703&#39;</span>
+<span class="linenos"> 2</span><span class="nt">filename</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;10771Baqd&#39;</span><span class="w">   </span><span class="c1"># name of output file, -raw.cdf or .nc will be appended to this</span>
+<span class="linenos"> 3</span><span class="nt">LatLonDatum</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;NAD83&#39;</span>
+<span class="linenos"> 4</span><span class="nt">ClockError</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"> </span><span class="c1"># sec, negative is slow</span>
+<span class="linenos"> 5</span><span class="nt">orientation</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;UP&#39;</span><span class="w">          </span><span class="c1"># use this to identify orientation of profiler</span>
+<span class="linenos"> 6</span><span class="nt">head_rotation</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;horizontal&#39;</span>
+<span class="linenos"> 7</span><span class="nt">initial_instrument_height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.15</span><span class="w">  </span><span class="c1"># meters - estimated!!!</span>
+<span class="linenos"> 8</span><span class="nt">initial_instrument_height_note</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;&#39;</span>
+<span class="linenos"> 9</span><span class="nt">zeroed_pressure</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Yes&#39;</span><span class="w"> </span><span class="c1"># was pressure zeroed before deployment</span>
+<span class="linenos">10</span><span class="nt">cutoff_ampl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">   </span><span class="c1"># set to 0, otherwise it automatically specifies cutoff based on amplitude which is a weird thing to do</span>
+<span class="linenos">11</span><span class="nt">trim_method</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;water</span><span class="nv"> </span><span class="s">level</span><span class="nv"> </span><span class="s">sl&#39;</span><span class="w">  </span><span class="c1"># Water Level SL trims bin if any part of bin or side lobe is out of water - works best when pressure is corrected for atmospheric</span>
+<span class="linenos">12</span><span class="c1"># trim_method: &#39;bin range&#39;</span>
+<span class="linenos">13</span><span class="c1"># good_bins: [0,7] # with these two options, trim to the first 7 bins from the transducer</span>
+<span class="linenos">14</span><span class="nt">P_1ac_note</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Corrected</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">variations</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">atmospheric</span><span class="nv"> </span><span class="s">pressure</span><span class="nv"> </span><span class="s">using</span><span class="nv"> </span><span class="s">Grand</span><span class="nv"> </span><span class="s">Bay</span><span class="nv"> </span><span class="s">NERR</span><span class="nv"> </span><span class="s">met</span><span class="nv"> </span><span class="s">station</span><span class="nv"> </span><span class="s">(GNDCRMET).&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="signature">
+<h3>Signature<a class="headerlink" href="#signature" title="Permalink to this heading"></a></h3>
+<p>Signature-specific options include (see Aquadopp for others):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">outdir</span></code>: output directory (make sure it exists) to write individual <code class="docutils literal notranslate"><span class="pre">cdf</span></code> files before being compiled into a single <code class="docutils literal notranslate"><span class="pre">cdf</span></code> file per data type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">orientation</span></code>: can be <code class="docutils literal notranslate"><span class="pre">UP</span></code> or <code class="docutils literal notranslate"><span class="pre">DOWN</span></code> use this to identify orientation of profiler</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">head_rotation</span></code>: probably will be <code class="docutils literal notranslate"><span class="pre">'horizontal'</span></code></p></li>
+</ul>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="nt">basefile</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;AQ107703&#39;</span>
+<span class="linenos"> 2</span><span class="nt">filename</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;10771Baqd&#39;</span><span class="w">   </span><span class="c1"># name of output file, -raw.cdf or .nc will be appended to this</span>
+<span class="linenos"> 3</span><span class="nt">LatLonDatum</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;NAD83&#39;</span>
+<span class="linenos"> 4</span><span class="nt">ClockError</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"> </span><span class="c1"># sec, negative is slow</span>
+<span class="linenos"> 5</span><span class="nt">orientation</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;UP&#39;</span><span class="w">          </span><span class="c1"># use this to identify orientation of profiler</span>
+<span class="linenos"> 6</span><span class="nt">head_rotation</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;horizontal&#39;</span>
+<span class="linenos"> 7</span><span class="nt">initial_instrument_height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.15</span><span class="w">  </span><span class="c1"># meters - estimated!!!</span>
+<span class="linenos"> 8</span><span class="nt">initial_instrument_height_note</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;&#39;</span>
+<span class="linenos"> 9</span><span class="nt">zeroed_pressure</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Yes&#39;</span><span class="w"> </span><span class="c1"># was pressure zeroed before deployment</span>
+<span class="linenos">10</span><span class="nt">cutoff_ampl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">   </span><span class="c1"># set to 0, otherwise it automatically specifies cutoff based on amplitude which is a weird thing to do</span>
+<span class="linenos">11</span><span class="nt">trim_method</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;water</span><span class="nv"> </span><span class="s">level</span><span class="nv"> </span><span class="s">sl&#39;</span><span class="w">  </span><span class="c1"># Water Level SL trims bin if any part of bin or side lobe is out of water - works best when pressure is corrected for atmospheric</span>
+<span class="linenos">12</span><span class="c1"># trim_method: &#39;bin range&#39;</span>
+<span class="linenos">13</span><span class="c1"># good_bins: [0,7] # with these two options, trim to the first 7 bins from the transducer</span>
+<span class="linenos">14</span><span class="nt">P_1ac_note</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Corrected</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">variations</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">atmospheric</span><span class="nv"> </span><span class="s">pressure</span><span class="nv"> </span><span class="s">using</span><span class="nv"> </span><span class="s">Grand</span><span class="nv"> </span><span class="s">Bay</span><span class="nv"> </span><span class="s">NERR</span><span class="nv"> </span><span class="s">met</span><span class="nv"> </span><span class="s">station</span><span class="nv"> </span><span class="s">(GNDCRMET).&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="d-wave">
+<h3>d|wave<a class="headerlink" href="#d-wave" title="Permalink to this heading"></a></h3>
+<p>d|wave-specific options include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">basefile</span></code>: the input filename without extension or data type. For example, if your exported text files are named <code class="docutils literal notranslate"><span class="pre">055170_20190219_1547_burst.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">055170_20190219_1547_data.txt</span></code>, etc., <code class="docutils literal notranslate"><span class="pre">basefile</span></code> will be <code class="docutils literal notranslate"><span class="pre">055170_20190219_1547</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wp_min</span></code>, <code class="docutils literal notranslate"><span class="pre">wp_max</span></code>: min/max allowable wave period, in seconds</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wh_min</span></code>, <code class="docutils literal notranslate"><span class="pre">wh_max</span></code>: min/max allowable wave height, in meters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wp_ratio</span></code>: maximum allowable ratio between peak period (<code class="docutils literal notranslate"><span class="pre">wp_peak</span></code>) and mean period (<code class="docutils literal notranslate"><span class="pre">wp_4060</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;_min</span></code>: fill values less than this minimum valid value. Values outside this range will become <code class="docutils literal notranslate"><span class="pre">_FillValue</span></code>. Substitute your variable for <code class="docutils literal notranslate"><span class="pre">&lt;VAR&gt;</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">P_1ac_min</span></code>. Only works for <code class="docutils literal notranslate"><span class="pre">P_1</span></code> and <code class="docutils literal notranslate"><span class="pre">P_1ac</span></code>. Useful for trimming by minimum pressure for instruments that go dry on some tidal cycles. Any data within the burst less than the threshold will result in the full burst being filled.</p></li>
+</ul>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="nt">basefile</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;055110_20161020_1503&#39;</span>
+<span class="linenos">2</span><span class="nt">filename</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;10793Adw&#39;</span><span class="w">   </span><span class="c1"># name of output file, -raw.cdf or .nc will be appended to this</span>
+<span class="linenos">3</span><span class="nt">LatLonDatum</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;NAD83&#39;</span>
+<span class="linenos">4</span><span class="nt">initial_instrument_height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.15</span><span class="w">  </span><span class="c1"># meters - estimated!!!</span>
+<span class="linenos">5</span><span class="nt">wp_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<span class="linenos">6</span><span class="nt">wh_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.02</span>
+<span class="linenos">7</span><span class="nt">wp_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="linenos">8</span><span class="nt">P_1ac_note</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Corrected</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">variations</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">atmospheric</span><span class="nv"> </span><span class="s">pressure</span><span class="nv"> </span><span class="s">using</span><span class="nv"> </span><span class="s">Grand</span><span class="nv"> </span><span class="s">Bay</span><span class="nv"> </span><span class="s">NERR</span><span class="nv"> </span><span class="s">met</span><span class="nv"> </span><span class="s">station</span><span class="nv"> </span><span class="s">(GNDCRMET).&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="exo">
+<h3>EXO<a class="headerlink" href="#exo" title="Permalink to this heading"></a></h3>
+<p>EXO-specific options include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">skiprows</span></code>: number of lines to skip in the CSV before the real data begins</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trim_by_salinity</span></code>: if <code class="docutils literal notranslate"><span class="pre">'true'</span></code>, use salinity (<code class="docutils literal notranslate"><span class="pre">S_41</span></code>) as a master variable. Wherever salinity is <code class="docutils literal notranslate"><span class="pre">_FillValue</span></code>, all other variables will be filled as well. Useful for when the instrument comes out of the water.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">drop_vars</span></code>: a list of variables to be removed from the final file. For example, <code class="docutils literal notranslate"><span class="pre">drop_vars:</span> <span class="pre">['nLF_Cond_µS_per_cm',</span> <span class="pre">'Wiper_Position_volt',</span> <span class="pre">'Cable_Pwr_V']</span></code>.</p></li>
+</ul>
+<p>Note that negative numeric values in the YAML config file must be treated with care so as not to be interpreted as strings. If you want the minimum value to be, say, -0.2 units for a particular parameter, you must write this as <code class="docutils literal notranslate"><span class="pre">-0.2</span></code> and not <code class="docutils literal notranslate"><span class="pre">-.2</span></code> in the config file. The latter format will be interpreted as a string and will cause an error.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="nt">basefile</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;GB0014_14D100014_080316_120000&#39;</span>
+<span class="linenos"> 2</span><span class="nt">filename</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;10762Aexo&#39;</span><span class="w">   </span><span class="c1"># name of output file, -raw.cdf or .nc will be appended to this</span>
+<span class="linenos"> 3</span><span class="c1"># SN: &#39;14D100014&#39;</span>
+<span class="linenos"> 4</span><span class="nt">LatLonDatum</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;NAD83&#39;</span>
+<span class="linenos"> 5</span><span class="nt">ClockError</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"> </span><span class="c1"># sec, negative is slow</span>
+<span class="linenos"> 6</span><span class="nt">initial_instrument_height</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.15</span><span class="w">  </span><span class="c1"># meters - estimated!!!</span>
+<span class="linenos"> 7</span><span class="nt">initial_instrument_height_note</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;&#39;</span>
+<span class="linenos"> 8</span><span class="nt">zeroed_pressure</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Yes&#39;</span><span class="w"> </span><span class="c1"># was pressure zeroed before deployment</span>
+<span class="linenos"> 9</span><span class="nt">P_1ac_note</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Corrected</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">variations</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">atmospheric</span><span class="nv"> </span><span class="s">pressure</span><span class="nv"> </span><span class="s">using</span><span class="nv"> </span><span class="s">Grand</span><span class="nv"> </span><span class="s">Bay</span><span class="nv"> </span><span class="s">NERR</span><span class="nv"> </span><span class="s">met</span><span class="nv"> </span><span class="s">station</span><span class="nv"> </span><span class="s">(GNDCRMET).&#39;</span>
+<span class="linenos">10</span><span class="nt">skiprows</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25</span>
+<span class="linenos">11</span><span class="c1">#fDOMRFU_max_diff: 3</span>
+<span class="linenos">12</span><span class="c1">#fDOMQSU_max_diff: 30</span>
+<span class="linenos">13</span><span class="nt">C_51_min_diff</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-0.3</span>
+<span class="linenos">14</span><span class="nt">SpC_48_min_diff</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-2.5</span>
+<span class="linenos">15</span><span class="nt">S_41_min_diff</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-2</span>
+<span class="linenos">16</span><span class="nt">Turb_max_diff</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="linenos">17</span><span class="c1"># Example of how to trim by specifying the bad ensembles that should be removed.</span>
+<span class="linenos">18</span><span class="c1"># Here we will remove C_51 values at in ensembles 500:600 and 905:910.</span>
+<span class="linenos">19</span><span class="c1"># You must specify these ranges as pairs, start and end</span>
+<span class="linenos">20</span><span class="c1"># This will delete 500-599 and 905-909</span>
+<span class="linenos">21</span><span class="nt">C_51_bad_ens</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">500</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">600</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">905</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">910</span><span class="p p-Indicator">]</span>
+<span class="linenos">22</span><span class="c1"># Here&#39;s an example of just removing a single value (51):</span>
+<span class="linenos">23</span><span class="nt">S_41_bad_ens</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">51</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">52</span><span class="p p-Indicator">]</span>
+<span class="linenos">24</span><span class="c1"># Or an single range (200-250). Note that Python&#39;s indexing means that this</span>
+<span class="linenos">25</span><span class="c1"># will actually remove values 200 through 249.</span>
+<span class="linenos">26</span><span class="nt">Turb_bad_ens</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">200</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">250</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+</section>
+<section id="wet-labs-eco-ntu">
+<h3>WET Labs ECO NTU<a class="headerlink" href="#wet-labs-eco-ntu" title="Permalink to this heading"></a></h3>
+<p>NTU-specific options include:</p>
+<ul class="simple">
+<li><p>All the _min, _max, _bad_ens, etc. options available to the EXO.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Turb_std_max</span></code>: fill turbidity based on a maximum standard deviation value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spb</span></code>: samples per burst</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_ntucal_coeffs</span></code>: polynomial coefficients, e.g., <code class="docutils literal notranslate"><span class="pre">[9.078E-07,</span> <span class="pre">5.883E-02,</span> <span class="pre">-2.899E+00]</span></code>.</p></li>
+</ul>
+</section>
+<section id="vaisala-wxt536">
+<h3>Vaisala WXT536<a class="headerlink" href="#vaisala-wxt536" title="Permalink to this heading"></a></h3>
+<p>WXT-specific options include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">RTK_elevation_NAVD88</span></code>: RTK elevation of the sensor referenced to NAVD88 in meters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dir_offset</span></code>: a direction offset in degrees from magnetic north to be applied if the sensor was not pointing toward magnetic north.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dir_offset_note</span></code>: a note about the direction offset being used.</p></li>
+</ul>
+</section>
+<section id="eofe-echologger">
+<h3>EofE ECHOLOGGER<a class="headerlink" href="#eofe-echologger" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>All the _min, _max, _bad_ens, etc. options available to the EXO.</p></li>
+<li><p>instrument_type: types “ea” and “aa” are supported.</p></li>
+<li><p>orientation: orientation of transducers types ‘DOWN’ or ‘UP’ are supported.</p></li>
+<li><p>average_salinity: average salinity value (PSU) for the water mass for the deployment site and time period.</p></li>
+<li><p>average_salinity_note: source of average salinity value.</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-left" title="Processing overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="atmos.html" class="btn btn-neutral float-right" title="Atmospheric compensation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

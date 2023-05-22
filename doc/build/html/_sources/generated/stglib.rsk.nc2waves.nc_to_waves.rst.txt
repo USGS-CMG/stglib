@@ -1,0 +1,6 @@
+﻿stglib.rsk.nc2waves.nc\_to\_waves
+=================================
+
+.. currentmodule:: stglib.rsk.nc2waves
+
+.. autofunction:: nc_to_waves

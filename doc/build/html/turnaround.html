@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Turnaround scripts &mdash; stglib  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Documentation" href="code.html" />
+    <link rel="prev" title="QRev data" href="indexvel.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> stglib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Processing overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atmos.html">Atmospheric compensation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqd.html">Aquadopp (currents)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wvs.html">Aquadopp (waves)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqdhr.html">Aquadopp HR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vec.html">Vector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sig.html">Signature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsk.html">RBR instruments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exo.html">YSI EXO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iq.html">SonTek IQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wet.html">WET Labs ECO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hobo.html">Onset HOBO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wxt.html">Vaisala WXT536</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eofe.html">EofE ECHOLOGGER</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indexvel.html">QRev data</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Turnaround scripts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#aqdturnaround-py">aqdturnaround.py</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#options">options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#exoturnaround-py">exoturnaround.py</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#options">options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to stglib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">stglib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Turnaround scripts</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/turnaround.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="turnaround-scripts">
+<h1>Turnaround scripts<a class="headerlink" href="#turnaround-scripts" title="Permalink to this heading"></a></h1>
+<p>stglib provides turnaround scripts for quick data analysis in the field. These can be found in the <code class="docutils literal notranslate"><span class="pre">scripts/</span></code> directory.</p>
+<section id="aqdturnaround-py">
+<h2>aqdturnaround.py<a class="headerlink" href="#aqdturnaround-py" title="Permalink to this heading"></a></h2>
+<p><p>Create Aquadopp turnaround plots. Run this script from the directory containing Aquadopp files</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">aqdturnaround</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">orientation</span> <span class="n">ORIENTATION</span><span class="p">]</span> <span class="n">basefile</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>basefile</kbd></dt>
+<dd><p>basename of AQD file (without extension)</p>
+</dd>
+</dl>
+</section>
+<section id="options">
+<h3>options<a class="headerlink" href="#options" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>--orientation</kbd></dt>
+<dd><p>instrument orientation (UP/DOWN). Default UP</p>
+<p>Default: “UP”</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="exoturnaround-py">
+<h2>exoturnaround.py<a class="headerlink" href="#exoturnaround-py" title="Permalink to this heading"></a></h2>
+<p><p>Create YSI EXO turnaround plots. Run this script from the directory containing EXO files</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">exoturnaround</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">skiprows</span> <span class="n">SKIPROWS</span><span class="p">]</span> <span class="n">basefile</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>basefile</kbd></dt>
+<dd><p>basename of EXO .csv file (without extension)</p>
+</dd>
+</dl>
+</section>
+<section id="options">
+<h3>options<a class="headerlink" href="#options" title="Permalink to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>--skiprows</kbd></dt>
+<dd><p>Number of header rows to skip. Default 25</p>
+<p>Default: 25</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="indexvel.html" class="btn btn-neutral float-left" title="QRev data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="code.html" class="btn btn-neutral float-right" title="API Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

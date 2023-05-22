@@ -1,0 +1,6 @@
+﻿stglib.aqd.wvsnc2waves.nc\_to\_waves
+====================================
+
+.. currentmodule:: stglib.aqd.wvsnc2waves
+
+.. autofunction:: nc_to_waves

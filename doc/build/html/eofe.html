@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EofE ECHOLOGGER &mdash; stglib  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="QRev data" href="indexvel.html" />
+    <link rel="prev" title="Vaisala WXT536" href="wxt.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> stglib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Processing overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atmos.html">Atmospheric compensation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqd.html">Aquadopp (currents)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wvs.html">Aquadopp (waves)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqdhr.html">Aquadopp HR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vec.html">Vector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sig.html">Signature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsk.html">RBR instruments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exo.html">YSI EXO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iq.html">SonTek IQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wet.html">WET Labs ECO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hobo.html">Onset HOBO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wxt.html">Vaisala WXT536</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">EofE ECHOLOGGER</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#instrument-data-to-raw-cdf">Instrument data to raw .cdf</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#runeofelog2cdf-py">runeofelog2cdf.py</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#raw-cdf-to-cf-compliant-nc">Raw .cdf to CF-compliant .nc</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#runeofecdf2nc-py">runeofecdf2nc.py</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="indexvel.html">QRev data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="turnaround.html">Turnaround scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to stglib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">stglib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>EofE ECHOLOGGER</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/eofe.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="eofe-echologger">
+<h1>EofE ECHOLOGGER<a class="headerlink" href="#eofe-echologger" title="Permalink to this heading"></a></h1>
+<p>Data will generally be processed using a series of run scripts. The first script for each instrument type
+depends on two <a class="reference internal" href="config.html"><span class="doc">configuration files</span></a>.</p>
+<section id="instrument-data-to-raw-cdf">
+<h2>Instrument data to raw .cdf<a class="headerlink" href="#instrument-data-to-raw-cdf" title="Permalink to this heading"></a></h2>
+<p>Convert from  tab or space-delimited log file to a raw netCDF file with .cdf extension using <code class="docutils literal notranslate"><span class="pre">runeofelog2cdf.py</span></code>.</p>
+<section id="runeofelog2cdf-py">
+<h3>runeofelog2cdf.py<a class="headerlink" href="#runeofelog2cdf-py" title="Permalink to this heading"></a></h3>
+<p><p>Convert EofE echologger .log file to raw .cdf format. Run this script from the directory containing ea400 echologger .log file</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">runeofelog2cdf</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">gatts</span> <span class="n">config</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>gatts</kbd></dt>
+<dd><p>path to global attributes file (gatts formatted)</p>
+</dd>
+<dt><kbd>config</kbd></dt>
+<dd><p>path to instrument configuration file (YAML formatted)</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="raw-cdf-to-cf-compliant-nc">
+<h2>Raw .cdf to CF-compliant .nc<a class="headerlink" href="#raw-cdf-to-cf-compliant-nc" title="Permalink to this heading"></a></h2>
+<p>Convert the raw .cdf data into CF-compliant netCDF file with .nc extension using <code class="docutils literal notranslate"><span class="pre">runeofecdf2nc.py</span></code>.</p>
+<section id="runeofecdf2nc-py">
+<h3>runeofecdf2nc.py<a class="headerlink" href="#runeofecdf2nc-py" title="Permalink to this heading"></a></h3>
+<p><p>Convert raw echologger .cdf format to processed .nc files</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">runeofecdf2nc</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">cdfname</span>
+</pre></div>
+</div>
+<section id="Positional Arguments">
+<h4>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this heading"></a></h4>
+<dl class="option-list">
+<dt><kbd>cdfname</kbd></dt>
+<dd><p>raw .CDF filename</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wxt.html" class="btn btn-neutral float-left" title="Vaisala WXT536" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="indexvel.html" class="btn btn-neutral float-right" title="QRev data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

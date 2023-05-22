@@ -1,0 +1,6 @@
+﻿stglib.wxt.cdf\_to\_nc
+======================
+
+.. currentmodule:: stglib.wxt
+
+.. autofunction:: cdf_to_nc

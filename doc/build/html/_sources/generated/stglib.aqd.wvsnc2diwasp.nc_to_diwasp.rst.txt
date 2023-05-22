@@ -1,0 +1,6 @@
+﻿stglib.aqd.wvsnc2diwasp.nc\_to\_diwasp
+======================================
+
+.. currentmodule:: stglib.aqd.wvsnc2diwasp
+
+.. autofunction:: nc_to_diwasp

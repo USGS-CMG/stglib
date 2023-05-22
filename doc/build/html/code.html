@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Documentation &mdash; stglib  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="stglib.aqd.hdr2cdf.hdr_to_cdf" href="generated/stglib.aqd.hdr2cdf.hdr_to_cdf.html" />
+    <link rel="prev" title="Turnaround scripts" href="turnaround.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> stglib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Processing overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="atmos.html">Atmospheric compensation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqd.html">Aquadopp (currents)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wvs.html">Aquadopp (waves)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aqdhr.html">Aquadopp HR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vec.html">Vector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sig.html">Signature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsk.html">RBR instruments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exo.html">YSI EXO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iq.html">SonTek IQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wet.html">WET Labs ECO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hobo.html">Onset HOBO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wxt.html">Vaisala WXT536</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eofe.html">EofE ECHOLOGGER</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indexvel.html">QRev data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="turnaround.html">Turnaround scripts</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#aquadopp-currents">Aquadopp (currents)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.aqd.hdr2cdf.hdr_to_cdf.html">stglib.aqd.hdr2cdf.hdr_to_cdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.aqd.cdf2nc.cdf_to_nc.html">stglib.aqd.cdf2nc.cdf_to_nc</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#aquadopp-waves">Aquadopp (waves)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.aqd.wvswad2cdf.wad_to_cdf.html">stglib.aqd.wvswad2cdf.wad_to_cdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.aqd.wvscdf2nc.cdf_to_nc.html">stglib.aqd.wvscdf2nc.cdf_to_nc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.aqd.wvsnc2waves.nc_to_waves.html">stglib.aqd.wvsnc2waves.nc_to_waves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.aqd.wvsnc2diwasp.nc_to_diwasp.html">stglib.aqd.wvsnc2diwasp.nc_to_diwasp</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#aquadopp-hr">Aquadopp HR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.aqd.hdr2cdf.hdr_to_cdf.html">stglib.aqd.hdr2cdf.hdr_to_cdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.aqd.cdf2nc.cdf_to_nc.html">stglib.aqd.cdf2nc.cdf_to_nc</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#rbr-instruments">RBR Instruments</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.rsk.rsk2cdf.rsk_to_cdf.html">stglib.rsk.rsk2cdf.rsk_to_cdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.rsk.cdf2nc.cdf_to_nc.html">stglib.rsk.cdf2nc.cdf_to_nc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.rsk.nc2waves.nc_to_waves.html">stglib.rsk.nc2waves.nc_to_waves</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#exo">EXO</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.exo.csv_to_cdf.html">stglib.exo.csv_to_cdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.exo.read_exo.html">stglib.exo.read_exo</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#wet-labs">WET Labs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.eco.read_par.html">stglib.eco.read_par</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.eco.read_ntu.html">stglib.eco.read_ntu</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sontek-iq">SonTek IQ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.iq.read_iq.html">stglib.iq.read_iq</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#onset-hobo">Onset HOBO</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.hobo.read_hobo.html">stglib.hobo.read_hobo</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#signature">Signature</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.sig.mat2cdf.mat_to_cdf.html">stglib.sig.mat2cdf.mat_to_cdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.sig.cdf2nc.cdf_to_nc.html">stglib.sig.cdf2nc.cdf_to_nc</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#vaisala-weather-transmitter-wxt">Vaisala Weather Transmitter WXT</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.wxt.read_wxt.html">stglib.wxt.read_wxt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.wxt.csv_to_cdf.html">stglib.wxt.csv_to_cdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.wxt.cdf_to_nc.html">stglib.wxt.cdf_to_nc</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#qrev">QRev</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/stglib.indexvel.parse_qrev_xml.html">stglib.indexvel.parse_qrev_xml</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to stglib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">stglib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>API Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/code.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-documentation">
+<h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this heading"></a></h1>
+<section id="aquadopp-currents">
+<h2>Aquadopp (currents)<a class="headerlink" href="#aquadopp-currents" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.aqd.hdr2cdf.hdr_to_cdf.html#stglib.aqd.hdr2cdf.hdr_to_cdf" title="stglib.aqd.hdr2cdf.hdr_to_cdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.aqd.hdr2cdf.hdr_to_cdf</span></code></a>(metadata)</p></td>
+<td><p>Load Aquadopp text files and output to netCDF format</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/stglib.aqd.cdf2nc.cdf_to_nc.html#stglib.aqd.cdf2nc.cdf_to_nc" title="stglib.aqd.cdf2nc.cdf_to_nc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.aqd.cdf2nc.cdf_to_nc</span></code></a>(cdf_filename[, ...])</p></td>
+<td><p>Load a raw .cdf file and generate a processed .nc file</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="aquadopp-waves">
+<h2>Aquadopp (waves)<a class="headerlink" href="#aquadopp-waves" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.aqd.wvswad2cdf.wad_to_cdf.html#stglib.aqd.wvswad2cdf.wad_to_cdf" title="stglib.aqd.wvswad2cdf.wad_to_cdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.aqd.wvswad2cdf.wad_to_cdf</span></code></a>(metadata[, ...])</p></td>
+<td><p>Load Aquadopp waves data and create raw netCDF file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/stglib.aqd.wvscdf2nc.cdf_to_nc.html#stglib.aqd.wvscdf2nc.cdf_to_nc" title="stglib.aqd.wvscdf2nc.cdf_to_nc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.aqd.wvscdf2nc.cdf_to_nc</span></code></a>(cdf_filename)</p></td>
+<td><p>Load a raw .cdf file and generate a processed .nc file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.aqd.wvsnc2waves.nc_to_waves.html#stglib.aqd.wvsnc2waves.nc_to_waves" title="stglib.aqd.wvsnc2waves.nc_to_waves"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.aqd.wvsnc2waves.nc_to_waves</span></code></a>(nc_filename)</p></td>
+<td><p>Process burst data to wave statistics</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/stglib.aqd.wvsnc2diwasp.nc_to_diwasp.html#stglib.aqd.wvsnc2diwasp.nc_to_diwasp" title="stglib.aqd.wvsnc2diwasp.nc_to_diwasp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.aqd.wvsnc2diwasp.nc_to_diwasp</span></code></a>(nc_filename)</p></td>
+<td><p>Process burst data to wave statistics by using DIWASP output from Matlab</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="aquadopp-hr">
+<h2>Aquadopp HR<a class="headerlink" href="#aquadopp-hr" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.aqd.hdr2cdf.hdr_to_cdf.html#stglib.aqd.hdr2cdf.hdr_to_cdf" title="stglib.aqd.hdr2cdf.hdr_to_cdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.aqd.hdr2cdf.hdr_to_cdf</span></code></a>(metadata)</p></td>
+<td><p>Load Aquadopp text files and output to netCDF format</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/stglib.aqd.cdf2nc.cdf_to_nc.html#stglib.aqd.cdf2nc.cdf_to_nc" title="stglib.aqd.cdf2nc.cdf_to_nc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.aqd.cdf2nc.cdf_to_nc</span></code></a>(cdf_filename[, ...])</p></td>
+<td><p>Load a raw .cdf file and generate a processed .nc file</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="rbr-instruments">
+<h2>RBR Instruments<a class="headerlink" href="#rbr-instruments" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.rsk.rsk2cdf.rsk_to_cdf.html#stglib.rsk.rsk2cdf.rsk_to_cdf" title="stglib.rsk.rsk2cdf.rsk_to_cdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.rsk.rsk2cdf.rsk_to_cdf</span></code></a>(metadata)</p></td>
+<td><p>Main function to load data from RSK file and save to raw .CDF</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/stglib.rsk.cdf2nc.cdf_to_nc.html#stglib.rsk.cdf2nc.cdf_to_nc" title="stglib.rsk.cdf2nc.cdf_to_nc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.rsk.cdf2nc.cdf_to_nc</span></code></a>(cdf_filename[, ...])</p></td>
+<td><p>Load raw .cdf file, trim, apply QAQC, and save to .nc</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.rsk.nc2waves.nc_to_waves.html#stglib.rsk.nc2waves.nc_to_waves" title="stglib.rsk.nc2waves.nc_to_waves"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.rsk.nc2waves.nc_to_waves</span></code></a>(nc_filename)</p></td>
+<td><p>Process burst data to wave statistics</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="exo">
+<h2>EXO<a class="headerlink" href="#exo" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.exo.csv_to_cdf.html#stglib.exo.csv_to_cdf" title="stglib.exo.csv_to_cdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.exo.csv_to_cdf</span></code></a>(metadata)</p></td>
+<td><p>Process EXO .csv file to a raw .cdf file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/stglib.exo.read_exo.html#stglib.exo.read_exo" title="stglib.exo.read_exo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.exo.read_exo</span></code></a>(filnam[, skiprows, encoding])</p></td>
+<td><p>Read data from a YSI EXO multiparameter sonde .csv file into an xarray Dataset.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="wet-labs">
+<h2>WET Labs<a class="headerlink" href="#wet-labs" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.eco.read_par.html#stglib.eco.read_par" title="stglib.eco.read_par"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.eco.read_par</span></code></a>(filnam[, spb, skiprows, ...])</p></td>
+<td><p>Read data from a WET Labs PAR csv file into an xarray Dataset.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/stglib.eco.read_ntu.html#stglib.eco.read_ntu" title="stglib.eco.read_ntu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.eco.read_ntu</span></code></a>(filnam[, spb, skiprows, ...])</p></td>
+<td><p>Read data from a WET Labs NTU csv file into an xarray Dataset.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sontek-iq">
+<h2>SonTek IQ<a class="headerlink" href="#sontek-iq" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.iq.read_iq.html#stglib.iq.read_iq" title="stglib.iq.read_iq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.iq.read_iq</span></code></a>(filnam)</p></td>
+<td><p>Read SonTek IQ data which has been exported as a Matlab .mat file from IQ software into an xarray Dataset</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="onset-hobo">
+<h2>Onset HOBO<a class="headerlink" href="#onset-hobo" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.hobo.read_hobo.html#stglib.hobo.read_hobo" title="stglib.hobo.read_hobo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.hobo.read_hobo</span></code></a>(filnam[, skiprows, ...])</p></td>
+<td><p>Read data from an Onset HOBO pressure sensor .csv file into an xarray Dataset.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="signature">
+<h2>Signature<a class="headerlink" href="#signature" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.sig.mat2cdf.mat_to_cdf.html#stglib.sig.mat2cdf.mat_to_cdf" title="stglib.sig.mat2cdf.mat_to_cdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.sig.mat2cdf.mat_to_cdf</span></code></a>(metadata)</p></td>
+<td><p>Load .mat files exported from Signature software and process to .cdf</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/stglib.sig.cdf2nc.cdf_to_nc.html#stglib.sig.cdf2nc.cdf_to_nc" title="stglib.sig.cdf2nc.cdf_to_nc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.sig.cdf2nc.cdf_to_nc</span></code></a>(cdf_filename[, ...])</p></td>
+<td><p>Load a raw .cdf file and generate a processed .nc file</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="vaisala-weather-transmitter-wxt">
+<h2>Vaisala Weather Transmitter WXT<a class="headerlink" href="#vaisala-weather-transmitter-wxt" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.wxt.read_wxt.html#stglib.wxt.read_wxt" title="stglib.wxt.read_wxt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.wxt.read_wxt</span></code></a>(filnam[, skiprows, encoding])</p></td>
+<td><p>Read data from a Vaisala WXT met .csv file into an xarray Dataset.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/stglib.wxt.csv_to_cdf.html#stglib.wxt.csv_to_cdf" title="stglib.wxt.csv_to_cdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.wxt.csv_to_cdf</span></code></a>(metadata)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.wxt.cdf_to_nc.html#stglib.wxt.cdf_to_nc" title="stglib.wxt.cdf_to_nc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.wxt.cdf_to_nc</span></code></a>(cdf_filename)</p></td>
+<td><p>Load a raw .cdf file and generate a processed .nc file</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="qrev">
+<h2>QRev<a class="headerlink" href="#qrev" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/stglib.indexvel.parse_qrev_xml.html#stglib.indexvel.parse_qrev_xml" title="stglib.indexvel.parse_qrev_xml"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stglib.indexvel.parse_qrev_xml</span></code></a>(doc[, ...])</p></td>
+<td><p>Parse XML output from QRev and return as a Pandas DataFrame</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="turnaround.html" class="btn btn-neutral float-left" title="Turnaround scripts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="generated/stglib.aqd.hdr2cdf.hdr_to_cdf.html" class="btn btn-neutral float-right" title="stglib.aqd.hdr2cdf.hdr_to_cdf" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

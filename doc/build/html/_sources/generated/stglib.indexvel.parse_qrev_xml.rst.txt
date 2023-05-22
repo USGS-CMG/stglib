@@ -1,0 +1,6 @@
+﻿stglib.indexvel.parse\_qrev\_xml
+================================
+
+.. currentmodule:: stglib.indexvel
+
+.. autofunction:: parse_qrev_xml

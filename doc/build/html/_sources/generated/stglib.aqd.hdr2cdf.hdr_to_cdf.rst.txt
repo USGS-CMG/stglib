@@ -1,0 +1,6 @@
+﻿stglib.aqd.hdr2cdf.hdr\_to\_cdf
+===============================
+
+.. currentmodule:: stglib.aqd.hdr2cdf
+
+.. autofunction:: hdr_to_cdf

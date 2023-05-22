@@ -1,0 +1,6 @@
+﻿stglib.aqd.wvswad2cdf.wad\_to\_cdf
+==================================
+
+.. currentmodule:: stglib.aqd.wvswad2cdf
+
+.. autofunction:: wad_to_cdf

@@ -1,0 +1,6 @@
+﻿stglib.wxt.read\_wxt
+====================
+
+.. currentmodule:: stglib.wxt
+
+.. autofunction:: read_wxt

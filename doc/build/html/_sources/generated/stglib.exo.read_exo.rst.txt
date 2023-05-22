@@ -1,0 +1,6 @@
+﻿stglib.exo.read\_exo
+====================
+
+.. currentmodule:: stglib.exo
+
+.. autofunction:: read_exo
