@@ -7,6 +7,12 @@ from ..core import utils
 
 
 def raw_to_cdf(metadata):
+    warnings.warn(
+        "The use of raw_to_cdf is deprecated. Use mat_to_cdf instead. Refer to the stglib documentation for more details.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     basefile = metadata["basefile"]
 
     if "prefix" in metadata:

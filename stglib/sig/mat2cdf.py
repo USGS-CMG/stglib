@@ -313,12 +313,6 @@ def mat_to_cdf(metadata):
     Load .mat files exported from Signature software and process to .cdf
     """
 
-    """warnings.warn(
-        "The use of mat_to_cdf is deprecated. Use raw_to_cdf instead. Refer to the stglib documentation for more details.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    """
     tic = time.time()
     basefile = metadata["basefile"]
 
