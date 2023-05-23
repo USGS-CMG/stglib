@@ -133,7 +133,7 @@ Before starting any development, you'll need to create an isolated stglib
 development environment:
 
 - We recommend installing the IOOS conda environment per these instructions\:
-  `Installing the IOOS Environment <http://ioos.github.io/notebooks_demos/other_resources/>`_
+  `Installing the IOOS Environment <https://ioos.github.io/ioos_code_lab/content/ioos_installation_conda.html/>`_
 - Make sure your conda is up to date with the command (``conda update conda``)
 - Make sure that you have cloned the repository
 - ``cd`` to the *stglib* source directory (your fork, locally, on your own machine)
@@ -303,33 +303,21 @@ as possible to avoid mass breakages.
 Code Formatting
 ~~~~~~~~~~~~~~~
 
-stglib follows PEP8 conventions.
-
-There are tools you can use to ensure a consistent code format:
-
-- `Black <https://black.readthedocs.io/en/stable/>`_ for standardized code formatting
-- `Flake8 <http://flake8.pycqa.org/en/latest/>`_ for general code quality
-- `isort <https://github.com/timothycrosley/isort>`_ for standardized order in imports.
-  See also `flake8-isort <https://github.com/gforcada/flake8-isort>`_.
-- `mypy <http://mypy-lang.org/>`_ for static type checking on `type hints
-  <https://docs.python.org/3/library/typing.html>`_
-
 We highly recommend that you setup `pre-commit hooks <https://pre-commit.com/>`_
-to automatically run all the above tools every time you make a git commit. This
+to automatically format the code every time you make a git commit. This
 can be done by running::
 
    pre-commit install
 
-from the root of the xarray repository. You can skip the pre-commit checks
+from the root of the stglib repository. You can skip the pre-commit checks
 with ``git commit --no-verify``.
 
 Integrated development environments also help with code formatting:
 
  - `spyder <https://www.spyder-ide.org/>`_  installed by ``conda install spyder``
+ - `VS Code <https://code.visualstudio.com/>`_
  - `Atom <https://atom.io/>`_
- - `pycharm free community edition <https://www.jetbrains.com/pycharm/>`_ is very full featured and
-   plays well with conda, however can be hard to learn
- - `vscode <https://code.visualstudio.com/>`_ is simpler, and may have issues with conda
+ - `pycharm free community edition <https://www.jetbrains.com/pycharm/>`_
 
 
 Backwards Compatibility
@@ -355,13 +343,7 @@ You may wish to run tests on your local branch before pushing to github or submi
 
 There are several types of testing:
 
- - The simplest, and built into python, is
-   `unittest <https://docs.python.org/2/library/unittest.html>`_.  ``test_stglib.py`` uses unittest.
-   Try running the tests with the command ``python -m unittest discover stglib\tests``
- - `pytest <https://docs.pytest.org/en/latest/>`_ can be used for more complicated testing.
-   ``test_puv_quick.py`` uses pytest.  You will need to install pytest (``conda install pytest``)
-   before you can use it.  ``pytest`` can be run from within the ``tests`` directory.  pytest will run
-   test written for pytest and for unittest.
+Please use `pytest <https://docs.pytest.org/en/latest/>`_ for new tests.
 
 A pull-request will be considered for merging when you have an all 'green' build. If any
 tests are failing, then you will get a red 'X', where you can click through to see the
@@ -429,14 +411,6 @@ Now you can commit your changes in your local repository::
 
     git commit -m
 
-Squashing your commits
-----------------------
-
-*stglib* maintainers prefer that commits be ``squashed`` before a pull request is initiated.
-This is difficult to do once commits are pushed to github.  This is explained `here
-<https://stackoverflow.com/questions/5189560/squash-my-last-x-commits-together-using-git>`_.
-
-
 Pushing your changes
 --------------------
 
@@ -455,8 +429,8 @@ like::
 
     origin  git@github.com:yourname/stglib.git (fetch)
     origin  git@github.com:yourname/stglib.git (push)
-    upstream        git://github.com/pydata/stglib.git (fetch)
-    upstream        git://github.com/pydata/stglib.git (push)
+    upstream        git://github.com/USGS-CMG/stglib.git (fetch)
+    upstream        git://github.com/USGS-CMG/stglib.git (push)
 
 Now your code is on GitHub, but it is not yet a part of the *stglib* project.  For that to
 happen, a pull request needs to be submitted on GitHub.
@@ -534,10 +508,9 @@ PR checklist
 - **Test your code**.
 
     - Write new tests if needed.
-    - Test the code using or unittest.
+    - Test the code.
 
 - **Properly format your code**
-- **Squash your commits**
 - **Push your code and** `create a PR on GitHub <https://help.github.com/en/articles/creating-a-pull-request>`_.
 - **Use a helpful title for your pull request** by summarizing the main contributions rather
   than using the latest commit message. If this addresses an `issue <https://github.com/USGS-CMG/stglib/issues>`_,
