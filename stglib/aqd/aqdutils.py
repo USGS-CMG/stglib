@@ -1132,6 +1132,54 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
+    if "SNR1" in ds:
+        ds["SNR1"].attrs.update(
+            {
+                "units": "dB",
+                "long_name": "Signal to Noise Ratio Beam 1",
+            }
+        )
+
+    if "SNR2" in ds:
+        ds["SNR2"].attrs.update(
+            {
+                "units": "dB",
+                "long_name": "Signal to Noise Ratio Beam 2",
+            }
+        )
+
+    if "SNR3" in ds:
+        ds["SNR3"].attrs.update(
+            {
+                "units": "dB",
+                "long_name": "Signal to Noise Ratio Beam 3",
+            }
+        )
+
+    if "COR1" in ds:
+        ds["COR1"].attrs.update(
+            {
+                "units": "percent",
+                "long_name": "Correlation Beam 1",
+            }
+        )
+
+    if "COR2" in ds:
+        ds["COR2"].attrs.update(
+            {
+                "units": "percent",
+                "long_name": "Correlation Beam 2",
+            }
+        )
+
+    if "COR3" in ds:
+        ds["COR3"].attrs.update(
+            {
+                "units": "percent",
+                "long_name": "Correlation Beam 3",
+            }
+        )
+
     if "P_1" in ds:
         ds["P_1"].attrs.update(
             {
