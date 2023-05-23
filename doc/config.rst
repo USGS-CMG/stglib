@@ -3,6 +3,11 @@ Configuration files
 
 There are two required configuration files for processing data: the global attributes file, which describes attributes that apply to the mooring, and the instrument configuration file, which describes attributes that apply to an instrument on a mooring. Contents of both files will be included as attributes in both the xarray Dataset and the netCDF files.
 
+A note on time and time zones
+=============================
+
+Time is always in Coordinated Universal Time (UTC).
+
 Transitioning from EPIC to CF Conventions
 =========================================
 
