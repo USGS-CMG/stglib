@@ -3,6 +3,20 @@ import yaml
 import stglib
 
 
+def get_metadata(args):
+    # initialize metadata from the globalatts file
+    metadata = stglib.read_globalatts(args.gatts)
+
+    # Add additional metadata from metadata config file
+    with open(args.config) as f:
+        config = yaml.safe_load(f)
+
+    for k in config:
+        metadata[k] = config[k]
+
+    return metadata
+
+
 def runaqdcdf2nc():
     args = stglib.cmd.aqdcdf2nc_parser().parse_args()
 
@@ -15,15 +29,7 @@ def runaqdcdf2nc():
 def runaqdhdr2cdf():
     args = stglib.cmd.aqdhdr2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.aqd.hdr2cdf.hdr_to_cdf(metadata)
 
@@ -40,15 +46,7 @@ def runaqdhrcdf2nc():
 def runaqdhrhdr2cdf():
     args = stglib.cmd.aqdhdr2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.aqd.hrhdr2cdf.hdr_to_cdf(metadata)
 
@@ -62,15 +60,7 @@ def runecocdf2nc():
 def runecocsv2cdf():
     args = stglib.cmd.ecolog2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.eco.csv_to_cdf(metadata)
 
@@ -84,15 +74,7 @@ def runeofecdf2nc():
 def runeofelog2cdf():
     args = stglib.cmd.eofelog2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.eofe.log_to_cdf(metadata)
 
@@ -109,15 +91,7 @@ def runexocdf2nc():
 def runexocsv2cdf():
     args = stglib.cmd.exocsv2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.exo.csv_to_cdf(metadata)
 
@@ -131,15 +105,7 @@ def runhwlbcdf2nc():
 def runhwlbcsv2cdf():
     args = stglib.cmd.hwlbcsv2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.hobo.csv_to_cdf(metadata)
 
@@ -153,15 +119,7 @@ def runiqcdf2nc():
 def runiqmat2cdf():
     args = stglib.cmd.iqmat2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.iq.mat_to_cdf(metadata)
 
@@ -178,15 +136,7 @@ def runrdicdf2nc():
 def runrdiraw2cdf():
     args = stglib.cmd.rdiraw2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.rdi.raw2cdf.raw_to_cdf(metadata)
 
@@ -203,15 +153,7 @@ def runrskcdf2nc():
 def runrskcsv2cdf():
     args = stglib.cmd.rskcsv2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.rsk.csv2cdf.csv_to_cdf(metadata)
 
@@ -231,15 +173,7 @@ def runrsknc2waves():
 def runrskrsk2cdf():
     args = stglib.cmd.rskrsk2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.rsk.rsk2cdf.rsk_to_cdf(metadata)
 
@@ -267,15 +201,7 @@ def runsigdlfncdf2nc():
 def runsigmat2cdf():
     args = stglib.cmd.sigmat2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.sig.mat2cdf.mat_to_cdf(metadata)
 
@@ -283,15 +209,7 @@ def runsigmat2cdf():
 def runsigraw2cdf():
     args = stglib.cmd.sigraw2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.sig.raw2cdf.raw_to_cdf(metadata)
 
@@ -305,15 +223,7 @@ def runtrollcdf2nc():
 def runtrollcsv2cdf():
     args = stglib.cmd.trollcsv2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.troll.csv_to_cdf(metadata)
 
@@ -330,15 +240,7 @@ def runveccdf2nc():
 def runvecdat2cdf():
     args = stglib.cmd.vechdr2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.vec.dat2cdf.dat_to_cdf(metadata)
 
@@ -367,15 +269,7 @@ def runwvsnc2waves():
 def runwvswad2cdf():
     args = stglib.cmd.wvswad2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.aqd.wvswad2cdf.wad_to_cdf(metadata)
 
@@ -393,14 +287,6 @@ def runwxtcsv2cdf():
 
     args = stglib.cmd.wxtcsv2cdf_parser().parse_args()
 
-    # initialize metadata from the globalatts file
-    metadata = stglib.read_globalatts(args.gatts)
-
-    # Add additional metadata from metadata config file
-    with open(args.config) as f:
-        config = yaml.safe_load(f)
-
-    for k in config:
-        metadata[k] = config[k]
+    metadata = get_metadata(args)
 
     RAW = stglib.wxt.csv_to_cdf(metadata)
