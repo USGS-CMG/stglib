@@ -75,7 +75,7 @@ setup(
         "console_scripts": [
             "runaqdhdr2cdf.py=stglib.core.runcmd:runaqdhdr2cdf",
             "runaqdcdf2nc.py=stglib.core.runcmd:runaqdcdf2nc",
-            "runaqdhrhdr2cdf.py=stglib.core.runcmd:runaqdhrhdr2cd",
+            "runaqdhrhdr2cdf.py=stglib.core.runcmd:runaqdhrhdr2cdf",
             "runaqdhrcdf2nc.py=stglib.core.runcmd:runaqdhrcdf2nc",
             "runhwlbcsv2cdf.py=stglib.core.runcmd:runhwlbcsv2cdf",
             "runhwlbcdf2nc.py=stglib.core.runcmd:runhwlbcdf2nc",
@@ -90,7 +90,7 @@ setup(
             "runecocdf2nc.py=stglib.core.runcmd:runecocdf2nc",
             "runexocsv2cdf.py=stglib.core.runcmd:runexocsv2cdf",
             "runexocdf2nc.py=stglib.core.runcmd:runexocdf2nc",
-            "runtrollcsv2cdf.py=stglib.core.runcmd:runtrollcsv2cd",
+            "runtrollcsv2cdf.py=stglib.core.runcmd:runtrollcsv2cdf",
             "runtrollcdf2nc.py=stglib.core.runcmd:runtrollcdf2nc",
             "runwvswad2cdf.py=stglib.core.runcmd:runwvswad2cdf",
             "runwvscdf2nc.py=stglib.core.runcmd:runwvscdf2nc",
