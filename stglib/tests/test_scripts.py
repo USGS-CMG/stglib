@@ -6,7 +6,7 @@ import pytest
 
 def exo_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runexocsv2cdf.py", glob_att, config_yaml],
+        ["runexocsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -15,7 +15,7 @@ def exo_raw(glob_att, config_yaml):
 
 def exo_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runexocdf2nc.py", nc_file],
+        ["runexocdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -24,7 +24,7 @@ def exo_nc(nc_file):
 
 def aqd_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runaqdhdr2cdf.py", glob_att, config_yaml],
+        ["runaqdhdr2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -33,7 +33,7 @@ def aqd_raw(glob_att, config_yaml):
 
 def aqd_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runaqdcdf2nc.py", nc_file],
+        ["runaqdcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -42,7 +42,7 @@ def aqd_nc(nc_file):
 
 def aqdhr_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runaqdhrhdr2cdf.py", glob_att, config_yaml],
+        ["runaqdhrhdr2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -51,7 +51,7 @@ def aqdhr_raw(glob_att, config_yaml):
 
 def aqdhr_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runaqdhrcdf2nc.py", nc_file],
+        ["runaqdhrcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -99,7 +99,7 @@ def test_aqdturnaround():
 
 def wxt_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runwxtcsv2cdf.py", glob_att, config_yaml],
+        ["runwxtcsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -108,7 +108,7 @@ def wxt_raw(glob_att, config_yaml):
 
 def wxt_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runwxtcdf2nc.py", nc_file],
+        ["runwxtcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -122,7 +122,7 @@ def test_wxt():
 
 def iq_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runiqmat2cdf.py", glob_att, config_yaml],
+        ["runiqmat2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -131,7 +131,7 @@ def iq_raw(glob_att, config_yaml):
 
 def iq_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runiqcdf2nc.py", nc_file],
+        ["runiqcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -145,7 +145,7 @@ def test_iq():
 
 def eco_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runecocsv2cdf.py", glob_att, config_yaml],
+        ["runecocsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -154,7 +154,7 @@ def eco_raw(glob_att, config_yaml):
 
 def eco_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runecocdf2nc.py", nc_file],
+        ["runecocdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -168,7 +168,7 @@ def test_eco():
 
 def rbr_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runrskcsv2cdf.py", glob_att, config_yaml],
+        ["runrskcsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -177,7 +177,7 @@ def rbr_raw(glob_att, config_yaml):
 
 def rbr_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runrskcdf2nc.py", nc_file],
+        ["runrskcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -198,7 +198,7 @@ def test_rbr():
 
 def eofe_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runeofelog2cdf.py", glob_att, config_yaml],
+        ["runeofelog2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -207,7 +207,7 @@ def eofe_raw(glob_att, config_yaml):
 
 def eofe_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runeofecdf2nc.py", nc_file],
+        ["runeofecdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -223,7 +223,7 @@ def test_eofe():
 
 def sig_mat(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runsigmat2cdf.py", glob_att, config_yaml],
+        ["runsigmat2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -232,7 +232,7 @@ def sig_mat(glob_att, config_yaml):
 
 def sig_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runsigcdf2nc.py", nc_file],
+        ["runsigcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
