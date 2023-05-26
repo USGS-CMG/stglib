@@ -28,5 +28,5 @@ jobs:
       - run: |
           conda info
           conda list
-          pip install --no-deps -e .
+          pip install --no-deps .
           pytest
