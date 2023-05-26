@@ -85,7 +85,7 @@ def test_aqdhr():
 
 def aqdturnaround(basefile):
     result = subprocess.run(
-        [scripts / "python", "../../../scripts/aqdturnaround.py", basefile],
+        ["python", "../../../scripts/aqdturnaround.py", basefile],
         capture_output=True,
         cwd="stglib/tests/data",
     )
