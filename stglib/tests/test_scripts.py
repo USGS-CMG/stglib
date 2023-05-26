@@ -1,12 +1,16 @@
 import os
 import subprocess
+import sysconfig
+from pathlib import Path
 
 import pytest
+
+scripts = Path(sysconfig.get_path("scripts"))
 
 
 def exo_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runexocsv2cdf.py", glob_att, config_yaml],
+        [scripts / "runexocsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -15,7 +19,7 @@ def exo_raw(glob_att, config_yaml):
 
 def exo_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runexocdf2nc.py", nc_file],
+        [scripts / "runexocdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -24,7 +28,7 @@ def exo_nc(nc_file):
 
 def aqd_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runaqdhdr2cdf.py", glob_att, config_yaml],
+        [scripts / "runaqdhdr2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -33,7 +37,7 @@ def aqd_raw(glob_att, config_yaml):
 
 def aqd_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runaqdcdf2nc.py", nc_file],
+        [scripts / "runaqdcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -42,7 +46,7 @@ def aqd_nc(nc_file):
 
 def aqdhr_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runaqdhrhdr2cdf.py", glob_att, config_yaml],
+        [scripts / "runaqdhrhdr2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -51,7 +55,7 @@ def aqdhr_raw(glob_att, config_yaml):
 
 def aqdhr_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runaqdhrcdf2nc.py", nc_file],
+        [scripts / "runaqdhrcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -99,7 +103,7 @@ def test_aqdturnaround():
 
 def wxt_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runwxtcsv2cdf.py", glob_att, config_yaml],
+        [scripts / "runwxtcsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -108,7 +112,7 @@ def wxt_raw(glob_att, config_yaml):
 
 def wxt_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runwxtcdf2nc.py", nc_file],
+        [scripts / "runwxtcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -122,7 +126,7 @@ def test_wxt():
 
 def iq_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runiqmat2cdf.py", glob_att, config_yaml],
+        [scripts / "runiqmat2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -131,7 +135,7 @@ def iq_raw(glob_att, config_yaml):
 
 def iq_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runiqcdf2nc.py", nc_file],
+        [scripts / "runiqcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -145,7 +149,7 @@ def test_iq():
 
 def eco_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runecocsv2cdf.py", glob_att, config_yaml],
+        [scripts / "runecocsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -154,7 +158,7 @@ def eco_raw(glob_att, config_yaml):
 
 def eco_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runecocdf2nc.py", nc_file],
+        [scripts / "runecocdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -168,7 +172,7 @@ def test_eco():
 
 def rbr_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runrskcsv2cdf.py", glob_att, config_yaml],
+        [scripts / "runrskcsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -177,7 +181,7 @@ def rbr_raw(glob_att, config_yaml):
 
 def rbr_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runrskcdf2nc.py", nc_file],
+        [scripts / "runrskcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -198,7 +202,7 @@ def test_rbr():
 
 def eofe_raw(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runeofelog2cdf.py", glob_att, config_yaml],
+        [scripts / "runeofelog2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -207,7 +211,7 @@ def eofe_raw(glob_att, config_yaml):
 
 def eofe_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runeofecdf2nc.py", nc_file],
+        [scripts / "runeofecdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -223,7 +227,7 @@ def test_eofe():
 
 def sig_mat(glob_att, config_yaml):
     result = subprocess.run(
-        ["python", "../../../scripts/runsigmat2cdf.py", glob_att, config_yaml],
+        [scripts / "runsigmat2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -232,7 +236,7 @@ def sig_mat(glob_att, config_yaml):
 
 def sig_nc(nc_file):
     result = subprocess.run(
-        ["python", "../../../scripts/runsigcdf2nc.py", nc_file],
+        [scripts / "runsigcdf2nc.py", nc_file],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -251,7 +255,7 @@ def test_sig():
 
 def ensure_cf(script, glob_att, config_yaml):
     result = subprocess.run(
-        ["python", script, glob_att, config_yaml],
+        [scripts / script, glob_att, config_yaml],
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -264,7 +268,7 @@ def ensure_cf(script, glob_att, config_yaml):
 def test_ensure_cf():
     # ensure scripts fail if non-CF Conventions are specified
     ensure_cf(
-        "../../../scripts/runeofelog2cdf.py",
+        "runeofelog2cdf.py",
         "glob_att1123A_msl_EPIC.txt",
         "1123Aea_example_config.yaml",
     )
