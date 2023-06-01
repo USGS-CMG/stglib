@@ -21,7 +21,7 @@ runvechdr2cdf.py
 Raw .cdf to CF-compliant .nc
 ============================
 
-Convert the raw .cdf data into an CF-compliant netCDF file with .nc extension, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.  Correcting pressure for atmospheric is a side-bar task- use the .ipynb examples to see what to do.
+Convert the raw .cdf data into an CF-compliant netCDF file with .nc extension, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.
 
 runveccdf2nc.py
 ---------------
