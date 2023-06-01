@@ -7,6 +7,8 @@ import xarray as xr
 from ..aqd import aqdutils
 from ..core import utils
 
+from dask.diagnostics import ProgressBar
+
 # import os
 
 
@@ -17,7 +19,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     print(f"Loading {cdf_filename}")
     # print(os.listdir())
     start_time = time.time()
-    ds = xr.open_dataset(cdf_filename, chunks={"time": 256000, "bindist": 32})
+    ds = xr.open_dataset(cdf_filename, chunks={"time": 200000, "bindist": 48})
     end_time = time.time()
     print(f"Finished loading {cdf_filename} in {end_time-start_time:.1f} seconds")
 
@@ -104,6 +106,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # Add min/max values
     # if ds.attrs["data_type"] not in ["Echo1"]:
+    print("add max/min variable attributes")
     ds = utils.add_min_max(ds)
 
     # Add DELTA_T for EPIC compliance
@@ -138,7 +141,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "BurstHR":
         nc_out = nc_filename + "b-cal.nc"
         print("writing Burst (b) data to netCDF nc file")
-        ds.to_netcdf(nc_out)
+        delayed_obj = ds.to_netcdf(nc_out, compute=False)
+        with ProgressBar():
+            results = delayed_obj.compute()
         print("Done writing netCDF file", nc_out)
 
     elif ds.attrs["data_type"] == "IBurst" or ds.attrs["data_type"] == "IBurstHR":
@@ -150,7 +155,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     elif ds.attrs["data_type"] == "Echo1":
         nc_out = nc_filename + "e1-cal.nc"
         print("writing Echo1 (echo1) data to netCDF nc file")
-        ds.to_netcdf(nc_out)
+        delayed_obj = ds.to_netcdf(nc_out, compute=False)
+        with ProgressBar():
+            results = delayed_obj.compute()
+        #ds.to_netcdf(nc_out)
         print("Done writing netCDF file", nc_out)
 
     utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
