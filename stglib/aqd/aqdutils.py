@@ -761,6 +761,21 @@ def check_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds.attrs["serial_number"] = ds.attrs["SIGSerialNo"]
         ds.attrs["frequency"] = ds.attrs["SIGHeadFrequency"]
         ds.attrs["instrument_type"] = ds.attrs["SIGInstrumentName"]
+
+        # find bin_size attribute
+        if (
+            ds.attrs["data_type"].upper() == "BURST"
+            or ds.attrs["data_type"].upper() == "IBURST"
+        ):
+            ds.attrs["bin_size"] = ds.attrs["SIGBurst_CellSize"]
+        elif (
+            ds.attrs["data_type"].upper() == "BURSTHR"
+            or ds.attrs["data_type"].upper() == "IBURSTHR"
+        ):
+            ds.attrs["bin_size"] = ds.attrs["SIGBurstHR_CellSize"]
+        elif ds.attrs["data_type"].upper() == "ECHO1":
+            ds.attrs["bin_size"] = ds.attrs["SIGEchoSounder_CellSize"]
+
         if ds.attrs["frequency"] == 1000 or ds.attrs["frequency"] == 500:
             ds.attrs["beam_angle"] = 25
         elif ds.attrs["frequency"] == 250:

@@ -19,13 +19,20 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     print(f"Loading {cdf_filename}")
     # print(os.listdir())
     start_time = time.time()
-    #ds = xr.open_dataset(cdf_filename, chunks={"time": 200000, "bindist": 48})
-    if "chunksizes" in ds.attrs:
-        chunksizes=ds.attrs["chunksizes"]
-    else:
-        chunksizes={'time': 200000, 'bindist': 48}
 
-    ds = xr.open_dataset(cdf_filename, chunks=chunksizes)
+    ds = xr.open_dataset(cdf_filename, chunks={"time": 200000, "bindist": 48})
+    # check for user specified chunks
+    if "chunks" in ds.attrs:
+        chunksizes = dict(zip(ds.attrs["chunks"][::2], ds.attrs["chunks"][1::2]))
+        ds.close()
+        # make sure values are type int, needed because they are written out to global attribute in -raw.cdf file they are str
+        for key in chunksizes:
+            if isinstance(chunksizes[key], str):
+                chunksizes[key] = int(chunksizes[key])
+        print(f"Using user specified chunksizes = {chunksizes}")
+
+        ds = xr.open_dataset(cdf_filename, chunks=chunksizes)
+
     end_time = time.time()
     print(f"Finished loading {cdf_filename} in {end_time-start_time:.1f} seconds")
 
