@@ -11,6 +11,7 @@ initial_instrument_height_note: 'From seabed'
 zeroed_pressure: 'Yes' # was pressure zeroed before deployment
 cutoff_ampl: 0   # set to 0, otherwise it automatically specifies cutoff based on amplitude which is a weird thing to do
 trim_method: 'water level sl'  # Water Level SL trims bin if any part of bin or side lobe is out of water - works best when pressure is corrected for atmospheric
+chunks: ['time', 25000, 'bindist', 4]
 #P_1ac_note: 'Corrected for variations in atmospheric pressure using MesoWest Station FW0901 Wellfleet.'
 #u_1205_bad_ens: [2019-01-22 09:01, 2019-01-22 13:16, 2019-01-22 21:45, 2019-01-23 02:16,2019-01-23 09:16, 2019-01-23 13:31,2019-02-01 09:01, 2019-02-01 18:16, 2019-02-02 21:31, 2019-02-02 22:16, 2019-02-03 08:01, 2019-02-03 10:46, 2019-02-03 20:01, 2019-02-04 00:31]
 #v_1206_bad_ens: [2019-01-22 09:01, 2019-01-22 13:16, 2019-01-22 21:45, 2019-01-23 02:16,2019-01-23 09:16, 2019-01-23 13:31,2019-02-01 09:01, 2019-02-01 18:16, 2019-02-02 21:31, 2019-02-02 22:16, 2019-02-03 08:01, 2019-02-03 10:46, 2019-02-03 20:01, 2019-02-04 00:31]
