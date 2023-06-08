@@ -6,6 +6,7 @@ dependencies:
   - compliance-checker
   - dask
   - dolfyn
+  - joblib
   - matplotlib-base
   - netcdf4
   - numpy

@@ -9,11 +9,11 @@ import numpy as np
 import pandas as pd
 import scipy.io
 import xarray as xr
+from dask.diagnostics import ProgressBar
+from joblib import Parallel, delayed
 
 from ..aqd import aqdutils
 from ..core import utils
-
-from dask.diagnostics import ProgressBar
 
 
 def matlab2datetime(matlab_datenum):
@@ -332,13 +332,13 @@ def mat_to_cdf(metadata):
     utils.check_valid_globalatts_metadata(metadata)
     aqdutils.check_valid_config_metadata(metadata)
 
-    for f in glob.glob(f"{basefile}_*.mat"):
-        print(f)
+    print("Loading from Matlab files; this may take a while for large datasets")
+
+    def loadpar(f):
         dsd = load_mat_file(f)
         filstub = os.path.normpath(f).split("\\")[-1]
         bf = basefile.split("/")[-1]
         num = filstub.split(f"{bf}_")[-1].split(".mat")[0]
-        print(num)
         for dsn in dsd:
             ds = dsd[dsn]
             ds = utils.write_metadata(ds, metadata)
@@ -353,9 +353,15 @@ def mat_to_cdf(metadata):
                 + num
                 + "-raw.cdf"
             )
-            print(cdf_filename)
             ds.to_netcdf(cdf_filename)
             print(f"Finished writing data to {cdf_filename}")
+
+    matfiles = glob.glob(f"{basefile}_*.mat")
+    Parallel(n_jobs=-1, verbose=10)(delayed(loadpar)(f) for f in matfiles)
+
+    dsd = load_mat_file(matfiles[0])  # get minimal dsd file for below
+    cdffiles = glob.glob(f"{prefix}{outdir}*-raw.cdf")
+    ds = xr.open_dataset(cdffiles[0])  # get minimal ds for below
 
     # read in Burst -raw.cdf and make one combined per data_type
     if "chunks" in ds.attrs:
