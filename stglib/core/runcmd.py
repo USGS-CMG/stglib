@@ -17,13 +17,24 @@ def get_metadata(args):
     return metadata
 
 
+def run_cdf_to_nc(f, args):
+    # if not a list, make it one so we can process multiple input files if necessary
+    if not isinstance(args.cdfname, list):
+        args.cdfname = [args.cdfname]
+
+    for cdfname in args.cdfname:
+        if hasattr(args, "atmpres") and args.atmpres:
+            ds = f(cdfname, atmpres=args.atmpres)
+        else:
+            ds = f(cdfname)
+
+    return ds
+
+
 def runaqdcdf2nc():
     args = stglib.cmd.aqdcdf2nc_parser().parse_args()
 
-    if args.atmpres:
-        ds = stglib.aqd.cdf2nc.cdf_to_nc(args.cdfname, atmpres=args.atmpres)
-    else:
-        ds = stglib.aqd.cdf2nc.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.aqd.cdf2nc.cdf_to_nc, args)
 
 
 def runaqdhdr2cdf():
@@ -37,10 +48,7 @@ def runaqdhdr2cdf():
 def runaqdhrcdf2nc():
     args = stglib.cmd.aqdcdf2nc_parser().parse_args()
 
-    if args.atmpres:
-        ds = stglib.aqd.hrcdf2nc.cdf_to_nc(args.cdfname, atmpres=args.atmpres)
-    else:
-        ds = stglib.aqd.hrcdf2nc.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.aqd.hrcdf2nc.cdf_to_nc, args)
 
 
 def runaqdhrhdr2cdf():
@@ -54,7 +62,7 @@ def runaqdhrhdr2cdf():
 def runecocdf2nc():
     args = stglib.cmd.ecocdf2nc_parser().parse_args()
 
-    ds = stglib.eco.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.eco.cdf_to_nc, args)
 
 
 def runecocsv2cdf():
@@ -68,7 +76,7 @@ def runecocsv2cdf():
 def runeofecdf2nc():
     args = stglib.cmd.eofecdf2nc_parser().parse_args()
 
-    ds = stglib.eofe.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.eofe.cdf_to_nc, args)
 
 
 def runeofelog2cdf():
@@ -82,10 +90,7 @@ def runeofelog2cdf():
 def runexocdf2nc():
     args = stglib.cmd.exocdf2nc_parser().parse_args()
 
-    if args.atmpres:
-        ds = stglib.exo.cdf_to_nc(args.cdfname, atmpres=args.atmpres)
-    else:
-        ds = stglib.exo.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.exo.cdf_to_nc, args)
 
 
 def runexocsv2cdf():
@@ -99,7 +104,7 @@ def runexocsv2cdf():
 def runhwlbcdf2nc():
     args = stglib.cmd.hwlbcdf2nc_parser().parse_args()
 
-    ds = stglib.hobo.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.hobo.cdf_to_nc, args)
 
 
 def runhwlbcsv2cdf():
@@ -113,7 +118,7 @@ def runhwlbcsv2cdf():
 def runiqcdf2nc():
     args = stglib.cmd.iqcdf2nc_parser().parse_args()
 
-    ds = stglib.iq.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.iq.cdf_to_nc, args)
 
 
 def runiqmat2cdf():
@@ -127,10 +132,7 @@ def runiqmat2cdf():
 def runrdicdf2nc():
     args = stglib.cmd.rdicdf2nc_parser().parse_args()
 
-    if args.atmpres:
-        ds = stglib.rdi.cdf2nc.cdf_to_nc(args.cdfname, atmpres=args.atmpres)
-    else:
-        ds = stglib.rdi.cdf2nc.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.rdi.cdf2nc.cdf_to_nc, args)
 
 
 def runrdiraw2cdf():
@@ -144,10 +146,7 @@ def runrdiraw2cdf():
 def runrskcdf2nc():
     args = stglib.cmd.rskcdf2nc_parser().parse_args()
 
-    if args.atmpres:
-        ds = stglib.rsk.cdf2nc.cdf_to_nc(args.cdfname, atmpres=args.atmpres)
-    else:
-        ds = stglib.rsk.cdf2nc.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.rsk.cdf2nc.cdf_to_nc, args)
 
 
 def runrskcsv2cdf():
@@ -181,21 +180,13 @@ def runrskrsk2cdf():
 def runsigcdf2nc():
     args = stglib.cmd.sigcdf2nc_parser().parse_args()
 
-    for f in args.cdfname:
-        if args.atmpres:
-            ds = stglib.sig.cdf2nc.cdf_to_nc(f, atmpres=args.atmpres)
-        else:
-            ds = stglib.sig.cdf2nc.cdf_to_nc(f)
+    ds = run_cdf_to_nc(stglib.sig.cdf2nc.cdf_to_nc, args)
 
 
 def runsigdlfncdf2nc():
     args = stglib.cmd.sigdlfncdf2nc_parser().parse_args()
 
-    for f in args.cdfname:
-        if args.atmpres:
-            ds = stglib.sig.dlfncdf2nc.cdf_to_nc(f, atmpres=args.atmpres)
-        else:
-            ds = stglib.sig.dlfncdf2nc.cdf_to_nc(f)
+    ds = run_cdf_to_nc(stglib.sig.dlfncdf2nc.cdf_to_nc, args)
 
 
 def runsigmat2cdf():
@@ -217,7 +208,7 @@ def runsigraw2cdf():
 def runtrollcdf2nc():
     args = stglib.cmd.trollcdf2nc_parser().parse_args()
 
-    ds = stglib.troll.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.troll.cdf_to_nc, args)
 
 
 def runtrollcsv2cdf():
@@ -231,10 +222,7 @@ def runtrollcsv2cdf():
 def runveccdf2nc():
     args = stglib.cmd.veccdf2nc_parser().parse_args()
 
-    if args.atmpres:
-        ds = stglib.vec.cdf2nc.cdf_to_nc(args.cdfname, atmpres=args.atmpres)
-    else:
-        ds = stglib.vec.cdf2nc.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.vec.cdf2nc.cdf_to_nc, args)
 
 
 def runvecdat2cdf():
@@ -248,10 +236,7 @@ def runvecdat2cdf():
 def runwvscdf2nc():
     args = stglib.cmd.wvscdf2nc_parser().parse_args()
 
-    if args.atmpres:
-        VEL = stglib.aqd.wvscdf2nc.cdf_to_nc(args.cdfname, atmpres=args.atmpres)
-    else:
-        VEL = stglib.aqd.wvscdf2nc.cdf_to_nc(args.cdfname)
+    VEL = run_cdf_to_nc(stglib.aqd.wvscdf2nc.cdf_to_nc, args)
 
 
 def runwvsnc2diwasp():
@@ -275,16 +260,12 @@ def runwvswad2cdf():
 
 
 def runwxtcdf2nc():
-    import stglib.wxt
-
     args = stglib.cmd.wxtcdf2nc_parser().parse_args()
 
-    ds = stglib.wxt.cdf_to_nc(args.cdfname)
+    ds = run_cdf_to_nc(stglib.wxt.cdf_to_nc, args)
 
 
 def runwxtcsv2cdf():
-    import stglib.wxt
-
     args = stglib.cmd.wxtcsv2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
