@@ -299,7 +299,7 @@ def add_standard_names(ds):
     if "AnalogInput1" in ds:
         for v in ["standard_name", "long_name", "units"]:
             if f"AnalogInput1_{v}" in ds.attrs:
-                ds[k] = check_update_attrs(
+                ds["AnalogInput1"] = check_update_attrs(
                     ds["AnalogInput1"], v, ds.attrs[f"AnalogInput1_{v}"]
                 )
                 # ds["AnalogInput1"].attrs[v] = ds.attrs[f"AnalogInput1_{v}"]
@@ -307,7 +307,7 @@ def add_standard_names(ds):
     if "AnalogInput2" in ds:
         for v in ["standard_name", "long_name", "units"]:
             if f"AnalogInput2_{v}" in ds.attrs:
-                ds[k] = check_update_attrs(
+                ds["AnalogInput2"] = check_update_attrs(
                     ds["AnalogInput2"], v, ds.attrs[f"AnalogInput2_{v}"]
                 )
                 # ds["AnalogInput2"].attrs[v] = ds.attrs[f"AnalogInput2_{v}"]
