@@ -7,6 +7,7 @@ dependencies:
   - dask
   - dolfyn
   - git-lfs
+  - joblib
   - matplotlib-base
   - netcdf4
   - numpy

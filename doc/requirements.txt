@@ -1,6 +1,7 @@
 compliance-checker
 dask
 dolfyn
+joblib
 matplotlib
 netcdf4
 numpy
