@@ -286,7 +286,7 @@ def trim_maxabs_diff(ds, var):
         affected = cond.sum()
         ds[var][cond] = np.nan
 
-        notetxt = f"Values filled where data increases or decreases by more than {val} units in a single time step; {affected.values} values affected. "
+        notetxt = f"Values filled where data increases or decreases by more than {val} units in a single time step; {affected} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
@@ -304,10 +304,10 @@ def trim_std_ratio(ds, var):
 
             varstd = var + "_std"
             cond = ds[varstd] / ds[var] > ds.attrs[var + "_std_ratio"]
-            affects = cond.sum()
+            affected = cond.sum()
             ds[var][cond] = np.nan
 
-            notetxt = f"Values filled where standard deviation ratio threshold of {ds.attrs[var + '_std_ratio']}was exceeded; {affected.values} values affected. "
+            notetxt = f"Values filled where standard deviation ratio threshold of {ds.attrs[var + '_std_ratio']} was exceeded; {affected.values} values affected. "
 
             ds = utils.insert_note(ds, var, notetxt)
 
