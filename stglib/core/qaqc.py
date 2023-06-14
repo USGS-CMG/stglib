@@ -9,10 +9,11 @@ from . import utils
 
 def trim_min(ds, var):
     if var + "_min" in ds.attrs:
-        print("%s: Trimming using minimum value of %f" % (var, ds.attrs[var + "_min"]))
-        ds[var] = ds[var].where(ds[var] >= ds.attrs[var + "_min"])
+        cond = ds[var] >= ds.attrs[var + "_min"]
+        affected = cond.size - cond.sum()
+        ds[var] = ds[var].where(cond)
 
-        notetxt = "Values filled where less than %f units. " % ds.attrs[var + "_min"]
+        notetxt = f"Values filled where less than {ds.attrs[var + '_min']} units; {affected.values} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
@@ -21,10 +22,11 @@ def trim_min(ds, var):
 
 def trim_max(ds, var):
     if var + "_max" in ds.attrs:
-        print("%s: Trimming using maximum value of %f" % (var, ds.attrs[var + "_max"]))
-        ds[var] = ds[var].where(ds[var] <= ds.attrs[var + "_max"])
+        cond = ds[var] <= ds.attrs[var + "_max"]
+        affected = cond.size - cond.sum()
+        ds[var] = ds[var].where(cond)
 
-        notetxt = "Values filled where greater than %f units. " % ds.attrs[var + "_max"]
+        notetxt = f"Values filled where greater than {ds.attrs[var + '_max']} units; {affected.values} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
@@ -33,15 +35,11 @@ def trim_max(ds, var):
 
 def trim_min_diff(ds, var):
     if var + "_min_diff" in ds.attrs:
-        print(
-            "%s: Trimming using minimum diff of %f" % (var, ds.attrs[var + "_min_diff"])
-        )
-        ds[var][np.ediff1d(ds[var], to_begin=0) < ds.attrs[var + "_min_diff"]] = np.nan
+        cond = np.ediff1d(ds[var], to_begin=0) < ds.attrs[var + "_min_diff"]
+        affected = cond.sum()
+        ds[var][cond] = np.nan
 
-        notetxt = (
-            "Values filled where data decreases by more than %f "
-            "units in a single time step. " % ds.attrs[var + "_min_diff"]
-        )
+        notetxt = f"Values filled where data decreases by more than {ds.attrs[var + '_min_diff']} units in a single time step; {affected} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
@@ -50,15 +48,11 @@ def trim_min_diff(ds, var):
 
 def trim_max_diff(ds, var):
     if var + "_max_diff" in ds.attrs:
-        print(
-            "%s: Trimming using maximum diff of %f" % (var, ds.attrs[var + "_max_diff"])
-        )
-        ds[var][np.ediff1d(ds[var], to_begin=0) > ds.attrs[var + "_max_diff"]] = np.nan
+        cond = np.ediff1d(ds[var], to_begin=0) > ds.attrs[var + "_max_diff"]
+        affected = cond.sum()
+        ds[var][cond] = np.nan
 
-        notetxt = (
-            "Values filled where data increases by more than %f "
-            "units in a single time step. " % ds.attrs[var + "_max_diff"]
-        )
+        notetxt = f"Values filled where data increases by more than {ds.attrs[var + '_max_diff']} units in a single time step; {affected} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
@@ -225,8 +219,6 @@ def trim_fliers(ds, var):
     """trim "fliers", single (or more) presumably bad data points unconnected to other, good data points"""
 
     if var + "_fliers" in ds.attrs:
-        print(f"{var}: Trimming fliers using value of {ds.attrs[var + '_fliers']}")
-
         num = ds.attrs[var + "_fliers"]
 
         a = np.ma.masked_array(ds[var], fill_value=np.nan)
@@ -236,9 +228,11 @@ def trim_fliers(ds, var):
                 a[b] = np.nan
         a = a.filled()
 
-        ds[var] = ds[var].where(np.isfinite(a))
+        cond = np.isfinite(a)
+        affected = cond.size - cond.sum()
+        ds[var] = ds[var].where(cond)
 
-        notetxt = f"Fliers of {ds.attrs[var + '_fliers']} or fewer points removed. "
+        notetxt = f"Fliers of {ds.attrs[var + '_fliers']} or fewer points removed; {affected} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
