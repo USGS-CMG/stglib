@@ -65,19 +65,12 @@ def trim_med_diff(ds, var):
             kernel_size = ds.attrs["kernel_size"]
         else:
             kernel_size = 5
-        print(
-            "%s: Trimming using %d-point median filter diff of %f"
-            % (var, kernel_size, ds.attrs[var + "_med_diff"])
-        )
         filtered = scipy.signal.medfilt(ds[var], kernel_size=kernel_size)
         bads = np.abs(ds[var] - filtered) > ds.attrs[var + "_med_diff"]
+        affected = bads.sum()
         ds[var][bads] = np.nan
 
-        notetxt = (
-            "Values filled where difference between %d-point "
-            "median filter and original values is greater than "
-            "%f. " % (kernel_size, ds.attrs[var + "_med_diff"])
-        )
+        notetxt = f"Values filled where difference between {kernel_size}-point median filter and original values is greater than {ds.attrs[var + '_med_diff']}; {affected.values} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
@@ -90,21 +83,14 @@ def trim_med_diff_pct(ds, var):
             kernel_size = ds.attrs["kernel_size"]
         else:
             kernel_size = 5
-        print(
-            "%s: Trimming using %d-point median filter diff of %f pct"
-            % (var, kernel_size, ds.attrs[var + "_med_diff_pct"])
-        )
         filtered = scipy.signal.medfilt(ds[var], kernel_size=kernel_size)
         bads = (
             100 * np.abs(ds[var] - filtered) / ds[var] > ds.attrs[var + "_med_diff_pct"]
         )
+        affected = bads.sum()
         ds[var][bads] = np.nan
 
-        notetxt = (
-            "Values filled where percent difference between "
-            "%d-point median filter and original values is greater "
-            "than %f. " % (kernel_size, ds.attrs[var + "_med_diff_pct"])
-        )
+        notetxt = f"Values filled where percent difference between {kernel_size}-point median filter and original values is greater than {ds.attrs[var + '_med_diff_pct']}; {affected.values} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
@@ -192,18 +178,12 @@ def trim_by_any(ds, var):
 def trim_max_std(ds, var):
     if var + "_max_std" in ds.attrs:
         if var + "_std" in ds.data_vars:  # check to see that std var exists
-            print(
-                "%s: Trimming using maximum standard deviation of %f"
-                % (var, ds.attrs[var + "_max_std"])
-            )
-
             varstd = var + "_std"
-            ds[var][ds[varstd] > ds.attrs[var + "_max_std"]] = np.nan
+            cond = ds[varstd] > ds.attrs[var + "_max_std"]
+            affected = cond.sum()
+            ds[var][cond] = np.nan
 
-            notetxt = (
-                "Values filled where standard deviation greater than %f "
-                "units. " % ds.attrs[var + "_max_std"]
-            )
+            notetxt = f"Values filled where standard deviation greater than {ds.attrs[var + '_max_std']} units; {affected.values} values affected. "
 
             ds = utils.insert_note(ds, var, notetxt)
 
@@ -302,15 +282,11 @@ def trim_mask(ds, var):
 def trim_maxabs_diff(ds, var):
     if var + "_maxabs_diff" in ds.attrs:
         val = ds.attrs[var + "_maxabs_diff"]
-        print(f"{var}: Trimming using maximum absolute diff of {val}")
-        ds[var][
-            np.abs(np.ediff1d(ds[var], to_begin=0)) > ds.attrs[var + "_maxabs_diff"]
-        ] = np.nan
+        cond = np.abs(np.ediff1d(ds[var], to_begin=0)) > ds.attrs[var + "_maxabs_diff"]
+        affected = cond.sum()
+        ds[var][cond] = np.nan
 
-        notetxt = (
-            f"Values filled where data increases or decreases by more than {val} "
-            "units in a single time step. "
-        )
+        notetxt = f"Values filled where data increases or decreases by more than {val} units in a single time step; {affected.values} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
@@ -327,12 +303,11 @@ def trim_std_ratio(ds, var):
             )
 
             varstd = var + "_std"
-            ds[var][ds[varstd] / ds[var] > ds.attrs[var + "_std_ratio"]] = np.nan
+            cond = ds[varstd] / ds[var] > ds.attrs[var + "_std_ratio"]
+            affects = cond.sum()
+            ds[var][cond] = np.nan
 
-            notetxt = (
-                "Values filled where standard deviation ratio threshold of %f was exceeded"
-                % (ds.attrs[var + "_std_ratio"])
-            )
+            notetxt = f"Values filled where standard deviation ratio threshold of {ds.attrs[var + '_std_ratio']}was exceeded; {affected.values} values affected. "
 
             ds = utils.insert_note(ds, var, notetxt)
 
