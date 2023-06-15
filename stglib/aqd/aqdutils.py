@@ -1356,7 +1356,7 @@ def check_valid_config_metadata(metadata, inst_type="AQD"):
         "Conventions",
     ]
 
-    if inst_type == "AQD":
+    if inst_type == "AQD" or inst_type == "VEC":
         vars.append("orientation")
 
     for k in vars:
