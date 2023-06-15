@@ -46,6 +46,22 @@ def trim_min_diff(ds, var):
     return ds
 
 
+def trim_min_diff_pct(ds, var):
+    if var + "_min_diff_pct" in ds.attrs:
+        cond = (
+            100 * np.ediff1d(ds[var], to_begin=0) / np.roll(ds[var], 1)
+            < ds.attrs[var + "_min_diff_pct"]
+        )
+        affected = cond.sum()
+        ds[var][cond] = np.nan
+
+        notetxt = f"Values filled where data decreases by more than {ds.attrs[var + '_min_diff_pct']} percent in a single time step; {affected} values affected. "
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
 def trim_max_diff(ds, var):
     if var + "_max_diff" in ds.attrs:
         cond = np.ediff1d(ds[var], to_begin=0) > ds.attrs[var + "_max_diff"]
@@ -53,6 +69,22 @@ def trim_max_diff(ds, var):
         ds[var][cond] = np.nan
 
         notetxt = f"Values filled where data increases by more than {ds.attrs[var + '_max_diff']} units in a single time step; {affected} values affected. "
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
+def trim_max_diff_pct(ds, var):
+    if var + "_max_diff_pct" in ds.attrs:
+        cond = (
+            100 * np.ediff1d(ds[var], to_begin=0) / np.roll(ds[var], 1)
+            > ds.attrs[var + "_max_diff_pct"]
+        )
+        affected = cond.sum()
+        ds[var][cond] = np.nan
+
+        notetxt = f"Values filled where data increases by more than {ds.attrs[var + '_max_diff_pct']} percent in a single time step; {affected} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 

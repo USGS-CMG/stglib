@@ -58,7 +58,9 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         ds = qaqc.trim_min(ds, "Turb")
         ds = qaqc.trim_max(ds, "Turb")
         ds = qaqc.trim_min_diff(ds, "Turb")
+        ds = qaqc.trim_min_diff_pct(ds, "Turb")
         ds = qaqc.trim_max_diff(ds, "Turb")
+        ds = qaqc.trim_max_diff_pct(ds, "Turb")
         ds = qaqc.trim_bad_ens(ds, "Turb")
 
     # add z coordinate dim
