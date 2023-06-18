@@ -32,6 +32,39 @@ def csv_to_cdf(metadata):
     return ds
 
 
+def cdf_to_nc(cdf_filename, atmpres=False):
+    """
+    Load a raw .cdf file and generate a processed .nc file
+    """
+
+    # Load raw .cdf data
+    ds = xr.load_dataset(cdf_filename)
+
+    # remove units in case we change and we can use larger time steps
+    ds.time.encoding.pop("units")
+
+    # Clip data to in/out water times or via good_ens
+    ds = utils.clip_ds(ds)
+
+    ds = utils.add_min_max(ds)
+
+    ds = utils.add_start_stop_time(ds)
+
+    ds = utils.add_delta_t(ds)
+
+    ds = utils.ds_add_lat_lon(ds)
+
+    # Write to .nc file
+    print("Writing cleaned/trimmed data to .nc file")
+    nc_filename = ds.attrs["filename"] + "-a.nc"
+
+    ds.to_netcdf(
+        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+    )
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+    print("Done writing netCDF file", nc_filename)
+
+
 def read_lisst(f):
     """Read data from exported LISST CSV file"""
     vcs = [f"vc{n:02}" for n in range(1, 37)]
@@ -96,9 +129,8 @@ def read_lisst(f):
     df = df.drop(columns=[f"vc{n:02}" for n in range(1, 37)])
 
     ds = df.to_xarray()
-    ds["ring"] = xr.DataArray(np.arange(36), dims="ring")
+    ds["ring"] = xr.DataArray(np.arange(1, 37), dims="ring")
     ds["vc"] = xr.DataArray(dfvc.values, dims=("time", "ring"))
-    ds["vc"].attrs["long_name"] = "Volume concentration"
 
     ds["RSmedian"], ds["RSlower"], ds["RSupper"] = get_ringsizes()
 
@@ -134,14 +166,19 @@ def set_metadata(ds):
     ] = "External analog input 1 (fluorometer 1 in LISST-HAB & LISST-Black)"
 
     ds["LaserReferenceSensor"].attrs["units"] = "mW"
-    ds["LaserReferenceSensor"].attrs["long_name"] = "Laser Reference sensor"
+    ds["LaserReferenceSensor"].attrs["long_name"] = "Laser reference sensor"
 
     ds["Depth"].attrs["units"] = "m"
+    ds["Depth"].attrs["standard_name"] = "depth"
+    ds["Depth"].attrs["positive"] = "down"
 
     ds["Temperature"].attrs["units"] = "degree_C"
     ds["Temperature"].attrs["standard_name"] = "sea_water_temperature"
 
     ds["AnalogInput2"].attrs["units"] = "V"
+    ds["AnalogInput2"].attrs[
+        "long_name"
+    ] = "External analog input 2 (fluorometer 2 in LISST-HAB & LISST-Black)"
 
     ds["MeanDiameter"].attrs["units"] = "micron"
     ds["MeanDiameter"].attrs[
@@ -155,24 +192,44 @@ def set_metadata(ds):
 
     ds["RelativeHumidity"].attrs["units"] = "percent"
     ds["RelativeHumidity"].attrs["standard_name"] = "relative_humidity"
+    ds["RelativeHumidity"].encoding["dtype"] = "i4"
 
     # ds["AccelerometerX"].attrs['units'] =
+    ds["AccelerometerX"].attrs[
+        "long_name"
+    ] = "Accelerometer X [not presently calibrated or used]"
+    ds["AccelerometerX"].encoding["dtype"] = "i4"
 
     # ds["AccelerometerY"].attrs['units'] =
+    ds["AccelerometerY"].attrs[
+        "long_name"
+    ] = "Accelerometer Y [not presently calibrated or used]"
+    ds["AccelerometerY"].encoding["dtype"] = "i4"
 
     # ds["AccelerometerZ"].attrs['units'] =
+    ds["AccelerometerZ"].attrs[
+        "long_name"
+    ] = "Accelerometer Z [not presently calibrated or used]"
+    ds["AccelerometerZ"].encoding["dtype"] = "i4"
 
     # ds["RawPressureMSB"].attrs['units'] =
     ds["RawPressureMSB"].attrs["long_name"] = "Raw pressure [most significant bit]"
+    ds["RawPressureMSB"].encoding["dtype"] = "i4"
 
     # ds["RawPressureLSBs"].attrs['units'] =
     ds["RawPressureLSBs"].attrs[
         "long_name"
     ] = "Raw pressure [least significant 16 bits]"
+    ds["RawPressureLSBs"].encoding["dtype"] = "i4"
 
-    # ds["AmbientLight"].attrs['units'] =
+    ds["AmbientLight"].attrs["units"] = "counts"
+    ds["AmbientLight"].attrs["long_name"] = "Ambient light"
+    ds["AmbientLight"].encoding["dtype"] = "i4"
 
     ds["AnalogInput3"].attrs["units"] = "V"
+    ds["AnalogInput3"].attrs[
+        "long_name"
+    ] = "External analog input 3 (fluorometer 3 in LISST-HAB & LISST-Black)"
 
     ds["ComputedOpticalTransmissionOverPath"].attrs["units"] = "1"
     ds["ComputedOpticalTransmissionOverPath"].attrs[
@@ -181,6 +238,14 @@ def set_metadata(ds):
 
     ds["BeamAttenuation"].attrs["units"] = "m-1"
     ds["BeamAttenuation"].attrs["long_name"] = "Beam attenuation (c)"
+
+    ds["time"].attrs["standard_name"] = "time"
+
+    ds["ring"].attrs["long_name"] = "Ring number"
+    ds["ring"].encoding["dtype"] = "i4"
+
+    ds["vc"].attrs["units"] = "uL L-1"
+    ds["vc"].attrs["long_name"] = "Volume concentration"
 
     return ds
 

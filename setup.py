@@ -105,6 +105,8 @@ setup(
             "runsigmat2cdf.py=stglib.core.runcmd:runsigmat2cdf",
             "runsigraw2cdf.py=stglib.core.runcmd:runsigraw2cdf",
             "runsigcdf2nc.py=stglib.core.runcmd:runsigcdf2nc",
+            "runlisstcsv2cdf.py=stglib.core.runcmd:runlisstcsv2cdf",
+            "runlisstcdf2nc.py=stglib.core.runcmd:runlisstcdf2nc",
         ],
     },
     include_package_data=True,

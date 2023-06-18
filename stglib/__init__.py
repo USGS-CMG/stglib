@@ -9,6 +9,7 @@ from . import (
     hobo,
     indexvel,
     iq,
+    lisst,
     rdi,
     rsk,
     sig,
