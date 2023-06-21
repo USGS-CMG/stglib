@@ -25,7 +25,7 @@ def mat_to_cdf(metadata):
     ds = utils.ensure_cf(ds)
     
     # Compute time stamps
-    ds = utils.shift_time(ds, ds.attrs["flowSampleInterval"] / 2)
+    ds = utils.shift_time(ds, ds.attrs["flowSampleDuration"] / 2)
 
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
@@ -121,10 +121,10 @@ def read_iq(filnam):
                 )
                 if k in iqmat["Data_Units"]:
                     xzvars = [
-                        'X-Center',
-                        'Z-Center',
-                        'X-Left',
-                        'X-Right'
+                        'Vel_X-Center',
+                        'Vel_Z-Center',
+                        'Vel_X-Left',
+                        'Vel_X-Right'
                     ]
                     for var in xzvars:
                         ds[var].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
