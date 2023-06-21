@@ -14,6 +14,8 @@ def mat_to_cdf(metadata):
     basefile = metadata["basefile"]
 
     ds = read_iq(basefile + ".mat")
+    
+    ds = make_iqbindist(ds)
 
     # write out metadata first, then deal exclusively with xarray attrs
     ds = utils.write_metadata(ds, metadata)
@@ -21,6 +23,9 @@ def mat_to_cdf(metadata):
     del metadata
 
     ds = utils.ensure_cf(ds)
+    
+    # Compute time stamps
+    ds = utils.shift_time(ds, ds.attrs["flowSampleInterval"] / 2)
 
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
@@ -91,29 +96,57 @@ def read_iq(filnam):
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
             elif "_2_" in k or "_3_" in k:
                 ds[k] = xr.DataArray(
-                    iqmat[k][0:timelen, :], dims=("time", "cell_across")
+                    iqmat[k][0:timelen, :], dims=("time", "bin_across")
                 )
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
             elif "_0_" in k or "_1_" in k:
                 ds[k] = xr.DataArray(
-                    iqmat[k][0:timelen, :], dims=("time", "cell_along")
+                    iqmat[k][0:timelen, :], dims=("time", "bin_along")
                 )
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
-            elif "FlowData_Vel" in k or "FlowData_SNR" in k:
+            elif "FlowData_Vel" in k and "XYZ" not in k or "FlowData_SNR" in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen, :], dims=("time", "velbeam"))
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
+            elif "FlowData_VelXYZ" in k:
+                ds["X-Center"] = xr.DataArray(iqmat[k][0:timelen, 0], dims=("time")
+                )
+                ds["Z-Center"] = xr.DataArray(iqmat[k][0:timelen, 1], dims=("time")
+                )
+                ds["X-Left"] = xr.DataArray(iqmat[k][0:timelen, 2], dims=("time")
+                )
+                ds["X-Right"] = xr.DataArray(iqmat[k][0:timelen, 3], dims=("time")
+                )
+                if k in iqmat["Data_Units"]:
+                    xzvars = [
+                        'X-Center',
+                        'Z-Center',
+                        'X-Left',
+                        'X-Right'
+                    ]
+                    for var in xzvars:
+                        ds[var].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
+                    
             elif "FlowData_NoiseLevel" in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen, :], dims=("time", "beam"))
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
-
-    ds["cell_along"] = np.arange(ds["Profile_0_Vel"].shape[1])
-    ds["cell_across"] = np.arange(ds["Profile_2_Vel"].shape[1])
+                
+        elif "FlowSubData" in k:
+            if "CellSize" in k or "BlankingDistance" in k:
+                ds[k] = xr.DataArray(
+                    iqmat[k][0:timelen], dims=("time")
+                )
+                if k in iqmat["Data_Units"]:
+                    ds[k].attrs["units"] = iqmat["Data_Units"][k]
+                
+    ds["bin_along"] = np.arange(ds["Profile_0_Vel"].shape[1])
+    ds["bin_across"] = np.arange(ds["Profile_2_Vel"].shape[1])
 
     ds = xr.Dataset(ds)
+
     for k in iqmat["System_IqSetup"]["basicSetup"]:
         if "spare" not in k:
             ds.attrs[k] = iqmat["System_IqSetup"]["basicSetup"][k]
@@ -125,6 +158,38 @@ def read_iq(filnam):
 
     return xr.decode_cf(ds)
 
+def make_iqbindist(ds):
+    """
+    Generate bin distances from transducer along vertical profile for the along (beams 0,1) 
+    and across (beams 2,3) bins
+    """
+    for bm in range(4):
+        if bm < 2:
+            bdname = "bin_along"
+        else:
+            bdname = "bin_across"
+
+        r = range(len(ds[bdname]))
+        cells = np.zeros(np.shape(ds["Profile_" + str(bm) + "_Vel"]))
+        fsdbd = "FlowSubData_PrfHeader_" + str(bm) + "_BlankingDistance"
+        fsdcs = "FlowSubData_PrfHeader_" + str(bm) + "_CellSize"
+        for n in range(len(ds["time"])):
+            #blanking distance + 0.5*bin_size = start of first bin (per Sontek manual)
+            #blanking distance + 0.5*bin_size + (bin_along(or bin_across)*bin_size) = start of each bin
+            #blanking distance + 1*binsize + (bin_along(or bin_across)*bin_siz) = center of each bin
+            cells[n, :] = ds[fsdbd][n].values + (r * ds[fsdcs][n].values) + (ds[fsdcs][n].values)
+        ds["Profile_" + str(bm) + "_bindist"] = (xr.DataArray(cells, dims=("time", bdname)) / 1000)
+        
+        ds["Profile_" + str(bm) + "_bindist"].attrs.update(
+            {
+                "units": "m",
+                "long_name": "bin(center) distance from transducer",
+                "positive": "up",
+                "note": "Distance is along vertical profile from transducer",
+            }
+        )        
+
+    return ds
 
 def rename_vars(ds):
     # set up dict of instrument -> EPIC variable names
@@ -183,33 +248,6 @@ def vel_to_ms(iq):
 
     return iq
 
-
-def make_beamdist(iq):
-    """
-    Generate physical coordinates to pair with the logical beamdist coordinates
-    """
-    for bm in range(4):
-        if bm < 2:
-            bdname = "beamdist_0_1"
-        else:
-            bdname = "beamdist_2_3"
-
-        r = range(len(iq[bdname]))
-
-        time = np.tile(iq["time"], (len(iq[bdname]), 1)).transpose()
-
-        cells = np.zeros(np.shape(iq["Profile_" + str(bm) + "_Vel"]))
-        fsdbd = "FlowSubData_PrfHeader_" + str(bm) + "_BlankingDistance"
-        fsdcs = "FlowSubData_PrfHeader_" + str(bm) + "_CellSize"
-        for n in range(len(iq["time"])):
-            cells[n, :] = iq[fsdbd][n].values + r * iq[fsdcs][n].values
-        iq["cells_" + str(bm)] = xr.DataArray(cells, dims=("time", bdname))
-        iq["time_" + str(bm)] = xr.DataArray(time, dims=("time", bdname))
-        iq = iq.set_coords(["cells_" + str(bm), "time_" + str(bm)])
-
-    return iq
-
-
 def make_iq_plots(iq, directory="", savefig=False):
     """
     Make IQ turnaround plots
@@ -243,6 +281,24 @@ def cdf_to_nc(cdf_filename):
     ds = utils.clip_ds(ds)
 
     ds = clean_iq(ds)
+    
+    ds = trim_iqvel(ds)
+    
+    # should function this
+    for var in ds.data_vars:
+        ds = qaqc.trim_min(ds, var)
+        ds = qaqc.trim_max(ds, var)
+        ds = qaqc.trim_min_diff(ds, var)
+        ds = qaqc.trim_max_diff(ds, var)
+        ds = qaqc.trim_med_diff(ds, var)
+        ds = qaqc.trim_med_diff_pct(ds, var)
+        ds = qaqc.trim_bad_ens(ds, var)
+        ds = qaqc.trim_maxabs_diff_2d(ds, var)
+        ds = qaqc.trim_fliers(ds, var)
+
+    # after check for masking vars by other vars
+    for var in ds.data_vars:
+        ds = qaqc.trim_mask(ds, var)
 
     # assign min/max:
     ds = utils.add_min_max(ds)
@@ -370,3 +426,55 @@ def ds_add_attrs(ds):
             add_attributes(ds[var], ds.attrs)
 
     return ds
+
+def trim_iqvel(ds):
+    """
+    Trim velocity data depending on specified method
+    """
+        
+    if (
+        "trim_method" in ds.attrs
+        and ds.attrs["trim_method"].lower() != "none"
+        and ds.attrs["trim_method"] is not None
+    ):        
+        if "AdjustedPressure" in ds:
+            P = ds["AdjustedPressure"]
+            Ptxt = "atmospherically corrected"
+        elif "P_1ac" in ds:
+            P = ds["P_1ac"]
+            Ptxt = "atmospherically corrected"
+        elif "Pressure" in ds:
+            # FIXME incorporate press_ ac below
+            P = ds["Pressure"]
+            Ptxt = "NON-atmospherically corrected"
+            
+        for bm in range(4):
+            if bm < 2:
+                bmangle = 25
+            else:
+                bmangle = 60
+                
+            if ds.attrs["trim_method"].lower() == "water level":
+                ds["Profile_" + str(bm) + "_Vel"] = ds["Profile_" + str(bm) + "_Vel"].where(ds["Profile_" + str(bm) + "_bindist"] < P)
+            
+                histtext = "Trimmed velocity data using {} pressure (water level).".format(
+                    Ptxt
+                )
+
+                
+            elif ds.attrs["trim_method"].lower() == "water level sl":
+                ds["Profile_" + str(bm) + "_Vel"] = ds["Profile_" + str(bm) + "_Vel"].where(
+                ds["Profile_" + str(bm) + "_bindist"] < P * np.cos(np.deg2rad(bmangle))
+                )
+
+                histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
+                    Ptxt
+                )
+
+        ds = insert_history(ds, histtext)
+            
+    else:
+        print("Did not trim velocity data")
+        
+    return(ds)
+
