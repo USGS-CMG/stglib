@@ -4,6 +4,7 @@ import xarray as xr
 
 from . import core
 from .core import utils
+from .core import qaqc
 
 
 def mat_to_cdf(metadata):
@@ -378,7 +379,10 @@ def ds_add_attrs(ds):
         "long_name"
     ] = "Total volume of water in the negative upstream direction"
     ds["Vel"].attrs["long_name"] = "Velocity"
-    ds["VelXYZ"].attrs["long_name"] = ""
+    ds["Vel_X_Center"].attrs["long_name"] = ""
+    ds["Vel_Z_Center"].attrs["long_name"] = ""
+    ds["Vel_X_Left"].attrs["long_name"] = ""
+    ds["Vel_X_Right"].attrs["long_name"] = ""
     ds["VelStd"].attrs["long_name"] = "Velocity standard deviation"
     ds["SNR"].attrs["long_name"] = "Signal-to-noise ratio"
     ds["NoiseLevel"].attrs["long_name"] = "Acoustic noise level"
