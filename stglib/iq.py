@@ -15,7 +15,7 @@ def mat_to_cdf(metadata):
 
     ds = read_iq(basefile + ".mat")
     
-    ds = make_iqbindist(ds)
+    ds = create_iqbindist(ds)
 
     # write out metadata first, then deal exclusively with xarray attrs
     ds = utils.write_metadata(ds, metadata)
@@ -111,20 +111,20 @@ def read_iq(filnam):
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
             elif "FlowData_VelXYZ" in k:
-                ds["X-Center"] = xr.DataArray(iqmat[k][0:timelen, 0], dims=("time")
+                ds["Vel_X_Center"] = xr.DataArray(iqmat[k][0:timelen, 0], dims=("time")
                 )
-                ds["Z-Center"] = xr.DataArray(iqmat[k][0:timelen, 1], dims=("time")
+                ds["Vel_Z_Center"] = xr.DataArray(iqmat[k][0:timelen, 1], dims=("time")
                 )
-                ds["X-Left"] = xr.DataArray(iqmat[k][0:timelen, 2], dims=("time")
+                ds["Vel_X_Left"] = xr.DataArray(iqmat[k][0:timelen, 2], dims=("time")
                 )
-                ds["X-Right"] = xr.DataArray(iqmat[k][0:timelen, 3], dims=("time")
+                ds["Vel_X_Right"] = xr.DataArray(iqmat[k][0:timelen, 3], dims=("time")
                 )
                 if k in iqmat["Data_Units"]:
                     xzvars = [
-                        'Vel_X-Center',
-                        'Vel_Z-Center',
-                        'Vel_X-Left',
-                        'Vel_X-Right'
+                        'Vel_X_Center',
+                        'Vel_Z_Center',
+                        'Vel_X_Left',
+                        'Vel_X_Right'
                     ]
                     for var in xzvars:
                         ds[var].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
@@ -158,10 +158,11 @@ def read_iq(filnam):
 
     return xr.decode_cf(ds)
 
-def make_iqbindist(ds):
+def create_iqbindist(ds):
     """
     Generate bin distances from transducer along vertical profile for the along (beams 0,1) 
-    and across (beams 2,3) bins
+    and across (beams 2,3) bins. Cannot make bindist a dim because it changes by sample due 
+    to bin size changing based on water depth. 
     """
     for bm in range(4):
         if bm < 2:
@@ -174,9 +175,9 @@ def make_iqbindist(ds):
         fsdbd = "FlowSubData_PrfHeader_" + str(bm) + "_BlankingDistance"
         fsdcs = "FlowSubData_PrfHeader_" + str(bm) + "_CellSize"
         for n in range(len(ds["time"])):
-            #blanking distance + 0.5*bin_size = start of first bin (per Sontek manual)
+            #blanking distance + 0.5*bin_size = start of first bin
             #blanking distance + 0.5*bin_size + (bin_along(or bin_across)*bin_size) = start of each bin
-            #blanking distance + 1*binsize + (bin_along(or bin_across)*bin_siz) = center of each bin
+            #blanking distance + 1*binsize + (bin_along(or bin_across)*bin_size) = center of each bin
             cells[n, :] = ds[fsdbd][n].values + (r * ds[fsdcs][n].values) + (ds[fsdcs][n].values)
         ds["Profile_" + str(bm) + "_bindist"] = (xr.DataArray(cells, dims=("time", bdname)) / 1000)
         
@@ -215,7 +216,7 @@ def rename_vars(ds):
 def remove_FlowData(ds):
     newvars = {}
     for k in ds:
-        newvars[k] = k.replace("FlowData_", "")
+        newvars[k] = k.replace("FlowData_", "").replace("FlowSubData_PrfHeader", "Profile")
 
     return ds.rename(newvars)
 
@@ -448,7 +449,7 @@ def trim_iqvel(ds):
             P = ds["Pressure"]
             Ptxt = "NON-atmospherically corrected"
             
-        for bm in range(4):
+        for bm in range(4): #beams are different angles
             if bm < 2:
                 bmangle = 25
             else:
