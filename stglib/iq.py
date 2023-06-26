@@ -156,6 +156,12 @@ def read_iq(filnam):
     for k in iqmat["System_IqState"]:
         if "spare" not in k:
             ds.attrs[k.replace("[", "_").replace("]", "_")] = iqmat["System_IqState"][k]
+            
+    if ds.attrs["InstrumentType"] == "IQ":
+        ds.attrs["AlongChannelBeamsAngle"] = 25
+        ds.attrs["AcrossChannelBeamsAngle"] = 60
+    else:
+        print("Check and update beam angle for Sontek IQ instrument")
 
     return xr.decode_cf(ds)
 
@@ -176,8 +182,9 @@ def create_iqbindist(ds):
         fsdbd = "FlowSubData_PrfHeader_" + str(bm) + "_BlankingDistance"
         fsdcs = "FlowSubData_PrfHeader_" + str(bm) + "_CellSize"
         for n in range(len(ds["time"])):
-            #blanking distance + 0.5*bin_size = start of first bin
-            #blanking distance + 0.5*bin_size + (bin_along(or bin_across)*bin_size) = start of each bin
+            #blanking distance + 1*bin_size = center of first bin
+            #blanking distance + N*bin_size = center of N bin
+            #due to 0 index, have to add 1 additional bin size to equation below
             #blanking distance + 1*binsize + (bin_along(or bin_across)*bin_size) = center of each bin
             cells[n, :] = ds[fsdbd][n].values + (r * ds[fsdcs][n].values) + (ds[fsdcs][n].values)
         ds["Profile_" + str(bm) + "_bindist"] = (xr.DataArray(cells, dims=("time", bdname)) / 1000)
@@ -214,10 +221,14 @@ def rename_vars(ds):
     return ds.rename(newvars)
 
 
-def remove_FlowData(ds):
+def update_prefixes(ds):
     newvars = {}
     for k in ds:
-        newvars[k] = k.replace("FlowData_", "").replace("FlowSubData_PrfHeader", "Profile")
+        if "FlowData" in k:
+            newvars[k] = k.replace("FlowData_", "")
+        
+        elif "FlowSubData_PrfHeader" in k:
+                newvars[k] = k.replace("FlowSubData_PrfHeader_", "Profile_")            
 
     return ds.rename(newvars)
 
@@ -240,15 +251,17 @@ def clean_iq(iq):
     return iq
 
 
-def vel_to_ms(iq):
+def vel_to_ms(ds):
     """
     Convert velocity data from mm/s to m/s
     """
 
-    for var in ["FlowData_Vel_Mean", "FlowData_Vel"]:
-        iq[var] = iq[var] / 1000
+    for var in ds:
+        if "Vel" in var:
+            ds[var] = ds[var] / 1000
+            ds[var].attrs['units'] = "m s-1"
 
-    return iq
+    return ds
 
 def make_iq_plots(iq, directory="", savefig=False):
     """
@@ -277,14 +290,18 @@ def cdf_to_nc(cdf_filename):
     # Load raw .cdf data
     ds = xr.open_dataset(cdf_filename)
 
-    ds = remove_FlowData(ds)
+    ds = update_prefixes(ds)
 
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
+    ds = vel_to_ms(ds)
+
     ds = clean_iq(ds)
     
     ds = trim_iqvel(ds)
+    
+    ds = fill_snr(ds)
     
     # should function this
     for var in ds.data_vars:
@@ -455,9 +472,9 @@ def trim_iqvel(ds):
             
         for bm in range(4): #beams are different angles
             if bm < 2:
-                bmangle = 25
+                bmangle = ds.attrs["AlongChannelBeamsAngle"]
             else:
-                bmangle = 60
+                bmangle = ds.attrs["AcrossChannelBeamsAngle"]
                 
             if ds.attrs["trim_method"].lower() == "water level":
                 ds["Profile_" + str(bm) + "_Vel"] = ds["Profile_" + str(bm) + "_Vel"].where(ds["Profile_" + str(bm) + "_bindist"] < P)
