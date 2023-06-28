@@ -26,7 +26,7 @@ def mat_to_cdf(metadata):
     ds = utils.ensure_cf(ds)
     
     # Compute time stamps
-    ds = utils.shift_time(ds, ds.attrs["flowSampleDuration"] / 2)
+    #ds = utils.shift_time(ds, ds.attrs["flowSampleDuration"] / 2)
 
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
@@ -202,6 +202,20 @@ def create_iqbindist(ds):
 
 def rename_vars(ds):
     # set up dict of instrument -> EPIC variable names
+    
+    newvars = {}
+    
+    for var in ds:
+        if "Profile_0" in var:
+            newvars[var] = var.replace("Profile_0_Amp","Profile_AGC1_1221").replace("Profile_0_Vel","Profile_vel1_1277").replace("Profile_0_BlankingDistance","Profile_blanking_distance1").replace("Profile_0_CellSize","Profile_cell_size1").replace("Profile_0_bindist","Profile_bindist1")
+        elif "Profile_1" in var:
+            newvars[var] = var.replace("Profile_1_Amp","Profile_AGC2_1222").replace("Profile_1_Vel","Profile_vel2_1278").replace("Profile_1_BlankingDistance","Profile_blanking_distance2").replace("Profile_1_CellSize","Profile_cell_size2").replace("Profile_1_bindist","Profile_bindist2")
+        elif "Profile_2" in var:
+            newvars[var] = var.replace("Profile_2_Amp","Profile_AGC3_1223").replace("Profile_2_Vel","Profile_vel3_1279").replace("Profile_2_BlankingDistance","Profile_blanking_distance3").replace("Profile_2_CellSize","Profile_cell_size3").replace("Profile_2_bindist","Profile_bindist3")
+        elif "Profile_3" in var:
+            newvars[var] = var.replace("Profile_3_Amp","Profile_AGC4_1224").replace("Profile_3_Vel","Profile_vel4_1280").replace("Profile_3_BlankingDistance","Profile_blanking_distance4").replace("Profile_3_CellSize","Profile_cell_size4").replace("Profile_3_bindist","Profile_bindist4")
+            
+    
     varnames = {
         "Batt": "Bat_106",
         "Temp": "T_28",
@@ -211,13 +225,11 @@ def rename_vars(ds):
         "Pressure": "P_1",
         "AdjustedPressure": "P_1ac",
     }
-
     # check to make sure they exist before trying to rename
-    newvars = {}
     for k in varnames:
         if k in ds:
             newvars[k] = varnames[k]
-
+        
     return ds.rename(newvars)
 
 
@@ -349,6 +361,8 @@ def cdf_to_nc(cdf_filename):
 
     dsflow = dsflow.drop([k for k in dsflow if "Profile_" in k])
     dsprof = dsprof.drop([k for k in dsprof if "Profile_" not in k])
+    
+    
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
@@ -404,22 +418,22 @@ def ds_add_attrs(ds):
     ds["SNR"].attrs["long_name"] = "Signal-to-noise ratio"
     ds["NoiseLevel"].attrs["long_name"] = "Acoustic noise level"
     ds["Range"].attrs["long_name"] = "Acoustically measured distance to water surface"
-    ds["T_28"].attrs["long_name"] = "Water temperature"
-    ds["P_1"].attrs["long_name"] = "Uncorrected pressure"
+    ds["T_28"].attrs.update({"long_name" : "Temperature", "epic_code":"28", "standard_name":"sea_water_temperature"})
+    ds["P_1"].attrs.update({"long_name" : "Uncorrected pressure", "epic_code":"1", "standard_name":"sea_water_pressure"})
     ds["PressOffsetAdjust"].attrs[
         "long_name"
     ] = "Atmospheric pressure adjustment (see SonTek-IQ User's Manual for details)"
-    ds["P_1ac"].attrs[
-        "long_name"
-    ] = "Measurement with atmospheric pressure removed (see SonTek-IQ User's Manual for details)"
-    ds["Bat_106"].attrs["long_name"] = "Battery voltage"
+    ds["P_1ac"].attrs.update({"long_name" : "Corrected pressure", "standard_name" : "sea_water_pressure_due_to_sea_water", "note" : "Measurement with atmospheric pressure removed (see SonTek-IQ User's Manual for details)"})
+    ds["Bat_106"].attrs.update({"long_name" : "Battery voltage", "epic_code":"106", "standard_name":"sea_water_temperature"})
     ds["Ptch_1216"].attrs["long_name"] = "Pitch angle in degrees"
+    
     # to be UDUNITS compatible
     if ds["Ptch_1216"].attrs["units"] == "deg":
-        ds["Ptch_1216"].attrs["units"] = "degree"
+        ds["Ptch_1216"].attrs["units"] = "degrees"
     if ds["Roll_1217"].attrs["units"] == "deg":
-        ds["Roll_1217"].attrs["units"] = "degree"
-    ds["Roll_1217"].attrs["long_name"] = "Roll angle in degrees"
+        ds["Roll_1217"].attrs["units"] = "degrees"
+    ds["Roll_1217"].attrs.update({"long_name":"Instrument Roll","epic_code":"1217","standard_name":"platform_roll"})
+    ds["Ptch_1216"].attrs.update({"long_name":"Instrument Pitch","epic_code":"1216","standard_name":"platform_pitch"})
     ds["VbPercentGood"].attrs["long_name"] = "Vertical beam percent good"
     ds["HorizontalSkew"].attrs["long_name"] = "Horizontal skew"
     ds["SystemInWater"].attrs[
@@ -428,24 +442,11 @@ def ds_add_attrs(ds):
 
     # Profile Variables
     for n in range(4):
-        ds["Profile_%d_Amp" % n].attrs["long_name"] = "Beam %d amplitude" % n
-        ds["Profile_%d_VelStd" % n].attrs["long_name"] = (
-            "Beam %d velocity profile standard deviation" % n
+        ds["Profile_AGC%d_122%d" % (n + 1, n +1)].attrs.update({"units":"counts","long_name" : "Echo Intensity (AGC) Beam %d" % (n + 1)})
+        ds["Profile_vel%d_%d" % (n + 1, n + 1277)].attrs["long_name"] = (
+            "Beam %d velocity profile standard deviation" % (n + 1)
         )
-        ds["Profile_%d_Vel" % n].attrs["long_name"] = "Beam %d velocity profile" % n
-
-    def add_attributes(var, dsattrs):
-        var.attrs.update(
-            {
-                "initial_instrument_height": dsattrs["initial_instrument_height"],
-                # 'nominal_instrument_depth': dsattrs['nominal_instrument_depth'],
-                "height_depth_units": "m",
-            }
-        )
-
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            add_attributes(ds[var], ds.attrs)
+        ds["Profile_vel%d_%d" % (n+ 1, n + 1277)].attrs["long_name"] = "Beam %d current velocity" % (n + 1)
 
     return ds
 
@@ -493,10 +494,39 @@ def trim_iqvel(ds):
                     Ptxt
                 )
 
-        ds = insert_history(ds, histtext)
+        ds = utils.insert_history(ds, histtext)
             
     else:
         print("Did not trim velocity data")
         
     return(ds)
 
+def fill_snr(ds):
+    """
+    Fill velocity data with corresponding beam snr value threshold
+    """
+    if "snr_threshold" in ds.attrs:
+        
+        Ptxt = str(ds.attrs['snr_threshold'])
+    
+        for var in ds:
+            if "Vel" and "Profile" in var:
+                for bm in range(4):
+                    var = "Profile_" + str(bm) + "_Vel"
+                    ds[var] = ds[var].where(ds.SNR[:,bm] > ds.attrs['snr_threshold'])
+    
+            else:
+                ds["Vel"] = ds["Vel"].where(ds.SNR > ds.attrs['snr_threshold'])
+                ds["Vel_X_Center"] = ds["Vel_X_Center"].where((ds.SNR[:,0] > ds.attrs['snr_threshold']) & (ds.SNR[:,1] > ds.attrs['snr_threshold']))
+                ds["Vel_Z_Center"] = ds["Vel_Z_Center"].where((ds.SNR[:,0] > ds.attrs['snr_threshold']) & (ds.SNR[:,1] > ds.attrs['snr_threshold']))
+                ds["Vel_X_Left"] = ds["Vel_X_Left"].where(ds.SNR[:,2] > ds.attrs['snr_threshold'])
+                ds["Vel_X_Right"] = ds["Vel_X_Right"].where(ds.SNR[:,3] > ds.attrs['snr_threshold'])
+            
+            histtext = "Filled velocity data using snr threshold of {} for corresponding beams.".format(
+                Ptxt
+            )
+
+        ds = utils.insert_history(ds, histtext)
+    else:
+            print('Did not fill velocity data using snr threshold')
+    return(ds)
