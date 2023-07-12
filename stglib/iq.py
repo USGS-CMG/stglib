@@ -137,9 +137,9 @@ def read_iq(filnam):
                 
         elif "FlowSubData" in k:
             if "CellSize" in k or "BlankingDistance" in k:
-                ds[k] = xr.DataArray(
+                ds[k] = (xr.DataArray(
                     iqmat[k][0:timelen], dims=("time")
-                )
+                ) / 1000)
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k]
                 
@@ -187,7 +187,7 @@ def create_iqbindist(ds):
             #due to 0 index, have to add 1 additional bin size to equation below
             #blanking distance + 1*binsize + (bin_along(or bin_across)*bin_size) = center of each bin
             cells[n, :] = ds[fsdbd][n].values + (r * ds[fsdcs][n].values) + (ds[fsdcs][n].values)
-        ds["Profile_" + str(bm) + "_bindist"] = (xr.DataArray(cells, dims=("time", bdname)) / 1000)
+        ds["Profile_" + str(bm) + "_bindist"] = (xr.DataArray(cells, dims=("time", bdname)) )
         
         ds["Profile_" + str(bm) + "_bindist"].attrs.update(
             {
@@ -207,13 +207,13 @@ def rename_vars(ds):
     
     for var in ds:
         if "Profile_0" in var:
-            newvars[var] = var.replace("Profile_0_Amp","Profile_AGC1_1221").replace("Profile_0_Vel","Profile_vel1_1277").replace("Profile_0_BlankingDistance","Profile_blanking_distance1").replace("Profile_0_CellSize","Profile_cell_size1").replace("Profile_0_bindist","Profile_bindist1")
+            newvars[var] = var.replace("Profile_0_Amp","Profile_AGC1_1221").replace("Profile_0_Vel","Profile_vel1_1277").replace("Profile_0_BlankingDistance","Profile_blanking_distance1").replace("Profile_0_CellSize","Profile_cell_size1").replace("Profile_0_bindist","Profile_bindist1").replace("Profile_0_z","Profile_z1").replace("Profile_0_bindepth","Profile_bindepth1")
         elif "Profile_1" in var:
-            newvars[var] = var.replace("Profile_1_Amp","Profile_AGC2_1222").replace("Profile_1_Vel","Profile_vel2_1278").replace("Profile_1_BlankingDistance","Profile_blanking_distance2").replace("Profile_1_CellSize","Profile_cell_size2").replace("Profile_1_bindist","Profile_bindist2")
+            newvars[var] = var.replace("Profile_1_Amp","Profile_AGC2_1222").replace("Profile_1_Vel","Profile_vel2_1278").replace("Profile_1_BlankingDistance","Profile_blanking_distance2").replace("Profile_1_CellSize","Profile_cell_size2").replace("Profile_1_bindist","Profile_bindist2").replace("Profile_1_z","Profile_z2").replace("Profile_1_bindepth","Profile_bindepth2")
         elif "Profile_2" in var:
-            newvars[var] = var.replace("Profile_2_Amp","Profile_AGC3_1223").replace("Profile_2_Vel","Profile_vel3_1279").replace("Profile_2_BlankingDistance","Profile_blanking_distance3").replace("Profile_2_CellSize","Profile_cell_size3").replace("Profile_2_bindist","Profile_bindist3")
+            newvars[var] = var.replace("Profile_2_Amp","Profile_AGC3_1223").replace("Profile_2_Vel","Profile_vel3_1279").replace("Profile_2_BlankingDistance","Profile_blanking_distance3").replace("Profile_2_CellSize","Profile_cell_size3").replace("Profile_2_bindist","Profile_bindist3").replace("Profile_2_z","Profile_z3").replace("Profile_2_bindepth","Profile_bindepth3")
         elif "Profile_3" in var:
-            newvars[var] = var.replace("Profile_3_Amp","Profile_AGC4_1224").replace("Profile_3_Vel","Profile_vel4_1280").replace("Profile_3_BlankingDistance","Profile_blanking_distance4").replace("Profile_3_CellSize","Profile_cell_size4").replace("Profile_3_bindist","Profile_bindist4")
+            newvars[var] = var.replace("Profile_3_Amp","Profile_AGC4_1224").replace("Profile_3_Vel","Profile_vel4_1280").replace("Profile_3_BlankingDistance","Profile_blanking_distance4").replace("Profile_3_CellSize","Profile_cell_size4").replace("Profile_3_bindist","Profile_bindist4").replace("Profile_3_z","Profile_z4").replace("Profile_3_bindepth","Profile_bindepth4")
             
     
     varnames = {
@@ -244,6 +244,79 @@ def update_prefixes(ds):
 
     return ds.rename(newvars)
 
+def vel_to_ms(ds):
+    """
+    Convert velocity data from mm/s to m/s
+    """
+
+    for var in ds:
+        if "Vel" in var:
+            ds[var] = ds[var] / 1000
+            ds[var].attrs['units'] = "m s-1"
+
+    return ds
+
+def create_iqbindepth(ds):
+    """
+    Generate bin depths reltive to pressure. 
+    """
+    for bm in range(4):
+        ds['Profile_%d_bindepth' % bm] = ds['AdjustedPressure'] - ds['Profile_%d_bindist' % bm]
+        ds["Profile_%d_bindepth" % bm].attrs.update(
+            {
+                "units": "m",
+                "long_name": "bin(center) depth relative to sea surface",
+                "positive": "up",
+                "note": "Distance is along vertical profile from transducer",
+            }
+        )
+        
+    return ds
+
+def create_iqz(ds):
+    """
+    Generate bin heights relative to geopotential datum
+    """
+    for bm in range(4):
+        if "height_above_geopotential_datum" in ds.attrs:
+            if ds.attrs["orientation"].upper() == "DOWN":
+                if bm < 2:
+                    ds['Profile_%d_z' % bm] = xr.DataArray(
+                        ds.attrs["height_above_geopotential_datum"]
+                        + ds.attrs["initial_instrument_height"]
+                        - ds["Profile_%d_bindist" % bm].values,
+                        dims=("time", "bin_along"),
+                    )
+                else:
+                    ds['Profile_%d_z' % bm] = xr.DataArray(
+                        ds.attrs["height_above_geopotential_datum"]
+                        + ds.attrs["initial_instrument_height"]
+                        - ds["Profile_%d_bindist" % bm].values,
+                        dims=("time", "bin_across"),
+                    )                    
+            elif ds.attrs["orientation"].upper() == "UP":
+                if bm < 2:
+                    ds['Profile_%d_z' % bm] = xr.DataArray(
+                        ds.attrs["height_above_geopotential_datum"]
+                        + ds.attrs["initial_instrument_height"]
+                        + ds["Profile_%d_bindist" % bm].values,
+                        dims=("time", "bin_along"),
+                    )
+                else:
+                    ds['Profile_%d_z' % bm] = xr.DataArray(
+                        ds.attrs["height_above_geopotential_datum"]
+                        + ds.attrs["initial_instrument_height"]
+                        + ds["Profile_%d_bindist" % bm].values,
+                        dims=("time", "bin_across"),
+                    )                 
+                        
+            else:
+                print("Could not create z for bins, specifiy orientation")
+                
+        else:
+            print("Could not create z for bins, specify height_above_geopotential_datum")
+            
+    return (ds)
 
 def clean_iq(iq):
     """
@@ -261,19 +334,6 @@ def clean_iq(iq):
         iq[st].values[iq[st] < 0] = np.nan
 
     return iq
-
-
-def vel_to_ms(ds):
-    """
-    Convert velocity data from mm/s to m/s
-    """
-
-    for var in ds:
-        if "Vel" in var:
-            ds[var] = ds[var] / 1000
-            ds[var].attrs['units'] = "m s-1"
-
-    return ds
 
 def make_iq_plots(iq, directory="", savefig=False):
     """
@@ -308,6 +368,10 @@ def cdf_to_nc(cdf_filename):
     ds = utils.clip_ds(ds)
 
     ds = vel_to_ms(ds)
+    
+    ds = create_iqbindepth(ds)
+    
+    ds = create_iqz(ds)
 
     ds = clean_iq(ds)
     
@@ -315,6 +379,20 @@ def cdf_to_nc(cdf_filename):
     
     ds = fill_snr(ds)
     
+    ds = fill_vbper(ds)
+
+    # assign min/max:
+    ds = utils.add_min_max(ds)
+
+    ds = utils.add_start_stop_time(ds)
+
+    ds = utils.add_delta_t(ds)
+
+    # add lat/lon coordinates
+    ds = utils.ds_add_lat_lon(ds)
+
+    ds = rename_vars(ds)
+           
     # should function this
     for var in ds.data_vars:
         ds = qaqc.trim_min(ds, var)
@@ -331,23 +409,11 @@ def cdf_to_nc(cdf_filename):
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
 
-    # assign min/max:
-    ds = utils.add_min_max(ds)
-
-    ds = utils.add_start_stop_time(ds)
-
-    ds = utils.add_delta_t(ds)
-
-    # add lat/lon coordinates
-    ds = utils.ds_add_lat_lon(ds)
-
-    ds = rename_vars(ds)
-
     ds = ds_add_attrs(ds)
 
     ds = utils.no_p_create_depth(ds)
 
-    ds = ds.drop(["SampleNumber", "SampleTime"])
+    ds = ds.drop(["SampleNumber", "SampleTime","Volume_Total","Volume_Positive","Volume_Negative"])
 
     # add lat/lon coordinates to each variable
     for var in ds.variables:
@@ -362,7 +428,11 @@ def cdf_to_nc(cdf_filename):
     dsflow = dsflow.drop([k for k in dsflow if "Profile_" in k])
     dsprof = dsprof.drop([k for k in dsprof if "Profile_" not in k])
     
-    
+    newvars = {}
+    for k in dsprof:
+        newvars[k] = k.replace("Profile_", "")
+        
+    dsprof = dsprof.rename(newvars)    
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
@@ -410,10 +480,10 @@ def ds_add_attrs(ds):
         "long_name"
     ] = "Total volume of water in the negative upstream direction"
     ds["Vel"].attrs["long_name"] = "Velocity"
-    ds["Vel_X_Center"].attrs["long_name"] = ""
-    ds["Vel_Z_Center"].attrs["long_name"] = ""
-    ds["Vel_X_Left"].attrs["long_name"] = ""
-    ds["Vel_X_Right"].attrs["long_name"] = ""
+    ds["Vel_X_Center"].attrs["long_name"] = "X velocity from center beam (beam 1)"
+    ds["Vel_Z_Center"].attrs["long_name"] = "Z velocity from center beam (beam 1)"
+    ds["Vel_X_Left"].attrs["long_name"] = "X velocity left beam (beam 3)"
+    ds["Vel_X_Right"].attrs["long_name"] = "X velocity right beam (beam 4)"
     ds["VelStd"].attrs["long_name"] = "Velocity standard deviation"
     ds["SNR"].attrs["long_name"] = "Signal-to-noise ratio"
     ds["NoiseLevel"].attrs["long_name"] = "Acoustic noise level"
@@ -521,6 +591,7 @@ def fill_snr(ds):
                 ds["Vel_Z_Center"] = ds["Vel_Z_Center"].where((ds.SNR[:,0] > ds.attrs['snr_threshold']) & (ds.SNR[:,1] > ds.attrs['snr_threshold']))
                 ds["Vel_X_Left"] = ds["Vel_X_Left"].where(ds.SNR[:,2] > ds.attrs['snr_threshold'])
                 ds["Vel_X_Right"] = ds["Vel_X_Right"].where(ds.SNR[:,3] > ds.attrs['snr_threshold'])
+                ds["Vel_Mean"] = ds["Vel_Mean"].where((ds.SNR[:,0] > ds.attrs['snr_threshold']) & (ds.SNR[:,1] > ds.attrs['snr_threshold']) & (ds.SNR[:,2] > ds.attrs['snr_threshold']) & (ds.SNR[:,3] > ds.attrs['snr_threshold']))
             
             histtext = "Filled velocity data using snr threshold of {} for corresponding beams.".format(
                 Ptxt
@@ -530,3 +601,28 @@ def fill_snr(ds):
     else:
             print('Did not fill velocity data using snr threshold')
     return(ds)
+
+def fill_vbper(ds):
+    """
+    Fill adjusted pressure, stage, area, range, and depth data with corresponding vertical beam percent good threshold
+    """
+
+    if "vbper_threshold" in ds.attrs:
+        
+        Ptxt = str(ds.attrs['vbper_threshold'])    
+            
+        ds["AdjustedPressure"] = ds["AdjustedPressure"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+        ds["Depth"] = ds["Depth"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+        ds["Stage"] = ds["Stage"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+        ds["Area"] = ds["Area"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+        ds["Range"] = ds["Range"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+            
+        histtext = "Filled P1ac, stage, area, range, and D_3 data using vertical beam percent good threshold threshold of {}.".format(Ptxt)
+
+        ds = utils.insert_history(ds, histtext)
+        
+    else:
+        
+        print('Did not fill pressure, stage, area, range, and depth data data using snr threshold')
+            
+    return(ds)        
