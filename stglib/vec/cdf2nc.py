@@ -116,19 +116,21 @@ def set_orientation(VEL, T):
 
     T_orig = T.copy()
 
-    if VEL.attrs["orientation"] == "UP":
+    if VEL.attrs["orientation"].upper() == "UP":
         print("User instructed that instrument was pointing UP")
 
         VEL["z"] = xr.DataArray(elev + [0.15], dims="z")
         VEL["depth"] = xr.DataArray(np.nanmean(VEL[presvar]) - [0.15], dims="depth")
 
-    elif VEL.attrs["orientation"] == "DOWN":
+    elif VEL.attrs["orientation"].upper() == "DOWN":
         print("User instructed that instrument was pointing DOWN")
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
 
         VEL["z"] = xr.DataArray(elev - [0.15], dims="z")
         VEL["depth"] = xr.DataArray(np.nanmean(VEL[presvar]) + [0.15], dims="depth")
+    else:
+        raise ValueError("Could not determine instrument orientation from user input")
 
     VEL["z"].attrs["standard_name"] = "height"
     VEL["z"].attrs["units"] = "m"

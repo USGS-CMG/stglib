@@ -241,7 +241,7 @@ def set_orientation(VEL, T):
 
     T_orig = T.copy()
 
-    if VEL.attrs["orientation"] == "UP":
+    if VEL.attrs["orientation"].upper() == "UP":
         print("User instructed that instrument was pointing UP")
 
         VEL["z"] = xr.DataArray(elev + VEL["bindist"].values, dims="z")
@@ -249,7 +249,7 @@ def set_orientation(VEL, T):
             np.nanmean(VEL[presvar]) - VEL["bindist"].values, dims="depth"
         )
 
-    if VEL.attrs["orientation"] == "DOWN":
+    if VEL.attrs["orientation"].upper() == "DOWN":
         print("User instructed that instrument was pointing DOWN")
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
@@ -1367,6 +1367,14 @@ def check_valid_config_metadata(metadata, inst_type="AQD"):
         raise ValueError(
             "Conventions other than a version of the CF Metadata Conventions are not supported"
         )
+
+    if metadata["Conventions"] != "CF-1.8":
+        warnings.warn(
+            f"You are using a version of the CF Conventions ({metadata['Conventions']}) that is not the latest supported version (CF-1.8). Consider changing to CF-1.8."
+        )
+
+    if "orientation" in metadata:
+        metadata["orientation"] = metadata["orientation"].upper()
 
 
 def apply_wave_coord_output(ds, T, T_orig):

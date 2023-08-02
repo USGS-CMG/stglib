@@ -18,7 +18,7 @@ ds = stglib.aqd.hdr2cdf.load_amp_vel(ds, args.basefile)
 
 T_orig = meta["AQDTransMatrix"].copy()
 T = meta["AQDTransMatrix"]
-if args.orientation == "DOWN":
+if args.orientation.upper() == "DOWN":
     T[1, :] = -T[1, :]
     T[2, :] = -T[2, :]
 
