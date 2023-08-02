@@ -12,9 +12,7 @@ def csv_to_cdf(metadata):
 
     basefile = metadata["basefile"]
 
-    ds = read_lisst(
-        basefile + ".csv",
-    )
+    ds = read_lisst(basefile + ".csv")
 
     # write out metadata first, then deal exclusively with xarray attrs
     ds = utils.write_metadata(ds, metadata)
