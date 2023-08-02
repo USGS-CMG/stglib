@@ -1062,6 +1062,11 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds["sample"].attrs["long_name"] = "sample number"
         ds["sample"].attrs["units"] = "1"
 
+    if "burst" in ds:
+        ds["burst"].encoding["dtype"] = "i4"
+        ds["burst"].attrs["long name"] = "burst number"
+        ds["burst"].attrs["units"] = "1"
+
     if waves:
         if "u_1205" in ds:
             ds["u_1205"].attrs["units"] = "m s-1"
