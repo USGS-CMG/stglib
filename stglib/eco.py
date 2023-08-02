@@ -264,7 +264,11 @@ def eco_qaqc(ds):
         for var in ["Turb"]:
             ds = qaqc.trim_min_diff(ds, var)
 
+            ds = qaqc.trim_min_diff_pct(ds, var)
+
             ds = qaqc.trim_max_diff(ds, var)
+
+            ds = qaqc.trim_max_diff_pct(ds, var)
 
             ds = qaqc.trim_med_diff(ds, var)
 
