@@ -75,6 +75,29 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     print("Done writing netCDF file", nc_filename)
 
+    print("Creating burst-mean statistics file")
+
+    dsmean = ds.mean(dim="sample", keep_attrs=True)
+
+    # we already applied ClockDrift, ClockError in dat2cdf so don't re-apply it here.
+    # but we do want to shift time since we are presenting mean values.
+    dsmean = utils.shift_time(
+        dsmean,
+        dsmean.attrs["VECSamplesPerBurst"] / dsmean.attrs["VECSamplingRate"] / 2,
+        apply_clock_error=False,
+        apply_clock_drift=False,
+    )
+
+    if "prefix" in dsmean.attrs:
+        nc_filename = dsmean.attrs["prefix"] + dsmean.attrs["filename"] + "-s.nc"
+    else:
+        nc_filename = dsmean.attrs["filename"] + "-s.nc"
+
+    dsmean.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    utils.check_compliance(nc_filename, conventions=dsmean.attrs["Conventions"])
+
+    print("Done writing netCDF file", nc_filename)
+
     return ds
 
 

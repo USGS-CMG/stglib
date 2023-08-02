@@ -752,7 +752,7 @@ def ds_add_lat_lon(ds):
     return ds
 
 
-def shift_time(ds, timeshift):
+def shift_time(ds, timeshift, apply_clock_error=True, apply_clock_drift=True):
     """Shift time to middle of burst and apply clock error/offset and drift correction"""
 
     if timeshift != 0:
@@ -771,7 +771,7 @@ def shift_time(ds, timeshift):
 
         insert_history(ds, histtext)
 
-    if "ClockError" in ds.attrs:
+    if "ClockError" in ds.attrs and apply_clock_error:
         if ds.attrs["ClockError"] != 0:
             # note negative on ds.attrs['ClockError']
             ds["time"] = ds["time"] + np.timedelta64(-ds.attrs["ClockError"], "s")
@@ -782,7 +782,7 @@ def shift_time(ds, timeshift):
 
             insert_history(ds, histtext)
 
-    if "ClockDrift" in ds.attrs:
+    if "ClockDrift" in ds.attrs and apply_clock_drift:
         if ds.attrs["ClockDrift"] != 0:
             # note negative on ds.attrs['ClockDrift']
             ds["time"] = ds["time"] + pd.TimedeltaIndex(
