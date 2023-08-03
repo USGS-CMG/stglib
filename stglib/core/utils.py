@@ -756,8 +756,11 @@ def shift_time(ds, timeshift, apply_clock_error=True, apply_clock_drift=True):
     """Shift time to middle of burst and apply clock error/offset and drift correction"""
 
     if timeshift != 0:
+        # back up attrs as these are lost in the process
+        attrsbak = ds["time"].attrs
         # shift times to center of ensemble
         ds["time"] = ds["time"] + np.timedelta64(int(timeshift), "s")
+        ds["time"].attrs = attrsbak
 
         if not timeshift.is_integer():
             warnings.warn(
@@ -773,8 +776,11 @@ def shift_time(ds, timeshift, apply_clock_error=True, apply_clock_drift=True):
 
     if "ClockError" in ds.attrs and apply_clock_error:
         if ds.attrs["ClockError"] != 0:
+            # back up attrs as these are lost in the process
+            attrsbak = ds["time"].attrs
             # note negative on ds.attrs['ClockError']
             ds["time"] = ds["time"] + np.timedelta64(-ds.attrs["ClockError"], "s")
+            ds["time"].attrs = attrsbak
 
             histtext = "Time shifted by {:d} s from ClockError.".format(
                 -ds.attrs["ClockError"],
@@ -784,12 +790,15 @@ def shift_time(ds, timeshift, apply_clock_error=True, apply_clock_drift=True):
 
     if "ClockDrift" in ds.attrs and apply_clock_drift:
         if ds.attrs["ClockDrift"] != 0:
+            # back up attrs as these are lost in the process
+            attrsbak = ds["time"].attrs
             # note negative on ds.attrs['ClockDrift']
             ds["time"] = ds["time"] + pd.TimedeltaIndex(
                 np.linspace(0, -ds.attrs["ClockDrift"], len(ds["time"])), "s"
             )
 
             ds["time"] = ds.time.dt.round("1s")
+            ds["time"].attrs = attrsbak
 
             histtext = "Time linearly interpolated by {} s using ClockDrift and rounded to the nearest second.\n".format(
                 -ds.attrs["ClockDrift"],

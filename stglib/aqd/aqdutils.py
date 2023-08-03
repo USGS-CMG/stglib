@@ -27,6 +27,7 @@ def ds_rename(ds, waves=False):
         "Battery": "Bat_106",
         "batt": "Bat_106",
         "Soundspeed": "SV_80",
+        "Burst": "burst",
     }
 
     if "Pressure_ac" in ds:
@@ -1064,7 +1065,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
 
     if "burst" in ds:
         ds["burst"].encoding["dtype"] = "i4"
-        ds["burst"].attrs["long name"] = "burst number"
+        ds["burst"].attrs["long_name"] = "burst number"
         ds["burst"].attrs["units"] = "1"
 
     if waves:
