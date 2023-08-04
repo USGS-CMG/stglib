@@ -17,9 +17,13 @@ def exo_raw(glob_att, config_yaml):
     assert "Finished writing data" in result.stdout.decode("utf8")
 
 
-def exo_nc(nc_file):
+def exo_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [scripts / "runexocdf2nc.py", nc_file, "--atmpres", atmpres]
+    else:
+        runlist = [scripts / "runexocdf2nc.py", nc_file]
     result = subprocess.run(
-        [scripts / "runexocdf2nc.py", nc_file],
+        runlist,
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -73,6 +77,9 @@ def test_exo():
     exo_nc("1119Aexo-raw.cdf")
     exo_raw("glob_att1151b.txt", "1151Bexo_config.yaml")
     exo_nc("1151Bexo-raw.cdf")
+    # test for atmospheric correction
+    exo_raw("glob_attbel3C.txt", "config_bel3C.yaml")
+    exo_nc("BEL19B3C03exo-raw.cdf", "atmpres_BEL19B3C03exo.cdf")
 
 
 def test_aqd():
