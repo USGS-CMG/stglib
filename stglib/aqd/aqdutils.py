@@ -83,20 +83,31 @@ def load_cdf(cdf_filename, atmpres=False):
     ds.time.encoding.pop("units")
 
     if atmpres is not False:
-        p = xr.load_dataset(atmpres)
-        # need to set a tolerance since we can be off by a couple seconds somewhere
-        ds["Pressure_ac"] = xr.DataArray(
-            ds["Pressure"]
-            - p["atmpres"].reindex_like(
-                ds["Pressure"], method="nearest", tolerance="5s"
-            )
-            - p["atmpres"].attrs["offset"]
-        )
+        ds = atmos_correct(ds, atmpres)
 
-        ds.attrs["atmospheric_pressure_correction_file"] = atmpres
-        ds.attrs["atmospheric_pressure_correction_offset_applied"] = p["atmpres"].attrs[
-            "offset"
-        ]
+    return ds
+
+
+def atmos_correct(ds, atmpres):
+    met = xr.load_dataset(atmpres)
+    # need to save attrs before the subtraction, otherwise they are lost
+    attrs = ds["Pressure"].attrs
+    # need to set a tolerance since we can be off by a couple seconds somewhere
+    # TODO is this still needed?
+    ds["Pressure_ac"] = xr.DataArray(
+        ds["Pressure"]
+        - met["atmpres"].reindex_like(ds["Pressure"], method="nearest", tolerance="5s")
+        - met["atmpres"].attrs["offset"]
+    )
+    print(
+        f"Atmospherically correcting using time-series from {atmpres} and offset of {met['atmpres'].offset}"
+    )
+    ds["P_1ac"].attrs = attrs
+
+    ds.attrs["atmospheric_pressure_correction_file"] = atmpres
+    ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
+        "offset"
+    ]
 
     return ds
 

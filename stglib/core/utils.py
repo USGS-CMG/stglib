@@ -1115,6 +1115,33 @@ def add_delta_t(ds):
     return ds
 
 
+def atmos_correct(ds, atmpres):
+    met = xr.load_dataset(atmpres)
+    # need to save attrs before the subtraction, otherwise they are lost
+    attrs = ds["P_1"].attrs
+    ds["P_1ac"] = ds["P_1"] - met["atmpres"] - met["atmpres"].offset
+    print(
+        f"Atmospherically correcting using time-series from {atmpres} and offset of {met['atmpres'].offset}"
+    )
+    ds["P_1ac"].attrs = attrs
+
+    ds.attrs["atmospheric_pressure_correction_file"] = atmpres
+    ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
+        "offset"
+    ]
+
+    # Is reindexing with a tolerance still necessary? Keeping old code around to check
+    # ds["P_1ac"] = (
+    #     ds["Pressure"]
+    #     - met["atmpres"].reindex_like(
+    #         ds["Pressure"], method="nearest", tolerance="10min"
+    #     )
+    #     - met["atmpres"].offset
+    # )
+
+    return ds
+
+
 def read_samplingrates_burst(ds, conn):
     """
     Reads in sample information from RBR instrument in burst mode

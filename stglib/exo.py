@@ -230,14 +230,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
                 ds = ds.drop(k)
 
     if atmpres:
-        print("Atmospherically correcting data")
-
-        met = xr.load_dataset(atmpres)
-        # need to save attrs before the subtraction, otherwise they are lost
-        attrs = ds["P_1"].attrs
-        ds["P_1ac"] = ds["P_1"] - met["atmpres"] - met["atmpres"].offset
-        print("Correcting using offset of %f" % met["atmpres"].offset)
-        ds["P_1ac"].attrs = attrs
+        ds = utils.atmos_correct(ds, atmpres)
 
     ds = exo_qaqc(ds)
 
