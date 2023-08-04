@@ -84,16 +84,19 @@ def load_cdf(cdf_filename, atmpres=False):
 
     if atmpres is not False:
         p = xr.load_dataset(atmpres)
-        # TODO: check to make sure this data looks OK
+        # need to set a tolerance since we can be off by a couple seconds somewhere
         ds["Pressure_ac"] = xr.DataArray(
             ds["Pressure"]
             - p["atmpres"].reindex_like(
                 ds["Pressure"], method="nearest", tolerance="5s"
             )
-            - p[
-                "atmpres"
-            ].offset  # need to set a tolerance since we can be off by a couple seconds somewhere
+            - p["atmpres"].attrs["offset"]
         )
+
+        ds.attrs["atmospheric_pressure_correction_file"] = atmpres
+        ds.attrs["atmospheric_pressure_correction_offset_applied"] = p["atmpres"].attrs[
+            "offset"
+        ]
 
     return ds
 
