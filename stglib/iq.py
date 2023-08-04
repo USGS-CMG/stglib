@@ -192,9 +192,9 @@ def create_iqbindist(ds):
         ds["Profile_" + str(bm) + "_bindist"].attrs.update(
             {
                 "units": "m",
-                "long_name": "bin(center) distance from transducer",
+                "long_name": "bin (center) distance from transducer",
                 "positive": "up",
-                "note": "Distance is along vertical profile from transducer",
+                "note": "distance is along vertical profile from transducer",
             }
         )        
 
@@ -207,13 +207,13 @@ def rename_vars(ds):
     
     for var in ds:
         if "Profile_0" in var:
-            newvars[var] = var.replace("Profile_0_Amp","Profile_AGC1_1221").replace("Profile_0_Vel","Profile_vel1_1277").replace("Profile_0_BlankingDistance","Profile_blanking_distance1").replace("Profile_0_CellSize","Profile_cell_size1").replace("Profile_0_bindist","Profile_bindist1").replace("Profile_0_z","Profile_z1").replace("Profile_0_bindepth","Profile_bindepth1")
+            newvars[var] = var.replace("Profile_0_Amp","Profile_AGC1_1221").replace("Profile_0_Vel","Profile_vel1_1277").replace("Profile_0_BlankingDistance","Profile_blanking_distance1").replace("Profile_0_CellSize","Profile_bin_size1").replace("Profile_0_bindist","Profile_bindist1").replace("Profile_0_z","Profile_z1").replace("Profile_0_bindepth","Profile_bindepth1")
         elif "Profile_1" in var:
-            newvars[var] = var.replace("Profile_1_Amp","Profile_AGC2_1222").replace("Profile_1_Vel","Profile_vel2_1278").replace("Profile_1_BlankingDistance","Profile_blanking_distance2").replace("Profile_1_CellSize","Profile_cell_size2").replace("Profile_1_bindist","Profile_bindist2").replace("Profile_1_z","Profile_z2").replace("Profile_1_bindepth","Profile_bindepth2")
+            newvars[var] = var.replace("Profile_1_Amp","Profile_AGC2_1222").replace("Profile_1_Vel","Profile_vel2_1278").replace("Profile_1_BlankingDistance","Profile_blanking_distance2").replace("Profile_1_CellSize","Profile_bin_size2").replace("Profile_1_bindist","Profile_bindist2").replace("Profile_1_z","Profile_z2").replace("Profile_1_bindepth","Profile_bindepth2")
         elif "Profile_2" in var:
-            newvars[var] = var.replace("Profile_2_Amp","Profile_AGC3_1223").replace("Profile_2_Vel","Profile_vel3_1279").replace("Profile_2_BlankingDistance","Profile_blanking_distance3").replace("Profile_2_CellSize","Profile_cell_size3").replace("Profile_2_bindist","Profile_bindist3").replace("Profile_2_z","Profile_z3").replace("Profile_2_bindepth","Profile_bindepth3")
+            newvars[var] = var.replace("Profile_2_Amp","Profile_AGC3_1223").replace("Profile_2_Vel","Profile_vel3_1279").replace("Profile_2_BlankingDistance","Profile_blanking_distance3").replace("Profile_2_CellSize","Profile_bin_size3").replace("Profile_2_bindist","Profile_bindist3").replace("Profile_2_z","Profile_z3").replace("Profile_2_bindepth","Profile_bindepth3")
         elif "Profile_3" in var:
-            newvars[var] = var.replace("Profile_3_Amp","Profile_AGC4_1224").replace("Profile_3_Vel","Profile_vel4_1280").replace("Profile_3_BlankingDistance","Profile_blanking_distance4").replace("Profile_3_CellSize","Profile_cell_size4").replace("Profile_3_bindist","Profile_bindist4").replace("Profile_3_z","Profile_z4").replace("Profile_3_bindepth","Profile_bindepth4")
+            newvars[var] = var.replace("Profile_3_Amp","Profile_AGC4_1224").replace("Profile_3_Vel","Profile_vel4_1280").replace("Profile_3_BlankingDistance","Profile_blanking_distance4").replace("Profile_3_CellSize","Profile_bin_size4").replace("Profile_3_bindist","Profile_bindist4").replace("Profile_3_z","Profile_z4").replace("Profile_3_bindepth","Profile_bindepth4")
             
     
     varnames = {
@@ -266,7 +266,7 @@ def create_iqbindepth(ds):
             {
                 "units": "m",
                 "long_name": "bin(center) depth relative to sea surface",
-                "positive": "up",
+                "positive": "down",
                 "note": "Distance is along vertical profile from transducer",
             }
         )
@@ -408,10 +408,12 @@ def cdf_to_nc(cdf_filename):
     # after check for masking vars by other vars
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
+        
+    ds = utils.create_z(ds) #added 7/31/2023
 
     ds = ds_add_attrs(ds)
 
-    ds = utils.no_p_create_depth(ds)
+    #ds = utils.no_p_create_depth(ds) #commented out 7/31/23
 
     ds = ds.drop(["SampleNumber", "SampleTime","Volume_Total","Volume_Positive","Volume_Negative"])
 
@@ -459,8 +461,24 @@ def ds_add_attrs(ds):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
+    ds["bin_across"].attrs.update(
+        {"long_name": "bin number for across channel/skew beams (beams 3 & 4)", "units": "1", "bin_size": "size of bin varies by sample. See variables bin_size3 and bin_size4", "bin_count": "%d" % len(ds.bin_across), "blanking_distance": "blanking distance varies by sample. See profile variables blanking_distance3 and blanking_distance4", "note": "bin number is along profile from corresponding transducer"}
+    )
+    
+    ds["bin_along"].attrs.update(
+        {"long_name": "bin number for along channel beams (beams 1 & 2)", "units": "1", "bin_size": "size of bin varies by sample. See variables bin_size1 and bin_size2", "bin_count": "%d" % len(ds.bin_across), "blanking_distance": "blanking distance varies by sample. See profile variables blanking_distance1 and blanking_distance2", "note": "bin number is along profile from corresponding transducer"}
+    ) 
+    
+    ds["velbeam"].attrs.update(
+        {"long_name": "velocity beam number", "units": "1", "note":"does not include vertical beam (vb, beam 5)"}
+    )
+ 
+    ds["beam"].attrs.update(
+        {"long_name": "beam number", "units": "1", "note":"includes vertical beam (vb, beam 5)"}
+    )         
+         
     ds["D_3"].attrs.update(
-        {"long_name": "Depth (relative to the top of the instrument)", "epic_code": 3}
+        {"long_name": "acoustically measured depth", "note": "relative to vertical transducer/beam 5, the top of the instrument"}
     )
 
     # descriptions from Sontek-IQ Series User's Manual available at
@@ -469,7 +487,7 @@ def ds_add_attrs(ds):
     ds["Area"].attrs["long_name"] = "Cross-sectional area of user-defined channel"
     ds["Flow"].attrs["long_name"] = "Flow rate (using defined channel geometry)"
 
-    ds["Vel_Mean"].attrs["long_name"] = "Mean velocity"
+    ds["Vel_Mean"].attrs.update({"long_name" : "Mean velocity", "positive_dir" : "%s" % ds.attrs["beam_2_positive_direction"]})
     ds["Volume_Total"].attrs[
         "long_name"
     ] = "Total water volume (based on all measured flow)"
@@ -479,22 +497,20 @@ def ds_add_attrs(ds):
     ds["Volume_Negative"].attrs[
         "long_name"
     ] = "Total volume of water in the negative upstream direction"
-    ds["Vel"].attrs["long_name"] = "Velocity"
-    ds["Vel_X_Center"].attrs["long_name"] = "X velocity from center beam (beam 1)"
-    ds["Vel_Z_Center"].attrs["long_name"] = "Z velocity from center beam (beam 1)"
-    ds["Vel_X_Left"].attrs["long_name"] = "X velocity left beam (beam 3)"
-    ds["Vel_X_Right"].attrs["long_name"] = "X velocity right beam (beam 4)"
+    ds["Vel"].attrs.update({"long_name" : "Beam velocity", "beam_2_positive_dir" : "%s" % ds.attrs['beam_2_positive_direction'], "beams_1,3,4_positive_dir" : "%s" % ds.attrs['beam_1_positive_direction']})
+    ds["Vel_X_Center"].attrs.update({"long_name" : "X velocity from center beams (beams 1 & 2)", "positive_dir" : "%s" % ds.attrs['beam_2_positive_direction']})
+    ds["Vel_Z_Center"].attrs.update({"long_name" : "Z velocity from center beams (beams 1 & 2)", "positive_dir" : "%s" % ds.attrs['orientation']})
+    ds["Vel_X_Left"].attrs.update({"long_name" : "X velocity left beam (beam 3)", "positive_dir" : "%s" % ds.attrs['beam_2_positive_direction']})
+    ds["Vel_X_Right"].attrs.update({"long_name" : "X velocity right beam (beam 4)", "positive_dir" : "%s" % ds.attrs['beam_2_positive_direction']})
     ds["VelStd"].attrs["long_name"] = "Velocity standard deviation"
     ds["SNR"].attrs["long_name"] = "Signal-to-noise ratio"
     ds["NoiseLevel"].attrs["long_name"] = "Acoustic noise level"
     ds["Range"].attrs["long_name"] = "Acoustically measured distance to water surface"
-    ds["T_28"].attrs.update({"long_name" : "Temperature", "epic_code":"28", "standard_name":"sea_water_temperature"})
+    ds["T_28"].attrs.update({"long_name" : "Temperature", "epic_code":"28", "units":"degree_C","standard_name":"sea_water_temperature"})
     ds["P_1"].attrs.update({"long_name" : "Uncorrected pressure", "epic_code":"1", "standard_name":"sea_water_pressure"})
-    ds["PressOffsetAdjust"].attrs[
-        "long_name"
-    ] = "Atmospheric pressure adjustment (see SonTek-IQ User's Manual for details)"
+    ds["PressOffsetAdjust"].attrs.update({"long_name":"Atmospheric pressure adjustment", "note":"see SonTek-IQ User's Manual for details"})
     ds["P_1ac"].attrs.update({"long_name" : "Corrected pressure", "standard_name" : "sea_water_pressure_due_to_sea_water", "note" : "Measurement with atmospheric pressure removed (see SonTek-IQ User's Manual for details)"})
-    ds["Bat_106"].attrs.update({"long_name" : "Battery voltage", "epic_code":"106", "standard_name":"sea_water_temperature"})
+    ds["Bat_106"].attrs.update({"long_name" : "Battery voltage", "epic_code":"106"})
     ds["Ptch_1216"].attrs["long_name"] = "Pitch angle in degrees"
     
     # to be UDUNITS compatible
@@ -506,18 +522,20 @@ def ds_add_attrs(ds):
     ds["Ptch_1216"].attrs.update({"long_name":"Instrument Pitch","epic_code":"1216","standard_name":"platform_pitch"})
     ds["VbPercentGood"].attrs["long_name"] = "Vertical beam percent good"
     ds["HorizontalSkew"].attrs["long_name"] = "Horizontal skew"
-    ds["SystemInWater"].attrs[
-        "long_name"
-    ] = "Percentage of sample during which instrument was submerged (100% means it was submerged for entire sample)"
+    ds["SystemInWater"].attrs.update({"long_name" : "Percentage of sample during which instrument was submerged", "note":"100% means it was submerged for entire sample"})
 
     # Profile Variables
     for n in range(4):
-        ds["Profile_AGC%d_122%d" % (n + 1, n +1)].attrs.update({"units":"counts","long_name" : "Echo Intensity (AGC) Beam %d" % (n + 1)})
-        ds["Profile_vel%d_%d" % (n + 1, n + 1277)].attrs["long_name"] = (
-            "Beam %d velocity profile standard deviation" % (n + 1)
+        ds["Profile_AGC%d_122%d" % (n + 1, n +1)].attrs.update({"units":"counts","long_name" : "Echo Intensity (AGC) beam %d" % (n + 1)})
+        ds["Profile_vel%d_%dStd" % (n + 1, n + 1277)].attrs["long_name"] = (
+            "beam %d velocity profile standard deviation" % (n + 1)
         )
-        ds["Profile_vel%d_%d" % (n+ 1, n + 1277)].attrs["long_name"] = "Beam %d current velocity" % (n + 1)
-
+        ds["Profile_vel%d_%d" % (n + 1, n + 1277)].attrs.update({"long_name" : "beam %d current velocity" % (n + 1), "positive_dir" : "%s" % ds.attrs["beam_" + str(n+1) + "_positive_direction"]})
+        ds["Profile_blanking_distance%d" % (n + 1)].attrs.update({"long_name":"beam %d blanking distance" % (n + 1), "units": "m"})
+        ds["Profile_bin_size%d" % (n + 1)].attrs.update({"long_name":"beam %d bin size" % (n + 1), "units": "m"}) 
+        ds["Profile_z%d" % (n + 1)].attrs.update({"standard_name": "height", "long_name":"beam %d bin height relative to %s" % ((n + 1), ds.attrs["geopotential_datum_name"]), "units": "m", "positive":"%s" % ds.attrs["orientation"], "axis" : "Z"})
+         
+         
     return ds
 
 def trim_iqvel(ds):
@@ -609,16 +627,25 @@ def fill_vbper(ds):
 
     if "vbper_threshold" in ds.attrs:
         
-        Ptxt = str(ds.attrs['vbper_threshold'])    
+        Ptxt = str(ds.attrs['vbper_threshold'])
+        
+        histtext = "Filling P1ac, stage, area, range, D_3, and profile velocity data using vertical beam percent good threshold threshold of {}.".format(Ptxt)
+        
+        for var in ds:
+            if "Vel" and "Profile" in var:
+                for bm in range(4):
+                    var = "Profile_" + str(bm) + "_Vel"
+                    ds[var] = ds[var].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+                    
+            else:
+                
+                ds["AdjustedPressure"] = ds["AdjustedPressure"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+                ds["Depth"] = ds["Depth"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+                ds["Stage"] = ds["Stage"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+                ds["Area"] = ds["Area"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+                ds["Range"] = ds["Range"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
+                ds["Vel_Mean"] = ds["Vel_Mean"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
             
-        ds["AdjustedPressure"] = ds["AdjustedPressure"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
-        ds["Depth"] = ds["Depth"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
-        ds["Stage"] = ds["Stage"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
-        ds["Area"] = ds["Area"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
-        ds["Range"] = ds["Range"].where(ds.VbPercentGood > ds.attrs['vbper_threshold'])
-            
-        histtext = "Filled P1ac, stage, area, range, and D_3 data using vertical beam percent good threshold threshold of {}.".format(Ptxt)
-
         ds = utils.insert_history(ds, histtext)
         
     else:
