@@ -183,7 +183,7 @@ def add_min_max(ds, exclude_vars=None):
     if exclude_vars:
         exclude.extend(exclude_vars)
 
-    alloweddims = ["time", "sample", "depth", "z", "frequency"]
+    alloweddims = ["time", "sample", "depth", "z", "frequency", "bin_along", "bin_across"]
 
     for k in ds.variables:
         if k not in exclude:
