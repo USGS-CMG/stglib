@@ -3,11 +3,10 @@ import time
 
 import numpy as np
 import xarray as xr
+from dask.diagnostics import ProgressBar
 
 from ..aqd import aqdutils
 from ..core import utils
-
-from dask.diagnostics import ProgressBar
 
 # import os
 
@@ -40,21 +39,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # Add atmospheric pressure offset
     if atmpres is not False:
-        print("Atmospherically correcting data")
-
-        met = xr.load_dataset(atmpres)
-        # need to save attrs before the subtraction, otherwise they are lost
-        # ds['P_1ac'] = ds['P_1'].copy(deep=True)
-        attrs = ds["Pressure"].attrs
-        ds["P_1ac"] = (
-            ds["Pressure"]
-            - met["atmpres"].reindex_like(
-                ds["Pressure"], method="nearest", tolerance="10min"
-            )
-            - met["atmpres"].offset
-        )
-        print("Correcting using offset of %f" % met["atmpres"].offset)
-        ds["P_1ac"].attrs = attrs
+        ds = aqdutils.atmos_correct(ds, atmpres)
 
     ds = utils.create_nominal_instrument_depth(ds)
 
