@@ -141,7 +141,7 @@ def csv_to_cdf(metadata):
     return ds
 
 
-def cdf_to_nc(cdf_filename, atmpres=False):
+def cdf_to_nc(cdf_filename):
     """
     Load a raw .cdf file and generate a processed .nc file
     """

@@ -33,7 +33,7 @@ def aqdcdf2nc_parser():
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("cdfname", help="raw .CDF filename")
     parser.add_argument(
-        "--atmpres", help=("path to cdf file containing " "atmopsheric pressure data")
+        "--atmpres", help=("path to cdf file containing atmopsheric pressure data")
     )
 
     return parser
@@ -57,7 +57,7 @@ def wvscdf2nc_parser():
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("cdfname", help="raw .CDF filename")
     parser.add_argument(
-        "--atmpres", help=("path to cdf file containing " "atmopsheric pressure data")
+        "--atmpres", help=("path to cdf file containing atmopsheric pressure data")
     )
 
     return parser
@@ -113,7 +113,7 @@ def rskcdf2nc_parser():
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("cdfname", help="raw .CDF filename")
     parser.add_argument(
-        "--atmpres", help=("path to cdf file containing " "atmopsheric pressure data")
+        "--atmpres", help=("path to cdf file containing atmopsheric pressure data")
     )
 
     return parser
@@ -192,7 +192,7 @@ def exocdf2nc_parser():
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("cdfname", help="raw .CDF filename")
     parser.add_argument(
-        "--atmpres", help=("path to cdf file containing " "atmopsheric pressure data")
+        "--atmpres", help=("path to cdf file containing atmopsheric pressure data")
     )
 
     return parser
@@ -252,7 +252,7 @@ def rdicdf2nc_parser():
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("cdfname", help="raw .CDF filename")
     parser.add_argument(
-        "--atmpres", help=("path to cdf file containing " "atmopsheric pressure data")
+        "--atmpres", help=("path to cdf file containing atmopsheric pressure data")
     )
 
     return parser
