@@ -102,7 +102,7 @@ def atmos_correct(ds, atmpres):
     print(
         f"Atmospherically correcting using time-series from {atmpres} and offset of {met['atmpres'].offset}"
     )
-    ds["P_1ac"].attrs = attrs
+    ds["Pressure_ac"].attrs = attrs
 
     ds.attrs["atmospheric_pressure_correction_file"] = atmpres
     ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[

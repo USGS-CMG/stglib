@@ -35,9 +35,13 @@ def aqd_raw(glob_att, config_yaml):
     assert "Finished writing data" in result.stdout.decode("utf8")
 
 
-def aqd_nc(nc_file):
+def aqd_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [scripts / "runaqdcdf2nc.py", nc_file, "--atmpres", atmpres]
+    else:
+        runlist = [scripts / "runaqdcdf2nc.py", nc_file]
     result = subprocess.run(
-        [scripts / "runaqdcdf2nc.py", nc_file],
+        runlist,
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -76,6 +80,9 @@ def test_aqd():
     aqd_nc("1118ABaqd-raw.cdf")
     aqd_raw("glob_att1121a_msl_aqd.txt", "aqd1121A_config.yaml")
     aqd_nc("11211Aaqd-raw.cdf")
+    # test for atmospheric correction
+    aqd_raw("nbm22cce01_gatts.txt", "config_nbm22cce01.yaml")
+    aqd_nc("NBM22CCEaqd-raw.cdf", "atmpres_NBM22CCE.cdf")
 
 
 def test_aqdhr():
