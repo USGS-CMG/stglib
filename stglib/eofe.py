@@ -489,14 +489,14 @@ def calc_bin_height(ds):
         "Calculating center of bin height from seafloor as: initial intrument height - bin(center) distance from transducer"
     )
 
-    if ds.attrs["orientation"] == "down" or ds.attrs["orientation"] == "DOWN":
+    if ds.attrs["orientation"].upper() == "DOWN":
         ds["bin_height"] = (
             ds.attrs["initial_instrument_height"] - ds["bindist"]
         )  # get bin distance referenced from sea floor
 
         math_sign = "-"
 
-    elif ds.attrs["orientation"] == "up" or ds.attrs["orientation"] == "UP":
+    elif ds.attrs["orientation"].upper() == "UP":
         ds["bin_height"] = (
             ds.attrs["initial_instrument_height"] + ds["bindist"]
         )  # get bin distance referenced from sea floor
@@ -573,14 +573,14 @@ def calc_seabed_elev(ds):
             % ds.attrs["geopotential_datum_name"]
         )
 
-        if ds.attrs["orientation"] == "DOWN" or ds.attrs["orientation"] == "down":
+        if ds.attrs["orientation"].upper() == "DOWN":
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["NAVD88_ref"]
                 + (ds.brange * -1)
                 + ds.attrs["initial_instrument_height"]
             )
 
-        elif ds.attrs["orientation"] == "UP" or ds.attrs["orientation"] == "up":
+        elif ds.attrs["orientation"].upper() == "UP":
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["NAVD88_ref"]
                 + ds.brange
@@ -593,14 +593,14 @@ def calc_seabed_elev(ds):
             % ds.attrs["geopotential_datum_name"]
         )
 
-        if ds.attrs["orientation"] == "DOWN" or ds.attrs["orientation"] == "down":
+        if ds.attrs["orientation"].upper() == "DOWN":
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["height_above_geopotential_datum"]
                 + (ds.brange * -1)
                 + ds.attrs["initial_instrument_height"]
             )
 
-        elif ds.attrs["orientation"] == "UP" or ds.attrs["orientation"] == "up":
+        elif ds.attrs["orientation"].upper() == "UP":
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["height_above_geopotential_datum"]
                 + ds.brange
@@ -614,14 +614,14 @@ def calc_seabed_elev(ds):
             % ds.attrs["geopotential_datum_name"]
         )
 
-        if ds.attrs["orientation"] == "DOWN" or ds.attrs["orientation"] == "down":
+        if ds.attrs["orientation"].upper() == "DOWN":
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["WATER_DEPTH"]
                 + ds.brange
                 - ds.attrs["initial_instrument_height"]
             )
 
-        if ds.attrs["orientation"] == "UP" or ds.attrs["orientation"] == "up":
+        if ds.attrs["orientation"].upper() == "UP":
             ds["seabed_elevation"] = xr.DataArray(
                 ds.attrs["WATER_DEPTH"]
                 + (ds.brange * -1)

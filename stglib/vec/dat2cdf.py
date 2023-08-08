@@ -9,7 +9,6 @@ from ..core import utils
 
 
 def dat_to_cdf(metadata):
-
     basefile = metadata["basefile"]
 
     if "prefix" in metadata:
@@ -84,10 +83,8 @@ def dat_to_cdf(metadata):
         ds[v].encoding["coordinates"] = None
     ds.encoding["coordinates"] = None
 
-    # Compute time stamps
-    ds = utils.shift_time(
-        ds, ds.attrs["VECSamplesPerBurst"] / ds.attrs["VECSamplingRate"] / 2
-    )
+    # Compute time stamps. Only apply clock error or clock drift at this step since we still have time, sample dims
+    ds = utils.shift_time(ds, 0)
 
     if "prefix" in ds.attrs:
         cdf_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "-raw.cdf"
@@ -324,7 +321,6 @@ def read_vec_hdr(basefile):
 
 
 def ds_checksum_check(ds):
-
     if np.any(ds["Checksum"] == 1):
         warnings.warn(
             "Non-zero checksum values found in data. This indicates a failed checksum and potentially bad data. Proceed with caution."

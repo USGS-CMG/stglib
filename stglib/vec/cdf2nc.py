@@ -50,12 +50,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Add EPIC and CMG attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
 
-    ds = ds.rename({"Burst": "burst"})
     for v in ds.data_vars:
-        # need to do this or else a "coordinates" attribute with value of "Burst" hangs around
+        # need to do this or else a "coordinates" attribute with value of "burst" hangs around
         ds[v].encoding["coordinates"] = None
-
-    ds["burst"].encoding["dtype"] = "i4"
 
     # Add start_time and stop_time attrs
     ds = utils.add_start_stop_time(ds)
@@ -72,6 +69,29 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+
+    print("Done writing netCDF file", nc_filename)
+
+    print("Creating burst-mean statistics file")
+
+    dsmean = ds.mean(dim="sample", keep_attrs=True)
+
+    # we already applied ClockDrift, ClockError in dat2cdf so don't re-apply it here.
+    # but we do want to shift time since we are presenting mean values.
+    dsmean = utils.shift_time(
+        dsmean,
+        dsmean.attrs["VECSamplesPerBurst"] / dsmean.attrs["VECSamplingRate"] / 2,
+        apply_clock_error=False,
+        apply_clock_drift=False,
+    )
+
+    if "prefix" in dsmean.attrs:
+        nc_filename = dsmean.attrs["prefix"] + dsmean.attrs["filename"] + "-s.nc"
+    else:
+        nc_filename = dsmean.attrs["filename"] + "-s.nc"
+
+    dsmean.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    utils.check_compliance(nc_filename, conventions=dsmean.attrs["Conventions"])
 
     print("Done writing netCDF file", nc_filename)
 
@@ -116,19 +136,21 @@ def set_orientation(VEL, T):
 
     T_orig = T.copy()
 
-    if VEL.attrs["orientation"] == "UP":
+    if VEL.attrs["orientation"].upper() == "UP":
         print("User instructed that instrument was pointing UP")
 
         VEL["z"] = xr.DataArray(elev + [0.15], dims="z")
         VEL["depth"] = xr.DataArray(np.nanmean(VEL[presvar]) - [0.15], dims="depth")
 
-    elif VEL.attrs["orientation"] == "DOWN":
+    elif VEL.attrs["orientation"].upper() == "DOWN":
         print("User instructed that instrument was pointing DOWN")
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
 
         VEL["z"] = xr.DataArray(elev - [0.15], dims="z")
         VEL["depth"] = xr.DataArray(np.nanmean(VEL[presvar]) + [0.15], dims="depth")
+    else:
+        raise ValueError("Could not determine instrument orientation from user input")
 
     VEL["z"].attrs["standard_name"] = "height"
     VEL["z"].attrs["units"] = "m"

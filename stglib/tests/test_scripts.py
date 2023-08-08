@@ -17,9 +17,13 @@ def exo_raw(glob_att, config_yaml):
     assert "Finished writing data" in result.stdout.decode("utf8")
 
 
-def exo_nc(nc_file):
+def exo_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [scripts / "runexocdf2nc.py", nc_file, "--atmpres", atmpres]
+    else:
+        runlist = [scripts / "runexocdf2nc.py", nc_file]
     result = subprocess.run(
-        [scripts / "runexocdf2nc.py", nc_file],
+        runlist,
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -35,9 +39,13 @@ def aqd_raw(glob_att, config_yaml):
     assert "Finished writing data" in result.stdout.decode("utf8")
 
 
-def aqd_nc(nc_file):
+def aqd_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [scripts / "runaqdcdf2nc.py", nc_file, "--atmpres", atmpres]
+    else:
+        runlist = [scripts / "runaqdcdf2nc.py", nc_file]
     result = subprocess.run(
-        [scripts / "runaqdcdf2nc.py", nc_file],
+        runlist,
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -69,6 +77,9 @@ def test_exo():
     exo_nc("1119Aexo-raw.cdf")
     exo_raw("glob_att1151b.txt", "1151Bexo_config.yaml")
     exo_nc("1151Bexo-raw.cdf")
+    # test for atmospheric correction
+    exo_raw("glob_attbel3C.txt", "config_bel3C.yaml")
+    exo_nc("BEL19B3C03exo-raw.cdf", "atmpres_BEL19B3C03exo.cdf")
 
 
 def test_aqd():
@@ -76,6 +87,9 @@ def test_aqd():
     aqd_nc("1118ABaqd-raw.cdf")
     aqd_raw("glob_att1121a_msl_aqd.txt", "aqd1121A_config.yaml")
     aqd_nc("11211Aaqd-raw.cdf")
+    # test for atmospheric correction
+    aqd_raw("nbm22cce01_gatts.txt", "config_nbm22cce01.yaml")
+    aqd_nc("NBM22CCEaqd-raw.cdf", "atmpres_NBM22CCE.cdf")
 
 
 def test_aqdhr():
