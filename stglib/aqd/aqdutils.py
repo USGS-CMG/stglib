@@ -989,9 +989,15 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             "trim_method" in dsattrs
             and dsattrs["trim_method"].lower() == "water level sl"
         ):
+            if "sl_bins" in ds.attrs:
+                sltxt = ds.attrs["sl_bins"]
+            elif "sl_bins" not in ds.attrs:
+                sltxt = 0
             vel.attrs[
                 "note"
-            ] = "Velocity bins trimmed if out of water or if side lobes intersect sea surface"
+            ] = "Velocity bins trimmed if out of water or if side lobes intersect sea surface (with {} additional surface bins removed).".format(
+                sltxt
+            )
 
     def add_attributes(var, dsattrs):
         if inst_type == "AQD":
