@@ -1429,3 +1429,51 @@ def apply_wave_coord_output(ds, T, T_orig):
         ds = ds.drop(["VEL1", "VEL2", "VEL3"])
 
     return ds
+
+
+def fill_agc(ds):
+    """
+    Fill velocity data with AGC threshold.
+    Beam AGC variables (AGC1_1221, AGC2_1222, and AGC3_1223) are used to fill corresponding beam velocities (vel1_1277, vel2_1278, vel3_1279).
+    Average AGC (AGC_1202) is used to fill transformed eastward, northward, and upward velocities (u_1205, v_1206, w_1204).
+    """
+    if "agc_threshold" in ds.attrs:
+        Ptxt = str(ds.attrs["agc_threshold"])
+
+        # fill beam velocities by corresponding beam AGC
+        ds["vel1_1277"] = ds["vel1_1277"].where(
+            ds["AGC1_1221"] > ds.attrs["agc_threshold"]
+        )
+        ds["vel2_1278"] = ds["vel2_1278"].where(
+            ds["AGC2_1222"] > ds.attrs["agc_threshold"]
+        )
+        ds["vel3_1279"] = ds["vel3_1279"].where(
+            ds["AGC3_1223"] > ds.attrs["agc_threshold"]
+        )
+
+        notetxt = (
+            "Data filled by corresponding beam AGC using threshold of %s counts. "
+            % (str(ds.attrs["agc_threshold"]))
+        )
+
+        vel = ["vel1_1277", "vel2_1278", "vel3_1279"]
+
+        for var in vel:
+            ds = utils.insert_note(ds, var, notetxt)
+
+        # fill transformed u,v,w velocities by averaged AGC (AGC_1202)
+        uvw = ["u_1205", "v_1206", "w_1204"]
+
+        for var in uvw:
+            ds[var] = ds[var].where(ds["AGC_1202"] > ds.attrs["agc_threshold"])
+            notetxt = "Data filled using AGC_1202 threshold of %s counts. " % (
+                str(ds.attrs["agc_threshold"])
+            )
+            ds = utils.insert_note(ds, var, notetxt)
+
+        histtext = "Filled velocity data using agc threshold of {} counts.".format(Ptxt)
+
+        ds = utils.insert_history(ds, histtext)
+    else:
+        print("Did not fill velocity data using agc threshold")
+    return ds
