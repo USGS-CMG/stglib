@@ -1,4 +1,6 @@
 *.ipynb filter=nbstripout
-
 *.ipynb diff=ipynb
 stglib/_version.py export-subst
+stglib/tests/data/055109_20220808_1605.zip filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/055109_20220808_1605_config.yaml filter=lfs diff=lfs merge=lfs -text
+stglib/tests/data/gatts_055109_20220808_1605.txt filter=lfs diff=lfs merge=lfs -text
