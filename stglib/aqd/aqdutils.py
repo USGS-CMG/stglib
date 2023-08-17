@@ -1446,27 +1446,6 @@ def fill_agc(ds):
     if "agc_threshold" in ds.attrs:
         Ptxt = str(ds.attrs["agc_threshold"])
 
-        # fill beam velocities by corresponding beam AGC
-        ds["vel1_1277"] = ds["vel1_1277"].where(
-            ds["AGC1_1221"] > ds.attrs["agc_threshold"]
-        )
-        ds["vel2_1278"] = ds["vel2_1278"].where(
-            ds["AGC2_1222"] > ds.attrs["agc_threshold"]
-        )
-        ds["vel3_1279"] = ds["vel3_1279"].where(
-            ds["AGC3_1223"] > ds.attrs["agc_threshold"]
-        )
-
-        notetxt = (
-            "Data filled by corresponding beam AGC using threshold of %s counts. "
-            % (str(ds.attrs["agc_threshold"]))
-        )
-
-        vel = ["vel1_1277", "vel2_1278", "vel3_1279"]
-
-        for var in vel:
-            ds = utils.insert_note(ds, var, notetxt)
-
         # fill transformed u,v,w velocities by averaged AGC (AGC_1202)
         uvw = ["u_1205", "v_1206", "w_1204"]
 
