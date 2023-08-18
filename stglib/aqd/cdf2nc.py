@@ -114,6 +114,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         VEL = aqdutils.trim_single_bins(VEL, var)
         VEL = qaqc.trim_fliers(VEL, var)
 
+    # fill with AGC threshold
+    VEL = aqdutils.fill_agc(VEL)
+
     # after check for masking vars by other vars
     for var in VEL.data_vars:
         VEL = qaqc.trim_mask(VEL, var)
