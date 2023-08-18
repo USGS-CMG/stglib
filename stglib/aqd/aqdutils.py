@@ -400,14 +400,23 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
             ds = utils.insert_history(ds, histtext)
 
         elif ds.attrs["trim_method"].lower() == "water level sl":
-            for var in data_vars:
-                ds[var] = ds[var].where(
-                    ds["bindist"] < P * np.cos(np.deg2rad(ds.attrs["beam_angle"]))
+            if "trim_surf_bins" in ds.attrs:
+                surf_bins = ds.attrs["trim_surf_bins"]
+                histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes (with {} additional surface bins removed).".format(
+                    Ptxt, surf_bins
+                )
+            else:
+                surf_bins = 0
+                histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
+                    Ptxt
                 )
 
-            histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
-                Ptxt
-            )
+            for var in data_vars:
+                ds[var] = ds[var].where(
+                    ds["bindist"]
+                    < (P * np.cos(np.deg2rad(ds.attrs["beam_angle"])))
+                    - (ds.attrs["bin_size"] * surf_bins)
+                )
 
             ds = utils.insert_history(ds, histtext)
 
@@ -980,9 +989,16 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             "trim_method" in dsattrs
             and dsattrs["trim_method"].lower() == "water level sl"
         ):
-            vel.attrs[
-                "note"
-            ] = "Velocity bins trimmed if out of water or if side lobes intersect sea surface"
+            if "trim_surf_bins" in ds.attrs:
+                vel.attrs[
+                    "note"
+                ] = "Velocity bins trimmed if out of water or if side lobes intersect sea surface (with {} additional surface bins removed).".format(
+                    ds.attrs["trim_surf_bins"]
+                )
+            else:
+                vel.attrs[
+                    "note"
+                ] = "Velocity bins trimmed if out of water or if side lobes intersect sea surface."
 
     def add_attributes(var, dsattrs):
         if inst_type == "AQD":
@@ -1418,5 +1434,39 @@ def apply_wave_coord_output(ds, T, T_orig):
         ds["W"] = xr.DataArray(w, dims=("time", "sample"))
 
         ds = ds.drop(["VEL1", "VEL2", "VEL3"])
+
+    return ds
+
+
+def fill_agc(ds):
+    """
+    Fill velocity data with a min or max AGC threshold.
+    Average AGC (AGC_1202) is used to fill transformed eastward, northward, and upward velocities (u_1205, v_1206, w_1204).
+    """
+
+    # lsit velocities to fill by agc threshold(s)
+    uvw = ["u_1205", "v_1206", "w_1204"]
+
+    if "velocity_agc_min" in ds.attrs:
+        for var in uvw:
+            ds[var] = ds[var].where(ds["AGC_1202"] > ds.attrs["velocity_agc_min"])
+            notetxt = "Velocity data filled using AGC_1202 minimum threshold of {} counts.".format(
+                ds.attrs["velocity_agc_min"]
+            )
+
+            ds = utils.insert_note(ds, var, notetxt)
+
+            ds = utils.insert_history(ds, notetxt)
+
+    if "velocity_agc_max" in ds.attrs:
+        for var in uvw:
+            ds[var] = ds[var].where(ds["AGC_1202"] < ds.attrs["velocity_agc_max"])
+            notetxt = "Velocity data filled using AGC_1202 maximum threshold of {} counts.".format(
+                ds.attrs["velocity_agc_max"]
+            )
+
+            ds = utils.insert_note(ds, var, notetxt)
+
+            ds = utils.insert_history(ds, notetxt)
 
     return ds

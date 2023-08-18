@@ -202,6 +202,15 @@ def rbr_nc(nc_file):
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
+def rbr_wvs(nc_file):
+    result = subprocess.run(
+        [scripts / "runrsknc2waves.py", nc_file],
+        capture_output=True,
+        cwd="stglib/tests/data",
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
 def test_rbr():
     import zipfile
     from os import path
@@ -212,6 +221,12 @@ def test_rbr():
         zip_ref.extractall("stglib/tests/data/")
     rbr_raw("gatts_CSF20SC2.txt", "csf20sc201_config.yaml")
     rbr_nc("CSF20SC201pt-raw.cdf")
+    rbr_wvs("CSF20SC201ptb-cal.nc")
+    with zipfile.ZipFile("stglib/tests/data/055109_20220808_1605.zip", "r") as zip_ref:
+        zip_ref.extractall("stglib/tests/data/")
+    rbr_raw("gatts_055109_20220808_1605.txt", "055109_20220808_1605_config.yaml")
+    rbr_nc("11512Cdw-raw.cdf")
+    rbr_wvs("11512Cdwcont-cal.nc")
 
 
 def eofe_raw(glob_att, config_yaml):
