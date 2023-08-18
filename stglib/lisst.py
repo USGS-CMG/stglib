@@ -44,6 +44,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
+    for var in ds.data_vars:
+        ds = qaqc.trim_min(ds, var)
+        ds = qaqc.trim_max(ds, var)
+
     ds = utils.add_min_max(ds)
 
     ds = utils.add_start_stop_time(ds)
