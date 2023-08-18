@@ -510,7 +510,6 @@ def ds_add_attrs(ds):
         ds["P_1ac"].attrs.update(
             {
                 "units": "dbar",
-                "name": "Pac",
                 "long_name": "Corrected pressure",
                 "standard_name": "sea_water_pressure_due_to_sea_water",
             }
