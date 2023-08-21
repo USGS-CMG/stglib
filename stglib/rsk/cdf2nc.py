@@ -176,7 +176,6 @@ def ds_add_attrs(ds):
     if "P_1ac" in ds:
         ds["P_1ac"].attrs.update(
             {
-                "name": "Pac",
                 "long_name": "Corrected pressure",
                 "standard_name": "sea_water_pressure_due_to_sea_water",
             }
