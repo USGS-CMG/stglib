@@ -1218,10 +1218,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         )
 
     if "P_1ac" in ds:
-        ds["P_1ac"].attrs.update(
-            # {"units": "dbar", "name": "Pac", "long_name": "Corrected pressure"}
-            {"units": "dbar", "long_name": "Corrected pressure"}
-        )
+        ds["P_1ac"].attrs.update({"units": "dbar", "long_name": "Corrected pressure"})
         if "P_1ac_note" in ds.attrs:
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
@@ -1232,10 +1229,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds = utils.insert_history(ds, histtext)
 
     if "bin_depth" in ds:
-        ds["bin_depth"].attrs.update(
-            # {"units": "m", "name": "bin depth", "long_name": "bin depth"}
-            {"units": "m", "long_name": "bin depth"}
-        )
+        ds["bin_depth"].attrs.update({"units": "m", "long_name": "bin depth"})
 
         if "P_1ac" in ds:
             if waves:
