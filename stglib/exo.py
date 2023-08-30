@@ -303,10 +303,10 @@ def ds_rename_vars(ds):
         "Chlorophyll_RFU": "CHLrfu",
         "Chlorophyll_µg_per_L": "Fch_906",
         "Chlorophyll_ug_per_L": "Fch_906",  # added variable name
-        "BGA-PE_RFU": "BGAPErfu",
-        "BGA_PE_RFU": "BGAPErfu",  # added variable name
-        "BGA-PE_µg_per_L": "BGAPE",
-        "BGA_PE_ug_per_L": "BGAPE",  # added variable name
+        "BGA-PE_RFU": "TALPErfu",  # BGA is old variable name
+        "BGA_PE_RFU": "TALPErfu",  # BGA is old variable name
+        "BGA-PE_µg_per_L": "TALPE",  # BGA is old variable name
+        "BGA_PE_ug_per_L": "TALPE",  # BGA is old variable name
         "TAL_PE_RFU": "TALPErfu",  # added variable name
         "TAL_PE_ug_per_L": "TALPE",  # added variable name
         "Temp_°C": "T_28",
@@ -382,32 +382,22 @@ def ds_add_attrs(ds):
             }
         )
 
-    if "BGAPErfu" in ds:
-        ds["BGAPErfu"].attrs.update(
-            {
-                "units": "percent",
-                "long_name": "Blue green algae phycoerythrin, RFU",
-                "comments": "Relative fluorescence units (RFU)",
-            }
-        )
-
-    if "BGAPE" in ds:
-        ds["BGAPE"].attrs.update(
-            {"units": "ug/L", "long_name": "Blue green algae phycoerythrin"}
-        )
-
     if "TALPErfu" in ds:
         ds["TALPErfu"].attrs.update(
             {
                 "units": "percent",
                 "long_name": "Total algae phycoerythrin, RFU",
-                "comments": "Relative fluorescence units (RFU)",
+                "comments": "Relative fluorescence units (RFU); formerly called BGAPErfu (Blue green algae phycoerythrin, RFU)",
             }
         )
 
     if "TALPE" in ds:
         ds["TALPE"].attrs.update(
-            {"units": "ug/L", "long_name": "Total algae phycoerythrin"}
+            {
+                "units": "ug/L",
+                "long_name": "Total algae phycoerythrin",
+                "comments": "Formerly called BGAPE (Blue green algae phycoerythrin)",
+            }
         )
 
     ds["T_28"].attrs.update(
