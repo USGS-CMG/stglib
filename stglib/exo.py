@@ -586,8 +586,6 @@ def exo_qaqc(ds):
         "fDOMQSU",
         "CHLrfu",
         "Fch_906",
-        "BGAPErfu",
-        "BGAPE",
         "TALPErfu",
         "TALPE",
         "OST_62",
