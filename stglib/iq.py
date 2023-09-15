@@ -492,7 +492,7 @@ def cdf_to_nc(cdf_filename):
     print("Done writing netCDF file", nc_filename)
 
     nc_filename = dsprof.attrs["filename"] + "prof-a.nc"
-    dsprof.to_netcdf(nc_filename)
+    dsprof.to_netcdf(nc_filename, unlimited_dims=["time"])
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
     print("Done writing netCDF file", nc_filename)
 
@@ -548,21 +548,46 @@ def ds_add_attrs(ds):
 
     ds["D_3"].attrs.update(
         {
-            "long_name": "acoustically measured depth",
-            "note": "relative to vertical transducer/beam 5, the top of the instrument",
+            "long_name": "depth below sea surface",
+            "standard_name": "depth",
+            "positive": "%s" % ds.depth.attrs["positive"],
         }
     )
 
+    d3_note = "Calculated using vertical beam if VbPercentGood is greater than 30% and measured using pressure sesnor if VbPercentGood is less than 30%. See Sontek-IQ Series instrument manual for deatils."
+    if "note" in ds["D_3"].attrs:
+        ds["D_3"].attrs["note"] = ds["D_3"].attrs["note"] + d3_note
+    else:
+        ds["D_3"].attrs["note"] = d3_note
+
     # descriptions from Sontek-IQ Series User's Manual available at
     # http://info.xylem.com/sontek-iq-manual.html
-    ds["Stage"].attrs["long_name"] = "Stage (water depth of the user-defined channel)"
+    ds["Stage"].attrs.update(
+        {
+            "long_name": "Sea surface height (NAVD88)",
+            "standard_name": "sea_surface_height_above_geopotential_datum ",
+            "geopotential_datum_name": "NAVD88",
+            "positive": "%s" % ds.depth.attrs["positive"],
+        }
+    )
     ds["Area"].attrs["long_name"] = "Cross-sectional area of user-defined channel"
-    ds["Flow"].attrs["long_name"] = "Flow rate (using defined channel geometry)"
+    ds["Flow"].attrs.update(
+        {
+            "long_name": "Flow rate (using defined channel geometry)",
+            "positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
+            "flood_dir": "%s" % ds.attrs["flood_direction"],
+        }
+    )
 
     ds["Vel_Mean"].attrs.update(
         {
             "long_name": "Mean velocity",
             "positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
+            "flood_dir": "%s" % ds.attrs["flood_direction"],
+            "mean_velocity_equation_type": "%s"
+            % ds.attrs["mean_velocity_equation_type"],
+            "equation_velocity_type": "%s" % ds.attrs["equation_velocity_type"],
+            "mean_velocity_equation_note": "Mean velocity calculation method",
         }
     )
     ds["Volume_Total"].attrs[
@@ -578,37 +603,49 @@ def ds_add_attrs(ds):
         {
             "long_name": "Beam velocity",
             "beam_2_positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
-            "beams_1,3,4_positive_dir": "%s" % ds.attrs["beam_1_positive_direction"],
+            "beams_1_3_4_positive_dir": "%s" % ds.attrs["beam_1_positive_direction"],
         }
     )
     ds["Vel_X_Center"].attrs.update(
         {
-            "long_name": "X velocity from center beams (beams 1 & 2)",
+            "long_name": "X velocity in center of channel (from beams 1 & 2)",
             "positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
         }
     )
     ds["Vel_Z_Center"].attrs.update(
         {
-            "long_name": "Z velocity from center beams (beams 1 & 2)",
+            "long_name": "Z velocity in center of channel (from beams 1 & 2)",
             "positive_dir": "%s" % ds.attrs["orientation"],
         }
     )
     ds["Vel_X_Left"].attrs.update(
         {
-            "long_name": "X velocity left beam (beam 3)",
+            "long_name": "X velocity along left bank (from beam 3)",
             "positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
         }
     )
     ds["Vel_X_Right"].attrs.update(
         {
-            "long_name": "X velocity right beam (beam 4)",
+            "long_name": "X velocity along right bank (beam 4)",
             "positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
         }
     )
+
     ds["VelStd"].attrs["long_name"] = "Velocity standard deviation"
     ds["SNR"].attrs["long_name"] = "Signal-to-noise ratio"
     ds["NoiseLevel"].attrs["long_name"] = "Acoustic noise level"
-    ds["Range"].attrs["long_name"] = "Acoustically measured distance to water surface"
+    ds["Range"].attrs.update(
+        {
+            "long_name": "distance to sea surface",
+            "positive": "%s" % ds.attrs["orientation"],
+        }
+    )
+    range_note = "measured using vertical acoustic beam (beam 5)"
+    if "note" in ds["Range"].attrs:
+        ds["Range"].attrs["note"] = ds["Range"].attrs["note"] + range_note
+    else:
+        ds["Range"].attrs["note"] = p1ac_note
+
     ds["T_28"].attrs.update(
         {
             "long_name": "Temperature",
@@ -622,11 +659,13 @@ def ds_add_attrs(ds):
             "long_name": "Uncorrected pressure",
             "epic_code": "1",
             "standard_name": "sea_water_pressure",
+            "units": "dbar",
         }
     )
     ds["PressOffsetAdjust"].attrs.update(
         {
             "long_name": "Atmospheric pressure adjustment",
+            "units": "dbar",
             "note": "see SonTek-IQ User's Manual for details",
         }
     )
@@ -634,9 +673,17 @@ def ds_add_attrs(ds):
         {
             "long_name": "Corrected pressure",
             "standard_name": "sea_water_pressure_due_to_sea_water",
-            "note": "Measurement with atmospheric pressure removed (see SonTek-IQ User's Manual for details)",
+            "units": "dbar",
         }
     )
+
+    p1ac_note = "Measurement with atmospheric pressure removed (see SonTek-IQ User's Manual for details)"
+
+    if "note" in ds["P_1ac"].attrs:
+        ds["P_1ac"].attrs["note"] = ds["P_1ac"].attrs["note"] + p1ac_note
+    else:
+        ds["P_1ac"].attrs["note"] = p1ac_note
+
     ds["Bat_106"].attrs.update({"long_name": "Battery voltage", "epic_code": "106"})
     ds["Ptch_1216"].attrs["long_name"] = "Pitch angle in degrees"
 
