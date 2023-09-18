@@ -202,6 +202,11 @@ def create_iqbindist(ds):
 def rename_vars(ds):
     # set up dict of instrument -> EPIC variable names
 
+    ds["vel1_1277"] = ds["Vel"].sel(velbeam=1)
+    ds["vel2_1278"] = ds["Vel"].sel(velbeam=2)
+    ds["vel3_1279"] = ds["Vel"].sel(velbeam=3)
+    ds["vel4_1280"] = ds["Vel"].sel(velbeam=4)
+
     newvars = {}
 
     for var in ds:
@@ -420,6 +425,8 @@ def cdf_to_nc(cdf_filename):
 
     ds = fill_vbper(ds)
 
+    ds = rename_vars(ds)
+
     # assign min/max:
     ds = utils.add_min_max(ds)
 
@@ -429,8 +436,6 @@ def cdf_to_nc(cdf_filename):
 
     # add lat/lon coordinates
     ds = utils.ds_add_lat_lon(ds)
-
-    ds = rename_vars(ds)
 
     # should function this
     for var in ds.data_vars:
@@ -461,6 +466,8 @@ def cdf_to_nc(cdf_filename):
             "Volume_Total",
             "Volume_Positive",
             "Volume_Negative",
+            "Vel",
+            "HorizontalSkew",
         ]
     )
 
@@ -599,13 +606,35 @@ def ds_add_attrs(ds):
     ds["Volume_Negative"].attrs[
         "long_name"
     ] = "Total volume of water in the negative upstream direction"
-    ds["Vel"].attrs.update(
+
+    ds["vel1_1277"].attrs.update(
         {
-            "long_name": "Beam velocity",
-            "beam_2_positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
+            "long_name": "Beam 1 current velocity",
             "beams_1_3_4_positive_dir": "%s" % ds.attrs["beam_1_positive_direction"],
         }
     )
+
+    ds["vel2_1278"].attrs.update(
+        {
+            "long_name": "Beam 2 current velocity",
+            "beam_2_positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
+        }
+    )
+
+    ds["vel3_1279"].attrs.update(
+        {
+            "long_name": "Beam 3 current velocity",
+            "beams_1_3_4_positive_dir": "%s" % ds.attrs["beam_1_positive_direction"],
+        }
+    )
+
+    ds["vel4_1280"].attrs.update(
+        {
+            "long_name": "Beam 4 current velocity",
+            "beams_1_3_4_positive_dir": "%s" % ds.attrs["beam_1_positive_direction"],
+        }
+    )
+
     ds["Vel_X_Center"].attrs.update(
         {
             "long_name": "X velocity in center of channel (from beams 1 & 2)",
@@ -862,7 +891,7 @@ def fill_vbper(ds):
     if "vbper_threshold" in ds.attrs:
         Ptxt = str(ds.attrs["vbper_threshold"])
 
-        histtext = "Filling P1ac, stage, area, range, D_3, mean velocity and profile velocity data using vertical beam percent good threshold threshold of {}.".format(
+        histtext = "Filling P1ac, stage, area, range, and D_3 (depth) data using vertical beam percent good threshold threshold of {}.".format(
             Ptxt
         )
 
@@ -890,9 +919,9 @@ def fill_vbper(ds):
                 ds["Range"] = ds["Range"].where(
                     ds.VbPercentGood > ds.attrs["vbper_threshold"]
                 )
-                ds["Vel_Mean"] = ds["Vel_Mean"].where(
-                    ds.VbPercentGood > ds.attrs["vbper_threshold"]
-                )
+                # ds["Vel_Mean"] = ds["Vel_Mean"].where(
+                # ds.VbPercentGood > ds.attrs["vbper_threshold"]
+                # )
 
         ds = utils.insert_history(ds, histtext)
 
