@@ -141,6 +141,28 @@ def read_iq(filnam):
 
     ds = xr.Dataset(ds)
 
+    ds.attrs["survey_point_count"] = int(
+        iqmat["System_IqSetup"]["flowSetup"]["surveyPointCount"]
+    )
+    ds.attrs["IQ_location_Y"] = (
+        iqmat["System_IqSetup"]["flowSetup"]["instrument_Y"] / 1000
+    )
+    ds.attrs["IQ_location_Z"] = (
+        iqmat["System_IqSetup"]["flowSetup"]["instrument_Z"] / 1000
+    )
+    ds.attrs["channel_cross_section_Y"] = (
+        iqmat["System_IqSetup"]["flowSetup"]["channel_Y"][
+            0 : ds.attrs["survey_point_count"]
+        ]
+    ) / 1000
+    ds.attrs["channel_cross_section_Z"] = (
+        iqmat["System_IqSetup"]["flowSetup"]["channel_Z"][
+            0 : ds.attrs["survey_point_count"]
+        ]
+    ) / 1000
+    ds.attrs["channel_cross_section_note"] = ""
+    ds.attrs["IQ_location_note"] = ""
+
     for k in iqmat["System_IqSetup"]["basicSetup"]:
         if "spare" not in k:
             ds.attrs[k] = iqmat["System_IqSetup"]["basicSetup"][k]
@@ -873,9 +895,13 @@ def fill_snr(ds):
                     & (ds.SNR[:, 3] > ds.attrs["snr_threshold"])
                 )
 
-            histtext = "Filled velocity data using snr threshold of {} for corresponding beams.".format(
+            histtext = "Filled velocity data using snr threshold of {} for corresponding beam(s).".format(
                 Ptxt
             )
+
+        for var in ds:
+            if "Vel" in var:
+                ds = utils.insert_note(ds, var, histtext)
 
         ds = utils.insert_history(ds, histtext)
     else:
@@ -895,33 +921,32 @@ def fill_vbper(ds):
             Ptxt
         )
 
-        for var in ds:
-            if "Vel" and "Profile" in var:
-                for bm in range(4):
-                    var = "Profile_" + str(bm) + "_Vel"
-                    ds[var] = ds[var].where(
-                        ds.VbPercentGood > ds.attrs["vbper_threshold"]
-                    )
+        notetxt = "Filled data using vertical beam percent good threshold threshold of {}.".format(
+            Ptxt
+        )
 
-            else:
-                ds["AdjustedPressure"] = ds["AdjustedPressure"].where(
-                    ds.VbPercentGood > ds.attrs["vbper_threshold"]
-                )
-                ds["Depth"] = ds["Depth"].where(
-                    ds.VbPercentGood > ds.attrs["vbper_threshold"]
-                )
-                ds["Stage"] = ds["Stage"].where(
-                    ds.VbPercentGood > ds.attrs["vbper_threshold"]
-                )
-                ds["Area"] = ds["Area"].where(
-                    ds.VbPercentGood > ds.attrs["vbper_threshold"]
-                )
-                ds["Range"] = ds["Range"].where(
-                    ds.VbPercentGood > ds.attrs["vbper_threshold"]
-                )
-                # ds["Vel_Mean"] = ds["Vel_Mean"].where(
-                # ds.VbPercentGood > ds.attrs["vbper_threshold"]
-                # )
+        varlist = {"AdjustedPressure", "Depth", "Stage", "Area", "Range"}
+
+        for k in varlist:
+            ds[k] = ds[k].where(ds.VbPercentGood > ds.attrs["vbper_threshold"])
+
+            # ds["AdjustedPressure"] = ds["AdjustedPressure"].where(
+            # ds.VbPercentGood > ds.attrs["vbper_threshold"]
+            # )
+            # ds["Depth"] = ds["Depth"].where(
+            # ds.VbPercentGood > ds.attrs["vbper_threshold"]
+            # )
+            # ds["Stage"] = ds["Stage"].where(
+            # ds.VbPercentGood > ds.attrs["vbper_threshold"]
+            # )
+            # ds["Area"] = ds["Area"].where(
+            # ds.VbPercentGood > ds.attrs["vbper_threshold"]
+            # )
+            # ds["Range"] = ds["Range"].where(
+            # ds.VbPercentGood > ds.attrs["vbper_threshold"]
+            # )
+
+            ds = utils.insert_note(ds, k, notetxt)
 
         ds = utils.insert_history(ds, histtext)
 
