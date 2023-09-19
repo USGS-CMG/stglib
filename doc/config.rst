@@ -70,6 +70,8 @@ Options applicable to many instrument types include:
 - ``<VAR>_max_diff_pct``: fill values where data increases by more than this percent in a single time step.
 - ``<VAR>_med_diff``: fill values where difference between a 5-point (default) median filter and original values is greater than this number.
 - ``<VAR>_med_diff_pct``: fill values where percent difference between a 5-point (default) median filter and original values is greater than this number.
+- ``<VAR>_max_blip``: fill short-lived maximum "blips", values that increase greater than this number and then immediately decrease at the next time step.
+- ``<VAR>_max_blip_pct``: fill short-lived maximum "blips", values that increase more than this percent and then immediately decrease at the next time step.
 - ``<VAR>_trim_fliers``: fill flier values, which are data points surrounded by filled data. Set to the maximum size of flier clumps to remove.
 
 Aquadopp
