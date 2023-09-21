@@ -160,13 +160,6 @@ def read_iq(filnam):
             0 : ds.attrs["survey_point_count"]
         ]
     ) / 1000
-    ds.attrs["channel_cross_section_note"] = (
-        "Y = distance (m) along transect across the channel, starting on right bank. Z = elevation (m) of bed referenced to %s. Measurements collected in the field at the beginning of each IQ deployment."
-        % ds.attrs["geopotential_datum_name"]
-    )
-    ds.attrs[
-        "IQ_location_note"
-    ] = "Location of IQ projected onto cross channel transect. Actual location of IQ may be up to 2 meters off the across-channel transect (in perpendicular direction or along channel)."
 
     for k in iqmat["System_IqSetup"]["basicSetup"]:
         if "spare" not in k:
@@ -770,6 +763,14 @@ def ds_add_attrs(ds):
             "note": "100% means it was submerged for entire sample",
         }
     )
+
+    ds.attrs["channel_cross_section_note"] = (
+        "Y = distance (m) along transect across the channel, starting on right bank. Z = elevation (m) of bed referenced to %s. Measurements collected in the field at the beginning of each IQ deployment."
+        % ds.attrs["geopotential_datum_name"]
+    )
+    ds.attrs[
+        "IQ_location_note"
+    ] = "Location of IQ projected onto cross channel transect. Actual location of IQ may be up to 2 meters off the across-channel transect (in perpendicular direction or along channel)."
 
     # Profile Variables
     for n in range(4):
