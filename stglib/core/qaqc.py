@@ -385,3 +385,13 @@ def trim_std_ratio(ds, var):
             )
 
     return ds
+
+
+def drop_vars(ds):
+    """Remove variables in the final Dataset as specified by the user"""
+    if "drop_vars" in ds.attrs:
+        for k in ds.attrs["drop_vars"]:
+            if k in ds:
+                ds = ds.drop_vars(k)
+
+    return ds

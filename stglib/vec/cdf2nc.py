@@ -47,6 +47,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Drop unused variables
     ds = ds_drop(ds)
 
+    ds = qaqc.drop_vars(ds)
+
     # Add EPIC and CMG attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
 
