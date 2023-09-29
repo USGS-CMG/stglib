@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .core import utils
+from .core import qaqc, utils
 
 
 def csv_to_cdf(metadata):
@@ -41,6 +41,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # remove units in case we change and we can use larger time steps
     ds.time.encoding.pop("units")
 
+    # Infer if a burst deployment depending on whether there is a large DT
+    ds = check_and_reshape_burst(ds)
+
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
@@ -48,7 +51,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = qaqc.trim_min(ds, var)
         ds = qaqc.trim_max(ds, var)
 
-    ds = utils.add_min_max(ds)
+    ds = utils.add_min_max(ds, exclude_vars=["RSlower", "RSmedian", "RSupper"])
 
     ds = utils.add_start_stop_time(ds)
 
@@ -399,3 +402,45 @@ def get_ringsizes():
     RSupper.attrs["units"] = "micron"
 
     return RSmedian, RSlower, RSupper
+
+
+def check_and_reshape_burst(ds):
+    dt0 = ds.time[1] - ds.time[0]
+    spb = np.where(ds.time.diff(dim="time") != dt0)[0][0] + 1
+
+    r = np.shape(ds.time)[0]
+    mod = r % spb
+
+    if mod:
+        print(
+            "Number of rows is not a multiple of samples per burst; truncating to last full burst"
+        )
+        ds = ds.isel(time=range(r - mod))
+
+    newtime = ds.time[0::spb]
+
+    for v in ds.data_vars:
+        if ds[v].dims == ("time",):
+            ds[v] = xr.DataArray(
+                np.reshape(ds[v].values, (len(newtime), spb)),
+                dims=("newtime", "sample"),
+                coords=[
+                    newtime,
+                    range(spb),
+                ],
+            )
+        elif ds[v].dims == (
+            "time",
+            "ring",
+        ):
+            ds[v] = xr.DataArray(
+                np.reshape(ds[v].values, (len(newtime), spb, len(ds["ring"]))),
+                dims=("newtime", "sample", "ring"),
+                coords=[newtime, range(spb), ds["ring"]],
+            )
+
+    ds = ds.drop("time")
+
+    ds = ds.rename({"newtime": "time"})
+
+    return ds
