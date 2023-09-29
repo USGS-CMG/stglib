@@ -227,6 +227,42 @@ def trim_max_std(ds, var):
     return ds
 
 
+def trim_max_blip(ds, var):
+    """trim short-lived maximum "blips", values that increase and then immediately decrease at the next time step"""
+    if var + "_max_blip" in ds.attrs:
+        cond = (np.ediff1d(ds[var], to_begin=0) > ds.attrs[var + "_max_blip"]) & (
+            np.ediff1d(ds[var], to_end=0) < -ds.attrs[var + "_max_blip"]
+        )
+        affected = cond.sum()
+        ds[var][cond] = np.nan
+
+        notetxt = f"Values filled where data blips by more than {ds.attrs[var + '_max_blip']} units in a single time step; {affected} values affected. "
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
+def trim_max_blip_pct(ds, var):
+    """trim short-lived maximum "blips", values that increase and then immediately decrease at the next time step"""
+    if var + "_max_blip_pct" in ds.attrs:
+        cond = (
+            100 * np.ediff1d(ds[var], to_begin=0) / np.roll(ds[var], 1)
+            > ds.attrs[var + "_max_blip_pct"]
+        ) & (
+            100 * np.ediff1d(ds[var], to_end=0) / np.roll(ds[var], -1)
+            < -ds.attrs[var + "_max_blip_pct"]
+        )
+        affected = cond.sum()
+        ds[var][cond] = np.nan
+
+        notetxt = f"Values filled where data blips by more than {ds.attrs[var + '_max_blip_pct']} percent in a single time step; {affected} values affected. "
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
 def trim_fliers(ds, var):
     """trim "fliers", single (or more) presumably bad data points unconnected to other, good data points"""
 
@@ -347,5 +383,15 @@ def trim_std_ratio(ds, var):
             print(
                 f"{var}_std does not exist was NOT able to trim using standard deviation ratio method"
             )
+
+    return ds
+
+
+def drop_vars(ds):
+    """Remove variables in the final Dataset as specified by the user"""
+    if "drop_vars" in ds.attrs:
+        for k in ds.attrs["drop_vars"]:
+            if k in ds:
+                ds = ds.drop_vars(k)
 
     return ds

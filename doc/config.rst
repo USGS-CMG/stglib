@@ -70,7 +70,10 @@ Options applicable to many instrument types include:
 - ``<VAR>_max_diff_pct``: fill values where data increases by more than this percent in a single time step.
 - ``<VAR>_med_diff``: fill values where difference between a 5-point (default) median filter and original values is greater than this number.
 - ``<VAR>_med_diff_pct``: fill values where percent difference between a 5-point (default) median filter and original values is greater than this number.
+- ``<VAR>_max_blip``: fill short-lived maximum "blips", values that increase greater than this number and then immediately decrease at the next time step.
+- ``<VAR>_max_blip_pct``: fill short-lived maximum "blips", values that increase more than this percent and then immediately decrease at the next time step.
 - ``<VAR>_trim_fliers``: fill flier values, which are data points surrounded by filled data. Set to the maximum size of flier clumps to remove.
+- ``drop_vars``: a list of variables to be removed from the final file. For example, ``drop_vars: ['nLF_Cond_µS_per_cm', 'Wiper_Position_volt', 'Cable_Pwr_V']``.
 
 Aquadopp
 --------
@@ -82,6 +85,7 @@ Aquadopp-specific options include:
 - ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``'bin range'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
 - ``<VAR>_trim_single_bins``: trim data where only a single bin of data (after trimming via ``trim_method``) remains. Set this value to ``true`` to enable.
 - ``<VAR>_maxabs_diff_2d``: trim values in a 2D DataArray when the absolute value of the increase is greater than a specified amount
+- ``AnalogInput1_<ATTR>`` or ``AnalogInput2_<ATTR>``: if ``<ATTR>`` is "standard_name", "long_name", "units", "institution", "comment", "source", or "references", this will create the appropriate attribute for the given variable.
 
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml
@@ -122,7 +126,6 @@ EXO-specific options include:
 
 - ``skiprows``: number of lines to skip in the CSV before the real data begins
 - ``trim_by_salinity``: if ``'true'``, use salinity (``S_41``) as a master variable. Wherever salinity is ``_FillValue``, all other variables will be filled as well. Useful for when the instrument comes out of the water.
-- ``drop_vars``: a list of variables to be removed from the final file. For example, ``drop_vars: ['nLF_Cond_µS_per_cm', 'Wiper_Position_volt', 'Cable_Pwr_V']``.
 
 Note that negative numeric values in the YAML config file must be treated with care so as not to be interpreted as strings. If you want the minimum value to be, say, -0.2 units for a particular parameter, you must write this as ``-0.2`` and not ``-.2`` in the config file. The latter format will be interpreted as a string and will cause an error.
 
