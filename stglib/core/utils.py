@@ -171,7 +171,7 @@ def clip_ds(ds, wvs=False):
     return ds
 
 
-def add_min_max(ds):
+def add_min_max(ds, exclude_vars=None):
     """
     Add minimum and maximum values to variables in NC or CDF files
     This function assumes the data are in xarray DataArrays within Datasets
@@ -180,6 +180,8 @@ def add_min_max(ds):
     exclude = list(ds.dims)
     [exclude.append(k) for k in ds.variables if "time" in k]
     exclude.extend(["TIM", "TransMatrix", "orientmat"])
+    if exclude_vars:
+        exclude.extend(exclude_vars)
 
     alloweddims = ["time", "sample", "depth", "z", "frequency"]
 
