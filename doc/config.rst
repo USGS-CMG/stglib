@@ -159,3 +159,8 @@ EofE ECHOLOGGER
 - orientation: orientation of transducers types 'DOWN' or 'UP' are supported.
 - average_salinity: average salinity value (PSU) for the water mass for the deployment site and time period.
 - average_salinity_note: source of average salinity value.
+
+Sequoia Scientific LISST
+------------------------
+
+- ``operating_mode``: set to ``burst`` if instrument was deployed in burst mode
