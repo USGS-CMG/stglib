@@ -405,42 +405,58 @@ def get_ringsizes():
 
 
 def check_and_reshape_burst(ds):
-    dt0 = ds.time[1] - ds.time[0]
-    spb = np.where(ds.time.diff(dim="time") != dt0)[0][0] + 1
+    if "operating_mode" in ds.attrs and ds.attrs["operating_mode"].lower() == "burst":
+        dt0 = ds.time[1] - ds.time[0]
+        spb = np.where(ds.time.diff(dim="time") != dt0)[0][0] + 1
 
-    r = np.shape(ds.time)[0]
-    mod = r % spb
+        print(f"Inferred sample interval of {dt0.values} from timestamps")
+        print(f"Inferred {spb} samples per burst from timestamps")
 
-    if mod:
-        print(
-            "Number of rows is not a multiple of samples per burst; truncating to last full burst"
-        )
-        ds = ds.isel(time=range(r - mod))
+        r = np.shape(ds.time)[0]
+        mod = r % spb
 
-    newtime = ds.time[0::spb]
-
-    for v in ds.data_vars:
-        if ds[v].dims == ("time",):
-            ds[v] = xr.DataArray(
-                np.reshape(ds[v].values, (len(newtime), spb)),
-                dims=("newtime", "sample"),
-                coords=[
-                    newtime,
-                    range(spb),
-                ],
+        if mod:
+            print(
+                "Number of rows is not a multiple of samples per burst; truncating to last full burst"
             )
-        elif ds[v].dims == (
-            "time",
-            "ring",
-        ):
-            ds[v] = xr.DataArray(
-                np.reshape(ds[v].values, (len(newtime), spb, len(ds["ring"]))),
-                dims=("newtime", "sample", "ring"),
-                coords=[newtime, range(spb), ds["ring"]],
-            )
+            ds = ds.isel(time=range(r - mod))
 
-    ds = ds.drop("time")
+        newtime = ds.time[0::spb]
 
-    ds = ds.rename({"newtime": "time"})
+        for v in ds.data_vars:
+            if ds[v].dims == ("time",):
+                attrsbak = ds[v].attrs
+                ds[v] = xr.DataArray(
+                    np.reshape(ds[v].values, (len(newtime), spb)),
+                    dims=("newtime", "sample"),
+                    coords=[
+                        newtime,
+                        range(spb),
+                    ],
+                )
+                ds[v].attrs = attrsbak
+            elif ds[v].dims == (
+                "time",
+                "ring",
+            ):
+                attrsbak = ds[v].attrs
+                ds[v] = xr.DataArray(
+                    np.reshape(ds[v].values, (len(newtime), spb, len(ds["ring"]))),
+                    dims=("newtime", "sample", "ring"),
+                    coords=[newtime, range(spb), ds["ring"]],
+                )
+                ds[v].attrs = attrsbak
+
+        if "sample" in ds:
+            ds["sample"].attrs["long_name"] = "Sample number"
+            ds["sample"].attrs["units"] = "1"
+            ds["sample"].encoding["dtype"] = "i4"
+
+        ds = ds.drop("time")
+
+        ds = ds.rename({"newtime": "time"})
+
+    else:
+        print("No operating_mode attr found; assuming fixed sample rate")
 
     return ds
