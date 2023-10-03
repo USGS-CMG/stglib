@@ -198,6 +198,29 @@ def exocdf2nc_parser():
     return parser
 
 
+def lisstcsv2cdf_parser():
+    description = (
+        "Convert LISST .csv file to raw .cdf format. Run this script "
+        "from the directory containing LIST file"
+    )
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def lisstcdf2nc_parser():
+    description = "Convert raw LISST .cdf format to processed .nc files"
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("cdfname", help="raw .CDF filename")
+    parser.add_argument(
+        "--atmpres", help=("path to cdf file containing " "atmopsheric pressure data")
+    )
+
+    return parser
+
+
 def trollcsv2cdf_parser():
     description = (
         "Convert Aqua TROLL .csv file to raw .cdf format. Run this script "

@@ -129,6 +129,20 @@ def runiqmat2cdf():
     RAW = stglib.iq.mat_to_cdf(metadata)
 
 
+def runlisstcdf2nc():
+    args = stglib.cmd.lisstcdf2nc_parser().parse_args()
+
+    ds = run_cdf_to_nc(stglib.lisst.cdf_to_nc, args)
+
+
+def runlisstcsv2cdf():
+    args = stglib.cmd.lisstcsv2cdf_parser().parse_args()
+
+    metadata = get_metadata(args)
+
+    RAW = stglib.lisst.csv_to_cdf(metadata)
+
+
 def runrdicdf2nc():
     args = stglib.cmd.rdicdf2nc_parser().parse_args()
 
