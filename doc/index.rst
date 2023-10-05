@@ -56,6 +56,7 @@ We have plans to support:
    hobo
    wxt
    eofe
+   lisst
    indexvel
    turnaround
    code

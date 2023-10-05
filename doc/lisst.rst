@@ -10,7 +10,7 @@ Exported ASCII data to raw .cdf
 Convert from comma-delimited file to a raw netCDF file with .cdf extension using ``runlisstcsv2cdf.py``.
 
 runlisstcsv2cdf.py
------------------
+------------------
 
 .. argparse::
    :ref: stglib.core.cmd.lisstcsv2cdf_parser
@@ -22,7 +22,7 @@ Raw .cdf to CF-compliant .nc
 Convert the raw .cdf data into CF-compliant netCDF file with .nc extension using ``runlisstcdf2nc.py``.
 
 runlisstcdf2nc.py
-----------------
+-----------------
 
 .. argparse::
    :ref: stglib.core.cmd.lisstcdf2nc_parser
