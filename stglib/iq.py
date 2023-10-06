@@ -608,7 +608,7 @@ def ds_add_attrs(ds):
     ds["Flow"].attrs.update(
         {
             "long_name": "Flow rate (using defined channel geometry)",
-            "positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
+            "positive_dir": "%s" % ds.attrs["positive_direction"],
             "flood_dir": "%s" % ds.attrs["flood_direction"],
         }
     )
@@ -616,7 +616,7 @@ def ds_add_attrs(ds):
     ds["Vel_Mean"].attrs.update(
         {
             "long_name": "Mean velocity",
-            "positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
+            "positive_dir": "%s" % ds.attrs["positive_direction"],
             "flood_dir": "%s" % ds.attrs["flood_direction"],
             "mean_velocity_equation_type": "%s"
             % ds.attrs["mean_velocity_equation_type"],
@@ -637,35 +637,31 @@ def ds_add_attrs(ds):
     ds["vel1_1277"].attrs.update(
         {
             "long_name": "Beam 1 current velocity",
-            "beams_1_3_4_positive_dir": "%s" % ds.attrs["beam_1_positive_direction"],
         }
     )
 
     ds["vel2_1278"].attrs.update(
         {
             "long_name": "Beam 2 current velocity",
-            "beam_2_positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
         }
     )
 
     ds["vel3_1279"].attrs.update(
         {
             "long_name": "Beam 3 current velocity",
-            "beams_1_3_4_positive_dir": "%s" % ds.attrs["beam_1_positive_direction"],
         }
     )
 
     ds["vel4_1280"].attrs.update(
         {
             "long_name": "Beam 4 current velocity",
-            "beams_1_3_4_positive_dir": "%s" % ds.attrs["beam_1_positive_direction"],
         }
     )
 
     ds["Vel_X_Center"].attrs.update(
         {
             "long_name": "X velocity in center of channel (from beams 1 & 2)",
-            "positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
+            "positive_dir": "%s" % ds.attrs["positive_direction"],
         }
     )
     ds["Vel_Z_Center"].attrs.update(
@@ -677,13 +673,13 @@ def ds_add_attrs(ds):
     ds["Vel_X_Left"].attrs.update(
         {
             "long_name": "X velocity along left bank (from beam 3)",
-            "positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
+            "positive_dir": "%s" % ds.attrs["positive_direction"],
         }
     )
     ds["Vel_X_Right"].attrs.update(
         {
             "long_name": "X velocity along right bank (beam 4)",
-            "positive_dir": "%s" % ds.attrs["beam_2_positive_direction"],
+            "positive_dir": "%s" % ds.attrs["positive_direction"],
         }
     )
 
@@ -780,11 +776,7 @@ def ds_add_attrs(ds):
             "long_name"
         ] = "beam %d velocity profile standard deviation" % (n + 1)
         ds["Profile_vel%d_%d" % (n + 1, n + 1277)].attrs.update(
-            {
-                "long_name": "beam %d current velocity" % (n + 1),
-                "positive_dir": "%s"
-                % ds.attrs["beam_" + str(n + 1) + "_positive_direction"],
-            }
+            {"long_name": "beam %d current velocity" % (n + 1)}
         )
         ds["Profile_blanking_distance%d" % (n + 1)].attrs.update(
             {"long_name": "beam %d blanking distance" % (n + 1), "units": "m"}
