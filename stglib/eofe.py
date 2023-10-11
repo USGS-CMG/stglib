@@ -1,5 +1,3 @@
-import datetime
-
 import numpy as np
 import pandas as pd
 import seawater as sw
@@ -467,17 +465,15 @@ def calc_bin_height(ds):
     print("Calculating center of bin distance from transducer")
 
     # np.linspace(start,stop,num)
-    ##start: 0, because first bin is at transducer (confirmed with EofE), add (ds.attrs["Bin_size_m"] / 2) for center of bin as point of reference
-    ##stop: number of bins - 1 * bin size, add (ds.attrs["Bin_size_m"] / 2) for center of bin as point of reference
-    ##num: number of bins (Bin_count)
+    # start: 0, because first bin is at transducer (confirmed with EofE), add (ds.attrs["Bin_size_m"] / 2) for center of bin as point of reference
+    # stop: number of bins - 1 * bin size, add (ds.attrs["Bin_size_m"] / 2) for center of bin as point of reference
+    # num: number of bins (Bin_count)
 
     ds["bindist"] = xr.DataArray(
         np.linspace(
-            0 + (ds.attrs["Bin_size_m"] / 2),  # changed ds.attrs["Bin_size_m"] to 0
+            0 + (ds.attrs["Bin_size_m"] / 2),
             (
-                (
-                    (ds.attrs["Bin_count"] - 1) * ds.attrs["Bin_size_m"]
-                )  # deleted ds.attrs["Bin_size_m"] +
+                ((ds.attrs["Bin_count"] - 1) * ds.attrs["Bin_size_m"])
                 + (ds.attrs["Bin_size_m"] / 2)
             ),
             num=ds.attrs["Bin_count"],

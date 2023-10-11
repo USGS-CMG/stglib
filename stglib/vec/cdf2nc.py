@@ -1,8 +1,5 @@
-import math
-
 import numpy as np
 import xarray as xr
-from tqdm import tqdm
 
 from ..aqd import aqdutils
 from ..core import qaqc, utils

@@ -46,7 +46,7 @@ def dat_to_cdf(metadata):
         print(f"{ds.attrs['VECSamplesPerBurst']=}")
         print(f"{ds.attrs['VECSamplingRate']=}")
         print(
-            f"Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
+            "Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
         )
         dssen = dssen.sel(time=dssen.time[0:-mod])
 
