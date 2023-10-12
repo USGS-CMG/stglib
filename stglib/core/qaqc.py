@@ -160,6 +160,32 @@ def trim_bad_ens(ds, var):
     return ds
 
 
+def trim_bad_ens_indiv(ds, var):
+    # a list of individual bad points, not a list of ranges
+    if var + "_bad_ens_indiv" in ds.attrs:
+        trmvars = ds.attrs[var + "_bad_ens_indiv"]
+
+        if not isinstance(trmvars, list):  # make sure it is a list before looping
+            trmvars = [trmvars]
+
+        for x in trmvars:
+            if isinstance(x, str):
+                bads = ds["time"] == np.datetime64(x)
+                ds[var] = ds[var].where(~bads)
+            else:
+                bads = np.full(ds[var].shape, False)
+                bads[x] = True
+                ds[var] = ds[var].where(~bads)
+
+        notetxt = "Data clipped using bad_ens_indiv values of %s. " % (
+            str(ds.attrs[var + "_bad_ens_indiv"])
+        )
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
 def trim_by_salinity(ds, var):
     if (
         "trim_by_salinity" in ds.attrs
