@@ -62,6 +62,7 @@ Multiple instruments
 Options applicable to many instrument types include:
 
 - ``<VAR>_bad_ens``: specify bad ensemble ranges (either index numbers or dates) that should be set to ``_FillValue``. If you want multiple ranges, you can do this with additional values in the array. For example, ``Turb_bad_ens: ['2017-09-30 21:15', '2017-10-02 09:30', '2017-10-12 20:45', '2017-10-16 00:30']``. This will set the ranges in late September and early October, and again in mid-October, to ``_FillValue``.
+- ``<VAR>_bad_ens_indiv``: specify ensembles (either index numbers or dates) that should be set to ``_FillValue``. For example, ``Turb_bad_ens: ['2017-09-30 21:15', '2017-10-02 09:30', '2017-10-12 20:45', '2017-10-16 00:30']``. This will set these four individual timestamps to ``_FillValue``.
 - ``<VAR>_min``: fill values less than this minimum valid value. Values outside this range will become ``_FillValue``. Substitute your variable for ``<VAR>``, e.g. ``fDOMQSU_min``.
 - ``<VAR>_max``: fill values more than this maximum valid value.
 - ``<VAR>_min_diff``: fill values where data decreases by more than this number of units in a single time step. This will typically be a negative number.

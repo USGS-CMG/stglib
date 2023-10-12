@@ -114,6 +114,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         VEL = qaqc.trim_max_blip(VEL, var)
         VEL = qaqc.trim_max_blip_pct(VEL, var)
         VEL = qaqc.trim_bad_ens(VEL, var)
+        VEL = qaqc.trim_bad_ens_indiv(VEL, var)
         VEL = qaqc.trim_maxabs_diff_2d(VEL, var)
         VEL = aqdutils.trim_single_bins(VEL, var)
         VEL = qaqc.trim_fliers(VEL, var)
