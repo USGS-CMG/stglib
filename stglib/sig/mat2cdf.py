@@ -3,11 +3,9 @@ import glob
 import os
 import re
 import time
-import warnings
 
 import numpy as np
 import pandas as pd
-import scipy.io
 import xarray as xr
 from dask.diagnostics import ProgressBar
 from joblib import Parallel, delayed
@@ -285,10 +283,6 @@ def add_descriptions(mat, ds):
         if var in ds:
             if "long_name" not in ds[var].attrs:
                 ds[var].attrs["long_name"] = mat["Descriptions"][k]
-            # else:
-            #     warnings.warn(
-            #         f"long_name already exists for {ds.attrs['data_type']} {var} {k}"
-            #     )
 
 
 def add_units(mat, ds):
@@ -297,10 +291,6 @@ def add_units(mat, ds):
         if var in ds:
             if "units" not in ds[var].attrs:
                 ds[var].attrs["units"] = mat["Units"][k]
-            # else:
-            #     warnings.warn(
-            #         f"units already exists for {ds.attrs['data_type']} {var} {k}"
-            #     )
 
 
 def add_transmatrix(mat, ds):
@@ -388,8 +378,8 @@ def mat_to_cdf(metadata):
             print("writing Burst to netcdf")
             delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
             with ProgressBar():
-                results = delayed_obj.compute()
-            # ds.to_netcdf(cdf_filename)
+                delayed_obj.compute()
+
             print(f"Finished writing data to {cdf_filename}")
 
         except ValueError as ve:
@@ -411,8 +401,8 @@ def mat_to_cdf(metadata):
             print("writing IBurst to netcdf")
             delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
             with ProgressBar():
-                results = delayed_obj.compute()
-            # ds.to_netcdf(cdf_filename)
+                delayed_obj.compute()
+
             print(f"Finished writing data to {cdf_filename}")
 
         except ValueError as ve:
@@ -431,8 +421,8 @@ def mat_to_cdf(metadata):
             print("writing BurstRawAltimeter to netcdf")
             delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
             with ProgressBar():
-                results = delayed_obj.compute()
-            # ds.to_netcdf(cdf_filename)
+                delayed_obj.compute()
+
             print(f"Finished writing data to {cdf_filename}")
 
         except ValueError as ve:
@@ -454,8 +444,8 @@ def mat_to_cdf(metadata):
             print("writing Echo1 to netcdf")
             delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
             with ProgressBar():
-                results = delayed_obj.compute()
-            # ds.to_netcdf(cdf_filename)
+                delayed_obj.compute()
+
             print(f"Finished writing data to {cdf_filename}")
 
         except ValueError as ve:

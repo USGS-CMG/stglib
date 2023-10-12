@@ -1,7 +1,3 @@
-import datetime
-
-import xarray as xr
-
 from ..core import utils
 from . import aqdutils, cdf2nc
 

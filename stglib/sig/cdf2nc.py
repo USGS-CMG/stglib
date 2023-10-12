@@ -1,4 +1,3 @@
-import pkgutil
 import time
 
 import numpy as np
@@ -141,7 +140,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         print("writing Burst (b) data to netCDF nc file")
         delayed_obj = ds.to_netcdf(nc_out, compute=False)
         with ProgressBar():
-            results = delayed_obj.compute()
+            delayed_obj.compute()
         print("Done writing netCDF file", nc_out)
 
     elif ds.attrs["data_type"] == "IBurst" or ds.attrs["data_type"] == "IBurstHR":
@@ -149,7 +148,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         print("writing IBurst (b5) data to netCDF nc file")
         delayed_obj = ds.to_netcdf(nc_out, compute=False)
         with ProgressBar():
-            results = delayed_obj.compute()
+            delayed_obj.compute()
         print("Done writing netCDF file", nc_out)
 
     elif ds.attrs["data_type"] == "Echo1":
@@ -157,7 +156,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         print("writing Echo1 (echo1) data to netCDF nc file")
         delayed_obj = ds.to_netcdf(nc_out, compute=False)
         with ProgressBar():
-            results = delayed_obj.compute()
+            delayed_obj.compute()
         print("Done writing netCDF file", nc_out)
 
     utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
