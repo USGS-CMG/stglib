@@ -68,6 +68,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = aqdutils.magvar_correct(VEL)
 
     VEL["AGC"] = (VEL["AMP1"] + VEL["AMP2"] + VEL["AMP3"]) / 3
+    VEL["COR"] = (VEL["COR1"] + VEL["COR2"] + VEL["COR3"]) / 3
 
     VEL = aqdutils.trim_vel(VEL)
 
@@ -105,6 +106,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # after check for masking vars by other vars
     for var in VEL.data_vars:
         VEL = qaqc.trim_mask(VEL, var)
+
+    # fill with AGC threshold
+    VEL = aqdutils.fill_agc(VEL)
+    VEL = aqdutils.fill_cor(VEL)
 
     # Add min/max values
     VEL = utils.add_min_max(VEL)

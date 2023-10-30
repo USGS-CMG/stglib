@@ -43,6 +43,10 @@ def ds_rename(ds, waves=False):
             "AMP1": "AGC1_1221",
             "AMP2": "AGC2_1222",
             "AMP3": "AGC3_1223",
+            "COR1": "cor1_1285",
+            "COR2": "cor2_1286",
+            "COR3": "cor3_1287",
+            "COR": "cor_avg",
         }
     )
 
@@ -1073,7 +1077,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds["w2_1204"].attrs.update(
             {
                 "long_name": "Vertical Velocity (2nd)",
-                "epic_code": 1204,
+                # "epic_code": 1204,
             }
         )
 
@@ -1082,7 +1086,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             {
                 "units": "counts",
                 "long_name": "Average Echo Intensity",
-                "generic_name": "AGC",
+                # "generic_name": "AGC",
             }
         )
 
@@ -1182,27 +1186,35 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
-    if "COR1" in ds:
-        ds["COR1"].attrs.update(
+    if "cor1_1285" in ds:
+        ds["cor1_1285"].attrs.update(
             {
                 "units": "percent",
                 "long_name": "Correlation Beam 1",
             }
         )
 
-    if "COR2" in ds:
-        ds["COR2"].attrs.update(
+    if "cor2_1286" in ds:
+        ds["cor2_1286"].attrs.update(
             {
                 "units": "percent",
                 "long_name": "Correlation Beam 2",
             }
         )
 
-    if "COR3" in ds:
-        ds["COR3"].attrs.update(
+    if "cor3_1287" in ds:
+        ds["cor3_1287"].attrs.update(
             {
                 "units": "percent",
                 "long_name": "Correlation Beam 3",
+            }
+        )
+
+    if "cor_avg" in ds:
+        ds["cor_avg"].attrs.update(
+            {
+                "units": "percent",
+                "long_name": "Average Beam Correlation",
             }
         )
 
@@ -1455,6 +1467,29 @@ def fill_agc(ds):
             ds[var] = ds[var].where(ds["AGC_1202"] < ds.attrs["velocity_agc_max"])
             notetxt = "Velocity data filled using AGC_1202 maximum threshold of {} counts.".format(
                 ds.attrs["velocity_agc_max"]
+            )
+
+            ds = utils.insert_note(ds, var, notetxt)
+
+            ds = utils.insert_history(ds, notetxt)
+
+    return ds
+
+
+def fill_cor(ds):
+    """
+    Fill velocity data with a min average correlation threshold. (HR only)
+    Average correlation is used to fill transformed eastward, northward, and upward velocities (u_1205, v_1206, w_1204).
+    """
+
+    # lsit velocities to fill by agc threshold(s)
+    uvw = ["u_1205", "v_1206", "w_1204"]
+
+    if "velocity_cor_min" in ds.attrs:
+        for var in uvw:
+            ds[var] = ds[var].where(ds["cor_avg"] > ds.attrs["velocity_cor_min"])
+            notetxt = "Velocity data filled using average correlation minimum threshold of {} percent.".format(
+                ds.attrs["velocity_cor_min"]
             )
 
             ds = utils.insert_note(ds, var, notetxt)
