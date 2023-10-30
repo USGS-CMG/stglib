@@ -413,6 +413,23 @@ def trim_std_ratio(ds, var):
     return ds
 
 
+def trim_warmup(ds, var):
+    if var + "_warmup_samples" in ds.attrs:
+        if "sample" in ds[var].coords:
+            print(ds[var])
+            ds[var] = ds[var].where(ds["sample"] > ds.attrs[var + "_warmup_samples"])
+            print(ds[var])
+            notetxt = f"Removed {ds.attrs[var + '_warmup_samples']} samples at the beginning of each burst. "
+
+            ds = utils.insert_note(ds, var, notetxt)
+        else:
+            raise ValueError(
+                f"User specified {ds.attrs[var + '_warmup_samples']=} but {var=} does not have coordinates that include samples."
+            )
+
+    return ds
+
+
 def drop_vars(ds):
     """Remove variables in the final Dataset as specified by the user"""
     if "drop_vars" in ds.attrs:
