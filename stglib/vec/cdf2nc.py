@@ -52,6 +52,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     for v in ds.data_vars:
         # need to do this or else a "coordinates" attribute with value of "burst" hangs around
         ds[v].encoding["coordinates"] = None
+        ds = qaqc.trim_warmup(ds, v)
 
     # Add start_time and stop_time attrs
     ds = utils.add_start_stop_time(ds)
