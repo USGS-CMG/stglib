@@ -533,7 +533,7 @@ def cdf_to_nc(cdf_filename):
 
 def ds_add_attrs(ds):
     ds.attrs["serial_number"] = ds.attrs["SerialNumber"]
-    ds.attrs["INST_TYPE"] = "SonTek-IQ Plus"
+    ds.attrs["instrument_type"] = "SonTek-IQ Plus"
 
     # Update attributes for EPIC and STG compliance
     ds = utils.ds_coord_no_fillvalue(ds)
