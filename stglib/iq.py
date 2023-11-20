@@ -226,73 +226,110 @@ def create_iqbindist(ds):
     return ds
 
 
-def rename_vars(ds):
-    # set up dict of instrument -> EPIC variable names
+def cdf_to_nc(cdf_filename):
+    """
+    Load a raw .cdf file and generate a processed .nc file
+    """
 
-    ds["vel1_1277"] = ds["Vel"].sel(velbeam=1)
-    ds["vel2_1278"] = ds["Vel"].sel(velbeam=2)
-    ds["vel3_1279"] = ds["Vel"].sel(velbeam=3)
-    ds["vel4_1280"] = ds["Vel"].sel(velbeam=4)
+    # Load raw .cdf data
+    ds = xr.open_dataset(cdf_filename)
+
+    ds = update_prefixes(ds)
+
+    # Clip data to in/out water times or via good_ens
+    ds = utils.clip_ds(ds)
+
+    ds = vel_to_ms(ds)
+
+    ds = create_iqbindepth(ds)
+
+    ds = create_iqz(ds)
+
+    ds = clean_iq(ds)
+
+    ds = trim_iqvel(ds)
+
+    ds = fill_snr(ds)
+
+    ds = fill_vbper(ds)
+
+    ds = rename_vars(ds)
+
+    # assign min/max:
+    ds = utils.add_min_max(ds)
+
+    ds = utils.add_start_stop_time(ds)
+
+    ds = utils.add_delta_t(ds)
+
+    # add lat/lon coordinates
+    ds = utils.ds_add_lat_lon(ds)
+
+    # should function this
+    for var in ds.data_vars:
+        ds = qaqc.trim_min(ds, var)
+        ds = qaqc.trim_max(ds, var)
+        ds = qaqc.trim_min_diff(ds, var)
+        ds = qaqc.trim_max_diff(ds, var)
+        ds = qaqc.trim_med_diff(ds, var)
+        ds = qaqc.trim_med_diff_pct(ds, var)
+        ds = qaqc.trim_bad_ens(ds, var)
+        ds = qaqc.trim_maxabs_diff_2d(ds, var)
+        ds = qaqc.trim_fliers(ds, var)
+
+    # after check for masking vars by other vars
+    for var in ds.data_vars:
+        ds = qaqc.trim_mask(ds, var)
+
+    ds = utils.create_z(ds)  # added 7/31/2023
+
+    ds = ds_add_attrs(ds)
+
+    # ds = utils.no_p_create_depth(ds) #commented out 7/31/23
+
+    ds = ds.drop(
+        [
+            "SampleNumber",
+            "SampleTime",
+            "Volume_Total",
+            "Volume_Positive",
+            "Volume_Negative",
+            "Vel",
+            "HorizontalSkew",
+        ]
+    )
+
+    # add lat/lon coordinates to each variable
+    for var in ds.variables:
+        if (var not in ds.coords) and ("time" not in var):
+            # ds = utils.add_lat_lon(ds, var)
+            # cast as float32
+            ds = utils.set_var_dtype(ds, var)
+
+    dsflow = ds.copy()
+    dsprof = ds.copy()
+
+    dsflow = dsflow.drop([k for k in dsflow if "Profile_" in k])
+    dsprof = dsprof.drop([k for k in dsprof if "Profile_" not in k])
 
     newvars = {}
+    for k in dsprof:
+        newvars[k] = k.replace("Profile_", "")
 
-    for var in ds:
-        if "Profile_0" in var:
-            newvars[var] = (
-                var.replace("Profile_0_Amp", "Profile_AGC1_1221")
-                .replace("Profile_0_Vel", "Profile_vel1_1277")
-                .replace("Profile_0_BlankingDistance", "Profile_blanking_distance1")
-                .replace("Profile_0_CellSize", "Profile_bin_size1")
-                .replace("Profile_0_bindist", "Profile_bindist1")
-                .replace("Profile_0_z", "Profile_z1")
-                .replace("Profile_0_bindepth", "Profile_bindepth1")
-            )
-        elif "Profile_1" in var:
-            newvars[var] = (
-                var.replace("Profile_1_Amp", "Profile_AGC2_1222")
-                .replace("Profile_1_Vel", "Profile_vel2_1278")
-                .replace("Profile_1_BlankingDistance", "Profile_blanking_distance2")
-                .replace("Profile_1_CellSize", "Profile_bin_size2")
-                .replace("Profile_1_bindist", "Profile_bindist2")
-                .replace("Profile_1_z", "Profile_z2")
-                .replace("Profile_1_bindepth", "Profile_bindepth2")
-            )
-        elif "Profile_2" in var:
-            newvars[var] = (
-                var.replace("Profile_2_Amp", "Profile_AGC3_1223")
-                .replace("Profile_2_Vel", "Profile_vel3_1279")
-                .replace("Profile_2_BlankingDistance", "Profile_blanking_distance3")
-                .replace("Profile_2_CellSize", "Profile_bin_size3")
-                .replace("Profile_2_bindist", "Profile_bindist3")
-                .replace("Profile_2_z", "Profile_z3")
-                .replace("Profile_2_bindepth", "Profile_bindepth3")
-            )
-        elif "Profile_3" in var:
-            newvars[var] = (
-                var.replace("Profile_3_Amp", "Profile_AGC4_1224")
-                .replace("Profile_3_Vel", "Profile_vel4_1280")
-                .replace("Profile_3_BlankingDistance", "Profile_blanking_distance4")
-                .replace("Profile_3_CellSize", "Profile_bin_size4")
-                .replace("Profile_3_bindist", "Profile_bindist4")
-                .replace("Profile_3_z", "Profile_z4")
-                .replace("Profile_3_bindepth", "Profile_bindepth4")
-            )
+    dsprof = dsprof.rename(newvars)
 
-    varnames = {
-        "Batt": "Bat_106",
-        "Temp": "T_28",
-        "Pitch": "Ptch_1216",
-        "Roll": "Roll_1217",
-        "Depth": "D_3",
-        "Pressure": "P_1",
-        "AdjustedPressure": "P_1ac",
-    }
-    # check to make sure they exist before trying to rename
-    for k in varnames:
-        if k in ds:
-            newvars[k] = varnames[k]
+    # Write to .nc file
+    print("Writing cleaned/trimmed data to .nc file")
 
-    return ds.rename(newvars)
+    nc_filename = dsflow.attrs["filename"] + "flow-a.nc"
+    dsflow.to_netcdf(nc_filename, unlimited_dims=["time"])
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+    print("Done writing netCDF file", nc_filename)
+
+    nc_filename = dsprof.attrs["filename"] + "prof-a.nc"
+    dsprof.to_netcdf(nc_filename, unlimited_dims=["time"])
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+    print("Done writing netCDF file", nc_filename)
 
 
 def update_prefixes(ds):
@@ -406,129 +443,214 @@ def clean_iq(iq):
     return iq
 
 
-def make_iq_plots(iq, directory="", savefig=False):
+def trim_iqvel(ds):
     """
-    Make IQ turnaround plots
+    Trim velocity data depending on specified method
     """
 
-    plt.figure(figsize=(11, 8.5))
-
-    for n, var in enumerate(
-        ["FlowData_Depth", "FlowData_Vel_Mean", "FlowData_Flow"], start=1
+    if (
+        "trim_method" in ds.attrs
+        and ds.attrs["trim_method"].lower() != "none"
+        and ds.attrs["trim_method"] is not None
     ):
-        plt.subplot(3, 1, n)
-        plt.plot(iq["time"], iq[var])
-        plt.ylabel(var + " [" + iq[var].attrs["units"] + "]")
+        if "AdjustedPressure" in ds:
+            P = ds["AdjustedPressure"]
+            Ptxt = "atmospherically corrected"
+        elif "P_1ac" in ds:
+            P = ds["P_1ac"]
+            Ptxt = "atmospherically corrected"
+        elif "Pressure" in ds:
+            # FIXME incorporate press_ ac below
+            P = ds["Pressure"]
+            Ptxt = "NON-atmospherically corrected"
 
-    if savefig:
-        plt.savefig(directory + "/iq_stage_vel_flow.pdf")
-    plt.show()
+        for bm in range(4):  # beams are different angles
+            if bm < 2:
+                bmangle = ds.attrs["AlongChannelBeamsAngle"]
+            else:
+                bmangle = ds.attrs["AcrossChannelBeamsAngle"]
+
+            if ds.attrs["trim_method"].lower() == "water level":
+                ds["Profile_" + str(bm) + "_Vel"] = ds[
+                    "Profile_" + str(bm) + "_Vel"
+                ].where(ds["Profile_" + str(bm) + "_bindist"] < P)
+
+                histtext = (
+                    "Trimmed velocity data using {} pressure (water level).".format(
+                        Ptxt
+                    )
+                )
+
+            elif ds.attrs["trim_method"].lower() == "water level sl":
+                ds["Profile_" + str(bm) + "_Vel"] = ds[
+                    "Profile_" + str(bm) + "_Vel"
+                ].where(
+                    ds["Profile_" + str(bm) + "_bindist"]
+                    < P * np.cos(np.deg2rad(bmangle))
+                )
+
+                histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
+                    Ptxt
+                )
+
+        ds = utils.insert_history(ds, histtext)
+
+    else:
+        print("Did not trim velocity data")
+
+    return ds
 
 
-def cdf_to_nc(cdf_filename):
+def fill_snr(ds):
     """
-    Load a raw .cdf file and generate a processed .nc file
+    Fill velocity data with corresponding beam snr value threshold
+    """
+    if "snr_threshold" in ds.attrs:
+        Ptxt = str(ds.attrs["snr_threshold"])
+
+        for var in ds:
+            if "Vel" and "Profile" in var:
+                for bm in range(4):
+                    var = "Profile_" + str(bm) + "_Vel"
+                    ds[var] = ds[var].where(ds.SNR[:, bm] > ds.attrs["snr_threshold"])
+
+            else:
+                ds["Vel"] = ds["Vel"].where(ds.SNR > ds.attrs["snr_threshold"])
+                ds["Vel_X_Center"] = ds["Vel_X_Center"].where(
+                    (ds.SNR[:, 0] > ds.attrs["snr_threshold"])
+                    & (ds.SNR[:, 1] > ds.attrs["snr_threshold"])
+                )
+                ds["Vel_Z_Center"] = ds["Vel_Z_Center"].where(
+                    (ds.SNR[:, 0] > ds.attrs["snr_threshold"])
+                    & (ds.SNR[:, 1] > ds.attrs["snr_threshold"])
+                )
+                ds["Vel_X_Left"] = ds["Vel_X_Left"].where(
+                    ds.SNR[:, 2] > ds.attrs["snr_threshold"]
+                )
+                ds["Vel_X_Right"] = ds["Vel_X_Right"].where(
+                    ds.SNR[:, 3] > ds.attrs["snr_threshold"]
+                )
+                ds["Vel_Mean"] = ds["Vel_Mean"].where(
+                    (ds.SNR[:, 0] > ds.attrs["snr_threshold"])
+                    & (ds.SNR[:, 1] > ds.attrs["snr_threshold"])
+                    & (ds.SNR[:, 2] > ds.attrs["snr_threshold"])
+                    & (ds.SNR[:, 3] > ds.attrs["snr_threshold"])
+                )
+
+            histtext = "Filled velocity data using snr threshold of {} for corresponding beam(s).".format(
+                Ptxt
+            )
+
+        for var in ds:
+            if "Vel" in var:
+                ds = utils.insert_note(ds, var, histtext)
+
+        ds = utils.insert_history(ds, histtext)
+    else:
+        print("Did not fill velocity data using snr threshold")
+    return ds
+
+
+def fill_vbper(ds):
+    """
+    Fill adjusted pressure, stage, area, range, mean velocity, profile velocity, and depth data with corresponding vertical beam percent good threshold
     """
 
-    # Load raw .cdf data
-    ds = xr.open_dataset(cdf_filename)
+    if "vbper_threshold" in ds.attrs:
+        Ptxt = str(ds.attrs["vbper_threshold"])
 
-    ds = update_prefixes(ds)
+        histtext = "Filling P1ac, stage, area, range, and D_3 (depth) data using vertical beam percent good threshold threshold of {}.".format(
+            Ptxt
+        )
 
-    # Clip data to in/out water times or via good_ens
-    ds = utils.clip_ds(ds)
+        notetxt = "Filled data using vertical beam percent good threshold threshold of {}.".format(
+            Ptxt
+        )
 
-    ds = vel_to_ms(ds)
+        varlist = {"AdjustedPressure", "Depth", "Stage", "Area", "Range"}
 
-    ds = create_iqbindepth(ds)
+        for k in varlist:
+            ds[k] = ds[k].where(ds.VbPercentGood > ds.attrs["vbper_threshold"])
 
-    ds = create_iqz(ds)
+            ds = utils.insert_note(ds, k, notetxt)
 
-    ds = clean_iq(ds)
+        ds = utils.insert_history(ds, histtext)
 
-    ds = trim_iqvel(ds)
+    else:
+        print(
+            "Did not fill pressure, stage, area, range, and depth data data using snr threshold"
+        )
 
-    ds = fill_snr(ds)
+    return ds
 
-    ds = fill_vbper(ds)
 
-    ds = rename_vars(ds)
+def rename_vars(ds):
+    # set up dict of instrument -> EPIC variable names
 
-    # assign min/max:
-    ds = utils.add_min_max(ds)
-
-    ds = utils.add_start_stop_time(ds)
-
-    ds = utils.add_delta_t(ds)
-
-    # add lat/lon coordinates
-    ds = utils.ds_add_lat_lon(ds)
-
-    # should function this
-    for var in ds.data_vars:
-        ds = qaqc.trim_min(ds, var)
-        ds = qaqc.trim_max(ds, var)
-        ds = qaqc.trim_min_diff(ds, var)
-        ds = qaqc.trim_max_diff(ds, var)
-        ds = qaqc.trim_med_diff(ds, var)
-        ds = qaqc.trim_med_diff_pct(ds, var)
-        ds = qaqc.trim_bad_ens(ds, var)
-        ds = qaqc.trim_maxabs_diff_2d(ds, var)
-        ds = qaqc.trim_fliers(ds, var)
-
-    # after check for masking vars by other vars
-    for var in ds.data_vars:
-        ds = qaqc.trim_mask(ds, var)
-
-    ds = utils.create_z(ds)  # added 7/31/2023
-
-    ds = ds_add_attrs(ds)
-
-    # ds = utils.no_p_create_depth(ds) #commented out 7/31/23
-
-    ds = ds.drop(
-        [
-            "SampleNumber",
-            "SampleTime",
-            "Volume_Total",
-            "Volume_Positive",
-            "Volume_Negative",
-            "Vel",
-            "HorizontalSkew",
-        ]
-    )
-
-    # add lat/lon coordinates to each variable
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            # ds = utils.add_lat_lon(ds, var)
-            # cast as float32
-            ds = utils.set_var_dtype(ds, var)
-
-    dsflow = ds.copy()
-    dsprof = ds.copy()
-
-    dsflow = dsflow.drop([k for k in dsflow if "Profile_" in k])
-    dsprof = dsprof.drop([k for k in dsprof if "Profile_" not in k])
+    ds["vel1_1277"] = ds["Vel"].sel(velbeam=1)
+    ds["vel2_1278"] = ds["Vel"].sel(velbeam=2)
+    ds["vel3_1279"] = ds["Vel"].sel(velbeam=3)
+    ds["vel4_1280"] = ds["Vel"].sel(velbeam=4)
 
     newvars = {}
-    for k in dsprof:
-        newvars[k] = k.replace("Profile_", "")
 
-    dsprof = dsprof.rename(newvars)
+    for var in ds:
+        if "Profile_0" in var:
+            newvars[var] = (
+                var.replace("Profile_0_Amp", "Profile_AGC1_1221")
+                .replace("Profile_0_Vel", "Profile_vel1_1277")
+                .replace("Profile_0_BlankingDistance", "Profile_blanking_distance1")
+                .replace("Profile_0_CellSize", "Profile_bin_size1")
+                .replace("Profile_0_bindist", "Profile_bindist1")
+                .replace("Profile_0_z", "Profile_z1")
+                .replace("Profile_0_bindepth", "Profile_bindepth1")
+            )
+        elif "Profile_1" in var:
+            newvars[var] = (
+                var.replace("Profile_1_Amp", "Profile_AGC2_1222")
+                .replace("Profile_1_Vel", "Profile_vel2_1278")
+                .replace("Profile_1_BlankingDistance", "Profile_blanking_distance2")
+                .replace("Profile_1_CellSize", "Profile_bin_size2")
+                .replace("Profile_1_bindist", "Profile_bindist2")
+                .replace("Profile_1_z", "Profile_z2")
+                .replace("Profile_1_bindepth", "Profile_bindepth2")
+            )
+        elif "Profile_2" in var:
+            newvars[var] = (
+                var.replace("Profile_2_Amp", "Profile_AGC3_1223")
+                .replace("Profile_2_Vel", "Profile_vel3_1279")
+                .replace("Profile_2_BlankingDistance", "Profile_blanking_distance3")
+                .replace("Profile_2_CellSize", "Profile_bin_size3")
+                .replace("Profile_2_bindist", "Profile_bindist3")
+                .replace("Profile_2_z", "Profile_z3")
+                .replace("Profile_2_bindepth", "Profile_bindepth3")
+            )
+        elif "Profile_3" in var:
+            newvars[var] = (
+                var.replace("Profile_3_Amp", "Profile_AGC4_1224")
+                .replace("Profile_3_Vel", "Profile_vel4_1280")
+                .replace("Profile_3_BlankingDistance", "Profile_blanking_distance4")
+                .replace("Profile_3_CellSize", "Profile_bin_size4")
+                .replace("Profile_3_bindist", "Profile_bindist4")
+                .replace("Profile_3_z", "Profile_z4")
+                .replace("Profile_3_bindepth", "Profile_bindepth4")
+            )
 
-    # Write to .nc file
-    print("Writing cleaned/trimmed data to .nc file")
+    varnames = {
+        "Batt": "Bat_106",
+        "Temp": "T_28",
+        "Pitch": "Ptch_1216",
+        "Roll": "Roll_1217",
+        "Depth": "D_3",
+        "Pressure": "P_1",
+        "AdjustedPressure": "P_1ac",
+    }
+    # check to make sure they exist before trying to rename
+    for k in varnames:
+        if k in ds:
+            newvars[k] = varnames[k]
 
-    nc_filename = dsflow.attrs["filename"] + "flow-a.nc"
-    dsflow.to_netcdf(nc_filename, unlimited_dims=["time"])
-    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
-    print("Done writing netCDF file", nc_filename)
-
-    nc_filename = dsprof.attrs["filename"] + "prof-a.nc"
-    dsprof.to_netcdf(nc_filename, unlimited_dims=["time"])
-    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
-    print("Done writing netCDF file", nc_filename)
+    return ds.rename(newvars)
 
 
 def ds_add_attrs(ds):
@@ -798,158 +920,21 @@ def ds_add_attrs(ds):
     return ds
 
 
-def trim_iqvel(ds):
+# I think we can remove this?
+def make_iq_plots(iq, directory="", savefig=False):
     """
-    Trim velocity data depending on specified method
+    Make IQ turnaround plots
     """
 
-    if (
-        "trim_method" in ds.attrs
-        and ds.attrs["trim_method"].lower() != "none"
-        and ds.attrs["trim_method"] is not None
+    plt.figure(figsize=(11, 8.5))
+
+    for n, var in enumerate(
+        ["FlowData_Depth", "FlowData_Vel_Mean", "FlowData_Flow"], start=1
     ):
-        if "AdjustedPressure" in ds:
-            P = ds["AdjustedPressure"]
-            Ptxt = "atmospherically corrected"
-        elif "P_1ac" in ds:
-            P = ds["P_1ac"]
-            Ptxt = "atmospherically corrected"
-        elif "Pressure" in ds:
-            # FIXME incorporate press_ ac below
-            P = ds["Pressure"]
-            Ptxt = "NON-atmospherically corrected"
+        plt.subplot(3, 1, n)
+        plt.plot(iq["time"], iq[var])
+        plt.ylabel(var + " [" + iq[var].attrs["units"] + "]")
 
-        for bm in range(4):  # beams are different angles
-            if bm < 2:
-                bmangle = ds.attrs["AlongChannelBeamsAngle"]
-            else:
-                bmangle = ds.attrs["AcrossChannelBeamsAngle"]
-
-            if ds.attrs["trim_method"].lower() == "water level":
-                ds["Profile_" + str(bm) + "_Vel"] = ds[
-                    "Profile_" + str(bm) + "_Vel"
-                ].where(ds["Profile_" + str(bm) + "_bindist"] < P)
-
-                histtext = (
-                    "Trimmed velocity data using {} pressure (water level).".format(
-                        Ptxt
-                    )
-                )
-
-            elif ds.attrs["trim_method"].lower() == "water level sl":
-                ds["Profile_" + str(bm) + "_Vel"] = ds[
-                    "Profile_" + str(bm) + "_Vel"
-                ].where(
-                    ds["Profile_" + str(bm) + "_bindist"]
-                    < P * np.cos(np.deg2rad(bmangle))
-                )
-
-                histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
-                    Ptxt
-                )
-
-        ds = utils.insert_history(ds, histtext)
-
-    else:
-        print("Did not trim velocity data")
-
-    return ds
-
-
-def fill_snr(ds):
-    """
-    Fill velocity data with corresponding beam snr value threshold
-    """
-    if "snr_threshold" in ds.attrs:
-        Ptxt = str(ds.attrs["snr_threshold"])
-
-        for var in ds:
-            if "Vel" and "Profile" in var:
-                for bm in range(4):
-                    var = "Profile_" + str(bm) + "_Vel"
-                    ds[var] = ds[var].where(ds.SNR[:, bm] > ds.attrs["snr_threshold"])
-
-            else:
-                ds["Vel"] = ds["Vel"].where(ds.SNR > ds.attrs["snr_threshold"])
-                ds["Vel_X_Center"] = ds["Vel_X_Center"].where(
-                    (ds.SNR[:, 0] > ds.attrs["snr_threshold"])
-                    & (ds.SNR[:, 1] > ds.attrs["snr_threshold"])
-                )
-                ds["Vel_Z_Center"] = ds["Vel_Z_Center"].where(
-                    (ds.SNR[:, 0] > ds.attrs["snr_threshold"])
-                    & (ds.SNR[:, 1] > ds.attrs["snr_threshold"])
-                )
-                ds["Vel_X_Left"] = ds["Vel_X_Left"].where(
-                    ds.SNR[:, 2] > ds.attrs["snr_threshold"]
-                )
-                ds["Vel_X_Right"] = ds["Vel_X_Right"].where(
-                    ds.SNR[:, 3] > ds.attrs["snr_threshold"]
-                )
-                ds["Vel_Mean"] = ds["Vel_Mean"].where(
-                    (ds.SNR[:, 0] > ds.attrs["snr_threshold"])
-                    & (ds.SNR[:, 1] > ds.attrs["snr_threshold"])
-                    & (ds.SNR[:, 2] > ds.attrs["snr_threshold"])
-                    & (ds.SNR[:, 3] > ds.attrs["snr_threshold"])
-                )
-
-            histtext = "Filled velocity data using snr threshold of {} for corresponding beam(s).".format(
-                Ptxt
-            )
-
-        for var in ds:
-            if "Vel" in var:
-                ds = utils.insert_note(ds, var, histtext)
-
-        ds = utils.insert_history(ds, histtext)
-    else:
-        print("Did not fill velocity data using snr threshold")
-    return ds
-
-
-def fill_vbper(ds):
-    """
-    Fill adjusted pressure, stage, area, range, mean velocity, profile velocity, and depth data with corresponding vertical beam percent good threshold
-    """
-
-    if "vbper_threshold" in ds.attrs:
-        Ptxt = str(ds.attrs["vbper_threshold"])
-
-        histtext = "Filling P1ac, stage, area, range, and D_3 (depth) data using vertical beam percent good threshold threshold of {}.".format(
-            Ptxt
-        )
-
-        notetxt = "Filled data using vertical beam percent good threshold threshold of {}.".format(
-            Ptxt
-        )
-
-        varlist = {"AdjustedPressure", "Depth", "Stage", "Area", "Range"}
-
-        for k in varlist:
-            ds[k] = ds[k].where(ds.VbPercentGood > ds.attrs["vbper_threshold"])
-
-            # ds["AdjustedPressure"] = ds["AdjustedPressure"].where(
-            # ds.VbPercentGood > ds.attrs["vbper_threshold"]
-            # )
-            # ds["Depth"] = ds["Depth"].where(
-            # ds.VbPercentGood > ds.attrs["vbper_threshold"]
-            # )
-            # ds["Stage"] = ds["Stage"].where(
-            # ds.VbPercentGood > ds.attrs["vbper_threshold"]
-            # )
-            # ds["Area"] = ds["Area"].where(
-            # ds.VbPercentGood > ds.attrs["vbper_threshold"]
-            # )
-            # ds["Range"] = ds["Range"].where(
-            # ds.VbPercentGood > ds.attrs["vbper_threshold"]
-            # )
-
-            ds = utils.insert_note(ds, k, notetxt)
-
-        ds = utils.insert_history(ds, histtext)
-
-    else:
-        print(
-            "Did not fill pressure, stage, area, range, and depth data data using snr threshold"
-        )
-
-    return ds
+    if savefig:
+        plt.savefig(directory + "/iq_stage_vel_flow.pdf")
+    plt.show()
