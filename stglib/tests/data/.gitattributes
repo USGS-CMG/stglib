@@ -89,3 +89,17 @@ bel3_13H102609_012221_120000_utf8.csv filter=lfs diff=lfs merge=lfs -text
 config_bel3C.yaml filter=lfs diff=lfs merge=lfs -text
 glob_attbel3C.txt filter=lfs diff=lfs merge=lfs -text
 atmpres_BEL19B3C03exo.cdf filter=lfs diff=lfs merge=lfs -text
+*.a1 filter=lfs diff=lfs merge=lfs -text
+*.a2 filter=lfs diff=lfs merge=lfs -text
+*.a3 filter=lfs diff=lfs merge=lfs -text
+*.c3 filter=lfs diff=lfs merge=lfs -text
+*.c1 filter=lfs diff=lfs merge=lfs -text
+*.c2 filter=lfs diff=lfs merge=lfs -text
+*.v1 filter=lfs diff=lfs merge=lfs -text
+*.v2 filter=lfs diff=lfs merge=lfs -text
+*.v3 filter=lfs diff=lfs merge=lfs -text
+glob_att1113_aqdHR_tst.txt filter=lfs diff=lfs merge=lfs -text
+aqdhr1113tst_config.yaml filter=lfs diff=lfs merge=lfs -text
+*.sen filter=lfs diff=lfs merge=lfs -text
+*.hdr filter=lfs diff=lfs merge=lfs -text
+*.hdr2 filter=lfs diff=lfs merge=lfs -text

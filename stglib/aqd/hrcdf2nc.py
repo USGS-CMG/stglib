@@ -68,7 +68,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = aqdutils.magvar_correct(VEL)
 
     VEL["AGC"] = (VEL["AMP1"] + VEL["AMP2"] + VEL["AMP3"]) / 3
-    VEL["COR"] = (VEL["COR1"] + VEL["COR2"] + VEL["COR3"]) / 3
+
+    if "COR1" in VEL:
+        VEL["COR"] = (VEL["COR1"] + VEL["COR2"] + VEL["COR3"]) / 3
 
     VEL = aqdutils.trim_vel(VEL)
 
@@ -107,7 +109,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     for var in VEL.data_vars:
         VEL = qaqc.trim_mask(VEL, var)
 
-    # fill with AGC threshold
+    # fill with AGC and Cor threshold
     VEL = aqdutils.fill_agc(VEL)
     VEL = aqdutils.fill_cor(VEL)
 
@@ -132,6 +134,39 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # VEL = utils.set_var_dtype(VEL, var)
 
     if "prefix" in VEL.attrs:
+        nc_filename = VEL.attrs["prefix"] + VEL.attrs["filename"] + "b-cal.nc"
+    else:
+        nc_filename = VEL.attrs["filename"] + "b-cal.nc"
+
+    VEL.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    utils.check_compliance(nc_filename, conventions=VEL.attrs["Conventions"])
+
+    print("Done writing netCDF file", nc_filename)
+
+    # make burst averaged -a.nc file
+    VEL = aqdutils.average_burst(VEL)
+
+    # drop beam data
+    for k in [
+        "AGC1_1221",
+        "AGC2_1222",
+        "AGC3_1223",
+        "cor1_1285",
+        "cor2_1286",
+        "cor3_1287",
+        "vel1_1277",
+        "vel2_1278",
+        "vel3_1279",
+    ]:
+        if k in VEL:
+            VEL = VEL.drop_vars(k)
+
+    # assign min/max
+    VEL = utils.add_min_max(VEL)
+
+    VEL = utils.ds_coord_no_fillvalue(VEL)
+
+    if "prefix" in VEL.attrs:
         nc_filename = VEL.attrs["prefix"] + VEL.attrs["filename"] + "-a.nc"
     else:
         nc_filename = VEL.attrs["filename"] + "-a.nc"
@@ -139,7 +174,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
     utils.check_compliance(nc_filename, conventions=VEL.attrs["Conventions"])
 
-    print("Done writing netCDF file", nc_filename)
+    print("Done writing burst averaged netCDF file", nc_filename)
 
     return VEL
 

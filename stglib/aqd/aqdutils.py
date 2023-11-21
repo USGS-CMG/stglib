@@ -299,10 +299,24 @@ def make_bin_depth(VEL, waves=False):
     else:
         pres = "Pressure"
 
-    if not waves:
-        VEL["bin_depth"] = VEL[pres] - VEL["bindist"]
-    else:
-        VEL["bin_depth"] = VEL[pres].mean(dim="sample") - VEL["bindist"]
+    if "orientation" in VEL.attrs:
+        if VEL.attrs["orientation"].lower() == "down":
+            if not waves:
+                VEL["bin_depth"] = VEL[pres] + VEL["bindist"]
+            else:
+                VEL["bin_depth"] = VEL[pres].mean(dim="sample") + VEL["bindist"]
+
+        elif VEL.attrs["orientation"].lower() == "up":
+            if not waves:
+                VEL["bin_depth"] = VEL[pres] - VEL["bindist"]
+            else:
+                VEL["bin_depth"] = VEL[pres].mean(dim="sample") - VEL["bindist"]
+
+    else:  # if not specified assume up-looking
+        if not waves:
+            VEL["bin_depth"] = VEL[pres] - VEL["bindist"]
+        else:
+            VEL["bin_depth"] = VEL[pres].mean(dim="sample") - VEL["bindist"]
 
     return VEL
 
@@ -1241,22 +1255,27 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
     if "bin_depth" in ds:
         ds["bin_depth"].attrs.update({"units": "m", "long_name": "bin depth"})
 
+        if "orientation" in ds.attrs:
+            if ds.attrs["orientation"].lower() == "down":
+                sign = "+"
+            elif ds.attrs["orientation"].lower() == "up":
+                sign = "-"
+        else:  # if not specified assume up-looking
+            sign = "-"
+
         if "P_1ac" in ds:
             if waves:
                 ds["bin_depth"].attrs[
                     "note"
-                ] = "Actual depth time series of wave burst bin depths. Calculated as corrected pressure (P_1ac) - bindist."
+                ] = f"Actual depth time series of wave burst bin depths. Calculated as corrected pressure (P_1ac) {sign} bindist."
             else:
                 ds["bin_depth"].attrs[
                     "note"
-                ] = "Actual depth time series of velocity bins. Calculated as corrected pressure (P_1ac) - bindist."
+                ] = f"Actual depth time series of velocity bins. Calculated as corrected pressure (P_1ac) {sign} bindist."
         else:
             ds["bin_depth"].attrs.update(
                 {
-                    "note": (
-                        "Actual depth time series of velocity bins. Calculated "
-                        "as pressure (P_1) - bindist."
-                    )
+                    "note": f"Actual depth time series of velocity bins. Calculated as pressure (P_1) {sign} bindist."
                 }
             )
 
@@ -1480,9 +1499,10 @@ def fill_cor(ds):
     """
     Fill velocity data with a min average correlation threshold. (HR only)
     Average correlation is used to fill transformed eastward, northward, and upward velocities (u_1205, v_1206, w_1204).
+    Also include option to fill Average Echo Intensity (AGC) data using average correlation threshold
     """
 
-    # lsit velocities to fill by agc threshold(s)
+    # list velocities to fill by agc threshold(s)
     uvw = ["u_1205", "v_1206", "w_1204"]
 
     if "velocity_cor_min" in ds.attrs:
@@ -1495,5 +1515,42 @@ def fill_cor(ds):
             ds = utils.insert_note(ds, var, notetxt)
 
             ds = utils.insert_history(ds, notetxt)
+
+    if "agc_cor_min" in ds.attrs:
+        var = "AGC_1202"
+        ds[var] = ds[var].where(ds["cor_avg"] > ds.attrs["agc_cor_min"])
+        notetxt = " data filled using average correlation minimum threshold of {} percent.".format(
+            ds.attrs["agc_cor_min"]
+        )
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+        ds = utils.insert_history(ds, notetxt)
+
+    return ds
+
+
+def average_burst(ds):
+    # make dictionary of int:dtype pairs, will need to convert back after taking mean
+    dint = {}
+    intlist = []
+    for var in ds.data_vars:
+        if ds[var].dtype == int or ds[var].dtype == np.int64:
+            dtypestr = ds[var].dtype
+            d = {var: dtypestr}
+            dint.update(d)
+            intlist.append(var)
+
+    ds = ds.mean(
+        "sample", skipna=True, keep_attrs=True
+    )  # take mean across 'sample' dim
+
+    for ivar in intlist:
+        ds[ivar] = ds[ivar].astype(
+            dint[ivar]
+        )  # need to retype to int bc np/xarray changes int to float when averaging
+
+    if "burst" in ds:
+        ds["burst"].encoding["dtype"] = "i4"
 
     return ds
