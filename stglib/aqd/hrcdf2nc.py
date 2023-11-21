@@ -68,7 +68,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = aqdutils.magvar_correct(VEL)
 
     VEL["AGC"] = (VEL["AMP1"] + VEL["AMP2"] + VEL["AMP3"]) / 3
-    VEL["COR"] = (VEL["COR1"] + VEL["COR2"] + VEL["COR3"]) / 3
 
     if "COR1" in VEL:
         VEL["COR"] = (VEL["COR1"] + VEL["COR2"] + VEL["COR3"]) / 3

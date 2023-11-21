@@ -156,24 +156,6 @@ def load_amp_vel_cor(RAW, basefile):
             coords=coords,
         )
 
-        cfile = basefile + ".c" + str(n)
-        c = pd.read_csv(cfile, header=None, delim_whitespace=True)
-
-        spb = int(RAW.attrs["AQDHRSamplesPerBurst"])
-
-        if "bindist" in RAW:
-            coords = [RAW["time"], range(spb), RAW["bindist"]]
-        else:
-            coords = [RAW["time"], range(spb), RAW.attrs["AQDCCD"]]
-
-        newshape = (len(coords[0]), len(coords[1]), len(coords[2]))
-
-        RAW["COR" + str(n)] = xr.DataArray(
-            np.reshape(c.values[:, 2:], newshape),
-            dims=("time", "sample", "bindist"),
-            coords=coords,
-        )
-
         vfile = basefile + ".v" + str(n)
         v = pd.read_csv(vfile, header=None, delim_whitespace=True)
 
