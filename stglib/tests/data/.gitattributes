@@ -104,3 +104,6 @@ aqdhr1113tst_config.yaml filter=lfs diff=lfs merge=lfs -text
 *.hdr filter=lfs diff=lfs merge=lfs -text
 *.hdr2 filter=lfs diff=lfs merge=lfs -text
 *.hr2 filter=lfs diff=lfs merge=lfs -text
+055109_20220808_1605/055109_20220808_1605_metadata.txt filter=lfs diff=lfs merge=lfs -text
+055109_20220808_1605/055109_20220808_1605_data.txt filter=lfs diff=lfs merge=lfs -text
+055109_20220808_1605/055109_20220808_1605_events.txt filter=lfs diff=lfs merge=lfs -text
