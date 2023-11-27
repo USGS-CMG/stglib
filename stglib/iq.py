@@ -15,12 +15,12 @@ def mat_to_cdf(metadata):
 
     ds = read_iq(basefile + ".mat")
 
-    ds = create_iqbindist(ds)
-
     # write out metadata first, then deal exclusively with xarray attrs
     ds = utils.write_metadata(ds, metadata)
 
     del metadata
+
+    ds = create_iqbindist(ds)
 
     ds = utils.ensure_cf(ds)
 
@@ -141,6 +141,49 @@ def read_iq(filnam):
 
     ds = xr.Dataset(ds)
 
+    ds.attrs["mean_velocity_equation_type"] = str(
+        iqmat["System_IqSetup"]["flowSetup"]["equationType"]
+    )
+
+    meanveleq = {
+        "1": "Theoretical",
+        "2": "Index",
+        "3": "Theoretical (Center Beams Only)",
+        "4": "Theoretical (Beam 1 Only)",
+        "5": "Theoretical (Beam 2 Only)",
+    }
+
+    for v in meanveleq:
+        if v in ds.attrs["mean_velocity_equation_type"]:
+            ds.attrs["mean_velocity_equation_type"] = meanveleq[v]
+
+    if ds.attrs["mean_velocity_equation_type"] == "Index":
+        ds.attrs["equation_velocity_type"] = str(
+            iqmat["System_IqSetup"]["flowSetup"]["velocityType"]
+        )
+
+    if "equation_velocity_type" in ds.attrs:
+        veltype = {
+            "0": "VelocityXZ (X-Center)",
+            "2": "VelocityXZ (Z-Center)",
+            "3": "VelocityXZ (X-Left)",
+            "4": "VelocityXZ (X-Right)",
+            "5": "Average of all Vx",
+            "10": "Beam 1 Velocity",
+            "11": "Beam 2 Velocity",
+            "12": "Beam 3 Velocity",
+            "13": "Beam 4 Velocity",
+            "14": "VelocityXZ (X-Center, Beam 1 Only)",
+            "15": "VelocityXZ (X-Center, Beam 2 Only)",
+        }
+
+        for v in veltype:
+            if v in ds.attrs["equation_velocity_type"]:
+                ds.attrs["equation_velocity_type"] = veltype[v]
+
+    ds.attrs["survey_point_count"] = int(
+        iqmat["System_IqSetup"]["flowSetup"]["surveyPointCount"]
+    )
     ds.attrs["survey_point_count"] = int(
         iqmat["System_IqSetup"]["flowSetup"]["surveyPointCount"]
     )
@@ -218,7 +261,7 @@ def create_iqbindist(ds):
             {
                 "units": "m",
                 "long_name": "bin (center) distance from transducer",
-                "positive": "up",
+                "positive": "%s" % ds.attrs["orientation"],
                 "note": "distance is along vertical profile from transducer",
             }
         )
@@ -370,7 +413,7 @@ def create_iqbindepth(ds):
                 "units": "m",
                 "long_name": "bin(center) depth relative to sea surface",
                 "positive": "down",
-                "note": "Distance is along vertical profile from transducer",
+                "note": "Distance is along vertical profile of transducer",
             }
         )
 
@@ -654,8 +697,22 @@ def rename_vars(ds):
 
 
 def ds_add_attrs(ds):
-    ds.attrs["serial_number"] = ds.attrs["SerialNumber"]
-    ds.attrs["instrument_type"] = "SonTek-IQ Plus"
+    ds.attrs["serial_number"] = ds.attrs.pop("SerialNumber")
+    ds.attrs["instrument_type"] = (
+        ds.attrs.pop("InstrumentFamily") + "-" + ds.attrs.pop("InstrumentType")
+    )
+
+    if "positive_direction" not in ds.attrs:
+        ds.attrs["positive_direction"] = "Not specified"
+        print(
+            "Define positive_direction attribute in yaml file (direction of x arrow on IQ at field site)."
+        )
+
+    if "flood_direction" not in ds.attrs:
+        ds.attrs["flood_direction"] = "Not specified"
+        print(
+            "Define flood_direction attribute in yaml file (direction of flood velocities at field site)."
+        )
 
     # Update attributes for EPIC and STG compliance
     ds = utils.ds_coord_no_fillvalue(ds)
@@ -742,10 +799,14 @@ def ds_add_attrs(ds):
             "flood_dir": "%s" % ds.attrs["flood_direction"],
             "mean_velocity_equation_type": "%s"
             % ds.attrs["mean_velocity_equation_type"],
-            "equation_velocity_type": "%s" % ds.attrs["equation_velocity_type"],
             "mean_velocity_equation_note": "Mean velocity calculation method",
         }
     )
+
+    if "equation_velocity_type" in ds.attrs:
+        ds["Vel_Mean"].attrs.update(
+            {"equation_velocity_type": "%s" % ds.attrs["equation_velocity_type"]}
+        )
     ds["Volume_Total"].attrs[
         "long_name"
     ] = "Total water volume (based on all measured flow)"
@@ -818,7 +879,7 @@ def ds_add_attrs(ds):
     if "note" in ds["Range"].attrs:
         ds["Range"].attrs["note"] = ds["Range"].attrs["note"] + range_note
     else:
-        ds["Range"].attrs["note"] = p1ac_note
+        ds["Range"].attrs["note"] = range_note
 
     ds["T_28"].attrs.update(
         {
@@ -906,16 +967,17 @@ def ds_add_attrs(ds):
         ds["Profile_bin_size%d" % (n + 1)].attrs.update(
             {"long_name": "beam %d bin size" % (n + 1), "units": "m"}
         )
-        ds["Profile_z%d" % (n + 1)].attrs.update(
-            {
-                "standard_name": "height",
-                "long_name": "beam %d bin height relative to %s"
-                % ((n + 1), ds.attrs["geopotential_datum_name"]),
-                "units": "m",
-                "positive": "%s" % ds.attrs["orientation"],
-                "axis": "Z",
-            }
-        )
+        if "Profile_z" in ds:
+            ds["Profile_z%d" % (n + 1)].attrs.update(
+                {
+                    "standard_name": "height",
+                    "long_name": "beam %d bin height relative to %s"
+                    % ((n + 1), ds.attrs["geopotential_datum_name"]),
+                    "units": "m",
+                    "positive": "%s" % ds.attrs["orientation"],
+                    "axis": "Z",
+                }
+            )
 
     return ds
 
