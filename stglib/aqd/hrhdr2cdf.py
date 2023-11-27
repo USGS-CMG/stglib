@@ -46,10 +46,12 @@ def hdr_to_cdf(metadata):
     ds = aqdutils.create_bindist(ds)
 
     # Load amplitude and velocity data
-    ds = load_amp_vel(ds, basefile)
+    ds = load_amp_vel_cor(ds, basefile)
 
     # Compute time stamps
-    # ds = utils.shift_time(ds, ds.attrs["AQDAverageInterval"] / 2)
+    ds = utils.shift_time(
+        ds, 0
+    )  # make like burst instruments time stamp at start of burst
 
     # configure file
     if "prefix" in ds.attrs:
@@ -132,8 +134,8 @@ def load_sen(ds):
     return ds
 
 
-def load_amp_vel(RAW, basefile):
-    """Load amplitude and velocity data from the .aN and .vN files"""
+def load_amp_vel_cor(RAW, basefile):
+    """Load amplitude, correlation, and velocity data from the .aN, .cN and .vN files"""
 
     for n in [1, 2, 3]:
         afile = basefile + ".a" + str(n)
@@ -169,5 +171,27 @@ def load_amp_vel(RAW, basefile):
             dims=("time", "sample", "bindist"),
             coords=coords,
         )
+
+        try:
+            cfile = basefile + ".c" + str(n)
+            c = pd.read_csv(cfile, header=None, delim_whitespace=True)
+
+            spb = int(RAW.attrs["AQDHRSamplesPerBurst"])
+
+            if "bindist" in RAW:
+                coords = [RAW["time"], range(spb), RAW["bindist"]]
+            else:
+                coords = [RAW["time"], range(spb), RAW.attrs["AQDCCD"]]
+
+            newshape = (len(coords[0]), len(coords[1]), len(coords[2]))
+
+            RAW["COR" + str(n)] = xr.DataArray(
+                np.reshape(c.values[:, 2:], newshape),
+                dims=("time", "sample", "bindist"),
+                coords=coords,
+            )
+
+        except:
+            print("No correlation data available")
 
     return RAW
