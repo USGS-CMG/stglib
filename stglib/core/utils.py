@@ -284,8 +284,9 @@ def add_standard_names(ds):
         "u_1205": "eastward_sea_water_velocity",
         "v_1206": "northward_sea_water_velocity",
         "w_1204": "upward_sea_water_velocity",
-        "SV_80": "speed_of_sound_in_sea_water"
-        # 'AGC_1202'
+        "SV_80": "speed_of_sound_in_sea_water",
+        "AGC_1202": "signal_intensity_from_multibeam_acoustic_doppler_velocity_sensor_in_sea_water",
+        "cor_avg": "beam_consistency_indicator_from_multibeam_acoustic_doppler_velocity_profiler_in_sea_water",
     }
 
     for k in standard_names:
