@@ -353,6 +353,9 @@ def cdf_to_nc(cdf_filename):
     dsprof = ds.copy()
 
     dsflow = dsflow.drop([k for k in dsflow if "Profile_" in k])
+    dsflow = dsflow.drop(
+        ["bin_along", "bin_across"]
+    )  # do not need bin dims for the flow data
     dsprof = dsprof.drop([k for k in dsprof if "Profile_" not in k])
 
     newvars = {}
