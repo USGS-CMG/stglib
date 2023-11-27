@@ -96,7 +96,7 @@ def test_aqdhr():
     aqdhr_raw("gatts_CHC14TDH.txt", "config_CHC14TDH.yaml")
     aqdhr_nc("CHC14TDH-raw.cdf")
     aqdhr_raw("glob_att1113_aqdHR_tst.txt", "aqdhr1113tst_config.yaml")
-    aqdhr_nc("1113aqdhr-raw.cdf")
+    aqdhr_nc("1113aqdHR-raw.cdf")
 
 
 def aqdturnaround(basefile):
