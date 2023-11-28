@@ -216,9 +216,6 @@ def read_iq(filnam):
             ds.attrs[k] = iqmat["System_IqSetup"]["basicSetup"][k]
     for k in iqmat["System_Id"]:
         ds.attrs[k] = iqmat["System_Id"][k]
-    for k in iqmat["System_IqState"]:
-        if "spare" not in k:
-            ds.attrs[k.replace("[", "_").replace("]", "_")] = iqmat["System_IqState"][k]
 
     if ds.attrs["InstrumentType"] == "IQ":
         ds.attrs["AlongChannelBeamsAngle"] = 25
@@ -262,7 +259,7 @@ def create_iqbindist(ds):
                 "units": "m",
                 "long_name": "bin (center) distance from transducer",
                 "positive": "%s" % ds.attrs["orientation"],
-                "note": "distance is along vertical profile from transducer",
+                "note": "distance is along vertical profile of transducer",
             }
         )
 
@@ -408,9 +405,16 @@ def create_iqbindepth(ds):
     Generate bin depths reltive to pressure.
     """
     for bm in range(4):
-        ds["Profile_%d_bindepth" % bm] = (
-            ds["AdjustedPressure"] - ds["Profile_%d_bindist" % bm]
-        )
+        if ds.attrs["orientation"].upper() == "UP":
+            ds["Profile_%d_bindepth" % bm] = (
+                ds["AdjustedPressure"] - ds["Profile_%d_bindist" % bm]
+            )
+        elif ds.attrs["orientation"].upper() == "DOWN":
+            ds["Profile_%d_bindepth" % bm] = (
+                ds["AdjustedPressure"] + ds["Profile_%d_bindist" % bm]
+            )
+        else:
+            print("Could not create z for bins, specifiy orientation")
         ds["Profile_%d_bindepth" % bm].attrs.update(
             {
                 "units": "m",
@@ -599,7 +603,7 @@ def fill_snr(ds):
 
 def fill_vbper(ds):
     """
-    Fill adjusted pressure, stage, area, range, mean velocity, profile velocity, and depth data with corresponding vertical beam percent good threshold
+    Fill adjusted pressure, stage, area, range, profile velocity, and depth data with corresponding vertical beam percent good threshold
     """
 
     if "vbper_threshold" in ds.attrs:
@@ -624,7 +628,7 @@ def fill_vbper(ds):
 
     else:
         print(
-            "Did not fill pressure, stage, area, range, and depth data data using snr threshold"
+            "Did not fill pressure, stage, area, range, and depth data data using vertical beam percent good threshold"
         )
 
     return ds
@@ -700,6 +704,11 @@ def rename_vars(ds):
 
 
 def ds_add_attrs(ds):
+    attrsnams = ["InstrumentSubType", "InstrumentFriendlyName"]
+
+    for k in attrsnams:
+        del ds.attrs[k]
+
     ds.attrs["serial_number"] = ds.attrs.pop("SerialNumber")
     ds.attrs["instrument_type"] = (
         ds.attrs.pop("InstrumentFamily") + "-" + ds.attrs.pop("InstrumentType")
@@ -728,9 +737,9 @@ def ds_add_attrs(ds):
         {
             "long_name": "bin number for across channel/skew beams (beams 3 & 4)",
             "units": "1",
-            "bin_size": "size of bin varies by sample. See variables bin_size3 and bin_size4",
+            "bin_size": "size of bin may vary by sample. See variables bin_size3 and bin_size4",
             "bin_count": "%d" % len(ds.bin_across),
-            "blanking_distance": "blanking distance varies by sample. See profile variables blanking_distance3 and blanking_distance4",
+            "blanking_distance": "blanking distance may vary by sample. See profile variables blanking_distance3 and blanking_distance4",
             "note": "bin number is along profile from corresponding transducer",
         }
     )
@@ -739,9 +748,9 @@ def ds_add_attrs(ds):
         {
             "long_name": "bin number for along channel beams (beams 1 & 2)",
             "units": "1",
-            "bin_size": "size of bin varies by sample. See variables bin_size1 and bin_size2",
+            "bin_size": "size of bin may vary by sample. See variables bin_size1 and bin_size2",
             "bin_count": "%d" % len(ds.bin_across),
-            "blanking_distance": "blanking distance varies by sample. See profile variables blanking_distance1 and blanking_distance2",
+            "blanking_distance": "blanking distance may vary by sample. See profile variables blanking_distance1 and blanking_distance2",
             "note": "bin number is along profile from corresponding transducer",
         }
     )
