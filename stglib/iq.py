@@ -323,6 +323,8 @@ def cdf_to_nc(cdf_filename):
 
     ds = utils.create_z(ds)  # added 7/31/2023
 
+    ds = utils.add_standard_names(ds)
+
     ds = ds_add_attrs(ds)
 
     # ds = utils.no_p_create_depth(ds) #commented out 7/31/23
@@ -694,6 +696,7 @@ def rename_vars(ds):
         "Depth": "D_3",
         "Pressure": "P_1",
         "AdjustedPressure": "P_1ac",
+        "SoundSpeed": "SV_80",
     }
     # check to make sure they exist before trying to rename
     for k in varnames:
@@ -790,7 +793,7 @@ def ds_add_attrs(ds):
     ds["Stage"].attrs.update(
         {
             "long_name": "Sea surface height (NAVD88)",
-            "standard_name": "sea_surface_height_above_geopotential_datum ",
+            "standard_name": "sea_surface_height_above_geopotential_datum",
             "geopotential_datum_name": "NAVD88",
             "positive": "%s" % ds.depth.attrs["positive"],
         }
@@ -919,7 +922,6 @@ def ds_add_attrs(ds):
     ds["P_1ac"].attrs.update(
         {
             "long_name": "Corrected pressure",
-            "standard_name": "sea_water_pressure_due_to_sea_water",
             "units": "dbar",
         }
     )
@@ -943,14 +945,12 @@ def ds_add_attrs(ds):
         {
             "long_name": "Instrument Roll",
             "epic_code": "1217",
-            "standard_name": "platform_roll",
         }
     )
     ds["Ptch_1216"].attrs.update(
         {
             "long_name": "Instrument Pitch",
             "epic_code": "1216",
-            "standard_name": "platform_pitch",
         }
     )
     ds["VbPercentGood"].attrs["long_name"] = "Vertical beam percent good"
