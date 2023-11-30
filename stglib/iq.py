@@ -1,3 +1,5 @@
+import warnings
+
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
@@ -32,7 +34,7 @@ def mat_to_cdf(metadata):
 
     ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
 
-    print("Finished writing data to %s" % cdf_filename)
+    print(f"Finished writing data to {cdf_filename}")
 
     return ds
 
@@ -104,7 +106,10 @@ def read_iq(filnam):
                 ds[k] = xr.DataArray(iqmat[k][0:timelen, :], dims=("time", "bin_along"))
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
-            elif "FlowData_Vel" in k and "XYZ" not in k or "FlowData_SNR" in k:
+            elif "FlowData_SNR" in k:
+                ds[k] = xr.DataArray(iqmat[k][0:timelen, :], dims=("time", "velbeam"))
+                ds[k].attrs["units"] = iqmat["Data_Units"][k]
+            elif "FlowData_Vel" in k and "XYZ" not in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen, :], dims=("time", "velbeam"))
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
@@ -204,13 +209,6 @@ def read_iq(filnam):
         ]
     ) / 1000
 
-    ds.attrs[
-        "channel_cross_section_note"
-    ] = "Y = distance (m) along transect across the channel, starting on right bank. Z = elevation (m) of bed referenced to geopotential datum. Measurements collected in the field at the beginning of each IQ deployment."
-    ds.attrs[
-        "IQ_location_note"
-    ] = "Location of IQ projected onto cross channel transect. Actual location of IQ may be up to 2 meters off the across-channel transect (in perpendicular direction or along channel)."
-
     for k in iqmat["System_IqSetup"]["basicSetup"]:
         if "spare" not in k:
             ds.attrs[k] = iqmat["System_IqSetup"]["basicSetup"][k]
@@ -218,8 +216,8 @@ def read_iq(filnam):
         ds.attrs[k] = iqmat["System_Id"][k]
 
     if ds.attrs["InstrumentType"] == "IQ":
-        ds.attrs["AlongChannelBeamsAngle"] = 25
-        ds.attrs["AcrossChannelBeamsAngle"] = 60
+        ds.attrs["AlongChannelBeamAngle"] = 25
+        ds.attrs["AcrossChannelBeamAngle"] = 60
     else:
         print("Check and update beam angle for Sontek IQ instrument")
 
@@ -239,9 +237,9 @@ def create_iqbindist(ds):
             bdname = "bin_across"
 
         r = range(len(ds[bdname]))
-        cells = np.zeros(np.shape(ds["Profile_" + str(bm) + "_Vel"]))
-        fsdbd = "FlowSubData_PrfHeader_" + str(bm) + "_BlankingDistance"
-        fsdcs = "FlowSubData_PrfHeader_" + str(bm) + "_CellSize"
+        cells = np.zeros(np.shape(ds[f"Profile_{bm}_Vel"]))
+        fsdbd = f"FlowSubData_PrfHeader_{bm}_BlankingDistance"
+        fsdcs = f"FlowSubData_PrfHeader_{bm}_CellSize"
         for n in range(len(ds["time"])):
             # blanking distance + 1*bin_size = center of first bin
             # blanking distance + N*bin_size = center of N bin
@@ -250,11 +248,9 @@ def create_iqbindist(ds):
             cells[n, :] = (
                 ds[fsdbd][n].values + (r * ds[fsdcs][n].values) + (ds[fsdcs][n].values)
             )
-        ds["Profile_" + str(bm) + "_bindist"] = xr.DataArray(
-            cells, dims=("time", bdname)
-        )
+        ds[f"Profile_{bm}_bindist"] = xr.DataArray(cells, dims=("time", bdname))
 
-        ds["Profile_" + str(bm) + "_bindist"].attrs.update(
+        ds[f"Profile_{bm}_bindist"].attrs.update(
             {
                 "units": "m",
                 "long_name": "bin (center) distance from transducer",
@@ -329,17 +325,18 @@ def cdf_to_nc(cdf_filename):
 
     # ds = utils.no_p_create_depth(ds) #commented out 7/31/23
 
-    ds = ds.drop(
-        [
-            "SampleNumber",
-            "SampleTime",
-            "Volume_Total",
-            "Volume_Positive",
-            "Volume_Negative",
-            "Vel",
-            "HorizontalSkew",
-        ]
-    )
+    dropvars = [
+        "SampleNumber",
+        "SampleTime",
+        "Volume_Total",
+        "Volume_Positive",
+        "Volume_Negative",
+        "Vel",
+        "HorizontalSkew",
+    ]
+    for k in dropvars:
+        if k in ds:
+            ds = ds.drop(k)
 
     # add lat/lon coordinates to each variable
     for var in ds.variables:
@@ -408,16 +405,16 @@ def create_iqbindepth(ds):
     """
     for bm in range(4):
         if ds.attrs["orientation"].upper() == "UP":
-            ds["Profile_%d_bindepth" % bm] = (
-                ds["AdjustedPressure"] - ds["Profile_%d_bindist" % bm]
+            ds[f"Profile_{bm}_bindepth"] = (
+                ds["AdjustedPressure"] - ds[f"Profile_{bm}_bindist"]
             )
         elif ds.attrs["orientation"].upper() == "DOWN":
-            ds["Profile_%d_bindepth" % bm] = (
-                ds["AdjustedPressure"] + ds["Profile_%d_bindist" % bm]
+            ds[f"Profile_{bm}_bindepth"] = (
+                ds["AdjustedPressure"] + ds[f"Profile_{bm}_bindist"]
             )
         else:
             print("Could not create z for bins, specifiy orientation")
-        ds["Profile_%d_bindepth" % bm].attrs.update(
+        ds[f"Profile_{bm}_bindepth"].attrs.update(
             {
                 "units": "m",
                 "long_name": "bin(center) depth relative to sea surface",
@@ -437,32 +434,32 @@ def create_iqz(ds):
         if "height_above_geopotential_datum" in ds.attrs:
             if ds.attrs["orientation"].upper() == "DOWN":
                 if bm < 2:
-                    ds["Profile_%d_z" % bm] = xr.DataArray(
+                    ds[f"Profile_{bm}_z"] = xr.DataArray(
                         ds.attrs["height_above_geopotential_datum"]
                         + ds.attrs["initial_instrument_height"]
-                        - ds["Profile_%d_bindist" % bm].values,
+                        - ds[f"Profile_{bm}_bindist"].values,
                         dims=("time", "bin_along"),
                     )
                 else:
-                    ds["Profile_%d_z" % bm] = xr.DataArray(
+                    ds[f"Profile_{bm}_z"] = xr.DataArray(
                         ds.attrs["height_above_geopotential_datum"]
                         + ds.attrs["initial_instrument_height"]
-                        - ds["Profile_%d_bindist" % bm].values,
+                        - ds[f"Profile_{bm}_bindist"].values,
                         dims=("time", "bin_across"),
                     )
             elif ds.attrs["orientation"].upper() == "UP":
                 if bm < 2:
-                    ds["Profile_%d_z" % bm] = xr.DataArray(
+                    ds[f"Profile_{bm}_z"] = xr.DataArray(
                         ds.attrs["height_above_geopotential_datum"]
                         + ds.attrs["initial_instrument_height"]
-                        + ds["Profile_%d_bindist" % bm].values,
+                        + ds[f"Profile_{bm}_bindist"].values,
                         dims=("time", "bin_along"),
                     )
                 else:
-                    ds["Profile_%d_z" % bm] = xr.DataArray(
+                    ds[f"Profile_{bm}_z"] = xr.DataArray(
                         ds.attrs["height_above_geopotential_datum"]
                         + ds.attrs["initial_instrument_height"]
-                        + ds["Profile_%d_bindist" % bm].values,
+                        + ds[f"Profile_{bm}_bindist"].values,
                         dims=("time", "bin_across"),
                     )
 
@@ -485,11 +482,11 @@ def clean_iq(iq):
     iq["Vel_Mean"].values[iq["Vel_Mean"] < -214748] = np.nan
     iq["Vel"].values[iq["Vel"] == -214748368] = np.nan
     for bm in range(4):
-        pr = "Profile_" + str(bm) + "_Vel"
+        pr = f"Profile_{bm}_Vel"
         iq[pr].values[iq[pr] == -214748368] = np.nan
-        am = "Profile_" + str(bm) + "_Amp"
+        am = f"Profile_{bm}_Amp"
         iq[am].values[iq[am] == 65535] = np.nan
-        st = "Profile_" + str(bm) + "_VelStd"
+        st = f"Profile_{bm}_VelStd"
         iq[st].values[iq[st] < 0] = np.nan
 
     return iq
@@ -518,14 +515,14 @@ def trim_iqvel(ds):
 
         for bm in range(4):  # beams are different angles
             if bm < 2:
-                bmangle = ds.attrs["AlongChannelBeamsAngle"]
+                bmangle = ds.attrs["AlongChannelBeamAngle"]
             else:
-                bmangle = ds.attrs["AcrossChannelBeamsAngle"]
+                bmangle = ds.attrs["AcrossChannelBeamAngle"]
 
             if ds.attrs["trim_method"].lower() == "water level":
-                ds["Profile_" + str(bm) + "_Vel"] = ds[
-                    "Profile_" + str(bm) + "_Vel"
-                ].where(ds["Profile_" + str(bm) + "_bindist"] < P)
+                ds[f"Profile_{bm}_Vel"] = ds[f"Profile_{bm}_Vel"].where(
+                    ds[f"Profile_{bm}_bindist"] < P
+                )
 
                 histtext = (
                     "Trimmed velocity data using {} pressure (water level).".format(
@@ -534,11 +531,8 @@ def trim_iqvel(ds):
                 )
 
             elif ds.attrs["trim_method"].lower() == "water level sl":
-                ds["Profile_" + str(bm) + "_Vel"] = ds[
-                    "Profile_" + str(bm) + "_Vel"
-                ].where(
-                    ds["Profile_" + str(bm) + "_bindist"]
-                    < P * np.cos(np.deg2rad(bmangle))
+                ds[f"Profile_{bm}_Vel"] = ds[f"Profile_{bm}_Vel"].where(
+                    ds[f"Profile_{bm}_bindist"] < P * np.cos(np.deg2rad(bmangle))
                 )
 
                 histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
@@ -563,7 +557,7 @@ def fill_snr(ds):
         for var in ds:
             if "Vel" and "Profile" in var:
                 for bm in range(4):
-                    var = "Profile_" + str(bm) + "_Vel"
+                    var = f"Profile_{bm}_Vel"
                     ds[var] = ds[var].where(ds.SNR[:, bm] > ds.attrs["snr_threshold"])
 
             else:
@@ -646,48 +640,6 @@ def rename_vars(ds):
 
     newvars = {}
 
-    for var in ds:
-        if "Profile_0" in var:
-            newvars[var] = (
-                var.replace("Profile_0_Amp", "Profile_AGC1_1221")
-                .replace("Profile_0_Vel", "Profile_vel1_1277")
-                .replace("Profile_0_BlankingDistance", "Profile_blanking_distance1")
-                .replace("Profile_0_CellSize", "Profile_bin_size1")
-                .replace("Profile_0_bindist", "Profile_bindist1")
-                .replace("Profile_0_z", "Profile_z1")
-                .replace("Profile_0_bindepth", "Profile_bindepth1")
-            )
-        elif "Profile_1" in var:
-            newvars[var] = (
-                var.replace("Profile_1_Amp", "Profile_AGC2_1222")
-                .replace("Profile_1_Vel", "Profile_vel2_1278")
-                .replace("Profile_1_BlankingDistance", "Profile_blanking_distance2")
-                .replace("Profile_1_CellSize", "Profile_bin_size2")
-                .replace("Profile_1_bindist", "Profile_bindist2")
-                .replace("Profile_1_z", "Profile_z2")
-                .replace("Profile_1_bindepth", "Profile_bindepth2")
-            )
-        elif "Profile_2" in var:
-            newvars[var] = (
-                var.replace("Profile_2_Amp", "Profile_AGC3_1223")
-                .replace("Profile_2_Vel", "Profile_vel3_1279")
-                .replace("Profile_2_BlankingDistance", "Profile_blanking_distance3")
-                .replace("Profile_2_CellSize", "Profile_bin_size3")
-                .replace("Profile_2_bindist", "Profile_bindist3")
-                .replace("Profile_2_z", "Profile_z3")
-                .replace("Profile_2_bindepth", "Profile_bindepth3")
-            )
-        elif "Profile_3" in var:
-            newvars[var] = (
-                var.replace("Profile_3_Amp", "Profile_AGC4_1224")
-                .replace("Profile_3_Vel", "Profile_vel4_1280")
-                .replace("Profile_3_BlankingDistance", "Profile_blanking_distance4")
-                .replace("Profile_3_CellSize", "Profile_bin_size4")
-                .replace("Profile_3_bindist", "Profile_bindist4")
-                .replace("Profile_3_z", "Profile_z4")
-                .replace("Profile_3_bindepth", "Profile_bindepth4")
-            )
-
     varnames = {
         "Batt": "Bat_106",
         "Temp": "T_28",
@@ -697,6 +649,38 @@ def rename_vars(ds):
         "Pressure": "P_1",
         "AdjustedPressure": "P_1ac",
         "SoundSpeed": "SV_80",
+        "Profile_0_Amp": "Profile_AGC1_1221",
+        "Profile_0_Vel": "Profile_vel1_1277",
+        "Profile_0_VelStd": "Profile_vel1_1277Std",
+        "Profile_0_BlankingDistance": "Profile_blanking_distance1",
+        "Profile_0_CellSize": "Profile_bin_size1",
+        "Profile_0_bindist": "Profile_bindist1",
+        "Profile_0_z": "Profile_z1",
+        "Profile_0_bindepth": "Profile_bindepth1",
+        "Profile_1_Amp": "Profile_AGC2_1222",
+        "Profile_1_Vel": "Profile_vel2_1278",
+        "Profile_1_VelStd": "Profile_vel2_1278Std",
+        "Profile_1_BlankingDistance": "Profile_blanking_distance2",
+        "Profile_1_CellSize": "Profile_bin_size2",
+        "Profile_1_bindist": "Profile_bindist2",
+        "Profile_1_z": "Profile_z2",
+        "Profile_1_bindepth": "Profile_bindepth2",
+        "Profile_2_Amp": "Profile_AGC3_1223",
+        "Profile_2_Vel": "Profile_vel3_1279",
+        "Profile_2_VelStd": "Profile_vel3_1279Std",
+        "Profile_2_BlankingDistance": "Profile_blanking_distance3",
+        "Profile_2_CellSize": "Profile_bin_size3",
+        "Profile_2_bindist": "Profile_bindist3",
+        "Profile_2_z": "Profile_z3",
+        "Profile_2_bindepth": "Profile_bindepth3",
+        "Profile_3_Amp": "Profile_AGC4_1224",
+        "Profile_3_Vel": "Profile_vel4_1280",
+        "Profile_3_VelStd": "Profile_vel4_1280Std",
+        "Profile_3_BlankingDistance": "Profile_blanking_distance4",
+        "Profile_3_CellSize": "Profile_bin_size4",
+        "Profile_3_bindist": "Profile_bindist4",
+        "Profile_3_z": "Profile_z4",
+        "Profile_3_bindepth": "Profile_bindepth4",
     }
     # check to make sure they exist before trying to rename
     for k in varnames:
@@ -719,13 +703,13 @@ def ds_add_attrs(ds):
 
     if "positive_direction" not in ds.attrs:
         ds.attrs["positive_direction"] = "Not specified"
-        print(
+        warnings.warn(
             "Define positive_direction attribute in yaml file (direction of x arrow on IQ at field site)."
         )
 
     if "flood_direction" not in ds.attrs:
         ds.attrs["flood_direction"] = "Not specified"
-        print(
+        warnings.warn(
             "Define flood_direction attribute in yaml file (direction of flood velocities at field site)."
         )
 
@@ -964,23 +948,27 @@ def ds_add_attrs(ds):
 
     # Profile Variables
     for n in range(4):
-        ds["Profile_AGC%d_122%d" % (n + 1, n + 1)].attrs.update(
-            {"units": "counts", "long_name": "Echo Intensity (AGC) beam %d" % (n + 1)}
+        bm = n + 1
+        agccode = 1221 + n
+        velcode = 1277 + n
+
+        ds[f"Profile_AGC{bm}_{agccode}"].attrs.update(
+            {"units": "counts", "long_name": f"Echo Intensity (AGC) beam {bm}"}
         )
-        ds["Profile_vel%d_%dStd" % (n + 1, n + 1277)].attrs[
+        ds[f"Profile_vel{bm}_{velcode}Std"].attrs[
             "long_name"
-        ] = "beam %d velocity profile standard deviation" % (n + 1)
-        ds["Profile_vel%d_%d" % (n + 1, n + 1277)].attrs.update(
-            {"long_name": "beam %d current velocity" % (n + 1)}
+        ] = f"beam {bm} velocity profile standard deviation"
+        ds[f"Profile_vel{bm}_{velcode}"].attrs.update(
+            {"long_name": f"beam {bm} current velocity"}
         )
-        ds["Profile_blanking_distance%d" % (n + 1)].attrs.update(
-            {"long_name": "beam %d blanking distance" % (n + 1), "units": "m"}
+        ds[f"Profile_blanking_distance{bm}"].attrs.update(
+            {"long_name": f"beam {bm} blanking distance", "units": "m"}
         )
-        ds["Profile_bin_size%d" % (n + 1)].attrs.update(
-            {"long_name": "beam %d bin size" % (n + 1), "units": "m"}
+        ds[f"Profile_bin_size{bm}"].attrs.update(
+            {"long_name": f"beam {bm} bin size", "units": "m"}
         )
-        if "Profile_z" in ds:
-            ds["Profile_z%d" % (n + 1)].attrs.update(
+        if "height_above_geopotential_datum" in ds.attrs:
+            ds[f"Profile_z{bm}"].attrs.update(
                 {
                     "standard_name": "height",
                     "long_name": "beam %d bin height relative to %s"
