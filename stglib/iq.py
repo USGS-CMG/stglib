@@ -26,8 +26,8 @@ def mat_to_cdf(metadata):
 
     ds = utils.ensure_cf(ds)
 
-    # Compute time stamps
-    # ds = utils.shift_time(ds, ds.attrs["flowSampleDuration"] / 2)
+    # Shift time to middle/handle clock error
+    ds = utils.shift_time(ds, ds.attrs["flowSampleDuration"] / 2)
 
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
@@ -254,7 +254,7 @@ def create_iqbindist(ds):
             {
                 "units": "m",
                 "long_name": "bin (center) distance from transducer",
-                "positive": "%s" % ds.attrs["orientation"],
+                "positive": f"{ds.attrs['orientation']}",
                 "note": "distance is along vertical profile of transducer",
             }
         )
@@ -725,7 +725,7 @@ def ds_add_attrs(ds):
             "long_name": "bin number for across channel/skew beams (beams 3 & 4)",
             "units": "1",
             "bin_size": "size of bin may vary by sample. See variables bin_size3 and bin_size4",
-            "bin_count": "%d" % len(ds.bin_across),
+            "bin_count": f"{(len(ds.bin_across))}",
             "blanking_distance": "blanking distance may vary by sample. See profile variables blanking_distance3 and blanking_distance4",
             "note": "bin number is along profile from corresponding transducer",
         }
@@ -736,7 +736,7 @@ def ds_add_attrs(ds):
             "long_name": "bin number for along channel beams (beams 1 & 2)",
             "units": "1",
             "bin_size": "size of bin may vary by sample. See variables bin_size1 and bin_size2",
-            "bin_count": "%d" % len(ds.bin_across),
+            "bin_count": f"{(len(ds.bin_along))}",
             "blanking_distance": "blanking distance may vary by sample. See profile variables blanking_distance1 and blanking_distance2",
             "note": "bin number is along profile from corresponding transducer",
         }
@@ -762,11 +762,11 @@ def ds_add_attrs(ds):
         {
             "long_name": "depth below sea surface",
             "standard_name": "depth",
-            "positive": "%s" % ds.depth.attrs["positive"],
+            "positive": f"{ds.depth.attrs['positive']}",
         }
     )
 
-    d3_note = "Calculated using vertical beam if VbPercentGood is greater than 30% and measured using pressure sesnor if VbPercentGood is less than 30%. See Sontek-IQ Series instrument manual for deatils."
+    d3_note = "Calculated using vertical beam if VbPercentGood is greater than 30% and measured using pressure sesnor if VbPercentGood is less than 30%. Relative to the top of the instrument. See Sontek-IQ Series instrument manual for deatils."
     if "note" in ds["D_3"].attrs:
         ds["D_3"].attrs["note"] = ds["D_3"].attrs["note"] + d3_note
     else:
@@ -779,32 +779,31 @@ def ds_add_attrs(ds):
             "long_name": "Sea surface height (NAVD88)",
             "standard_name": "sea_surface_height_above_geopotential_datum",
             "geopotential_datum_name": "NAVD88",
-            "positive": "%s" % ds.depth.attrs["positive"],
+            "positive": "up",  # positive should always be up regardless of instrument orientation
         }
     )
     ds["Area"].attrs["long_name"] = "Cross-sectional area of user-defined channel"
     ds["Flow"].attrs.update(
         {
             "long_name": "Flow rate (using defined channel geometry)",
-            "positive_dir": "%s" % ds.attrs["positive_direction"],
-            "flood_dir": "%s" % ds.attrs["flood_direction"],
+            "positive_dir": f"{ds.attrs['positive_direction']}",
+            "flood_dir": f"{ds.attrs['flood_direction']}",
         }
     )
 
     ds["Vel_Mean"].attrs.update(
         {
-            "long_name": "Mean velocity",
-            "positive_dir": "%s" % ds.attrs["positive_direction"],
-            "flood_dir": "%s" % ds.attrs["flood_direction"],
-            "mean_velocity_equation_type": "%s"
-            % ds.attrs["mean_velocity_equation_type"],
+            "long_name": "Mean velocity (depth-inegrated)",
+            "positive_dir": f"{ds.attrs['positive_direction']}",
+            "flood_dir": f"{ds.attrs['flood_direction']}",
+            "mean_velocity_equation_type": f"{ds.attrs['mean_velocity_equation_type']}",
             "mean_velocity_equation_note": "Mean velocity calculation method",
         }
     )
 
     if "equation_velocity_type" in ds.attrs:
         ds["Vel_Mean"].attrs.update(
-            {"equation_velocity_type": "%s" % ds.attrs["equation_velocity_type"]}
+            {"equation_velocity_type": f"{ds.attrs['equation_velocity_type']}"}
         )
     ds["Volume_Total"].attrs[
         "long_name"
@@ -843,25 +842,25 @@ def ds_add_attrs(ds):
     ds["Vel_X_Center"].attrs.update(
         {
             "long_name": "X velocity in center of channel (from beams 1 & 2)",
-            "positive_dir": "%s" % ds.attrs["positive_direction"],
+            "positive_dir": f"{ds.attrs['positive_direction']}",
         }
     )
     ds["Vel_Z_Center"].attrs.update(
         {
             "long_name": "Z velocity in center of channel (from beams 1 & 2)",
-            "positive_dir": "%s" % ds.attrs["orientation"],
+            "positive_dir": f"{ds.attrs['orientation']}",
         }
     )
     ds["Vel_X_Left"].attrs.update(
         {
             "long_name": "X velocity along left bank (from beam 3)",
-            "positive_dir": "%s" % ds.attrs["positive_direction"],
+            "positive_dir": f"{ds.attrs['positive_direction']}",
         }
     )
     ds["Vel_X_Right"].attrs.update(
         {
             "long_name": "X velocity along right bank (beam 4)",
-            "positive_dir": "%s" % ds.attrs["positive_direction"],
+            "positive_dir": f"{ds.attrs['positive_direction']}",
         }
     )
 
@@ -871,7 +870,7 @@ def ds_add_attrs(ds):
     ds["Range"].attrs.update(
         {
             "long_name": "distance to sea surface",
-            "positive": "%s" % ds.attrs["orientation"],
+            "positive": f"{ds.attrs['orientation']}",
         }
     )
     range_note = "measured using vertical acoustic beam (beam 5)"
@@ -971,10 +970,9 @@ def ds_add_attrs(ds):
             ds[f"Profile_z{bm}"].attrs.update(
                 {
                     "standard_name": "height",
-                    "long_name": "beam %d bin height relative to %s"
-                    % ((n + 1), ds.attrs["geopotential_datum_name"]),
+                    "long_name": f"beam {bm} bin height relative to {ds.attrs['geopotential_datum_name']}",
                     "units": "m",
-                    "positive": "%s" % ds.attrs["orientation"],
+                    "positive": f"{ds.attrs['orientation']}",
                     "axis": "Z",
                 }
             )
