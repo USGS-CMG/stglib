@@ -101,7 +101,7 @@ def cdf_to_nc(cdf_filename):
     if "bins" in ds:
         ds = calc_cor_bin_height(ds)
 
-    ds = calc_seabed_elev(ds)
+    ds = calc_boundary_elev(ds)
 
     # if "bins" in ds:
     #   ds = utils.create_z_bindist(ds)  #create z for profile
@@ -142,6 +142,9 @@ def cdf_to_nc(cdf_filename):
     ds.to_netcdf(
         nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
     )
+
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+
     print("Done writing netCDF file", nc_filename)
 
     # Average busrt and write to -a.nc file
@@ -482,7 +485,7 @@ def calc_bin_height(ds):
     )
 
     print(
-        "Calculating center of bin height from seafloor as: initial intrument height - bin(center) distance from transducer"
+        "Calculating center of bin height from seafloor as: initial intrument height +/- bin(center) distance from transducer"
     )
 
     if ds.attrs["orientation"].upper() == "DOWN":
@@ -514,8 +517,8 @@ def calc_bin_height(ds):
             "units": "m",
             "long_name": "bin(center) distance from seafloor",
             "positive": "up",
-            "note": "Distance is along profile from seafloor to center of bin. Calculated as initial instrument height %s bin(center) distance from transducer based on 1500 m/s sound vel."
-            % math_sign,
+            "note": f"Distance is along profile from seafloor to center of bin. Calculated as initial instrument height {math_sign} bin(center) distance from transducer based on {ds.attrs['SoundSpeed_mps']} m/s sound vel.",
+            # % math_sign,
         }
     )
 
@@ -533,12 +536,27 @@ def calc_cor_brange(ds):
     # Correct using adjusted sound speed
     # distance (m) = time (sec) x sound speed (m/sec)
     time_sec = xr.DataArray((ds.Altitude_m) / ds.attrs["SoundSpeed_mps"])
+    #
+    # seawater.svel(s,t,p); s = average salinity (psu) from exo, t = temp (c) from altimeter, p = approximate pressure (db) calculated from instrument depth +/- median(Altitude)/2
+    if ds.attrs["orientation"].upper() == "DOWN":
+        p = (
+            ds.attrs["WATER_DEPTH"]
+            - ds.attrs["initial_instrument_height"]
+            + ds["Altitude_m"].median() / 2
+        )
+        math_sign = "-"
+    elif ds.attrs["orientation"].upper() == "UP":
+        p = (
+            ds.attrs["WATER_DEPTH"]
+            - ds.attrs["initial_instrument_height"]
+            - ds["Altitude_m"].median() / 2
+        )
+        math_sign = "+"
 
-    # seawater.svel(s,t,p); s = average salinity (psu) from exo, t = temp (c) from altimeter, p = approximate pressure (db) calculated from Altitude_m
-    soundspd = sw.svel(ds.attrs["average_salinity"], ds.Temperature_C, ds.Altitude_m)
+    soundspd = sw.svel(ds.attrs["average_salinity"], ds.Temperature_C, p)
     ds["brange"] = xr.DataArray(time_sec * soundspd).round(3)  # round brange to mm
 
-    histtext = "Adjusted sound velocity calculated using svel(s,t,p) from seawater toolbox (https://pythonhosted.org/seawater/eos80.html#seawater.eos80.svel). Svel inputs: Salinity (s) from average salinity of %s PSU, temperature (t) from ea400 internal temperature measurements, pressure (p) from raw ea400 altitude measurements. "
+    histtext = f"Adjusted sound velocity calculated using svel(s,t,p) from seawater toolbox (https://pythonhosted.org/seawater/eos80.html#seawater.eos80.svel). Svel inputs: Salinity (s) from average salinity of {ds.attrs['average_salinity']} PSU, temperature (t) from ea400 internal temperature measurements, pressure (p) from instrument depth {math_sign} median(altitude)/2. "
 
     ds = utils.insert_history(ds, histtext)
 
@@ -554,10 +572,10 @@ def calc_cor_brange(ds):
     return ds
 
 
-def calc_seabed_elev(ds):
+def calc_boundary_elev(ds):
     # find seabed elevation referenced to datum
     histtext = (
-        "add seabed_elevation using speed of sound corrected brange and ref datum"
+        "add boundary_elevation using speed of sound corrected brange and ref datum"
     )
     ds = utils.insert_history(ds, histtext)
 
@@ -570,14 +588,14 @@ def calc_seabed_elev(ds):
         )
 
         if ds.attrs["orientation"].upper() == "DOWN":
-            ds["seabed_elevation"] = xr.DataArray(
+            ds["boundary_elevation"] = xr.DataArray(
                 ds.attrs["NAVD88_ref"]
                 + (ds.brange * -1)
                 + ds.attrs["initial_instrument_height"]
             )
 
         elif ds.attrs["orientation"].upper() == "UP":
-            ds["seabed_elevation"] = xr.DataArray(
+            ds["boundary_elevation"] = xr.DataArray(
                 ds.attrs["NAVD88_ref"]
                 + ds.brange
                 + ds.attrs["initial_instrument_height"]
@@ -590,14 +608,14 @@ def calc_seabed_elev(ds):
         )
 
         if ds.attrs["orientation"].upper() == "DOWN":
-            ds["seabed_elevation"] = xr.DataArray(
+            ds["boundary_elevation"] = xr.DataArray(
                 ds.attrs["height_above_geopotential_datum"]
                 + (ds.brange * -1)
                 + ds.attrs["initial_instrument_height"]
             )
 
         elif ds.attrs["orientation"].upper() == "UP":
-            ds["seabed_elevation"] = xr.DataArray(
+            ds["boundary_elevation"] = xr.DataArray(
                 ds.attrs["height_above_geopotential_datum"]
                 + ds.brange
                 + ds.attrs["initial_instrument_height"]
@@ -611,46 +629,46 @@ def calc_seabed_elev(ds):
         )
 
         if ds.attrs["orientation"].upper() == "DOWN":
-            ds["seabed_elevation"] = xr.DataArray(
+            ds["boundary_elevation"] = xr.DataArray(
                 ds.attrs["WATER_DEPTH"]
                 + ds.brange
                 - ds.attrs["initial_instrument_height"]
             )
 
         if ds.attrs["orientation"].upper() == "UP":
-            ds["seabed_elevation"] = xr.DataArray(
+            ds["boundary_elevation"] = xr.DataArray(
                 ds.attrs["WATER_DEPTH"]
                 + (ds.brange * -1)
                 + ds.attrs["initial_instrument_height"]
             )
 
     if "height_above_geopotential_datum" in ds.attrs or "NAVD88_ref" in ds.attrs:
-        ds["seabed_elevation"].attrs.update(
+        ds["boundary_elevation"].attrs.update(
             {
                 "units": "m",
-                "long_name": "seafloor height referenced to %s datum"
-                % ds.attrs["geopotential_datum_name"],
+                "long_name": f"boundary height referenced to {ds.attrs['geopotential_datum_name']} datum",
+                # % ds.attrs["geopotential_datum_name"],
                 "standard_name": "height_above_geopotential_datum",
                 "positive": "up",
-                "note": "Corrected brange from adjusted sound speed and referenced to %s datum"
-                % ds.attrs["geopotential_datum_name"],
+                "note": f"Corrected brange from adjusted sound speed and referenced to {ds.attrs['geopotential_datum_name']} datum",
+                # % ds.attrs["geopotential_datum_name"],
             }
         )
 
     elif ds.attrs["geopotential_datum_name"] == "LMSL":
-        ds["seabed_elevation"].attrs.update(
+        ds["boundary_elevation"].attrs.update(
             {
                 "units": "m",
-                "long_name": "sea floor depth referenced to %s datum"
-                % ds.attrs["geopotential_datum_name"],
-                "standard_name": "sea_floor_depth_below_mean_sea_level",
+                "long_name": f"boundary depth referenced to {ds.attrs['geopotential_datum_name']} datum",
+                # % ds.attrs["geopotential_datum_name"],
+                "standard_name": "depth_below_geoid",
                 "positive": "down",
-                "note": "Corrected brange from adjusted sound speed and referenced to %s datum"
-                % ds.attrs["geopotential_datum_name"],
+                "note": f"Corrected brange from adjusted sound speed and referenced to {ds.attrs['geopotential_datum_name']} datum",
+                # % ds.attrs["geopotential_datum_name"],
             }
         )
 
-    ds["seabed_elevation"] = ds["seabed_elevation"].round(
+    ds["boundary_elevation"] = ds["boundary_elevation"].round(
         3
     )  # round seabed_elevation to mm
 
@@ -667,8 +685,25 @@ def calc_cor_bin_height(ds):
     # calculate travel time per bin
     time_sec = xr.DataArray((binheight) / ds.attrs["SoundSpeed_mps"])
     # calculate sound speed
-    spd = sw.svel(ds.attrs["average_salinity"], ds.Temperature_C, binheight)
-    ds["cor_bin_height"] = xr.DataArray(time_sec * spd).transpose(
+
+    p = (
+        ds.attrs["WATER_DEPTH"] - binheight
+    )  # use water depth and bin_height to estimate p
+
+    # spd = sw.svel(ds.attrs["average_salinity"], ds.Temperature_C, p)
+    # speed up finding sound speed by taking mean across sample dim then expand dims after
+    spd2 = sw.svel(
+        ds.attrs["average_salinity"],
+        ds["Temperature_C"].mean(dim="sample"),
+        p.mean(dim="sample"),
+    )
+    soundspd = (
+        xr.DataArray(spd2, dims=["bins", "time"])
+        .expand_dims({"sample": ds.sample})
+        .transpose("bins", "time", "sample")
+    )
+
+    ds["cor_bin_height"] = xr.DataArray(time_sec * soundspd).transpose(
         "time", "sample", "bins"
     )
 
@@ -705,14 +740,32 @@ def average_burst(ds):
     return ds
 
 
-def ds_swap_dims(ds):  # swap vert dim to z
+def ds_swap_dims(
+    ds,
+):  # swap vert dim to z or dim specified by vert_dim in config yaml file
     # need to preserve z attrs because swap_dims will remove them
-    attrsbak = ds["z"].attrs
-    for v in ds.data_vars:
-        if "bins" in ds[v].coords:
-            ds[v] = ds[v].swap_dims({"bins": "z"})
 
-    ds["z"].attrs = attrsbak
+    if "vert_dim" in ds.attrs:
+        vdim = ds.attrs["vert_dim"]
+        attrsbak = ds[vdim].attrs
+        for v in ds.data_vars:
+            if "bins" in ds[v].coords:
+                ds[v] = ds[v].swap_dims({"bins": vdim})
+
+        ds[vdim].attrs = attrsbak
+
+        # axis attr set for z in utils.create_z so need to del if other than z
+        if ds.attrs["vert_dim"] != "z":
+            ds[vdim].attrs["axis"] = "Z"
+            del ds["z"].attrs["axis"]
+
+    else:  # set vert dim to z if not specifed
+        attrsbak = ds["z"].attrs
+        for v in ds.data_vars:
+            if "bins" in ds[v].coords:
+                ds[v] = ds[v].swap_dims({"bins": "z"})
+
+        ds["z"].attrs = attrsbak
 
     return ds
 
