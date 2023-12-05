@@ -183,7 +183,15 @@ def add_min_max(ds, exclude_vars=None):
     if exclude_vars:
         exclude.extend(exclude_vars)
 
-    alloweddims = ["time", "sample", "depth", "z", "frequency"]
+    alloweddims = [
+        "time",
+        "sample",
+        "depth",
+        "z",
+        "frequency",
+        "bin_along",
+        "bin_across",
+    ]
 
     for k in ds.variables:
         if k not in exclude:
@@ -1028,7 +1036,7 @@ def create_z(ds):
 
     ds["depth"].attrs["positive"] = "down"
     ds["depth"].attrs["units"] = "m"
-    ds["depth"].attrs["standard_name"] = "depth"
+    ds["depth"].attrs["standard_name"] = "depth_below_geoid"
     ds["depth"].attrs["long_name"] = "depth below mean sea level"
 
     return ds

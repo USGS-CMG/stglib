@@ -167,3 +167,12 @@ Sequoia Scientific LISST
 ------------------------
 
 - ``operating_mode``: set to ``burst`` if instrument was deployed in burst mode
+
+Sontek IQ
+---------
+
+- All the _min, _max, _bad_ens, etc. options available to the EXO.
+- ``orientation``: can be ``UP`` or ``DOWN`` use this to identify orientation of profiler
+- ``positive_direction``: direction (degrees) of positive flow indicated by the X arrow on top of instrument (optional, recommended)
+- ``flood_direction``: direction (degrees) of flood current in channel, may be opposite of positive flow direction depending on field set up (optional, recommended)
+- ``channel_cross_section_note``: note specifying starting bank (left or right) for RTK transect across the channel and when the transect measurements were collected (optional, recommended)
