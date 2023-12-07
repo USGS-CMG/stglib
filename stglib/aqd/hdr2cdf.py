@@ -8,7 +8,6 @@ from . import aqdutils
 def hdr_to_cdf(metadata):
     """Load Aquadopp text files and output to netCDF format"""
 
-    # TODO: clock drift code
     # TODO: logmeta code
 
     basefile = metadata["basefile"]
@@ -45,7 +44,7 @@ def hdr_to_cdf(metadata):
     # Load amplitude and velocity data
     ds = load_amp_vel(ds, basefile)
 
-    # Compute time stamps
+    # Compute time stamps and clock drift if specified
     ds = utils.shift_time(ds, ds.attrs["AQDAverageInterval"] / 2)
 
     # configure file

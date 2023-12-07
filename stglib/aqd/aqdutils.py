@@ -490,10 +490,7 @@ def read_aqd_hdr(basefile):
 
     hdrFile = basefile + ".hdr"
 
-    # read in whole file first; shouldn't be too bad since it's small, to
-    # check and make sure it's not an HR file.
-    # FIXME: this will need to be removed when we start supporting HR
-    # check for HR by seeing if extended velocity range is in .hdr
+    # read in whole file first to see if it's HR or not.
     hr = False
     with open(hdrFile) as f:
         if "Extended velocity range" in f.read():
@@ -875,10 +872,6 @@ def update_attrs(ds, waves=False, hr=False):
         }
     )
 
-    # if "position_datum" in ds.attrs:
-    #    ds["latitude"].attrs["datum"] = ds.attrs["position_datum"]
-    #    ds["longitude"].attrs["datum"] = ds.attrs["position_datum"]
-
     ds["bindist"].attrs.update(
         {
             "units": "m",
@@ -886,20 +879,15 @@ def update_attrs(ds, waves=False, hr=False):
             "bin_size": ds.attrs["bin_size"],
             "center_first_bin": ds.attrs["center_first_bin"],
             "bin_count": ds.attrs["bin_count"],
-            # "transducer_offset_from_bottom": ds.attrs["transducer_offset_from_bottom"],
         }
     )
 
-    ds["Temperature"].attrs.update(
-        # {"units": "C", "long_name": "Temperature", "generic_name": "temp"}
-        {"units": "C", "long_name": "Temperature"}
-    )
+    ds["Temperature"].attrs.update({"units": "C", "long_name": "Temperature"})
 
     ds["Pressure"].attrs.update(
         {
             "units": "dbar",
             "long_name": "Uncorrected pressure",
-            # "generic_name": "press",
             "note": (
                 "Raw pressure from instrument, not corrected for changes "
                 "in atmospheric pressure"
@@ -915,18 +903,12 @@ def update_attrs(ds, waves=False, hr=False):
             ds["VEL" + str(n)].attrs.update(
                 {
                     "units": "m s-1",
-                    # "transducer_offset_from_bottom": ds.attrs[
-                    #    "transducer_offset_from_bottom"
-                    # ],
                 }
             )
         ds["AMP" + str(n)].attrs.update(
             {
                 "long_name": "Beam " + str(n) + " Echo Amplitude",
                 "units": "counts",
-                # "transducer_offset_from_bottom": ds.attrs[
-                #    "transducer_offset_from_bottom"
-                # ],
             }
         )
 
@@ -962,20 +944,8 @@ def update_attrs(ds, waves=False, hr=False):
         {
             "units": "degrees",
             "long_name": "Instrument Heading",
-            # "datum": "magnetic north",
         }
     )
-
-    # ds["depth"].attrs.update(
-    #     {
-    #         "units": "m",
-    #         "long_name": "mean water depth",
-    #         "bin_size": ds.attrs["bin_size"],
-    #         "center_first_bin": ds.attrs["center_first_bin"],
-    #         "bin_count": ds.attrs["bin_count"],
-    #         "transducer_offset_from_bottom": ds.attrs["transducer_offset_from_bottom"],
-    #     }
-    # )
 
     ds["TransMatrix"].attrs["long_name"] = "Transformation Matrix " "for this Aquadopp"
     if "burst" in ds:

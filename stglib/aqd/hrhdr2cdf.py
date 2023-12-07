@@ -9,7 +9,6 @@ from . import aqdutils
 def hdr_to_cdf(metadata):
     """Load Aquadopp text files and output to netCDF format"""
 
-    # TODO: clock drift code
     # TODO: logmeta code
 
     basefile = metadata["basefile"]
@@ -48,10 +47,8 @@ def hdr_to_cdf(metadata):
     # Load amplitude and velocity data
     ds = load_amp_vel_cor(ds, basefile)
 
-    # Compute time stamps
-    ds = utils.shift_time(
-        ds, 0
-    )  # make like burst instruments time stamp at start of burst
+    # Compute time stamps make like burst instruments time stamp at start of burst
+    ds = utils.shift_time(ds, 0)
 
     # configure file
     if "prefix" in ds.attrs:
@@ -60,9 +57,6 @@ def hdr_to_cdf(metadata):
         cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
     ds = aqdutils.update_attrs(ds, hr=True)
-
-    # need to drop datetime
-    # ds = ds.drop("datetime")
 
     ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
 

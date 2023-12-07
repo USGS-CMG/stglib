@@ -89,12 +89,6 @@ def csv_to_cdf(metadata):
         if "Wave" in dsburst:
             dsburst = dsburst.drop("Wave")
 
-        # print(xr.align(ds.time, dsburst.sel(sample=0).time))
-        # union = xr.merge([ds, dsburst.sel(sample=0)], join="inner", compat="override")
-        # print("UNION ***")
-        # print(union)
-        # print(ds.time)
-        # print(dsburst.sel(sample=0).time)
         ds = ds.sel(time=dsburst.sel(sample=0).time)
         # sample gets added with the .sel above
         ds = ds.drop("sample")

@@ -69,24 +69,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     VEL = aqdutils.make_bin_depth(VEL)
 
-    # Reshape and associate dimensions with lat/lon
-    # DJN no longer doing this 2022-03-31
-    # for var in [
-    #     "U",
-    #     "V",
-    #     "W",
-    #     "AGC",
-    #     "Pressure",
-    #     "Temperature",
-    #     "Heading",
-    #     "Pitch",
-    #     "Roll",
-    #     "bin_depth",
-    #     "Pressure_ac",
-    # ]:
-    #     if var in VEL:
-    #         VEL = utils.add_lat_lon(VEL, var)
-
     # swap vert dim to z or user specified in vert_dim
     VEL = aqdutils.ds_swap_dims(VEL)
 
@@ -139,11 +121,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     VEL = utils.add_history(VEL)
 
     VEL = utils.add_standard_names(VEL)
-
-    # for var in VEL.variables:
-    #    if (var not in VEL.coords) and ("time" not in var):
-    # cast as float32
-    # VEL = utils.set_var_dtype(VEL, var)
 
     if "prefix" in VEL.attrs:
         nc_filename = VEL.attrs["prefix"] + VEL.attrs["filename"] + "-a.nc"
