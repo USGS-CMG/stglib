@@ -92,8 +92,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = aqdutils.ds_rename(ds)  # for common variables
     ds = ds_drop(ds)
     ds = ds_rename_sig(ds)  # for signature vars not in aqds or vecs
-    # swap_dims from bindist to depth
-    ds = ds_swap_dims(ds)
+    # swap vert dim to z or user specified in vert_dim
+    ds = aqdutils.ds_swap_dims(ds)
 
     ds = utils.ds_add_lat_lon(ds)
 
@@ -308,18 +308,6 @@ def ds_rename_sig(ds, waves=False):
         if v in ds:
             ds = ds.drop_vars(v)
     """
-    return ds
-
-
-def ds_swap_dims(ds):
-    # need to preserve z attrs because swap_dims will remove them
-    attrsbak = ds["z"].attrs
-    for v in ds.data_vars:
-        if "bindist" in ds[v].coords:
-            ds[v] = ds[v].swap_dims({"bindist": "z"})
-
-    ds["z"].attrs = attrsbak
-
     return ds
 
 

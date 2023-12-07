@@ -1554,3 +1554,37 @@ def average_burst(ds):
         ds["burst"].encoding["dtype"] = "i4"
 
     return ds
+
+
+def ds_swap_dims(
+    ds,
+):  # swap vert dim to z or dim specified by vert_dim in config yaml file
+    # need to preserve z attrs because swap_dims will remove them
+
+    if "vert_dim" in ds.attrs:
+        vdim = ds.attrs["vert_dim"]
+        attrsbak = ds[vdim].attrs
+        for v in ds.data_vars:
+            if "bins" in ds[v].coords:
+                ds[v] = ds[v].swap_dims({"bins": vdim})
+            elif "bindist" in ds[v].coords:
+                ds[v] = ds[v].swap_dims({"bindist": vdim})
+
+        ds[vdim].attrs = attrsbak
+
+        # axis attr set for z in utils.create_z so need to del if other than z
+        if ds.attrs["vert_dim"] != "z":
+            ds[vdim].attrs["axis"] = "Z"
+            del ds["z"].attrs["axis"]
+
+    else:  # set vert dim to z if not specifed
+        attrsbak = ds["z"].attrs
+        for v in ds.data_vars:
+            if "bins" in ds[v].coords:
+                ds[v] = ds[v].swap_dims({"bins": "z"})
+            elif "bindist" in ds[v].coords:
+                ds[v] = ds[v].swap_dims({"bindist": "z"})
+
+        ds["z"].attrs = attrsbak
+
+    return ds

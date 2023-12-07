@@ -109,7 +109,7 @@ def cdf_to_nc(cdf_filename):
     ds = utils.create_z(ds)
 
     # swap bin dim with bin_height
-    ds = ds_swap_dims(ds)  # swap vert dim to z
+    ds = aqdutils.ds_swap_dims(ds)  # swap vert dim to z or user specified in vert_dim
 
     # rename variables
     ds = ds_rename_vars(ds)
@@ -736,36 +736,6 @@ def average_burst(ds):
 
     if "seabed_elevation" in ds:
         ds["seabed_elevation"] = ds["seabed_elevation"].round(3)
-
-    return ds
-
-
-def ds_swap_dims(
-    ds,
-):  # swap vert dim to z or dim specified by vert_dim in config yaml file
-    # need to preserve z attrs because swap_dims will remove them
-
-    if "vert_dim" in ds.attrs:
-        vdim = ds.attrs["vert_dim"]
-        attrsbak = ds[vdim].attrs
-        for v in ds.data_vars:
-            if "bins" in ds[v].coords:
-                ds[v] = ds[v].swap_dims({"bins": vdim})
-
-        ds[vdim].attrs = attrsbak
-
-        # axis attr set for z in utils.create_z so need to del if other than z
-        if ds.attrs["vert_dim"] != "z":
-            ds[vdim].attrs["axis"] = "Z"
-            del ds["z"].attrs["axis"]
-
-    else:  # set vert dim to z if not specifed
-        attrsbak = ds["z"].attrs
-        for v in ds.data_vars:
-            if "bins" in ds[v].coords:
-                ds[v] = ds[v].swap_dims({"bins": "z"})
-
-        ds["z"].attrs = attrsbak
 
     return ds
 

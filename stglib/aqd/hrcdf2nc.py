@@ -76,8 +76,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     VEL = aqdutils.make_bin_depth(VEL)
 
-    # swap_dims from bindist to depth
-    VEL = ds_swap_dims(VEL)
+    # swap vert dim to z or user specified in vert_dim
+    VEL = aqdutils.ds_swap_dims(VEL)
 
     # Rename DataArrays for EPIC compliance
     VEL = aqdutils.ds_rename(VEL)
@@ -177,18 +177,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     print("Done writing burst averaged netCDF file", nc_filename)
 
     return VEL
-
-
-def ds_swap_dims(ds):
-    # need to preserve z attrs because swap_dims will remove them
-    attrsbak = ds["z"].attrs
-    for v in ds.data_vars:
-        if "bindist" in ds[v].coords:
-            ds[v] = ds[v].swap_dims({"bindist": "z"})
-
-    ds["z"].attrs = attrsbak
-
-    return ds
 
 
 def ds_drop(ds):
