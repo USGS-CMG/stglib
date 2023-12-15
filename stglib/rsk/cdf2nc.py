@@ -12,10 +12,17 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     # Load raw .cdf data
     ds = open_raw_cdf(cdf_filename)
 
+    is_profile = (
+        (ds.attrs["sample_mode"] == "CONTINUOUS")
+        and ("featureType" in ds.attrs)
+        and (ds.attrs["featureType"] == "profile")
+    )
+
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
-    ds = utils.create_nominal_instrument_depth(ds)
+    if not is_profile:
+        ds = utils.create_nominal_instrument_depth(ds)
 
     if atmpres is not None:
         ds = utils.atmos_correct(ds, atmpres)
@@ -49,14 +56,16 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         ds = qaqc.trim_max_diff_pct(ds, "Turb")
         ds = qaqc.trim_bad_ens(ds, "Turb")
 
-    # add z coordinate dim
-    ds = utils.create_z(ds)
+    if not is_profile:
+        # add z coordinate dim
+        ds = utils.create_z(ds)
 
-    ds = utils.add_min_max(ds)
+        ds = utils.add_min_max(ds)
 
     ds = utils.add_start_stop_time(ds)
 
-    ds = utils.ds_add_lat_lon(ds)
+    if not is_profile:
+        ds = utils.ds_add_lat_lon(ds)
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
@@ -83,7 +92,10 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         else:
             nc_filename = ds.attrs["filename"] + "-a.nc"
 
-        ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
+        if is_profile:
+            ds.to_netcdf(nc_filename, format=format, unlimited_dims=["obs"])
+        else:
+            ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
         utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
         print("Done writing netCDF file", nc_filename)
 
