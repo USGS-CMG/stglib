@@ -5,7 +5,6 @@ LatLonDatum: 'NAD83'
 ClockError: 0 #sec
 #ClockDrift: 15 #sec < 60 s no need to apply correction
 orientation: 'Down'          # use this to identify orientation of profiler
-head_rotation: 'horizontal' #will probably be 'horizontal'
 initial_instrument_height: 1.56  # meters
 initial_instrument_height_note: 'From seabed'
 zeroed_pressure: 'Yes' # was pressure zeroed before deployment

@@ -3,7 +3,6 @@ filename: '10771Baqd'   # name of output file, -raw.cdf or .nc will be appended 
 LatLonDatum: 'NAD83'
 ClockError: 0 # sec, negative is slow
 orientation: 'UP'          # use this to identify orientation of profiler
-head_rotation: 'horizontal'
 initial_instrument_height: 0.15  # meters - estimated!!!
 initial_instrument_height_note: ''
 zeroed_pressure: 'Yes' # was pressure zeroed before deployment
