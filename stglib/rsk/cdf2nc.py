@@ -80,7 +80,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
                     "units": "degree_east",
                     "axis": "X",
                     "standard_name": "longitude",
-                },
+                }
             )
 
     else:
