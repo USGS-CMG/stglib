@@ -138,6 +138,19 @@ def csv_to_cdf(metadata):
         pr["rowSize"].attrs["sample_dimension"] = "obs"
         pr["rowSize"].encoding["dtype"] = "i4"
 
+        if "latitude" in ds.attrs and "longitude" in ds.attrs:
+            if len(ds.attrs["latitude"]) == len(rowsize) and len(
+                ds.attrs["longitude"]
+            ) == len(rowsize):
+                ds["latitude"] = xr.DataArray(ds.attrs["latitude"], dims="profile")
+                ds["longitude"] = xr.DataArray(ds.attrs["longitude"], dims="profile")
+                ds.attrs["latitude"].pop()
+                ds.attrs["longitude"].pop()
+            else:
+                raise ValueError(
+                    f"size of latitude ({len(ds.attrs['latitude'])}) and longitude ({len(ds.attrs['longitude'])}) does not match number of profiles ({len(rowsize)})"
+                )
+
         dscp = ds.copy(deep=True)
         dscp["obs"] = xr.DataArray(range(len(dscp["time"])), dims="obs")
         dscp["obs"].encoding["dtype"] = "i4"

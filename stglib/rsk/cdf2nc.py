@@ -64,7 +64,26 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
 
     ds = utils.add_start_stop_time(ds)
 
-    if not is_profile:
+    if is_profile:
+        if "latitude" in ds:
+            ds["latitude"].attrs.update(
+                {
+                    "units": "degree_north",
+                    "axis": "Y",
+                    "standard_name": "latitude",
+                }
+            )
+
+        if "longitude" in ds:
+            ds["longitude"].attrs.update(
+                {
+                    "units": "degree_east",
+                    "axis": "X",
+                    "standard_name": "longitude",
+                },
+            )
+
+    else:
         ds = utils.ds_add_lat_lon(ds)
 
     ds = utils.ds_coord_no_fillvalue(ds)
