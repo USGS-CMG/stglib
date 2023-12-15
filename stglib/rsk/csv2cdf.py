@@ -138,15 +138,15 @@ def csv_to_cdf(metadata):
         pr["rowSize"].attrs["sample_dimension"] = "obs"
         pr["rowSize"].encoding["dtype"] = "i4"
 
-        dscp = ds.copy(deep=True)
-        dscp["obs"] = xr.DataArray(range(len(dscp["time"])), dims="obs")
-        dscp["obs"].encoding["dtype"] = "i4"
+        # dscp = ds.copy(deep=True)
+        ds["obs"] = xr.DataArray(range(len(ds["time"])), dims="obs")
+        ds["obs"].encoding["dtype"] = "i4"
 
-        dscp = dscp.drop("time")
+        ds = ds.drop("time")
 
-        dscp = dscp.rename({"obs": "time"}).set_coords("time").rename({"time": "obs"})
+        ds = ds.rename({"obs": "time"}).set_coords("time").rename({"time": "obs"})
 
-        ds = xr.merge([dscp, pr])
+        ds = xr.merge([ds, pr])
 
     """
     # Set burst interval, [sec], USER DEFINED in instrument attr for continuous mode sampling
