@@ -108,6 +108,9 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         ):
             nc_filename = ds.attrs["filename"] + "cont-cal.nc"
 
+        elif is_profile:
+            nc_filename = ds.attrs["filename"] + "prof-cal.nc"
+
         else:
             nc_filename = ds.attrs["filename"] + "-a.nc"
 
