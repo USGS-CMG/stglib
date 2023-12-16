@@ -83,8 +83,6 @@ Aquadopp
 
 Aquadopp-specific options include:
 
-- ``head_rotation``: probably will be ``'horizontal'``
-- ``cutoff_ampl``: will probably always be ``0``
 - ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``'bin range'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
 - ``<VAR>_trim_single_bins``: trim data where only a single bin of data (after trimming via ``trim_method``) remains. Set this value to ``true`` to enable.
 - ``<VAR>_maxabs_diff_2d``: trim values in a 2D DataArray when the absolute value of the increase is greater than a specified amount
@@ -101,7 +99,6 @@ Signature-specific options include (see Aquadopp for others):
 
 - ``outdir``: output directory (make sure it exists) to write individual ``cdf`` files before being compiled into a single ``cdf`` file per data type
 - ``orientation``: can be ``UP`` or ``DOWN`` use this to identify orientation of profiler
-- ``head_rotation``: probably will be ``'horizontal'``
 
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml
