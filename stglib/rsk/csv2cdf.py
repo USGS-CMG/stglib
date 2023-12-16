@@ -142,10 +142,14 @@ def csv_to_cdf(metadata):
             if len(ds.attrs["latitude"]) == len(rowsize) and len(
                 ds.attrs["longitude"]
             ) == len(rowsize):
-                ds["latitude"] = xr.DataArray(ds.attrs["latitude"], dims="profile")
-                ds["longitude"] = xr.DataArray(ds.attrs["longitude"], dims="profile")
-                ds.attrs["latitude"].pop()
-                ds.attrs["longitude"].pop()
+                ds["latitude"] = xr.DataArray(
+                    np.array(ds.attrs["latitude"]).astype(float), dims="profile"
+                )
+                ds["longitude"] = xr.DataArray(
+                    np.array(ds.attrs["longitude"]).astype(float), dims="profile"
+                )
+                ds.attrs.pop("latitude")
+                ds.attrs.pop("longitude")
             else:
                 raise ValueError(
                     f"size of latitude ({len(ds.attrs['latitude'])}) and longitude ({len(ds.attrs['longitude'])}) does not match number of profiles ({len(rowsize)})"
