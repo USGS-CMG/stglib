@@ -6,13 +6,14 @@ from pathlib import Path
 import pytest
 
 scripts = Path(sysconfig.get_path("scripts"))
+cwd = "stglib/tests/data"
 
 
 def exo_raw(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runexocsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -25,7 +26,7 @@ def exo_nc(nc_file, atmpres=None):
     result = subprocess.run(
         runlist,
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -34,7 +35,7 @@ def aqd_raw(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runaqdhdr2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -47,7 +48,7 @@ def aqd_nc(nc_file, atmpres=None):
     result = subprocess.run(
         runlist,
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -56,7 +57,7 @@ def aqdhr_raw(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runaqdhrhdr2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -65,7 +66,7 @@ def aqdhr_nc(nc_file):
     result = subprocess.run(
         [scripts / "runaqdhrcdf2nc.py", nc_file],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -103,7 +104,7 @@ def aqdturnaround(basefile):
     result = subprocess.run(
         ["python", "../../../scripts/aqdturnaround.py", basefile],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Finished creating turnaround plots" in result.stdout.decode("utf8")
 
@@ -121,7 +122,7 @@ def wxt_raw(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runwxtcsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -130,7 +131,7 @@ def wxt_nc(nc_file):
     result = subprocess.run(
         [scripts / "runwxtcdf2nc.py", nc_file],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -144,7 +145,7 @@ def iq_raw(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runiqmat2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -153,7 +154,7 @@ def iq_nc(nc_file):
     result = subprocess.run(
         [scripts / "runiqcdf2nc.py", nc_file],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -167,7 +168,7 @@ def eco_raw(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runecocsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -176,7 +177,7 @@ def eco_nc(nc_file):
     result = subprocess.run(
         [scripts / "runecocdf2nc.py", nc_file],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -190,7 +191,7 @@ def rbr_raw(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runrskcsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -199,7 +200,7 @@ def rbr_nc(nc_file):
     result = subprocess.run(
         [scripts / "runrskcdf2nc.py", nc_file],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -208,7 +209,7 @@ def rbr_wvs(nc_file):
     result = subprocess.run(
         [scripts / "runrsknc2waves.py", nc_file],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -235,7 +236,7 @@ def eofe_raw(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runeofelog2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -244,7 +245,7 @@ def eofe_nc(nc_file):
     result = subprocess.run(
         [scripts / "runeofecdf2nc.py", nc_file],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -260,7 +261,7 @@ def sig_mat(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runsigmat2cdf.py", glob_att, config_yaml],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
@@ -269,7 +270,7 @@ def sig_nc(nc_file):
     result = subprocess.run(
         [scripts / "runsigcdf2nc.py", nc_file],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
@@ -288,7 +289,7 @@ def ensure_cf(script, glob_att, config_yaml):
     result = subprocess.run(
         [scripts / script, glob_att, config_yaml],
         capture_output=True,
-        cwd="stglib/tests/data",
+        cwd=cwd,
     )
     assert "ValueError: Non-CF Conventions are not supported." in result.stderr.decode(
         "utf8"
