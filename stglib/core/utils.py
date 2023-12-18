@@ -1004,35 +1004,27 @@ def create_z(ds):
     ds["z"].attrs["units"] = "m"
     ds["z"].attrs["standard_name"] = "height"
 
-    if "P_1ac" in ds:
-        if "bindist" in ds:
-            if ds.attrs["orientation"].upper() == "DOWN":
-                presvar = np.nanmean(ds["P_1ac"]) + ds["bindist"].values
-            elif ds.attrs["orientation"].upper() == "UP":
-                presvar = np.nanmean(ds["P_1ac"]) - ds["bindist"].values
-        else:
-            presvar = np.nanmean(ds["P_1ac"])
-    elif "P_1" in ds:
-        if "bindist" in ds:
-            if ds.attrs["orientation"].upper() == "DOWN":
-                presvar = np.nanmean(ds["P_1"]) + ds["bindist"].values
-            elif ds.attrs["orientation"].upper() == "UP":
-                presvar = np.nanmean(ds["P_1"]) - ds["bindist"].values
-        else:
-            presvar = np.nanmean(ds["P_1"])
+    # use global attributes WATER_DEPTH and initial_instrument_height to find depth dim
+    if "bindist" in ds:
+        if ds.attrs["orientation"].upper() == "DOWN":
+            depvar = (
+                ds.attrs["WATER_DEPTH"]
+                - ds.attrs["initial_instrument_height"]
+                + ds["bindist"].values
+            )
+        elif ds.attrs["orientation"].upper() == "UP":
+            depvar = (
+                ds.attrs["WATER_DEPTH"]
+                - ds.attrs["initial_instrument_height"]
+                - ds["bindist"].values
+            )
     else:
-        if "bindist" in ds:
-            if ds.attrs["orientation"].upper() == "DOWN":
-                presvar = ds.attrs["WATER_DEPTH"] + ds["bindist"].values
-            elif ds.attrs["orientation"].upper() == "UP":
-                presvar = ds.attrs["WATER_DEPTH"] - ds["bindist"].values
-        else:
-            presvar = ds.attrs["WATER_DEPTH"] - ds.attrs["initial_instrument_height"]
+        depvar = ds.attrs["WATER_DEPTH"] - ds.attrs["initial_instrument_height"]
 
     if "bindist" in ds:
-        ds["depth"] = xr.DataArray(presvar, dims="depth")
+        ds["depth"] = xr.DataArray(depvar, dims="depth")
     else:
-        ds["depth"] = xr.DataArray([presvar], dims="depth")
+        ds["depth"] = xr.DataArray([depvar], dims="depth")
 
     ds["depth"].attrs["positive"] = "down"
     ds["depth"].attrs["units"] = "m"
