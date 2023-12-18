@@ -160,6 +160,10 @@ def load_sen(basefile):
     sen["time"] = pd.to_datetime(
         sen[["Year", "Month", "Day", "Hour", "Minute", "Second"]]
     )
+
+    # convert AnalogInput from counts to volts
+    sen["AnalogInput"] = sen["AnalogInput"] * 5 / 65535
+
     sen = sen.set_index("time")
     return sen.to_xarray()
 
