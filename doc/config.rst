@@ -107,10 +107,10 @@ Signature-specific options include (see Aquadopp for others):
    :language: yaml
    :linenos:
 
-d|wave
-------
+RBR instruments
+---------------
 
-d|wave-specific options include:
+Options specific to RBR instruments exported from the Ruskin software include:
 
 - ``basefile``: the input filename without extension or data type. For example, if your exported text files are named ``055170_20190219_1547_burst.txt``, ``055170_20190219_1547_data.txt``, etc., ``basefile`` will be ``055170_20190219_1547``.
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
@@ -122,6 +122,11 @@ d|wave-specific options include:
    :language: yaml
    :linenos:
 
+When an RBR instrument is used in ``CONTINUOUS`` mode as a profiling instrument (e.g., twisting the endcap to start/stop a profile), include the following line in your configuration file:
+
+- ``featureType: 'profile'``: this `CF-compliant <https://cfconventions.org/cf-conventions/cf-conventions.html#profile-data>`_ ``featureType`` instructs stglib to process these data as a profile dataset.
+- ``latitude: [36.959, 41.533, 27.764]``, ``longitude: [-122.056, -70.651, -82.638]``: these values can each be specified as a YAML list of latitudes and longitudes, each element in the lists corresponding to a profile.
+27.764, -82.638
 EXO
 ---
 
