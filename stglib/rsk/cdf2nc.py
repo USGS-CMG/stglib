@@ -18,10 +18,12 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         and (ds.attrs["featureType"] == "profile")
     )
 
-    # Clip data to in/out water times or via good_ens
-    ds = utils.clip_ds(ds)
+    if is_profile:
+        ds = profile_clip_ds(ds)
+    else:
+        # Clip data to in/out water times or via good_ens
+        ds = utils.clip_ds(ds)
 
-    if not is_profile:
         ds = utils.create_nominal_instrument_depth(ds)
 
     if atmpres is not None and is_profile is False:
@@ -86,13 +88,13 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         if "burst" in ds or "sample" in ds:
             nc_filename = ds.attrs["filename"] + "b-cal.nc"
 
+        elif is_profile:
+            nc_filename = ds.attrs["filename"] + "prof-cal.nc"
+
         elif (ds.attrs["sample_mode"] == "CONTINUOUS") and (
             "burst" not in ds or "sample" not in ds
         ):
             nc_filename = ds.attrs["filename"] + "cont-cal.nc"
-
-        elif is_profile:
-            nc_filename = ds.attrs["filename"] + "prof-cal.nc"
 
         else:
             nc_filename = ds.attrs["filename"] + "-a.nc"
@@ -116,7 +118,7 @@ def open_raw_cdf(cdf_filename):
 
 def get_slice(ds, profile):
     rscs = ds.rowSize.cumsum()
-    # print(rscs)
+
     if profile == 0:
         rl = slice(0, rscs.sel(profile=profile) - 1)
     else:
@@ -126,7 +128,7 @@ def get_slice(ds, profile):
 
 def atmos_correct_profile(ds, atmpres):
     met = xr.load_dataset(atmpres)
-    print(met)
+
     # need to save attrs before the subtraction, otherwise they are lost
     attrs = ds["P_1"].attrs
     # apply the correction for each profile in turn. Is there a better way to do this?
@@ -282,5 +284,39 @@ def ds_add_attrs(ds):
 def dw_add_delta_t(ds):
     if "burst_interval" in ds.attrs:
         ds.attrs["DELTA_T"] = int(ds.attrs["burst_interval"])
+
+    return ds
+
+
+def profile_clip_ds(ds):
+    print(
+        f"first profile in full file: {ds['time'].min().values}, idx {np.argmin(ds['time'].values)}"
+    )
+    print(
+        f"last profile in full file: {ds['time'].max().values}, idx {np.argmax(ds['time'].values)}"
+    )
+    if "good_ens" in ds.attrs:
+        # we have good ensemble indices in the metadata
+
+        # so we can deal with multiple good_ens ranges, or just a single range
+        good_ens = ds.attrs["good_ens"]
+        goods = []
+
+        for n in range(0, len(good_ens), 2):
+            goods.append(np.arange(good_ens[n], good_ens[n + 1]))
+        goods = np.hstack(goods)
+
+        for profile in ds.profile.values:
+            if profile not in goods:
+                for v in ds.data_vars:
+                    if "obs" in ds[v].coords:
+                        ds[v].loc[dict(obs=get_slice(ds, profile))] = np.nan
+
+        histtext = "Data clipped using good_ens values of {}.".format(str(good_ens))
+
+        ds = utils.insert_history(ds, histtext)
+
+    else:
+        print("Did not clip data; no values specified in metadata")
 
     return ds
