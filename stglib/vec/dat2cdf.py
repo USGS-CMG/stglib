@@ -163,6 +163,8 @@ def load_sen(basefile):
 
     # convert AnalogInput from counts to volts
     sen["AnalogInput"] = sen["AnalogInput"] * 5 / 65535
+    notetxt = f"Converted from counts to volts as volts = counts * 5 / 65535. "
+    sen = utils.insert_note(sen, "AnalogInput", notetxt)
 
     sen = sen.set_index("time")
     return sen.to_xarray()
@@ -193,6 +195,15 @@ def load_dat(basefile):
     dat = pd.read_csv(
         f"{basefile}.dat", header=None, delim_whitespace=True, names=names
     )
+
+    # convert AnalogInput from counts to volts
+    dat["AnalogInput1"] = dat["AnalogInput1"] * 5 / 65535
+    notetxt = f"Converted from counts to volts as volts = counts * 5 / 65535."
+    dat = utils.insert_note(dat, "AnalogInput1", notetxt)
+    dat["AnalogInput2"] = dat["AnalogInput2"] * 5 / 65535
+    notetxt = f"Converted from counts to volts as volts = counts * 5 / 65535."
+    dat = utils.insert_note(dat, "AnalogInput2", notetxt)
+
     dat = dat.set_index(["Burst", "Ensemble"])
     return dat.to_xarray()
 
