@@ -1,3 +1,5 @@
+import warnings
+
 import yaml
 
 import stglib
@@ -12,6 +14,10 @@ def get_metadata(args):
         config = yaml.safe_load(f)
 
     for k in config:
+        if k in metadata:
+            warnings.warn(
+                f"attrs collision. Replacing '{k}={metadata[k]}' from global attributes file with '{k}={config[k]}' from YAML config file."
+            )
         metadata[k] = config[k]
 
     return metadata
