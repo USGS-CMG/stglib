@@ -163,7 +163,7 @@ def load_sen(basefile):
 
     # convert AnalogInput from counts to volts
     sen["AnalogInput"] = sen["AnalogInput"] * 5 / 65535
-    notetxt = f"Converted from counts to volts as volts = counts * 5 / 65535. "
+    notetxt = f"Converted from counts to volts as volts = counts * 5 / 65535."
     sen = utils.insert_note(sen, "AnalogInput", notetxt)
 
     sen = sen.set_index("time")
