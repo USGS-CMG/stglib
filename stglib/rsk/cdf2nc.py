@@ -24,8 +24,10 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     if not is_profile:
         ds = utils.create_nominal_instrument_depth(ds)
 
-    if atmpres is not None:
+    if atmpres is not None and is_profile is False:
         ds = utils.atmos_correct(ds, atmpres)
+    elif atmpres is not None and is_profile:
+        ds = atmos_correct_profile(ds, atmpres)
 
     # ds = utils.shift_time(ds,
     #                       ds.attrs['burst_interval'] *
@@ -64,26 +66,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
 
     ds = utils.add_start_stop_time(ds)
 
-    if is_profile:
-        if "latitude" in ds:
-            ds["latitude"].attrs.update(
-                {
-                    "units": "degree_north",
-                    "axis": "Y",
-                    "standard_name": "latitude",
-                }
-            )
-
-        if "longitude" in ds:
-            ds["longitude"].attrs.update(
-                {
-                    "units": "degree_east",
-                    "axis": "X",
-                    "standard_name": "longitude",
-                }
-            )
-
-    else:
+    if not is_profile:
         ds = utils.ds_add_lat_lon(ds)
 
     ds = utils.ds_coord_no_fillvalue(ds)
@@ -128,6 +111,42 @@ def open_raw_cdf(cdf_filename):
     ds = xr.load_dataset(cdf_filename)
     # remove units in case we change and we can use larger time steps
     ds.time.encoding.pop("units")
+    return ds
+
+
+def get_slice(ds, profile):
+    rscs = ds.rowSize.cumsum()
+    # print(rscs)
+    if profile == 0:
+        rl = slice(0, rscs.sel(profile=profile) - 1)
+    else:
+        rl = slice(rscs.sel(profile=profile - 1), rscs.sel(profile=profile) - 1)
+    return rl
+
+
+def atmos_correct_profile(ds, atmpres):
+    met = xr.load_dataset(atmpres)
+    print(met)
+    # need to save attrs before the subtraction, otherwise they are lost
+    attrs = ds["P_1"].attrs
+    # apply the correction for each profile in turn. Is there a better way to do this?
+    ds["P_1ac"] = xr.full_like(ds["P_1"], np.nan)
+    for profile in ds.profile:
+        ds["P_1ac"].loc[dict(obs=get_slice(ds, profile))] = (
+            ds["P_1"].loc[dict(obs=get_slice(ds, profile))]
+            - met["atmpres"].sel(time=ds["time"].sel(profile=profile)).values
+            - met["atmpres"].offset
+        )
+    print(
+        f"Atmospherically correcting using time-series from {atmpres} and offset of {met['atmpres'].offset}"
+    )
+    ds["P_1ac"].attrs = attrs
+
+    ds.attrs["atmospheric_pressure_correction_file"] = atmpres
+    ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
+        "offset"
+    ]
+
     return ds
 
 

@@ -145,9 +145,25 @@ def csv_to_cdf(metadata):
                 ds["latitude"] = xr.DataArray(
                     np.array(ds.attrs["latitude"]).astype(float), dims="profile"
                 )
+                ds["latitude"].attrs.update(
+                    {
+                        "units": "degree_north",
+                        "axis": "Y",
+                        "standard_name": "latitude",
+                    }
+                )
+
                 ds["longitude"] = xr.DataArray(
                     np.array(ds.attrs["longitude"]).astype(float), dims="profile"
                 )
+                ds["longitude"].attrs.update(
+                    {
+                        "units": "degree_east",
+                        "axis": "X",
+                        "standard_name": "longitude",
+                    }
+                )
+
                 ds.attrs.pop("latitude")
                 ds.attrs.pop("longitude")
             else:
