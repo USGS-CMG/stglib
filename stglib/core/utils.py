@@ -1007,10 +1007,11 @@ def create_z(ds):
     # find depth dimension values
     # check for sea floor depth standard names
     sfds = ["geoid", "geopotential_datum", "mean_sea_level", "reference_ellipsoid"]
+    depvar = None
     for k in sfds:
         name = "sea_floor_depth_below_" + k
-        longname = "depth below " + k.replace("_", " ")
         if name in ds.attrs:
+            longname = "depth below " + k.replace("_", " ")
             if "bindist" in ds:
                 if ds.attrs["orientation"].upper() == "DOWN":
                     depvar = (
@@ -1026,9 +1027,8 @@ def create_z(ds):
                     )
             else:
                 depvar = ds.attrs[name] - ds.attrs["initial_instrument_height"]
-            break
 
-    if "depvar" not in locals():
+    if depvar is None:
         if "D_3" in ds:
             if "bindist" in ds:
                 if ds.attrs["orientation"].upper() == "DOWN":
