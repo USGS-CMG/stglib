@@ -200,9 +200,13 @@ def rbr_raw(glob_att, config_yaml):
     assert "Finished writing data" in result.stdout.decode("utf8")
 
 
-def rbr_nc(nc_file):
+def rbr_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [scripts / "runrskcdf2nc.py", nc_file, "--atmpres", atmpres]
+    else:
+        runlist = [scripts / "runrskcdf2nc.py", nc_file]
     result = subprocess.run(
-        [scripts / "runrskcdf2nc.py", nc_file],
+        runlist,
         capture_output=True,
         cwd="stglib/tests/data",
     )
@@ -238,7 +242,7 @@ def test_rbr_profile():
     rbr_raw(
         "gatts_205598_20220104_1336_wtw21.txt", "config_205598_20220104_1336_wtw21.yaml"
     )
-    rbr_nc("WTW21CTD-raw.cdf")
+    rbr_nc("WTW21CTD-raw.cdf", "atmpres_205598_20220104_1336_wtw21.cdf")
 
 
 def eofe_raw(glob_att, config_yaml):
