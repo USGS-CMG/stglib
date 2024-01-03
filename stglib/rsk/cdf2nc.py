@@ -177,8 +177,7 @@ def do_split_profiles(ds):
         # This took forever to figure out but seems to work
         # https://stackoverflow.com/q/49853326
         dss = dss.reset_index("obs", drop=True).rename({"obs": "time"})
-        print(dss)
-        return
+
         for v in dss.data_vars:
             allnan = True
             if "time" in dss[v].coords:
