@@ -1,4 +1,7 @@
+import warnings
+
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from ..core import qaqc, utils
@@ -106,6 +109,10 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
         print("Done writing netCDF file", nc_filename)
 
+        split_profiles = True
+        if is_profile and split_profiles:
+            do_split_profiles(ds)
+
     return ds
 
 
@@ -152,6 +159,35 @@ def atmos_correct_profile(ds, atmpres):
     ]
 
     return ds
+
+
+def do_split_profiles(ds):
+    max_profile_len = len(str(ds.profile.max().values))
+    for profile in ds.profile.values:
+        dss = ds.isel(obs=get_slice(ds, profile), profile=profile).copy(deep=True)
+        timetmp = dss["time"].values
+        obslen = len(dss["obs"])
+        dss = dss.drop("time")
+        time_values = pd.date_range(
+            start=timetmp, freq=f"{1000*dss.attrs['sample_interval']}ms", periods=obslen
+        )
+        dss["time"] = xr.DataArray(time_values, dims="time")
+        dss = dss.reset_index("obs", drop=True).rename({"obs": "time"})
+
+        for v in dss.data_vars:
+            allnan = True
+            if "time" in dss[v].coords:
+                if not np.all(dss[v].isnull()):
+                    allnan = False
+
+        if allnan:
+            print(
+                f"All NaN values encountered for profile {profile}; not writing this cast to netCDF"
+            )
+        else:
+            nc_filename = f"{dss.attrs['filename']}prof{str(profile).zfill(max_profile_len)}-cal.nc"
+            # the old unlimited_dims of obs sticks around, so need to specify empty
+            dss.to_netcdf(nc_filename, unlimited_dims=[])
 
 
 def trim_min(ds, var):
