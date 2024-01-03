@@ -120,9 +120,11 @@ def get_slice(ds, profile):
     rscs = ds.rowSize.cumsum()
 
     if profile == 0:
-        rl = slice(0, rscs.sel(profile=profile) - 1)
+        rl = slice(0, rscs.sel(profile=profile).values - 1)
     else:
-        rl = slice(rscs.sel(profile=profile - 1), rscs.sel(profile=profile) - 1)
+        rl = slice(
+            rscs.sel(profile=profile - 1).values, rscs.sel(profile=profile).values - 1
+        )
     return rl
 
 
