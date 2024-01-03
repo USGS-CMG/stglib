@@ -165,23 +165,20 @@ def do_split_profiles(ds):
     max_profile_len = len(str(ds.profile.max().values))
     for profile in ds.profile.values:
         dss = ds.isel(obs=get_slice(ds, profile), profile=profile).copy(deep=True)
-        timetmp = dss["time"].values
         dss = dss.drop("time")
         dss["time"] = xr.DataArray(
-            pd.date_range(
-                start=timetmp,
-                freq=f"{1000*dss.attrs['sample_interval']}ms",
-                periods=len(dss["obs"]),
-            ),
+            dss["obstime"].values,
             dims="time",
         )
+        dss = dss.drop("obstime")
         dss["time"].attrs.update(
             {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
         )
         # This took forever to figure out but seems to work
         # https://stackoverflow.com/q/49853326
         dss = dss.reset_index("obs", drop=True).rename({"obs": "time"})
-
+        print(dss)
+        return
         for v in dss.data_vars:
             allnan = True
             if "time" in dss[v].coords:

@@ -175,7 +175,9 @@ def csv_to_cdf(metadata):
         ds["obs"] = xr.DataArray(range(len(ds["time"])), dims="obs")
         ds["obs"].encoding["dtype"] = "i4"
 
+        dstime = ds["time"].values
         ds = ds.drop("time")
+        ds["obstime"] = xr.DataArray(dstime, dims="obs")
 
         ds = ds.rename({"obs": "time"}).set_coords("time").rename({"time": "obs"})
 
