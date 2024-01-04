@@ -148,11 +148,12 @@ def atmos_correct_profile(ds, atmpres):
             - met["atmpres"].sel(time=ds["time"].sel(profile=profile)).values
             - met["atmpres"].offset
         )
-    print(
-        f"Atmospherically correcting using time-series from {atmpres} and offset of {met['atmpres'].offset}"
-    )
     ds["P_1ac"].attrs = attrs
 
+    ds = utils.insert_history(
+        ds,
+        f"Atmospherically correcting using time-series from {atmpres} and offset of {met['atmpres'].offset}",
+    )
     ds.attrs["atmospheric_pressure_correction_file"] = atmpres
     ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
         "offset"
@@ -189,9 +190,10 @@ def do_split_profiles(ds):
                 f"All NaN values encountered for profile {profile}; not writing this cast to netCDF"
             )
         else:
-            nc_filename = f"{dss.attrs['filename']}prof{str(profile).zfill(max_profile_len)}-cal.nc"
+            nc_filename = f"{dss.attrs['filename']}prof_{str(profile).zfill(max_profile_len)}-cal.nc"
             # the old unlimited_dims of obs sticks around, so need to specify empty
             dss.to_netcdf(nc_filename, unlimited_dims=[])
+            print("Done writing netCDF file", nc_filename)
 
 
 def trim_min(ds, var):
