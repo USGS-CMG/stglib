@@ -433,7 +433,10 @@ def trim_warmup(ds, var):
 def drop_vars(ds):
     """Remove variables in the final Dataset as specified by the user"""
     if "drop_vars" in ds.attrs:
-        for k in ds.attrs["drop_vars"]:
+        drpvars = ds.attrs["drop_vars"]
+        if not isinstance(drpvars, list):  # make sure it is a list before looping
+            drpvars = [drpvars]
+        for k in drpvars:
             if k in ds:
                 ds = ds.drop_vars(k)
 

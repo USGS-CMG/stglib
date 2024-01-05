@@ -38,11 +38,12 @@ def read_hobo(
 
     hobo["time"] = pd.to_datetime(hobo["DateTime"])
 
-    if "AbsPres_kPa" in hobo:
+    # Leave all vars in units from csv file for now
+    """if "AbsPres_kPa" in hobo:
         hobo["AbsPres_dbar"] = hobo["AbsPres_kPa"] / 10
     elif "abrpres_kPa" in hobo:  # leave in for backward compatibility (for now)
         hobo["abspres_dbar"] = hobo["abspres_kPa"] / 10
-
+    """
     hobo.set_index("time", inplace=True)
 
     return xr.Dataset(hobo)
@@ -55,17 +56,19 @@ def csv_to_cdf(metadata):
 
     basefile = metadata["basefile"]
 
-    names = get_col_names(basefile + ".csv", metadata)
+    # names = get_col_names(basefile + ".csv", metadata)
 
     kwargs = {"skiprows": metadata["skiprows"], "skipfooter": metadata["skipfooter"]}
-    # if "names" in metadata:
-    #    kwargs["names"] = metadata["names"]
-    kwargs["names"] = names
+    if "names" in metadata:
+        kwargs["names"] = metadata["names"]
+    else:
+        kwargs["names"] = get_col_names(basefile + ".csv", metadata)
+
     try:
         ds = read_hobo(basefile + ".csv", **kwargs)
     except UnicodeDecodeError:
         # try reading as Mac OS Western for old versions of Mac Excel
-        ds = read_hobo(basefile + ".csv", encoding="mac_roman", **kwargs)
+        ds = read_hobo(basefile + ".csv", encoding="mac-roman", **kwargs)
 
     metadata.pop("skiprows")
     metadata.pop("skipfooter")
@@ -96,7 +99,7 @@ def csv_to_cdf(metadata):
 
 
 def drop_vars(ds):
-    todrop = ["#", "DateTime", "AbsPres_kPa"]
+    todrop = ["#", "DateTime"]
     return ds.drop([x for x in todrop if x in ds])
 
 
@@ -116,13 +119,39 @@ def ds_rename_vars(ds):
         ds["AbsPresBarom_kPa"].values = (
             ds["AbsPresBarom_kPa"].values * 10
         )  # convert from kPa to millibars
+        ds = ds.rename({"AbsPresBarom_kPa": "AbsPresBarom_mbar"})
+
+    if "abspres_kPa" in ds:
+        ds = ds.rename({"abspres_kPa": "AbsPres_kPa"})
+
+    if "temp_C" in ds:
+        ds = ds.rename({"temp_C": "Temp_C"})
+
+    if "AbsPres_kPa" in ds:
+        ds["AbsPres_kPa"].values = (
+            ds["AbsPres_kPa"].values / 10
+        )  # convert from kPa to decibars
+        ds = ds.rename({"AbsPres_kPa": "AbsPres_dbar"})
+
+    # check to see if logger was deployed in air
+    if "deployed_in_air" in ds.attrs:
+        if (
+            ds.attrs["deployed_in_air"].lower() == "yes"
+            or ds.attrs["deployed_in_air"].lower() == "y"
+        ):
+            if "AbsPres_dbar" in ds:
+                ds["AbsPres_dbar"].values = (
+                    ds["AbsPres_dbar"].values * 100
+                )  # convert from dbar to millibars
+                ds = ds.rename({"AbsPres_dbar": "AbsPresBarom_mbar"})
+            if "Temp_C" in ds:
+                ds = ds.rename({"Temp_C": "Atemp_C"})
 
     # set up dict of instrument -> EPIC variable names
     varnames = {
         "AbsPres_dbar": "P_1",
-        "Temp_°C": "T_28",
         "Temp_C": "T_28",
-        "AbsPresBarom_kPa": "BPR_915",
+        "AbsPresBarom_mbar": "BPR_915",
         "SensorDepth_meters": "D_3",
         "Conductance_uSpercm": "C_51",
         "SpecificConductance_uSpercm": "SpC_48",
@@ -130,6 +159,7 @@ def ds_rename_vars(ds):
         "DOPercentSat_percent": "OST_62",
         "DOconc_mgperL": "DO",
         "DOAdjConc_mgperL": "DO_Adj",
+        "Atemp_C": "T_21",
     }
 
     # check to make sure they exist before trying to rename
@@ -153,20 +183,21 @@ def ds_add_attrs(ds):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
-    # Legacy code leave for now
+    # Legacy code leave for now -part for conductivity
+    """ this part is now obsolete
     if "abspres_dbar" in ds:
         ds = ds.rename({"abspres_dbar": "BPR_915"})
-
         # convert decibar to millibar
         ds["BPR_915"] = ds["BPR_915"] * 100
-
+        
         ds["BPR_915"].attrs.update(
             {"units": "mbar", "long_name": "Barometric pressure", "epic_code": 915}
         )
-
+        
+       
     if "temp_C" in ds:
         ds = ds.rename({"temp_C": "T_28"})
-        """ reove this part since handled below in new code
+        
         ds["T_28"].attrs.update(
             {
                 "units": "C",
@@ -175,7 +206,7 @@ def ds_add_attrs(ds):
                 "standard_name": "sea_water_temperature",
             }
         )
-        """
+    """
 
     if "condlo_uScm" in ds:
         ds = ds.rename({"condlo_uScm": "SpC_48_lo"})
@@ -289,11 +320,15 @@ def ds_add_attrs(ds):
 
     if "DO_Adj" in ds:
         ds["DO"].values = ds["DO_Adj"].values
-        ds["DO"].attrs.update(
-            {
-                "note": "Using adjusted DO concentration",
-            }
-        )
+        if "DO_note" in ds.attrs:
+            # ds = utils.insert_note(ds, "DO", ds.attrs["DO_note"] + " ")
+            ds["DO"].attrs.update({"note": ds.attrs["DO_note"]})
+        else:
+            ds["DO"].attrs.update(
+                {
+                    "note": "Using adjusted DO concentration",
+                }
+            )
 
         ds = ds.drop_vars("DO_Adj")
 
@@ -316,7 +351,8 @@ def ds_add_attrs(ds):
             }
         )
         if "P_1ac_note" in ds.attrs:
-            ds = utils.insert_note(ds, "P_1ac", ds.attrs["P_1ac_note"] + " ")
+            # ds = utils.insert_note(ds, "P_1ac", ds.attrs["P_1ac_note"] + " ")
+            ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac"]})
 
     if "D_3" in ds:
         ds["D_3"].attrs.update(
@@ -327,10 +363,23 @@ def ds_add_attrs(ds):
                 "positive": f"{ds.depth.attrs['positive']}",
             }
         )
+        if "D_3_note" in ds.attrs:
+            # ds = utils.insert_note(ds, "D_3", ds.attrs["D_3_note"] + " ")
+            ds["D_3"].attrs.update({"note": ds.attrs["D_3_note"]})
 
     if "BPR_915" in ds:
         ds["BPR_915"].attrs.update(
             {"units": "mbar", "long_name": "Barometric pressure", "epic_code": 915}
+        )
+
+    if "T_21" in ds:
+        ds["T_21"].attrs.update(
+            {
+                "units": "degree_C",
+                "long_name": "Air Temperature",
+                "epic_code": 21,
+                "standard_name": "air_temperature",
+            }
         )
 
     def add_attributes(var, dsattrs):
@@ -359,6 +408,14 @@ def get_serial_number(filnam):
         return sn
 
 
+def strip_non_ascii(
+    string,
+):  # from https://stackoverflow.com/questions/2743070/remove-non-ascii-characters-from-a-string-using-python-django
+    """Returns the string without non ASCII characters"""
+    stripped = (c for c in string if 0 < ord(c) < 127)
+    return "".join(stripped)
+
+
 def get_col_names(filnam, metadata):
     """get column names and column units from instrument input data file"""
 
@@ -381,6 +438,7 @@ def get_col_names(filnam, metadata):
             colunits.append(spl[1].strip())
         else:
             colunits.append("")
+
     if "ncols" in metadata:
         colnames = colnames[: metadata["ncols"]]
         colunits = colunits[: metadata["ncols"]]
@@ -393,8 +451,11 @@ def get_col_names(filnam, metadata):
 
     # try removing special characters and those not allowed in var or dim names from units
     for k in dcols:
+        # first step try replacing values
         if "µ" in dcols[k]:
             dcols[k] = dcols[k].replace("µ", "u")
+        # if "├é" in dcols[k]:
+        #    dcols[k] = dcols[k].replace("├é", "")
         if "°" in dcols[k]:
             dcols[k] = dcols[k].replace("°", "")
         if "%" in dcols[k]:
@@ -406,8 +467,9 @@ def get_col_names(filnam, metadata):
                 dcols[k] = "F"
         if "/" in dcols[k]:
             dcols[k] = dcols[k].replace("/", "per")
-        if "uSpercm" in dcols[k]:
-            dcols[k] = "uSpercm"
+
+        # then strip non-ascii characters
+        dcols[k] = strip_non_ascii(dcols[k])
 
     names = []
     for k in dcols:
@@ -454,6 +516,10 @@ def cdf_to_nc(cdf_filename):
     # after check for masking vars by other vars
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
+
+    # check for drop_vars is config yaml
+    if "drop_vars" in ds.attrs:
+        ds = qaqc.drop_vars(ds)
 
     ds = utils.create_z(ds)  # added 7/31/2023
 
