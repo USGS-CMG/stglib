@@ -8,7 +8,7 @@ from .core import qaqc, utils
 
 
 def read_hobo(
-    filnam, skiprows=1, skipfooter=0, names=["#", "datetime", "abspres_kPa", "temp_C"]
+    filnam, skiprows=1, skipfooter=0, names=["#", "DateTime", "AbsPres_kPa", "Temp_C"]
 ):
     """Read data from an Onset HOBO pressure sensor .csv file into an xarray
     Dataset.
@@ -38,12 +38,6 @@ def read_hobo(
 
     hobo["time"] = pd.to_datetime(hobo["DateTime"])
 
-    # Leave all vars in units from csv file for now
-    """if "AbsPres_kPa" in hobo:
-        hobo["AbsPres_dbar"] = hobo["AbsPres_kPa"] / 10
-    elif "abrpres_kPa" in hobo:  # leave in for backward compatibility (for now)
-        hobo["abspres_dbar"] = hobo["abspres_kPa"] / 10
-    """
     hobo.set_index("time", inplace=True)
 
     return xr.Dataset(hobo)
@@ -121,12 +115,6 @@ def ds_rename_vars(ds):
         )  # convert from kPa to millibars
         ds = ds.rename({"AbsPresBarom_kPa": "AbsPresBarom_mbar"})
 
-    if "abspres_kPa" in ds:
-        ds = ds.rename({"abspres_kPa": "AbsPres_kPa"})
-
-    if "temp_C" in ds:
-        ds = ds.rename({"temp_C": "Temp_C"})
-
     if "AbsPres_kPa" in ds:
         ds["AbsPres_kPa"].values = (
             ds["AbsPres_kPa"].values / 10
@@ -183,31 +171,7 @@ def ds_add_attrs(ds):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
-    # Legacy code leave for now -part for conductivity
-    """ this part is now obsolete
-    if "abspres_dbar" in ds:
-        ds = ds.rename({"abspres_dbar": "BPR_915"})
-        # convert decibar to millibar
-        ds["BPR_915"] = ds["BPR_915"] * 100
-        
-        ds["BPR_915"].attrs.update(
-            {"units": "mbar", "long_name": "Barometric pressure", "epic_code": 915}
-        )
-        
-       
-    if "temp_C" in ds:
-        ds = ds.rename({"temp_C": "T_28"})
-        
-        ds["T_28"].attrs.update(
-            {
-                "units": "C",
-                "long_name": "Temperature",
-                "epic_code": 28,
-                "standard_name": "sea_water_temperature",
-            }
-        )
-    """
-
+    # Some legacy code leave for now -part for conductivity
     if "condlo_uScm" in ds:
         ds = ds.rename({"condlo_uScm": "SpC_48_lo"})
 
