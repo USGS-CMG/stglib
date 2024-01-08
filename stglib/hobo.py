@@ -50,8 +50,6 @@ def csv_to_cdf(metadata):
 
     basefile = metadata["basefile"]
 
-    # names = get_col_names(basefile + ".csv", metadata)
-
     kwargs = {"skiprows": metadata["skiprows"], "skipfooter": metadata["skipfooter"]}
     if "names" in metadata:
         kwargs["names"] = metadata["names"]
@@ -121,19 +119,15 @@ def ds_rename_vars(ds):
         )  # convert from kPa to decibars
         ds = ds.rename({"AbsPres_kPa": "AbsPres_dbar"})
 
-    # check to see if logger was deployed in air
-    if "deployed_in_air" in ds.attrs:
-        if (
-            ds.attrs["deployed_in_air"].lower() == "yes"
-            or ds.attrs["deployed_in_air"].lower() == "y"
-        ):
-            if "AbsPres_dbar" in ds:
-                ds["AbsPres_dbar"].values = (
-                    ds["AbsPres_dbar"].values * 100
-                )  # convert from dbar to millibars
-                ds = ds.rename({"AbsPres_dbar": "AbsPresBarom_mbar"})
-            if "Temp_C" in ds:
-                ds = ds.rename({"Temp_C": "Atemp_C"})
+    # check to see if logger was deployed as barometer
+    if ds.attrs["instrument_type"] == "hwlb":
+        if "AbsPres_dbar" in ds:
+            ds["AbsPres_dbar"].values = (
+                ds["AbsPres_dbar"].values * 100
+            )  # convert from dbar to millibars
+            ds = ds.rename({"AbsPres_dbar": "AbsPresBarom_mbar"})
+        if "Temp_C" in ds:
+            ds = ds.rename({"Temp_C": "Atemp_C"})
 
     # set up dict of instrument -> EPIC variable names
     varnames = {
@@ -346,19 +340,6 @@ def ds_add_attrs(ds):
             }
         )
 
-    def add_attributes(var, dsattrs):
-        var.attrs.update(
-            {
-                "initial_instrument_height": dsattrs["initial_instrument_height"],
-                # 'nominal_instrument_depth': dsattrs['nominal_instrument_depth'],
-                "height_depth_units": "m",
-            }
-        )
-
-    # for var in ds.variables:
-    #    if (var not in ds.coords) and ("time" not in var):
-    #        add_attributes(ds[var], ds.attrs)
-
     return ds
 
 
@@ -487,8 +468,6 @@ def cdf_to_nc(cdf_filename):
 
     ds = utils.create_z(ds)  # added 7/31/2023
 
-    # ds = utils.add_standard_names(ds)
-
     ds = ds_add_attrs(ds)
 
     # assign min/max:
@@ -509,17 +488,6 @@ def cdf_to_nc(cdf_filename):
             ds[vdim].attrs["axis"] = "Z"
             del ds["z"].attrs["axis"]
 
-    # ds = utils.no_p_create_depth(ds)
-
-    """
-    # add lat/lon coordinates to each variable
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            # ds = utils.add_lat_lon(ds, var)
-            ds = utils.no_p_add_depth(ds, var)
-            # cast as float32
-            ds = utils.set_var_dtype(ds, var)
-    """
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
     nc_filename = ds.attrs["filename"] + "-a.nc"

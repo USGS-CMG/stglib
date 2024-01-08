@@ -307,7 +307,7 @@ def test_hobo():
     hobo_raw("glob_att1168_hobowl.txt", "1168hwl_config.yaml")
     hobo_nc("11681hwl-raw.cdf")
     hobo_raw("glob_att1171_hobowl_baro.txt", "1171hwl_baro_config.yaml")
-    hobo_nc("11711hwl-raw.cdf")
+    hobo_nc("11711hwlb-raw.cdf")
 
 
 def ensure_cf(script, glob_att, config_yaml):

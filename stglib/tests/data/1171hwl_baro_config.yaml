@@ -1,8 +1,8 @@
 basefile: 'Barometer_w_RainGauge'
-filename: '11711hwl'   # name of output file, -raw.cdf or .nc will be appended to this
+filename: '11711hwlb'   # name of output file, -raw.cdf or .nc will be appended to this
 LatLonDatum: 'NAD83'
 ClockError: -18000 #sec 
-instrument_type: 'hwl'
+instrument_type: 'hwlb'
 initial_instrument_height: 15  # meters, seabed to transducer
 initial_instrument_height_note: 'From ground level'
 skiprows: 2
@@ -11,4 +11,3 @@ skipfooter: 0
 ncols: 4
 vert_dim: 'depth'
 #good_dates: [2018-03-26 05:00, 2018-08-01 18:05]
-deployed_in_air: 'yes'
