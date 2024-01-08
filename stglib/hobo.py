@@ -443,9 +443,6 @@ def cdf_to_nc(cdf_filename):
     # rename variables
     ds = ds_rename_vars(ds)
 
-    # ds = utils.create_water_depth(ds)
-    # ds = utils.create_nominal_instrument_depth(ds)
-
     # should function this
     for var in ds.data_vars:
         ds = qaqc.trim_min(ds, var)
