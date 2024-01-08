@@ -432,9 +432,13 @@ def trim_warmup(ds, var):
 
 def drop_vars(ds):
     """Remove variables in the final Dataset as specified by the user"""
+    dropped = []
     if "drop_vars" in ds.attrs:
         for k in ds.attrs["drop_vars"]:
             if k in ds:
                 ds = ds.drop_vars(k)
+                dropped.append(k)
+
+        print(f"Dropped {dropped} from dataset at user request")
 
     return ds
