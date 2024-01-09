@@ -109,7 +109,14 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
         print("Done writing netCDF file", nc_filename)
 
-        split_profiles = True
+        if (
+            "split_profiles" in ds.attrs
+            and ds.attrs["split_profiles"].lower() == "true"
+        ):
+            split_profiles = True
+        else:
+            split_profiles = False
+
         if is_profile and split_profiles:
             do_split_profiles(ds)
 
@@ -166,24 +173,29 @@ def do_split_profiles(ds):
     max_profile_len = len(str(ds.profile.max().values))
     for profile in ds.profile.values:
         dss = ds.isel(obs=get_slice(ds, profile), profile=profile).copy(deep=True)
-        dss = dss.drop("time")
-        dss["time"] = xr.DataArray(
-            dss["obstime"].values,
-            dims="time",
-        )
-        dss = dss.drop("obstime")
-        dss["time"].attrs.update(
-            {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-        )
-        # This took forever to figure out but seems to work
-        # https://stackoverflow.com/q/49853326
-        dss = dss.reset_index("obs", drop=True).rename({"obs": "time"})
+
+        dss = dss.expand_dims("profile")  # for CF compliance
+
+        # dss = dss.drop("time")
+        # dss["time"] = xr.DataArray(
+        #     dss["obstime"].values,
+        #     dims="time",
+        # )
+        # dss = dss.drop("obstime")
+        # dss["time"].attrs.update(
+        #     {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
+        # )
+        # # This took forever to figure out but seems to work
+        # # https://stackoverflow.com/q/49853326
+        # dss = dss.reset_index("obs", drop=True).rename({"obs": "time"})
 
         for v in dss.data_vars:
             allnan = True
-            if "time" in dss[v].coords:
+            if "obs" in dss[v].coords:
                 if not np.all(dss[v].isnull()):
                     allnan = False
+
+        ds = utils.insert_history(ds, f"Processing to individual profile #{profile}")
 
         if allnan:
             print(
@@ -264,7 +276,8 @@ def ds_add_attrs(ds):
         ds["time"].encoding["dtype"] = "i4"
 
     if "sample" in ds:
-        utils.check_fits_in_int32(ds, "sample")
+        if not utils.check_fits_in_int32(ds, "sample"):
+            raise ValueError()
         ds["sample"].encoding["dtype"] = "i4"
         ds["sample"].attrs["long_name"] = "sample number"
         ds["sample"].attrs["units"] = "1"
@@ -285,7 +298,8 @@ def ds_add_attrs(ds):
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
     if "burst" in ds:
-        utils.check_fits_in_int32(ds, "burst")
+        if not utils.check_fits_in_int32(ds, "burst"):
+            raise ValueError()
         ds["burst"].encoding["dtype"] = "i4"
         ds["burst"].attrs["units"] = "1"
         ds["burst"].attrs["long_name"] = "Burst number"

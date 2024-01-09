@@ -1283,6 +1283,9 @@ def check_fits_in_int32(ds, var):
         warnings.warn(
             f"32-bit integer overflow on {var}; setting encoding to i4 will fail"
         )
+        return False
+    else:
+        return True
 
 
 def check_time_fits_in_int32(ds, var):

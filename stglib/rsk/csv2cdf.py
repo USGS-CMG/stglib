@@ -173,7 +173,8 @@ def csv_to_cdf(metadata):
 
         # dscp = ds.copy(deep=True)
         ds["obs"] = xr.DataArray(range(len(ds["time"])), dims="obs")
-        ds["obs"].encoding["dtype"] = "i4"
+        if utils.check_fits_in_int32(ds, "obs"):
+            ds["obs"].encoding["dtype"] = "i4"
 
         dstime = ds["time"].values
         ds = ds.drop("time")
