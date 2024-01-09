@@ -178,7 +178,8 @@ def csv_to_cdf(metadata):
         dstime = ds["time"].values
         ds = ds.drop("time")
         ds["obstime"] = xr.DataArray(dstime, dims="obs")
-        ds["obstime"].encoding["dtype"] = "i4"
+        if utils.check_time_fits_in_int32(ds, "obstime"):
+            ds["obstime"].encoding["dtype"] = "i4"
 
         ds = ds.rename({"obs": "time"}).set_coords("time").rename({"time": "obs"})
 
