@@ -268,11 +268,6 @@ def ds_add_attrs(ds):
         if utils.check_time_fits_in_int32(ds, "time"):
             ds["time"].encoding["dtype"] = "i4"
 
-    if "obstime" in ds:
-        ds["obstime"].attrs.update(
-            {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-        )
-
     if "sample" in ds:
         if not utils.check_fits_in_int32(ds, "sample"):
             raise ValueError()
