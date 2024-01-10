@@ -173,3 +173,12 @@ Sontek IQ
 - ``positive_direction``: direction (degrees) of positive flow indicated by the X arrow on top of instrument (optional, recommended)
 - ``flood_direction``: direction (degrees) of flood current in channel, may be opposite of positive flow direction depending on field set up (optional, recommended)
 - ``channel_cross_section_note``: note specifying starting bank (left or right) for RTK transect across the channel and when the transect measurements were collected (optional, recommended)
+
+Onset Hobo
+---------
+
+- All the _min, _max, _bad_ens, etc. options available to the EXO.
+- ``instrument_type``: can be ``hwl`` (water level), ``hwlb`` (water level as barometer), ``hdo`` (dissolved oxygen) or ``hcnd``(conductivity) use these based on parameter measured by hobo logger
+- ``skipfooter``: number of lines to skip in the CSV file at the end of the file
+- ``ncols``: number of columns of data to read, starting at first
+- ``names``: option for user specified column names (only recommended when code will read names using automated/default method)

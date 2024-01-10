@@ -285,6 +285,31 @@ def test_sig():
     sig_nc("11262sig_echo1-raw.cdf")
 
 
+def hobo_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runhobocsv2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def hobo_nc(nc_file):
+    result = subprocess.run(
+        [scripts / "runhobocdf2nc.py", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_hobo():
+    hobo_raw("glob_att1168_hobowl.txt", "1168hwl_config.yaml")
+    hobo_nc("11681hwl-raw.cdf")
+    hobo_raw("glob_att1171_hobowl_baro.txt", "1171hwl_baro_config.yaml")
+    hobo_nc("11711hwlb-raw.cdf")
+
+
 def ensure_cf(script, glob_att, config_yaml):
     result = subprocess.run(
         [scripts / script, glob_att, config_yaml],
