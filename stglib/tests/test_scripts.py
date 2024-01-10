@@ -287,7 +287,7 @@ def test_sig():
 
 def hobo_raw(glob_att, config_yaml):
     result = subprocess.run(
-        [scripts / "runhwlbcsv2cdf.py", glob_att, config_yaml],
+        [scripts / "runhobocsv2cdf.py", glob_att, config_yaml],
         capture_output=True,
         cwd=cwd,
     )
@@ -296,7 +296,7 @@ def hobo_raw(glob_att, config_yaml):
 
 def hobo_nc(nc_file):
     result = subprocess.run(
-        [scripts / "runhwlbcdf2nc.py", nc_file],
+        [scripts / "runhobocdf2nc.py", nc_file],
         capture_output=True,
         cwd=cwd,
     )

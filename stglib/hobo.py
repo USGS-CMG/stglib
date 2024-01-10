@@ -1,4 +1,5 @@
 import csv
+import string
 
 import numpy as np
 import pandas as pd
@@ -353,12 +354,10 @@ def get_serial_number(filnam):
         return sn
 
 
-def strip_non_ascii(
-    string,
-):  # from https://stackoverflow.com/questions/2743070/remove-non-ascii-characters-from-a-string-using-python-django
-    """Returns the string without non ASCII characters"""
-    stripped = (c for c in string if 0 < ord(c) < 127)
-    return "".join(stripped)
+def strip_non_printable(strin):
+    """Returns the string without non printable characters"""
+    printable = set(string.printable)
+    return "".join(filter(lambda x: x in printable, strin))
 
 
 def get_col_names(filnam, metadata):
@@ -399,8 +398,6 @@ def get_col_names(filnam, metadata):
         # first step try replacing values
         if "µ" in dcols[k]:
             dcols[k] = dcols[k].replace("µ", "u")
-        # if "├é" in dcols[k]:
-        #    dcols[k] = dcols[k].replace("├é", "")
         if "°" in dcols[k]:
             dcols[k] = dcols[k].replace("°", "")
         if "%" in dcols[k]:
@@ -414,7 +411,7 @@ def get_col_names(filnam, metadata):
             dcols[k] = dcols[k].replace("/", "per")
 
         # then strip non-ascii characters
-        dcols[k] = strip_non_ascii(dcols[k])
+        dcols[k] = strip_non_printable(dcols[k])
 
     names = []
     for k in dcols:
