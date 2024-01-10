@@ -174,7 +174,9 @@ def do_split_profiles(ds):
     for profile in ds.profile.values:
         dss = ds.isel(obs=get_slice(ds, profile), profile=profile).copy(deep=True)
 
-        dss = dss.expand_dims("profile")  # for CF compliance
+        for v in dss.data_vars:
+            if "obs" not in dss[v].coords:
+                dss[v] = dss[v].expand_dims("profile")  # for CF compliance
 
         # dss = dss.drop("time")
         # dss["time"] = xr.DataArray(
@@ -271,9 +273,19 @@ def ds_add_attrs(ds):
     )
 
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("sample" not in ds):
-        ds["time"].encoding["dtype"] = "double"
+        if utils.check_time_fits_in_int32(ds, "time"):
+            ds["time"].encoding["dtype"] = "i4"
+        else:
+            print("Casting time to double")
+            ds["time"].encoding["dtype"] = "double"
     else:
-        ds["time"].encoding["dtype"] = "i4"
+        if utils.check_time_fits_in_int32(ds, "time"):
+            ds["time"].encoding["dtype"] = "i4"
+
+    if "obstime" in ds:
+        ds["obstime"].attrs.update(
+            {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
+        )
 
     if "sample" in ds:
         if not utils.check_fits_in_int32(ds, "sample"):
