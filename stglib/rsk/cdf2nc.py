@@ -195,7 +195,7 @@ def do_split_profiles(ds):
                 if not np.all(dss[v].isnull()):
                     allnan = False
 
-        ds = utils.insert_history(ds, f"Processing to individual profile #{profile}")
+        dss = utils.insert_history(dss, f"Processing to individual profile #{profile}")
 
         if allnan:
             print(
