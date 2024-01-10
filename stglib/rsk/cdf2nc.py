@@ -178,26 +178,13 @@ def do_split_profiles(ds):
             if "obs" not in dss[v].coords:
                 dss[v] = dss[v].expand_dims("profile")  # for CF compliance
 
-        # dss = dss.drop("time")
-        # dss["time"] = xr.DataArray(
-        #     dss["obstime"].values,
-        #     dims="time",
-        # )
-        # dss = dss.drop("obstime")
-        # dss["time"].attrs.update(
-        #     {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-        # )
-        # # This took forever to figure out but seems to work
-        # # https://stackoverflow.com/q/49853326
-        # dss = dss.reset_index("obs", drop=True).rename({"obs": "time"})
-
         for v in dss.data_vars:
             allnan = True
             if "obs" in dss[v].coords:
                 if not np.all(dss[v].isnull()):
                     allnan = False
 
-        dss = utils.insert_history(dss, f"Processing to individual profile #{profile}")
+        dss = utils.insert_history(dss, f"Processed to individual profile #{profile}")
 
         if allnan:
             print(
@@ -205,8 +192,7 @@ def do_split_profiles(ds):
             )
         else:
             nc_filename = f"{dss.attrs['filename']}prof_{str(profile).zfill(max_profile_len)}-cal.nc"
-            if utils.check_time_fits_in_int32(dss, "obstime"):
-                dss["obstime"].encoding["dtype"] = "i4"
+
             # the old unlimited_dims of obs sticks around, so need to specify empty
             dss.to_netcdf(nc_filename, unlimited_dims=[])
             print("Done writing netCDF file", nc_filename)
