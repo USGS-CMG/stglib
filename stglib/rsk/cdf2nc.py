@@ -203,8 +203,8 @@ def do_split_profiles(ds):
             )
         else:
             nc_filename = f"{dss.attrs['filename']}prof_{str(profile).zfill(max_profile_len)}-cal.nc"
-            if utils.check_time_fits_in_int32(dss, "time"):
-                dss["time"].encoding["dtype"] = "i4"
+            if utils.check_time_fits_in_int32(dss, "obstime"):
+                dss["obstime"].encoding["dtype"] = "i4"
             # the old unlimited_dims of obs sticks around, so need to specify empty
             dss.to_netcdf(nc_filename, unlimited_dims=[])
             print("Done writing netCDF file", nc_filename)
