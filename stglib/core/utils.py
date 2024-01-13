@@ -1327,6 +1327,20 @@ def check_fits_in_int32(ds, var):
         warnings.warn(
             f"32-bit integer overflow on {var}; setting encoding to i4 will fail"
         )
+        return False
+    else:
+        return True
+
+
+def check_time_fits_in_int32(ds, var):
+    num, units, calendar = xr.coding.times.encode_cf_datetime(ds[var])
+    if np.nanmax(num) > (2**31 - 1):
+        warnings.warn(
+            f"32-bit integer overflow on {var}; setting encoding to i4 will fail"
+        )
+        return False
+    else:
+        return True
 
 
 def check_valid_globalatts_metadata(metadata):

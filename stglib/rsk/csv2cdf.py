@@ -46,6 +46,12 @@ def csv_to_cdf(metadata):
 
     ds = set_up_instrument_and_sampling_attrs(ds, meta)
 
+    is_profile = (
+        (ds.attrs["sample_mode"] == "CONTINUOUS")
+        and ("featureType" in ds.attrs)
+        and (ds.attrs["featureType"] == "profile")
+    )
+
     if ds.attrs["sample_mode"] == "WAVE":
         burst = pd.read_csv(basefile + "_burst.txt")
 
@@ -96,6 +102,88 @@ def csv_to_cdf(metadata):
         ds = ds.drop("P_1")
         ds = xr.merge([ds, dsburst])
 
+    elif is_profile:
+        # work with profiles, e.g. CTD casts
+
+        events = pd.read_csv(basefile + "_events.txt")
+        events.rename(columns={"Time": "time"}, inplace=True)
+        events["time"] = pd.to_datetime(events["time"])
+        events.set_index("time", inplace=True)
+        st = ["started" in x for x in events["Type"]]
+        en = ["paused" in x for x in events["Type"]]
+        starts = events[st].index
+        ends = events[en].index
+        # sometimes the first start event seems to be missing from the events file
+        if starts[0] > ends[0]:
+            starts = np.insert(starts, 0, ds.time[0].values)
+        if starts.shape != ends.shape:
+            raise ValueError("starts shape does not equal ends shape")
+
+        pr = xr.Dataset()
+
+        pr["profile"] = xr.DataArray(range(len(starts)), dims="profile")
+        pr["profile"].attrs["cf_role"] = "profile_id"
+        pr["profile"].encoding["dtype"] = "i4"
+
+        timeavg = []
+        rowsize = []
+        for s, e in zip(starts, ends):
+            dss = ds.time.sel(time=slice(s, e))
+            timeavg.append(dss[0].values)
+            rowsize.append(len(dss))
+
+        pr["time"] = xr.DataArray(timeavg, dims="profile")
+        pr["rowSize"] = xr.DataArray(rowsize, dims="profile")
+        pr["rowSize"].attrs["long_name"] = "number of obs for this profile"
+        pr["rowSize"].attrs["sample_dimension"] = "obs"
+        pr["rowSize"].encoding["dtype"] = "i4"
+
+        if "latitude" in ds.attrs and "longitude" in ds.attrs:
+            if len(ds.attrs["latitude"]) == len(rowsize) and len(
+                ds.attrs["longitude"]
+            ) == len(rowsize):
+                ds["latitude"] = xr.DataArray(
+                    np.array(ds.attrs["latitude"]).astype(float), dims="profile"
+                )
+                ds["latitude"].attrs.update(
+                    {
+                        "units": "degree_north",
+                        "axis": "Y",
+                        "standard_name": "latitude",
+                    }
+                )
+
+                ds["longitude"] = xr.DataArray(
+                    np.array(ds.attrs["longitude"]).astype(float), dims="profile"
+                )
+                ds["longitude"].attrs.update(
+                    {
+                        "units": "degree_east",
+                        "axis": "X",
+                        "standard_name": "longitude",
+                    }
+                )
+
+                ds.attrs.pop("latitude")
+                ds.attrs.pop("longitude")
+            else:
+                raise ValueError(
+                    f"size of latitude ({len(ds.attrs['latitude'])}) and longitude ({len(ds.attrs['longitude'])}) does not match number of profiles ({len(rowsize)})"
+                )
+
+        # dscp = ds.copy(deep=True)
+        ds["obs"] = xr.DataArray(range(len(ds["time"])), dims="obs")
+        if utils.check_fits_in_int32(ds, "obs"):
+            ds["obs"].encoding["dtype"] = "i4"
+
+        dstime = ds["time"].values
+        ds = ds.drop("time")
+
+        ds = ds.rename({"obs": "time"}).set_coords("time").rename({"time": "obs"})
+        ds["obs"].attrs["long_name"] = "sample number"
+
+        ds = xr.merge([ds, pr])
+
     """
     # Set burst interval, [sec], USER DEFINED in instrument attr for continuous mode sampling
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
@@ -140,7 +228,10 @@ def csv_to_cdf(metadata):
     # configure file
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
-    ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    if is_profile:
+        ds.to_netcdf(cdf_filename, unlimited_dims=["obs"])
+    else:
+        ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
 
     print("Finished writing data to %s" % cdf_filename)
 
