@@ -41,6 +41,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Rename DataArrays for EPIC compliance
     ds = aqdutils.ds_rename(ds)
 
+    ds = scale_analoginput(ds)
+
     # Drop unused variables
     ds = ds_drop(ds)
 
@@ -194,3 +196,15 @@ def ds_drop(ds):
         todrop.remove("AnalogInput2")
 
     return ds.drop([t for t in todrop if t in ds.variables])
+
+
+def scale_analoginput(ds):
+    """convert AnalogInput from counts to volts"""
+    ds["AnalogInput1"] = ds["AnalogInput1"] * 5 / 65535
+    notetxt = f"Converted from counts to volts: volts=counts*5/65535."
+    ds = utils.insert_note(ds, "AnalogInput1", notetxt)
+    ds["AnalogInput2"] = ds["AnalogInput2"] * 5 / 65535
+    notetxt = f"Converted from counts to volts: volts=counts*5/65535."
+    ds = utils.insert_note(ds, "AnalogInput2", notetxt)
+
+    return ds

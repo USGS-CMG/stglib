@@ -1372,7 +1372,7 @@ def check_valid_config_metadata(metadata, inst_type="AQD"):
 
     for k in vars:
         if k not in metadata:
-            raise KeyError(f"{k} must be defined, most likely in config.yaml")
+            raise KeyError(f"{k} must be defined, most likely in YAML config file")
 
     if "CF" not in metadata["Conventions"]:
         raise ValueError(

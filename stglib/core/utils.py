@@ -1004,40 +1004,84 @@ def create_z(ds):
     ds["z"].attrs["units"] = "m"
     ds["z"].attrs["standard_name"] = "height"
 
-    if "P_1ac" in ds:
-        if "bindist" in ds:
-            if ds.attrs["orientation"].upper() == "DOWN":
-                presvar = np.nanmean(ds["P_1ac"]) + ds["bindist"].values
-            elif ds.attrs["orientation"].upper() == "UP":
-                presvar = np.nanmean(ds["P_1ac"]) - ds["bindist"].values
+    # find depth dimension values
+    # check for sea floor depth standard names
+    sfds = ["geoid", "geopotential_datum", "mean_sea_level", "reference_ellipsoid"]
+    depvar = None
+    for k in sfds:
+        name = "sea_floor_depth_below_" + k
+        if name in ds.attrs:
+            longname = "depth below " + k.replace("_", " ")
+            if "bindist" in ds:
+                if ds.attrs["orientation"].upper() == "DOWN":
+                    depvar = (
+                        ds.attrs[name]
+                        - ds.attrs["initial_instrument_height"]
+                        + ds["bindist"].values
+                    )
+                elif ds.attrs["orientation"].upper() == "UP":
+                    depvar = (
+                        ds.attrs[name]
+                        - ds.attrs["initial_instrument_height"]
+                        - ds["bindist"].values
+                    )
+            else:
+                depvar = ds.attrs[name] - ds.attrs["initial_instrument_height"]
+
+    if depvar is None:
+        if "D_3" in ds:
+            if "bindist" in ds:
+                if ds.attrs["orientation"].upper() == "DOWN":
+                    depvar = np.nanmean(ds["D_3"]) + ds["bindist"].values
+                elif ds.attrs["orientation"].upper() == "UP":
+                    depvar = np.nanmean(ds["D_3"]) - ds["bindist"].values
+            else:
+                depvar = np.nanmean(ds["P_1ac"])
+            name = "sea_floor_depth_below_mean_sea_level"
+            longname = "depth below mean sea level from data"
+        elif "P_1ac" in ds:
+            if "bindist" in ds:
+                if ds.attrs["orientation"].upper() == "DOWN":
+                    depvar = np.nanmean(ds["P_1ac"]) + ds["bindist"].values
+                elif ds.attrs["orientation"].upper() == "UP":
+                    depvar = np.nanmean(ds["P_1ac"]) - ds["bindist"].values
+            else:
+                depvar = np.nanmean(ds["P_1ac"])
+            name = "sea_floor_depth_below_mean_sea_level"
+            longname = "depth below mean sea level from data"
         else:
-            presvar = np.nanmean(ds["P_1ac"])
-    elif "P_1" in ds:
-        if "bindist" in ds:
-            if ds.attrs["orientation"].upper() == "DOWN":
-                presvar = np.nanmean(ds["P_1"]) + ds["bindist"].values
-            elif ds.attrs["orientation"].upper() == "UP":
-                presvar = np.nanmean(ds["P_1"]) - ds["bindist"].values
-        else:
-            presvar = np.nanmean(ds["P_1"])
-    else:
-        if "bindist" in ds:
-            if ds.attrs["orientation"].upper() == "DOWN":
-                presvar = ds.attrs["WATER_DEPTH"] + ds["bindist"].values
-            elif ds.attrs["orientation"].upper() == "UP":
-                presvar = ds.attrs["WATER_DEPTH"] - ds["bindist"].values
-        else:
-            presvar = ds.attrs["WATER_DEPTH"] - ds.attrs["initial_instrument_height"]
+            if "sea_floor_depth_below_sea_surface" in ds.attrs:
+                name = "sea_floor_depth_below_sea_surface"  # this is not ref to datum
+                longname = "depth below sea surface"
+            else:
+                name = "WATER_DEPTH"
+                longname = "depth below WATER_DEPTH ref"
+
+            if "bindist" in ds:
+                if ds.attrs["orientation"].upper() == "DOWN":
+                    depvar = (
+                        ds.attrs[name]
+                        - ds.attrs["initial_instrument_height"]
+                        + ds["bindist"].values
+                    )
+                elif ds.attrs["orientation"].upper() == "UP":
+                    depvar = (
+                        ds.attrs[name]
+                        - ds.attrs["initial_instrument_height"]
+                        - ds["bindist"].values
+                    )
+            else:
+                depvar = ds.attrs[name] - ds.attrs["initial_instrument_height"]
 
     if "bindist" in ds:
-        ds["depth"] = xr.DataArray(presvar, dims="depth")
+        ds["depth"] = xr.DataArray(depvar, dims="depth")
     else:
-        ds["depth"] = xr.DataArray([presvar], dims="depth")
+        ds["depth"] = xr.DataArray([depvar], dims="depth")
 
     ds["depth"].attrs["positive"] = "down"
     ds["depth"].attrs["units"] = "m"
     ds["depth"].attrs["standard_name"] = "depth_below_geoid"
-    ds["depth"].attrs["long_name"] = "depth below mean sea level"
+    ds["depth"].attrs["long_name"] = longname
 
     return ds
 

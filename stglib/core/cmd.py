@@ -122,7 +122,7 @@ def rsknc2waves_parser():
     return parser
 
 
-def hwlbcsv2cdf_parser():
+def hobocsv2cdf_parser():
     description = "Convert HOBO pressure sensor .csv file to raw .cdf format. Run this script from the directory containing HOBO file."
     parser = argparse.ArgumentParser(description=description)
     gattsarg(parser)
@@ -131,7 +131,7 @@ def hwlbcsv2cdf_parser():
     return parser
 
 
-def hwlbcdf2nc_parser():
+def hobocdf2nc_parser():
     description = "Convert raw HOBO .cdf format to processed .nc files"
     parser = argparse.ArgumentParser(description=description)
     cdfarg(parser)

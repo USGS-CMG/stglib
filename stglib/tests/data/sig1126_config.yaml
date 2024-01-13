@@ -2,14 +2,12 @@ basefile: 'mat/S102410A006_11261sig'
 outdir: 'mat/' #directory to write out raw cdf files
 filename: '11261sig'   # name of output file, -raw.cdf or .nc will be appended to this
 LatLonDatum: 'NAD83'
-ClockError: 0 #sec 
+ClockError: 0 #sec
 #ClockDrift: 15 #sec < 60 s no need to apply correction
 orientation: 'UP'          # use this to identify orientation of profiler
-head_rotation: 'horizontal' #will probably be 'horizontal'
 initial_instrument_height: 2.12  # meters
 initial_instrument_height_note: 'From seabed'
 zeroed_pressure: 'Yes' # was pressure zeroed before deployment
-cutoff_ampl: 0   # set to 0, otherwise it automatically specifies cutoff based on amplitude which is a weird thing to do
 trim_method: 'water level sl'  # Water Level SL trims bin if any part of bin or side lobe is out of water - works best when pressure is corrected for atmospheric
 chunks: ['time', 25000, 'bindist', 4]
 #P_1ac_note: 'Corrected for variations in atmospheric pressure using MesoWest Station FW0901 Wellfleet.'

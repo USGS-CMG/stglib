@@ -1,0 +1,14 @@
+basefile: 'Bang_--_MBW'
+filename: '11681hwl'   # name of output file, -raw.cdf or .nc will be appended to this
+LatLonDatum: 'NAD83'
+ClockError: -18000 #sec 
+instrument_type: 'hwl'
+initial_instrument_height: 6  # meters, seabed to transducer
+initial_instrument_height_note: 'From cave floor'
+skiprows: 2
+skipfooter: 3
+ncols: 6
+vert_dim: 'depth'
+good_dates: [2018-03-26 04:59, 2018-08-01 18:31]
+drop_vars: 'BPR_915'
+D_3_note: 'atmospheric pressure data from logger S/N: 10559361 used to determine depth from absolute pressure data (P_1) using vendor software'

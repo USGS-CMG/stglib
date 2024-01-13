@@ -1,3 +1,5 @@
+import warnings
+
 import yaml
 
 import stglib
@@ -12,6 +14,10 @@ def get_metadata(args):
         config = yaml.safe_load(f)
 
     for k in config:
+        if k in metadata:
+            warnings.warn(
+                f"attrs collision. Replacing '{k}={metadata[k]}' from global attributes file with '{k}={config[k]}' from YAML config file."
+            )
         metadata[k] = config[k]
 
     return metadata
@@ -101,14 +107,14 @@ def runexocsv2cdf():
     stglib.exo.csv_to_cdf(metadata)
 
 
-def runhwlbcdf2nc():
-    args = stglib.cmd.hwlbcdf2nc_parser().parse_args()
+def runhobocdf2nc():
+    args = stglib.cmd.hobocdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.hobo.cdf_to_nc, args)
 
 
-def runhwlbcsv2cdf():
-    args = stglib.cmd.hwlbcsv2cdf_parser().parse_args()
+def runhobocsv2cdf():
+    args = stglib.cmd.hobocsv2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
