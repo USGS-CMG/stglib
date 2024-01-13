@@ -1,9 +1,14 @@
 import os
 import subprocess
 import sysconfig
+import zipfile
+from os import path
 from pathlib import Path
 
 import pytest
+
+# zip files created on windows won't extract to directories on unix systems without the following line
+path.altsep = "\\"
 
 scripts = Path(sysconfig.get_path("scripts"))
 cwd = "stglib/tests/data"
@@ -196,9 +201,13 @@ def rbr_raw(glob_att, config_yaml):
     assert "Finished writing data" in result.stdout.decode("utf8")
 
 
-def rbr_nc(nc_file):
+def rbr_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [scripts / "runrskcdf2nc.py", nc_file, "--atmpres", atmpres]
+    else:
+        runlist = [scripts / "runrskcdf2nc.py", nc_file]
     result = subprocess.run(
-        [scripts / "runrskcdf2nc.py", nc_file],
+        runlist,
         capture_output=True,
         cwd=cwd,
     )
@@ -215,11 +224,6 @@ def rbr_wvs(nc_file):
 
 
 def test_rbr():
-    import zipfile
-    from os import path
-
-    # zip files created on windows won't extract to directories on unix systems without the following line
-    path.altsep = "\\"
     with zipfile.ZipFile("stglib/tests/data/051001_CSF20SC201.zip", "r") as zip_ref:
         zip_ref.extractall("stglib/tests/data/")
     rbr_raw("gatts_CSF20SC2.txt", "csf20sc201_config.yaml")
@@ -230,6 +234,16 @@ def test_rbr():
     rbr_raw("gatts_055109_20220808_1605.txt", "055109_20220808_1605_config.yaml")
     rbr_nc("11512Cdw-raw.cdf")
     rbr_wvs("11512Cdwcont-cal.nc")
+
+
+def test_rbr_profile():
+    # profiling CTD
+    with zipfile.ZipFile("stglib/tests/data/205598_20220104_1336.zip", "r") as zip_ref:
+        zip_ref.extractall("stglib/tests/data/")
+    rbr_raw(
+        "gatts_205598_20220104_1336_wtw21.txt", "config_205598_20220104_1336_wtw21.yaml"
+    )
+    rbr_nc("WTW21CTD-raw.cdf", "atmpres_205598_20220104_1336_wtw21.cdf")
 
 
 def eofe_raw(glob_att, config_yaml):

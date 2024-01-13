@@ -1,4 +1,7 @@
+import warnings
+
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from ..core import qaqc, utils
@@ -12,13 +15,24 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     # Load raw .cdf data
     ds = open_raw_cdf(cdf_filename)
 
-    # Clip data to in/out water times or via good_ens
-    ds = utils.clip_ds(ds)
+    is_profile = (
+        (ds.attrs["sample_mode"] == "CONTINUOUS")
+        and ("featureType" in ds.attrs)
+        and (ds.attrs["featureType"] == "profile")
+    )
 
-    ds = utils.create_nominal_instrument_depth(ds)
+    if is_profile:
+        ds = profile_clip_ds(ds)
+    else:
+        # Clip data to in/out water times or via good_ens
+        ds = utils.clip_ds(ds)
 
-    if atmpres is not None:
+        ds = utils.create_nominal_instrument_depth(ds)
+
+    if atmpres is not None and is_profile is False:
         ds = utils.atmos_correct(ds, atmpres)
+    elif atmpres is not None and is_profile:
+        ds = atmos_correct_profile(ds, atmpres)
 
     # ds = utils.shift_time(ds,
     #                       ds.attrs['burst_interval'] *
@@ -49,14 +63,16 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         ds = qaqc.trim_max_diff_pct(ds, "Turb")
         ds = qaqc.trim_bad_ens(ds, "Turb")
 
-    # add z coordinate dim
-    ds = utils.create_z(ds)
+    if not is_profile:
+        # add z coordinate dim
+        ds = utils.create_z(ds)
 
-    ds = utils.add_min_max(ds)
+        ds = utils.add_min_max(ds)
 
     ds = utils.add_start_stop_time(ds)
 
-    ds = utils.ds_add_lat_lon(ds)
+    if not is_profile:
+        ds = utils.ds_add_lat_lon(ds)
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
@@ -75,6 +91,9 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         if "burst" in ds or "sample" in ds:
             nc_filename = ds.attrs["filename"] + "b-cal.nc"
 
+        elif is_profile:
+            nc_filename = ds.attrs["filename"] + "prof-cal.nc"
+
         elif (ds.attrs["sample_mode"] == "CONTINUOUS") and (
             "burst" not in ds or "sample" not in ds
         ):
@@ -83,9 +102,23 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         else:
             nc_filename = ds.attrs["filename"] + "-a.nc"
 
-        ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
+        if is_profile:
+            ds.to_netcdf(nc_filename, format=format, unlimited_dims=["obs"])
+        else:
+            ds.to_netcdf(nc_filename, format=format, unlimited_dims=["time"])
         utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
         print("Done writing netCDF file", nc_filename)
+
+        if (
+            "split_profiles" in ds.attrs
+            and ds.attrs["split_profiles"].lower() == "true"
+        ):
+            split_profiles = True
+        else:
+            split_profiles = False
+
+        if is_profile and split_profiles:
+            do_split_profiles(ds)
 
     return ds
 
@@ -95,6 +128,74 @@ def open_raw_cdf(cdf_filename):
     # remove units in case we change and we can use larger time steps
     ds.time.encoding.pop("units")
     return ds
+
+
+def get_slice(ds, profile):
+    rscs = ds.rowSize.cumsum()
+
+    if profile == 0:
+        rl = slice(0, rscs.sel(profile=profile).values - 1)
+    else:
+        rl = slice(
+            rscs.sel(profile=profile - 1).values, rscs.sel(profile=profile).values - 1
+        )
+    return rl
+
+
+def atmos_correct_profile(ds, atmpres):
+    met = xr.load_dataset(atmpres)
+
+    # need to save attrs before the subtraction, otherwise they are lost
+    attrs = ds["P_1"].attrs
+    # apply the correction for each profile in turn. Is there a better way to do this?
+    ds["P_1ac"] = xr.full_like(ds["P_1"], np.nan)
+    for profile in ds.profile:
+        ds["P_1ac"].loc[dict(obs=get_slice(ds, profile))] = (
+            ds["P_1"].loc[dict(obs=get_slice(ds, profile))]
+            - met["atmpres"].sel(time=ds["time"].sel(profile=profile)).values
+            - met["atmpres"].offset
+        )
+    ds["P_1ac"].attrs = attrs
+
+    ds = utils.insert_history(
+        ds,
+        f"Atmospherically correcting using time-series from {atmpres} and offset of {met['atmpres'].offset}",
+    )
+    ds.attrs["atmospheric_pressure_correction_file"] = atmpres
+    ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
+        "offset"
+    ]
+
+    return ds
+
+
+def do_split_profiles(ds):
+    max_profile_len = len(str(ds.profile.max().values))
+    for profile in ds.profile.values:
+        dss = ds.isel(obs=get_slice(ds, profile), profile=profile).copy(deep=True)
+
+        for v in dss.data_vars:
+            if "obs" not in dss[v].coords:
+                dss[v] = dss[v].expand_dims("profile")  # for CF compliance
+
+        for v in dss.data_vars:
+            allnan = True
+            if "obs" in dss[v].coords:
+                if not np.all(dss[v].isnull()):
+                    allnan = False
+
+        dss = utils.insert_history(dss, f"Processed to individual profile #{profile}")
+
+        if allnan:
+            print(
+                f"All NaN values encountered for profile {profile}; not writing this cast to netCDF"
+            )
+        else:
+            nc_filename = f"{dss.attrs['filename']}prof_{str(profile).zfill(max_profile_len)}-cal.nc"
+
+            # the old unlimited_dims of obs sticks around, so need to specify empty
+            dss.to_netcdf(nc_filename, unlimited_dims=[])
+            print("Done writing netCDF file", nc_filename)
 
 
 def trim_min(ds, var):
@@ -158,12 +259,18 @@ def ds_add_attrs(ds):
     )
 
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("sample" not in ds):
-        ds["time"].encoding["dtype"] = "double"
+        if utils.check_time_fits_in_int32(ds, "time"):
+            ds["time"].encoding["dtype"] = "i4"
+        else:
+            print("Casting time to double")
+            ds["time"].encoding["dtype"] = "double"
     else:
-        ds["time"].encoding["dtype"] = "i4"
+        if utils.check_time_fits_in_int32(ds, "time"):
+            ds["time"].encoding["dtype"] = "i4"
 
     if "sample" in ds:
-        utils.check_fits_in_int32(ds, "sample")
+        if not utils.check_fits_in_int32(ds, "sample"):
+            raise ValueError()
         ds["sample"].encoding["dtype"] = "i4"
         ds["sample"].attrs["long_name"] = "sample number"
         ds["sample"].attrs["units"] = "1"
@@ -184,7 +291,8 @@ def ds_add_attrs(ds):
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
     if "burst" in ds:
-        utils.check_fits_in_int32(ds, "burst")
+        if not utils.check_fits_in_int32(ds, "burst"):
+            raise ValueError()
         ds["burst"].encoding["dtype"] = "i4"
         ds["burst"].attrs["units"] = "1"
         ds["burst"].attrs["long_name"] = "Burst number"
@@ -229,5 +337,39 @@ def ds_add_attrs(ds):
 def dw_add_delta_t(ds):
     if "burst_interval" in ds.attrs:
         ds.attrs["DELTA_T"] = int(ds.attrs["burst_interval"])
+
+    return ds
+
+
+def profile_clip_ds(ds):
+    print(
+        f"first profile in full file: {ds['time'].min().values}, idx {np.argmin(ds['time'].values)}"
+    )
+    print(
+        f"last profile in full file: {ds['time'].max().values}, idx {np.argmax(ds['time'].values)}"
+    )
+    if "good_ens" in ds.attrs:
+        # we have good ensemble indices in the metadata
+
+        # so we can deal with multiple good_ens ranges, or just a single range
+        good_ens = ds.attrs["good_ens"]
+        goods = []
+
+        for n in range(0, len(good_ens), 2):
+            goods.append(np.arange(good_ens[n], good_ens[n + 1]))
+        goods = np.hstack(goods)
+
+        for profile in ds.profile.values:
+            if profile not in goods:
+                for v in ds.data_vars:
+                    if "obs" in ds[v].coords:
+                        ds[v].loc[dict(obs=get_slice(ds, profile))] = np.nan
+
+        histtext = "Data clipped using good_ens values of {}.".format(str(good_ens))
+
+        ds = utils.insert_history(ds, histtext)
+
+    else:
+        print("Did not clip data; no values specified in metadata")
 
     return ds
