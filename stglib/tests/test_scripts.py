@@ -310,6 +310,29 @@ def test_hobo():
     hobo_nc("11711hwlb-raw.cdf")
 
 
+def lisst_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runlisstcsv2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def lisst_nc(nc_file):
+    result = subprocess.run(
+        [scripts / "runlisstcdf2nc.py", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_lisst():
+    lisst_raw("gatts_lisst_L0221705.txt", "config_lisst_L0221705.yaml")
+    lisst_nc("lisst_L0221705-raw.cdf")
+
+
 def ensure_cf(script, glob_att, config_yaml):
     result = subprocess.run(
         [scripts / script, glob_att, config_yaml],
