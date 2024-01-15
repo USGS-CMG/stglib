@@ -126,7 +126,6 @@ When an RBR instrument is used in ``CONTINUOUS`` mode as a profiling instrument 
 
 - ``featureType: 'profile'``: this `CF-compliant <https://cfconventions.org/cf-conventions/cf-conventions.html#profile-data>`_ ``featureType`` instructs stglib to process these data as a profile dataset.
 - ``latitude: [36.959, 41.533, 27.764]``, ``longitude: [-122.056, -70.651, -82.638]``: these values can each be specified as a YAML list of latitudes and longitudes, each element in the lists corresponding to a profile.
-27.764, -82.638
 - ``split_profiles``: when set to `True`, split a multi-profile dataset into individual netCDF files for each profile
 
 EXO
@@ -185,10 +184,10 @@ Sontek IQ
 - ``channel_cross_section_note``: note specifying starting bank (left or right) for RTK transect across the channel and when the transect measurements were collected (optional, recommended)
 
 Onset Hobo
----------
+----------
 
 - All the _min, _max, _bad_ens, etc. options available to the EXO.
-- ``instrument_type``: can be ``hwl`` (water level), ``hwlb`` (water level as barometer), ``hdo`` (dissolved oxygen) or ``hcnd``(conductivity) use these based on parameter measured by hobo logger
+- ``instrument_type``: can be ``hwl`` (water level), ``hwlb`` (water level as barometer), ``hdo`` (dissolved oxygen) or ``hcnd`` (conductivity) use these based on parameter measured by hobo logger
 - ``skipfooter``: number of lines to skip in the CSV file at the end of the file
 - ``ncols``: number of columns of data to read, starting at first
 - ``names``: option for user specified column names (only recommended when code will read names using automated/default method)
