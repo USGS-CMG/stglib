@@ -13,6 +13,14 @@ Contributing to stglib
   which in turn came from the `Pandas Contributing
   Guide <http://pandas.pydata.org/pandas-docs/stable/contributing.html>`_.
 
+Overview
+========
+
+We welcome your skills and enthusiasm! There are numerous opportunities to
+contribute beyond just writing code.
+All contributions, including bug reports, bug fixes, documentation improvements, enhancement suggestions,
+and other ideas are welcome.
+
 Where to start?
 ===============
 
@@ -20,7 +28,7 @@ We need your help.  All contributions, bug reports, bug fixes, documentation imp
 enhancements, and ideas are welcome.
 
 If you are brand new to open-source development, we recommend going
-through the `stglib's GitHub "issues" tab <https://github.com/USGS-CMG/stglib/issues>`_
+through `stglib's GitHub "issues" tab <https://github.com/USGS-CMG/stglib/issues>`_
 to find issues that interest you, discuss issues, to report new issues or propose new features.
 
 
@@ -28,6 +36,9 @@ to find issues that interest you, discuss issues, to report new issues or propos
 
 Bug reports and enhancement requests
 ====================================
+
+Bug reports are an important part of making *stglib* more stable. Having a complete bug
+report will allow others to reproduce the bug and provide insight into fixing.
 
 To indicate desire to work on an issue, post your intent and ideas in the issues tab.
 Follow the guidance here to set up your environment in python.
