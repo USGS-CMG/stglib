@@ -1,5 +1,6 @@
 import csv
 import string
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -59,13 +60,12 @@ def csv_to_cdf(metadata):
     if "names" in metadata:
         kwargs["names"] = metadata["names"]
     else:
-        kwargs["names"] = get_tcm_col_names(basefile + ".csv", metadata)
+        kwargs["names"] = get_tcm_col_names(basefile + "_CR.txt", metadata)
 
     try:
         ds = read_tcm(basefile + "_CR.txt", **kwargs)
-    except UnicodeDecodeError:
-        # try reading as Mac OS Western for old versions of Mac Excel
-        ds = read_tcm(basefile + "_CR.txt", encoding="mac-roman", **kwargs)
+    except IOError:
+        print(f"Could not read file {basefile}_CR.txt, check file encoding, use utf-8")
 
     metadata.pop("skiprows")
     metadata.pop("skipfooter")
@@ -119,7 +119,7 @@ def ds_rename_vars(ds):
     todrop = ["Speed_cms", "Bearing_degrees"]
     ds = ds.drop([x for x in todrop if x in ds])
 
-    return ds.rename
+    return ds
 
 
 def ds_add_attrs(ds):
@@ -244,6 +244,38 @@ def get_tcm_col_names(filnam, metadata):
     return names
 
 
+def magvar_correct(ds):
+    """Correct for magnetic declination at site"""
+
+    if "magnetic_variation_at_site" in ds.attrs:
+        magvardeg = ds.attrs["magnetic_variation_at_site"]
+    elif "magnetic_variation" in ds.attrs:
+        magvardeg = ds.attrs["magnetic_variation"]
+    else:
+        warnings.warn(
+            "No magnetic variation information provided; not correcting compass orientation"
+        )
+        magvardeg = 0
+
+    if magvardeg != 0:
+        histtext = "Rotating heading and horizontal velocities by {} degrees.".format(
+            magvardeg
+        )
+
+        ds = utils.insert_history(ds, histtext)
+
+        if "U" in ds and "V" in ds:
+            uvar = "U"
+            vvar = "V"
+        elif "u_1205" in ds and "v_1206" in ds:
+            uvar = "u_1205"
+            vvar = "v_1206"
+
+        ds[uvar], ds[vvar] = aqdutils.rotate(ds[uvar], ds[vvar], magvardeg)
+
+    return ds
+
+
 def cdf_to_nc(cdf_filename):
     """
     Load a raw .cdf file and generate a processed .nc file
@@ -260,6 +292,8 @@ def cdf_to_nc(cdf_filename):
 
     # rename variables
     ds = ds_rename_vars(ds)
+
+    ds = magvar_correct(ds)
 
     # should function this
     for var in ds.data_vars:

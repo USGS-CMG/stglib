@@ -13,6 +13,7 @@ from . import (
     rdi,
     rsk,
     sig,
+    tcm,
     troll,
     vec,
     wxt,
