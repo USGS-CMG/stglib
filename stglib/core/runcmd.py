@@ -291,3 +291,17 @@ def runwxtcsv2cdf():
     metadata = get_metadata(args)
 
     stglib.wxt.csv_to_cdf(metadata)
+
+
+def runtcmcdf2nc():
+    args = stglib.cmd.tcmcdf2nc_parser().parse_args()
+
+    run_cdf_to_nc(stglib.tcm.cdf_to_nc, args)
+
+
+def runtcmcsv2cdf():
+    args = stglib.cmd.tcmcsv2cdf_parser().parse_args()
+
+    metadata = get_metadata(args)
+
+    stglib.tcm.csv_to_cdf(metadata)

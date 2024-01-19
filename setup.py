@@ -75,6 +75,8 @@ setup(
             "runsigcdf2nc.py=stglib.core.runcmd:runsigcdf2nc",
             "runlisstcsv2cdf.py=stglib.core.runcmd:runlisstcsv2cdf",
             "runlisstcdf2nc.py=stglib.core.runcmd:runlisstcdf2nc",
+            "runtcmcsv2cdf.py=stglib.core.runcmd:runtcmcsv2cdf",
+            "runtcmcdf2nc.py=stglib.core.runcmd:runtcmcdf2nc",
         ],
     },
     include_package_data=True,
