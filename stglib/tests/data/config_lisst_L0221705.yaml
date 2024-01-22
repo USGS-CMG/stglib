@@ -1,4 +1,3 @@
-basefile: L0221705_v2_rs
-Conventions: CF-1.8
-filename: lisst_L0221705
-drop_vars: AnalogInput3
+version https://git-lfs.github.com/spec/v1
+oid sha256:3539269bb4bb339e60f37f78b895e22f43bc6bc638ec9d99c161bb05d743da72
+size 98

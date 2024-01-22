@@ -1,13 +1,3 @@
-basefile: 'Barometer_w_RainGauge'
-filename: '11711hwlb'   # name of output file, -raw.cdf or .nc will be appended to this
-LatLonDatum: 'NAD83'
-ClockError: -18000 #sec 
-instrument_type: 'hwlb'
-initial_instrument_height: 15  # meters, seabed to transducer
-initial_instrument_height_note: 'From ground level'
-skiprows: 2
-skipfooter: 0
-#names: ["#", "datetime", "abspres_kPa", "temp_C","baropres_kPa","sensor_depth_m"]
-ncols: 4
-vert_dim: 'depth'
-#good_dates: [2018-03-26 05:00, 2018-08-01 18:05]
+version https://git-lfs.github.com/spec/v1
+oid sha256:85048fae4c76ceda32100c8e06fc62fa7334db5ede91b7d5ae9ea2ca1808141b
+size 505

@@ -158,6 +158,26 @@ def ds_add_attrs(ds):
             }
         )
 
+    if "CS_300" in ds:
+        ds["CS_300"].attrs.update(
+            {
+                "units": "m s^-1",
+                "long_name": "Current Speed",
+                "epic_code": 300,
+                "standard_name": "sea_water_speed",
+            }
+        )
+
+    if "CD_310" in ds:
+        ds["CD_310"].attrs.update(
+            {
+                "units": "degree",
+                "long_name": "Current Diirection (True)",
+                "epic_code": 310,
+                "standard_name": "sea_water_velocity_to_direction",
+            }
+        )
+
     return ds
 
 
@@ -276,6 +296,44 @@ def magvar_correct(ds):
     return ds
 
 
+def get_speed_dir(ds):
+    """Find current speed and direction from velocity east & north relative to due North (True)"""
+
+    def cart2pol(x, y):
+        rho = np.sqrt(x**2 + y**2)
+        phi = np.arctan2(y, x)
+        return (rho, phi)
+
+    if "U" in ds and "V" in ds:
+        uvar = "U"
+        vvar = "V"
+    elif "u_1205" in ds and "v_1206" in ds:
+        uvar = "u_1205"
+        vvar = "v_1206"
+
+    try:
+        if uvar and vvar:
+            spdvar = "CS_300"
+            dirvar = "CD_310"
+
+            histtext = f"Creating current speed and direction variables from  east ({uvar}) and north ({vvar}) velocities"
+
+            ds = utils.insert_history(ds, histtext)
+
+            ds[spdvar], ds[dirvar] = cart2pol(ds[uvar], ds[vvar])
+
+            ds[dirvar] = 90 - ds[dirvar] * 180 / np.pi
+
+            ds[dirvar] = ds[dirvar].where((ds[dirvar] > 0), ds[dirvar] + 360)
+
+    except:
+        warnings.warn(
+            "Current speed and direction not created because u_1205 and/or v_1206 are not in the xarray data set"
+        )
+
+    return ds
+
+
 def cdf_to_nc(cdf_filename):
     """
     Load a raw .cdf file and generate a processed .nc file
@@ -294,6 +352,9 @@ def cdf_to_nc(cdf_filename):
     ds = ds_rename_vars(ds)
 
     ds = magvar_correct(ds)
+
+    # get current spped & direction using magvar corrected velocities (since instrument reports speed & direction and user might expect it)
+    ds = get_speed_dir(ds)
 
     # should function this
     for var in ds.data_vars:
@@ -318,6 +379,8 @@ def cdf_to_nc(cdf_filename):
     ds = utils.create_z(ds)  # added 7/31/2023
 
     ds = ds_add_attrs(ds)
+
+    ds = utils.add_standard_names(ds)
 
     # assign min/max:
     ds = utils.add_min_max(ds)

@@ -112,3 +112,6 @@ gatts_205598_20220104_1336_wtw21.txt filter=lfs diff=lfs merge=lfs -text
 config_205598_20220104_1336_wtw21.yaml filter=lfs diff=lfs merge=lfs -text
 atmpres_205598_20220104_1336_wtw21.cdf filter=lfs diff=lfs merge=lfs -text
 L0221705_v2_rs.csv filter=lfs diff=lfs merge=lfs -text
+*.yaml filter=lfs diff=lfs merge=lfs -text
+*.txt filter=lfs diff=lfs merge=lfs -text
+*.lid filter=lfs diff=lfs merge=lfs -text

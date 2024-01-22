@@ -164,10 +164,10 @@ WXT-specific options include:
 EofE ECHOLOGGER
 ---------------
 - All the _min, _max, _bad_ens, etc. options available to the EXO.
-- instrument_type: types "ea" and "aa" are supported.
-- orientation: orientation of transducers types 'DOWN' or 'UP' are supported.
-- average_salinity: average salinity value (PSU) for the water mass for the deployment site and time period.
-- average_salinity_note: source of average salinity value.
+- ``instrument_type``: types "ea" and "aa" are supported.
+- ``orientation``: orientation of transducers types 'DOWN' or 'UP' are supported.
+- ``average_salinity``: average salinity value (PSU) for the water mass for the deployment site and time period.
+- ``average_salinity_note``: source of average salinity value.
 
 Sequoia Scientific LISST
 ------------------------
@@ -190,4 +190,12 @@ Onset Hobo
 - ``instrument_type``: can be ``hwl`` (water level), ``hwlb`` (water level as barometer), ``hdo`` (dissolved oxygen) or ``hcnd`` (conductivity) use these based on parameter measured by hobo logger
 - ``skipfooter``: number of lines to skip in the CSV file at the end of the file
 - ``ncols``: number of columns of data to read, starting at first
-- ``names``: option for user specified column names (only recommended when code will read names using automated/default method)
+- ``names``: option for user specified column names (only recommended when code will not read names using automated/default method)
+
+Lowell TCM Hobo
+----------
+
+- All the _min, _max, _bad_ens, etc. options available to the EXO.
+- ``skipfooter``: number of lines to skip in the CSV file at the end of the file
+- ``ncols``: number of columns of data to read, starting at first
+- ``names``: option for user specified column names (only recommended when code will not read names using automated/default method)
