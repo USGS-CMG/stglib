@@ -115,8 +115,17 @@ def ds_rename_vars(ds):
         )  # convert from cm/s to m/s
         ds = ds.rename({"Velocity-N_cms": "v_1206"})
 
+    if "Speed_cms" in ds:
+        ds["Speed_cms"].values = (
+            ds["Speed_cms"].values / 100
+        )  # convert from cm/s to m/s
+        ds = ds.rename({"Speed_cms": "CS_300"})
+
+    if "Bearing_degrees" in ds:
+        ds = ds.rename({"Bearing_degrees": "CD_310"})
+
     # drop unneeded vars
-    todrop = ["Speed_cms", "Bearing_degrees"]
+    todrop = [""]
     ds = ds.drop([x for x in todrop if x in ds])
 
     return ds
@@ -293,43 +302,10 @@ def magvar_correct(ds):
 
         ds[uvar], ds[vvar] = aqdutils.rotate(ds[uvar], ds[vvar], magvardeg)
 
-    return ds
+        if "CD_310" in ds:
+            dvar = "CD_310"
 
-
-def get_speed_dir(ds):
-    """Find current speed and direction from velocity east & north relative to due North (True)"""
-
-    def cart2pol(x, y):
-        rho = np.sqrt(x**2 + y**2)
-        phi = np.arctan2(y, x)
-        return (rho, phi)
-
-    if "U" in ds and "V" in ds:
-        uvar = "U"
-        vvar = "V"
-    elif "u_1205" in ds and "v_1206" in ds:
-        uvar = "u_1205"
-        vvar = "v_1206"
-
-    try:
-        if uvar and vvar:
-            spdvar = "CS_300"
-            dirvar = "CD_310"
-
-            histtext = f"Creating current speed and direction variables from  east ({uvar}) and north ({vvar}) velocities"
-
-            ds = utils.insert_history(ds, histtext)
-
-            ds[spdvar], ds[dirvar] = cart2pol(ds[uvar], ds[vvar])
-
-            ds[dirvar] = 90 - ds[dirvar] * 180 / np.pi
-
-            ds[dirvar] = ds[dirvar].where((ds[dirvar] > 0), ds[dirvar] + 360)
-
-    except:
-        warnings.warn(
-            "Current speed and direction not created because u_1205 and/or v_1206 are not in the xarray data set"
-        )
+        ds[dvar] = (ds[dvar] + magvardeg) % 360
 
     return ds
 
@@ -352,9 +328,6 @@ def cdf_to_nc(cdf_filename):
     ds = ds_rename_vars(ds)
 
     ds = magvar_correct(ds)
-
-    # get current spped & direction using magvar corrected velocities (since instrument reports speed & direction and user might expect it)
-    ds = get_speed_dir(ds)
 
     # should function this
     for var in ds.data_vars:
