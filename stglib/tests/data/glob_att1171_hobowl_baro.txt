@@ -1,3 +1,28 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b4da23ad2e44f3be71aedbb9de68dbfa3782a6fb93011285b8e021f2d83a9c0c
-size 1160
+    title; Time-series measurements from Hobo water level sensor used to measure barometric presuure at Cenote Bang, Yucatan, Mexico from March 25, 2018 to August 1, 2018
+    SciPi; N. Ganju
+    PROJECT; USGS Coastal and Marine Hazards and Resources Program
+    EXPERIMENT; CAVE MX
+    DESCRIPTION; Cenote Bang,Flooded cave, above surface
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.8
+    MOORING; 1171
+    sea_floor_depth_below_geoid; 0
+    WATER_DEPTH; 0
+    WATER_DEPTH_NOTE; (meters), instrument deployed above ground level
+    latitude;  20.2066
+    longitude; -87.4680
+    magnetic_variation; -1.39
+    Deployment_date; 2018-03-25 22:00
+    Recovery_date; 2018-08-01 20:00
+    DATA_CMNT; Co-located rain gauge deployment failed
+    platform_type; rooftop
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; Cenote Bang, Tulum, MX
+    VAR_FILL; NaN
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov
+    FAN; 2018-031-FA

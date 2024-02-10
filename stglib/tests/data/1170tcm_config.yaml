@@ -1,3 +1,13 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ea873363bb11a433231a44883fd4ae24faacb2fa860969434387de37f777f3b5
-size 434
+basefile: '1711426_Bang -- MBW_(0)'
+filename: '11701tcm'   # name of output file, -raw.cdf or .nc will be appended to this
+LatLonDatum: 'NAD83'
+ClockError: -18000 #sec 
+instrument_type: 'tcm'
+initial_instrument_height: 5  # meters, from cave floor
+initial_instrument_height_note: 'From cave floor'
+skiprows: 1
+skipfooter: 0
+#ncols: 6
+vert_dim: 'depth'
+good_dates: [2018-03-26 04:59, 2018-08-01 18:05]
+#drop_vars: 'BPR_915'

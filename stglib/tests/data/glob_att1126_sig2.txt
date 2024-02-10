@@ -1,3 +1,30 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ac0dcd8f67093186e65d69938df7cf8e5974a8736bd95bc1ec82b984adfc4766
-size 1286
+    title; Time-series measurements of oceanographic data in the nearshore zone in Cape Cod Bay, Barnstable, MA from an Downward looking ADCP from March 10 to April 7, 2021
+    SciPi; J.C. Warner
+    PROJECT; USGS Coastal and Marine Hazards and Resources Program
+    EXPERIMENT; Cape Cod Bay 2021
+    DESCRIPTION; Nearshore site off Sandy Neck Beach, Barnstable, MA
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.8
+    MOORING; 1126
+    WATER_DEPTH; 9.62
+    WATER_DEPTH_NOTE; (meters), Mean water level from data
+    height_above_geopotential_datum; -9.77
+    geopotential_datum_name; NAVD88
+    geopotential_datum_note; (meters), Elevation at seabed using VDatum with LMSL and GEOID12B
+    latitude; 41.742668
+    longitude; -70.330457
+    magnetic_variation; -14.5
+    Deployment_date; 2021-03-10 15:58
+    Recovery_date; 2021-04-07 14:09
+    DATA_CMNT; 
+    platform_type; Quadpod
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; Cape Cod Bay
+    VAR_FILL; NaN
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov
+    FAN; 2021-018-FA, 2021-020-FA

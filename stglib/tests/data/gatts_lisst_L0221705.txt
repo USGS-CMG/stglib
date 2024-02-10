@@ -1,3 +1,2 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:16e52ac8a04501b7976e4ba0a0af5f8c7b8435813fd8ab8dc7ec10cf8cf5481b
-size 31
+latitude; 37
+longitude; -120

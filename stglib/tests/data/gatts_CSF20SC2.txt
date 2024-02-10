@@ -1,3 +1,29 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:d01e5497e7164889d8e29ad92004d5649b6a8a4620995d3b6b093f7a32d91923
-size 774
+MOORING;	CSF20SC2
+PROGRAM;	Sediment Transport in Coastal Environments
+PROJECT;	Channel-Shallows Sediment Flocculation
+EXPERIMENT;	CSF20
+Region;	South San Francisco Bay
+CruiseID;	2020-621-FA
+SciPi;	Rachel Allen, Jessica Lacy
+Year;	2020
+Site;	SC2
+platform_type;	Tripod
+latitude;	37.54837
+longitude;	-122.16856
+WATER_DEPTH;	3.5
+Deployment_date;	16-JUL-2020 20:04:45
+Recovery_date;	30-JUL-2020  15:40
+OFAFunding;	San Francisco Estuary Institute
+CollaboratingAgency;	USGS CAWSC
+DESCRIPTION;	Coffee Table
+WATER_DEPTH_source;	Ships Echosounder
+magnetic_variation;	13.26
+DATA_TYPE;	TIME
+DATA_SUBTYPE;	MOORED
+DATA_ORIGIN;	USGS/PCMSC
+COORD_SYSTEM;	GEOGRAPHIC
+Conventions;	CF-1.8
+POS_CONST;	0
+DEPTH_CONST;	0
+history;
+DATA_CMNT; frame mostly clear of algae

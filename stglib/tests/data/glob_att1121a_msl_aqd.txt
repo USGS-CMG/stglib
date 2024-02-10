@@ -1,3 +1,29 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b71afe5e9e30b10d9fc346fa445deb5d24e0b3d27606c280d8bcd1c4e3a77daf
-size 1429
+    title; Oceanographic and Water Quality Measurements in the Herring River, Wellfleet, MA at Herring River (outer channel) site from a Aquadopp ADCP from November 12, 2018 to February 15, 2019
+    SciPi; N. Ganju
+    PROJECT; USGS Coastal and Marine Geology Program
+    EXPERIMENT; NRPP Cape Cod
+    DESCRIPTION; Outer Channel site, Herring River, Wellfleet, MA
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.6
+    MOORING; 1121A
+    WATER_DEPTH; 2.1
+    WATER_DEPTH_NOTE; (meters), Mean water level from data
+    height_above_geopotential_datum; -2.2
+    geopotential_datum_name; NAVD88
+    geopotential_datum_note; Elevation at seabed using VDatum with LMSL and GEOID18
+    latitude; 41.92262
+    longitude; -70.05910
+    magnetic_variation; -14.79
+    Deployment_date; 2018-11-12 16:00
+    Recovery_date; 2019-02-15 14:12
+    DATA_CMNT; Bad velocity data from Aquadopp ADCP were trimmed using bad_ens and maxabs_diff_z methods. Presence of surface ice is suspected during times of these bad velocity data.
+    platform_type; FG Lander
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; Herring River/Wellfleet Harbor
+    VAR_FILL; 1.e+35
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov
