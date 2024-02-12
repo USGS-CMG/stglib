@@ -1,3 +1,17 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b180561a8cc2a3df2ad9e15268a05da9ba3939533538bc6d070a5ddcda28e75a
-size 669
+basefile: 'ea400_example_data'
+filename: '11231Aea_example'   # name of output file, -raw.cdf or .nc will be appended to this
+LatLonDatum: 'NAD83'
+#VerticalDatum: 'NAVD88'
+ClockError: 0 #sec 
+instrument_type: 'ea'
+orientation: 'DOWN' # use this to identify orientation of profiler
+initial_instrument_height: 0.34  # meters, seabed to transducer
+average_salinity: 28.4
+average_salinity_note: 'averaged from exo, PSU'
+trim_method: ["altitude", "bin range"]
+good_bins: [0,70]
+brange_maxabs_diff: 0.02 #trim abrupt changes in altitude
+brange_min: 0.3 #trim values less than deadzone distance
+brange_max: 0.6
+seabed_elevation_mask: ["brange"]
+vert_dim: 'z'

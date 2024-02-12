@@ -1,3 +1,27 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ec085aa9d6978694336bdb19f00db83716c224cd3fb3a138290060858fe16430
-size 902
+    SciPi; N. Ganju
+    PROJECT; USGS Coastal and Marine Geology Program
+    EXPERIMENT; NRPP
+    DESCRIPTION; JoCo Marsh, Jamaica Bay
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Sed Trans Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.6
+    MOORING; 1097
+    WATER_DEPTH; 1.01
+    WATER_DEPTH_NOTE; (meters), nominal depth
+    latitude; 40.61263
+    longitude; -73.79092
+    magnetic_variation; -13.46
+    Deployment_date; 2017-12-14 13:00
+    Recovery_date; 2018-01-24 16:07
+    DATA_CMNT; 
+    platform_type; FG Lander
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; Jamaica Bay, NY
+    VAR_FILL; 1.e+35
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov
+    NAVD88_ref; -1.0221
+    NAVD88_ref_note; Elevation (m NAVD88) measured at top of instrument mounting grate

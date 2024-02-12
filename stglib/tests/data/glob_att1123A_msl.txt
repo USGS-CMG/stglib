@@ -1,3 +1,29 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:1bd7c283287942ddf5bd8cda920b6947ff68e4054b4bd5b161be1989e329914e
-size 1199
+    title; Oceanographic and Water Quality Measurements in the Herring River, Wellfleet, MA at deep flank site from a EofE EA400 Atlimeter from November 11, 2018 to January 16, 2019
+    SciPi; N. Ganju
+    PROJECT;  USGS Coastal and Marine Geology Program
+    EXPERIMENT; NRPP
+    DESCRIPTION; Wellfleet Herring River, Gut Flank Deep
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Sed Trans Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.6
+    MOORING; 1123A
+    sea_floor_depth_below_mean_sea_level; 1.25
+    WATER_DEPTH; 1.25
+    WATER_DEPTH_NOTE; (meters), Mean Sea Level estimated from NAVD88 and vDatum
+    height_above_geopotential_datum; -1.40
+    geopotential_datum_name; NAVD88
+    latitude; 41.92636
+    longitude; -70.06882
+    magnetic_variation; -14.72
+    Deployment_date; 2018-11-14 15:00:00
+    Recovery_date; 2019-01-16 17:28:00
+    DATA_CMNT;  
+    platform_type; Spyder Frame
+    DRIFTER;  0
+    POS_CONST;  0
+    DEPTH_CONST;  0
+    WATER_MASS; Herring River, MA
+    VAR_FILL;  1.e+35
+    institution;  United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url;  https://woodshole.er.usgs.gov

@@ -359,3 +359,20 @@ def sigdlfncdf2nc_parser():
     atmarg(parser)
 
     return parser
+
+
+def tcmcsv2cdf_parser():
+    description = "Convert Lowell Tilt Current Meter .txt file to raw .cdf format. Run this script from the directory containing TCM file."
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def tcmcdf2nc_parser():
+    description = "Convert raw TCM .cdf format to processed .nc files"
+    parser = argparse.ArgumentParser(description=description)
+    cdfarg(parser)
+
+    return parser

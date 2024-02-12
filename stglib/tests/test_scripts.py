@@ -347,6 +347,29 @@ def test_lisst():
     lisst_nc("lisst_L0221705-raw.cdf")
 
 
+def tcm_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runtcmcsv2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def tcm_nc(nc_file):
+    result = subprocess.run(
+        [scripts / "runtcmcdf2nc.py", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_tcm():
+    tcm_raw("glob_att1170_tcm.txt", "1170tcm_config.yaml")
+    tcm_nc("11701tcm-raw.cdf")
+
+
 def ensure_cf(script, glob_att, config_yaml):
     result = subprocess.run(
         [scripts / script, glob_att, config_yaml],

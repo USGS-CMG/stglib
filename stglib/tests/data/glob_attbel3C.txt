@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0faafff455d80e8337c3e1db83c0aa7fd2b7b1528e1ec3dae40bd86a71809902
-size 169
+WATER_DEPTH; 6.9
+latitude;  48.75675
+longitude; -122.52279
+Deployment_date; 2021-01-22 18:27
+Recovery_date; 2021-04-13 19:27
+magnetic_variation; 15.95
+MOORING; BEL19B3C

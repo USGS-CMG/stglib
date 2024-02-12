@@ -1,3 +1,11 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c9a1e8662e97c443858d3fedc9cf4f0149ab2e159ab4fbf023632f042f3a68e9
-size 517
+basefile: 'bel3_13H102609_012221_120000_utf8'
+# filename: 'bel33Cexo'
+filename: 'BEL19B3C03exo'
+Conventions: 'CF-1.8'
+skiprows: 9
+initial_instrument_height: 0.15
+S_41_min_diff: -10
+Turb_max: 300
+Turb_bad_ens: ['2021-04-10 21:10', '2021-04-10 21:20']
+drop_vars: ['Cable_Pwr_V', 'Wiper_Position_volt', 'Vertical_Position_m', 'ODO_%_local', 'pHmV', 'pH_159', 'nLF_Cond_µS_per_cm', 'OST_62', 'DO']
+title: 'Oceanographic time-series measurements collected in Bellingham Bay, Washington, USA, 2019 to 2021: BEL19B3C03exo'

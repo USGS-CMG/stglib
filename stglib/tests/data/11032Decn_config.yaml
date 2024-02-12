@@ -1,3 +1,25 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:937663b3e2432f73ef5a1b4c001346d68b0a7e194c195a7e45f9f9935265c13a
-size 751
+basefile: '1103D_ntu507.log'
+filename: '11032Decn'   # name of output file, -raw.cdf or .nc will be appended to this
+LatLonDatum: 'NAD83'
+initial_instrument_height: 0.065
+spb: 10
+skiprows: 63
+skipfooter: 1
+serial_number: 507
+INST_TYPE: 'WET Labs ECO-NTUSB'
+user_ntucal: 'ntu = 6.203E-07*counts**2 + 8.392E-02*counts - 4.922E+00'
+user_ntucal_coeffs: [6.203E-07, 8.392E-02, -4.922E+00]
+user_ntucal_date: '2017-07-17'
+user_ntucal_note: '8 point Formazin calibration by Steve Suttles on 2017-07-17'
+Turb_max: 60
+Turb_min: 0
+Turb_maxabs_diff: 20
+#Turb_max_diff: 20
+#Turb_min_diff: -20
+Turb_bad_ens: ['2018-05-09 17:15', '2018-05-11 00:00']
+good_dates:
+    - '2018-03-28 19:40'
+    - '2018-06-13'
+Turb_max_std: 10
+Turb_std_ratio: 0.5
+Turb_std_mask: ["Turb"]
