@@ -328,7 +328,12 @@ def ds_add_attrs(ds):
 
     if "BPR_915" in ds:
         ds["BPR_915"].attrs.update(
-            {"units": "mbar", "long_name": "Barometric pressure", "epic_code": 915}
+            {
+                "units": "mbar",
+                "long_name": "Barometric pressure",
+                "epic_code": 915,
+                "standard_name": "air_pressure",
+            }
         )
 
     if "T_21" in ds:

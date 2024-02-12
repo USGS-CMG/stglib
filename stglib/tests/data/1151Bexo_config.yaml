@@ -1,3 +1,26 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:debce684b109cc3fc1c5f7ff4387a554fb645c31bf73cfedabf6b6ae7fef4fc9
-size 1217
+basefile: 'KorEXO_Measurement_File_Export_081322_170216_rev'
+filename: '1151Bexo'   # name of output file, -raw.cdf or .nc will be appended to this
+#SN: '17H103144'
+LatLonDatum: 'NAD83'
+ClockError: 0 # sec, negative is slow
+ClockDrift: -90 # sec, add clock drift just to test functionality in stglib
+initial_instrument_height: 0.29  # meters - from bed (rtk elv) to center of sensors. 
+initial_instrument_height_note: 'meters, height above bed'
+zeroed_pressure: 'No' # was pressure zeroed before deployment
+P_1ac_note: 'Corrected for variations in atmospheric pressure using Cape May, NJ NOAA met station (8536110). Missing atmospheric pressure data at station 8536110 was filled by data from NOAA stations Brandywine Shoal Light (8555889) and Lewes, DE (8557380)'
+skiprows: 8
+fDOMRFU_max_diff: 13.5
+fDOMRFU_min_diff: -13.5
+fDOMQSU_max_diff: 35.0
+fDOMQSU_min_diff: -35.0
+TALPErfu_med_diff: 20.0
+TALPE_med_diff: 50.0
+CHLrfu_med_diff: 5.0
+Fch_906_med_diff: 20.0
+C_51_min_diff: -0.75 #Conductivity m/s
+C_51_max_diff: 0.75
+SpC_48_min_diff: -9.5 #SpConducitivty m/s
+SpC_48_max_diff: 9.50 #SpConducitivty m/s
+S_41_min_diff: -7.00 #Salinity psu
+S_41_max_diff: 7.00 #Salinity psu
+Turb_med_diff: 125.0

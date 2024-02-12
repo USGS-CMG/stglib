@@ -1,3 +1,29 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ae8e6c87627a5f3367df962884ff8f6f0a4a9a77150d3e2bda66dea90822cb96
-size 712
+MOORING;	CHC14TDH
+PROGRAM;	Sediment Transport in Coastal Environments
+PROJECT;	Sediment supply to marshes, San Pablo Bay
+EXPERIMENT;	CHC14
+Region;	San Francisco Bay
+CruiseID;	2014-678-FA
+SciPi;	Jessica Lacy
+Year;	2014
+Site;	TDH
+platform_type;	Tripod
+latitude;	38.00922
+longitude;	-122.48609
+WATER_DEPTH;	0
+Deployment_date;	05-Dec-2014 00:12
+Recovery_date;	28-Jan-2015 20:55
+OFAFunding;	
+CollaboratingAgency;	San Francisco Bay NERR
+DESCRIPTION;	Grate
+WATER_DEPTH_SOURCE;	Bathymetric map
+magnetic_variation;	13.86
+DATA_SUBTYPE;	MOORED
+DATA_ORIGIN;	USGS WCMG Sed Trans Group
+COORD_SYSTEM;	GEOGRAPHIC
+Conventions;	CF-1.8
+WATER_MASS;	?
+POS_CONST;	0
+DEPTH_CONST;	0
+DRIFTER;	0
+COMPOSITE;	0

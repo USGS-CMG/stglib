@@ -1,3 +1,27 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:7128e6dddc50fb6c70f870d7a0a853d60eda57258f3cfca015b7ae8f1b1fb695
-size 958
+    SciPi; N. Ganju
+    PROJECT; USGS Coastal and Marine Geology Program
+    EXPERIMENT; NRPP
+    DESCRIPTION; Ditch Near Site, Great South Bay
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Sed Trans Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.8
+    MOORING; 1103
+    WATER_DEPTH; 0.40
+    WATER_DEPTH_NOTE; (meters), nominal depth
+    latitude; 40.731563
+    longitude; -72.886313
+    magnetic_variation; -13.46
+    Deployment_date; 2018-03-28 19:40
+    Recovery_date; 2018-06-27 17:34
+    DATA_CMNT; Instrument was often dry during low tide
+    platform_type; FG Lander
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; Great South Bay, NY
+    VAR_FILL; 1.e+35
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov
+    NAVD88_ref; -0.2287
+    NAVD88_ref_note; Elevation (m NAVD88) measured at top of instrument mounting grate

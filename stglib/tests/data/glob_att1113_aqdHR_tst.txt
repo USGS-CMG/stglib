@@ -1,3 +1,27 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:577303762664f1dbe540bbade5429a021c7924d912d93b8b4620a8e7d872d1a5
-size 1229
+    title; Time-series measurements from Aquadopp high-resolution ADCP profiler in Cenote Bang, Yucatan, Mexico from March 25, 2018 to August 1, 2018
+    SciPi; N. Ganju
+    PROJECT; USGS Coastal and Marine Hazards and Resources Program
+    EXPERIMENT; CAVE MX
+    DESCRIPTION; Cenote Bang,Flooded cave, dome S1
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.8
+    MOORING; 1113
+    WATER_DEPTH; 12.5
+    WATER_DEPTH_NOTE; (meters), from cave floor to water table above (estimated)
+    latitude;20.21033°
+    longitude; -87.50127°
+    magnetic_variation; -1.39
+    Deployment_date; 2018-03-25 19:45
+    Recovery_date; 2018-08-01 19:31
+    DATA_CMNT; All velocity data was filled with null value (NaN) because of suspected interference of the acoustic signals with the cave walls.
+    platform_type; bouyant FG platform
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; Cenote Bang, Tulum, MX
+    VAR_FILL; NaN
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov
+    FAN; 2018-XXX-FA, 2018-XXX-FA

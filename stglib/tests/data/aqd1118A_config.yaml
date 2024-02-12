@@ -1,3 +1,11 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0d9441675437967760cd16cdca46b0435ab184ba40f4d35ceefc5894bf89e885
-size 899
+basefile: 'TB111803'
+filename: '1118ABaqd'   # name of output file, -raw.cdf or .nc will be appended to this
+LatLonDatum: 'NAD83'
+#ClockError: 0 # sec, negative is slow
+ClockError: 0 #sec
+orientation: 'UP'          # use this to identify orientation of profiler
+initial_instrument_height: 0.13  # meters
+initial_instrument_height_note: 'initial instrument height not recorded; value is from 1118C & 1118D'
+zeroed_pressure: 'Yes' # was pressure zeroed before deployment
+trim_method: 'water level sl' # Water Level SL trims bin if any part of bin or side lobe is out of water - works best when pressure is corrected for atmospheric
+P_1ac_note: 'Corrected for variations in atmospheric pressure using NOAA met station Cape May, NJ (8536110). Missing atmospheric pressure data at station 8536110 was filled by data from NOAA stations Brandywine Shoal Light (8555889) and Lewes, DE (8557380)'

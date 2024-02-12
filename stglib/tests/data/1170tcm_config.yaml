@@ -1,4 +1,4 @@
-basefile: '1711426_Bang -- MBW_(0)'
+basefile: '1711426_Bang--MBW_0'
 filename: '11701tcm'   # name of output file, -raw.cdf or .nc will be appended to this
 LatLonDatum: 'NAD83'
 ClockError: -18000 #sec 

@@ -1,3 +1,10 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:057b6fdc922b854640e11ce9d8b1a4d95594a5febc88c25d42b96b6072d1b8e7
-size 501
+basefile: 'aa400_0074_orange_raw_trim_utf8'
+filename: '11373aa'   # name of output file, -raw.cdf or .nc will be appended to this
+LatLonDatum: 'NAD83'
+ClockError: 0 #sec
+instrument_type: 'aa'
+orientation: 'DOWN' # use this to identify orientation of profiler
+initial_instrument_height: 0.34  # meters, seabed to transducer
+average_salinity: 32
+average_salinity_note: 'estimated (ocean), PSU'
+#skiprows: ?? #optional to speicfy how many rows to skip to start reading data records in log file

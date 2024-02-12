@@ -1,3 +1,21 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:45c58efd96f59d51d5baa6a87f637ca2c33fa0e3f72d14e07a66fcd9eea2d96d
-size 1178
+basefile: 'CAVE0110tst'
+filename: '1113aqdHR'   # name of output file, -raw.cdf or .nc will be appended to this
+LatLonDatum: 'NAD83'
+ClockError: -18000 #sec changge from LST to UTC (-5 hrs)
+#ClockDrift: 15 #sec < 60 s no need to apply correction
+orientation: 'DOWN'          # use this to identify orientation of profiler
+initial_instrument_height: 9  # meters
+initial_instrument_height_note: 'From cave floor'
+zeroed_pressure: 'Yes' # was pressure zeroed before deployment
+trim_method: 'none'  # Water Level SL trims bin if any part of bin or side lobe is out of water - works best when pressure is corrected for atmospheric
+velocity_agc_min: 30
+velocity_cor_min: 85
+agc_cor_min: 85
+P_1ac_note: 'Corrected for variations in atmospheric pressure using Hobo barometeric pressure data located near cave entrance.'
+u_1205_bad_ens: [2018-03-25 19:45, 2018-08-01 19:31]
+v_1206_bad_ens: [2018-03-25 19:45, 2018-08-01 19:31]
+w_1204_bad_ens: [2018-03-25 19:45, 2018-08-01 19:31]
+vel1_1277_bad_ens: [2018-03-25 19:45, 2018-08-01 19:31]
+vel2_1278_bad_ens: [2018-03-25 19:45, 2018-08-01 19:31]
+vel3_1279_bad_ens: [2018-03-25 19:45, 2018-08-01 19:31]
+vert_dim: 'depth'

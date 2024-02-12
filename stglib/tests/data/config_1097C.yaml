@@ -1,3 +1,7 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:9a307b3051c1eae8dc84b717e5fa3a5f466da19c9f6d110757628d68020032a9
-size 385
+basefile: '1097CIQ_20171214_125948'
+filename: '10971Ciq'   # name of output file, -raw.cdf or .nc will be appended to this
+LatLonDatum: 'NAD83'
+initial_instrument_height: 0.025
+P_1ac_note: 'Corrected for variations in atmospheric pressure using internal SonTek IQ algorithm.'
+DATA_CMNT: 'Data potentially affected by presence of ice during periods of this deployment'
+orientation: 'up'

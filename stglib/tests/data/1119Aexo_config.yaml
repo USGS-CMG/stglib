@@ -1,3 +1,21 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:793fd87064293b783f98f90a7a49e28051a869cfcf896baac8d28eef3d519cf3
-size 1013
+basefile: 'TB_1119_17H103145_091918_080000'
+filename: '1119Aexo'   # name of output file, -raw.cdf or .nc will be appended to this
+# SN: '17H103145'
+LatLonDatum: 'NAD83'
+ClockError: 0 # sec, negative is slow
+initial_instrument_height: 0.13  # meters - estimated!!! from top of grate
+initial_instrument_height_note: 'Not recorded, mooring log suggested to use 0.13m'
+zeroed_pressure: 'No' # was pressure zeroed before deployment
+P_1ac_note: 'No USGS HOBO met station deployed during 1119A. Corrected for variations in atmospheric pressure using Millville, Millville Municipal Airport MesoWest met station (KMIV).'
+skiprows: 8
+fDOMRFU_max_diff: 13.5
+fDOMRFU_min_diff: -13.5
+#CHLrfu_max_diff: 7.0
+CHLrfu_med_diff: 5.0
+C_51_min_diff: -0.3 #Conductivity m/s
+SpC_48_min_diff: -3.5 #SpConducitivty m/s
+SpC_48_max_diff: 3.50 #SpConducitivty m/s
+S_41_min_diff: -2.00 #Salinity psu
+S_41_max_diff: 2.00 #Salinity psu
+Turb_med_diff: 100.0
+good_ens: [5, 100, 250, 600] # test for multiple good_ens ranges

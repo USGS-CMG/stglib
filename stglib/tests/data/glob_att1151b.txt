@@ -1,3 +1,28 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:50d32b3c951e92cd1f8aaafdd73148760feb97e5cc0f11962b11220c8a02f943
-size 1110
+    SciPi; N. Ganju
+    PROJECT; USGS Coastal and Marine Geology Program
+    EXPERIMENT; NFWF - Hurricane Sandy Coastal Resiliency Program: Ecological
+    DESCRIPTION; Stone Harbor, New Jersey
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.6
+    MOORING; 1151B
+    WATER_DEPTH; 1.3
+    WATER_DEPTH_NOTE; (meters), mean water depth from data (1.011 avg + .29m from bed to exo sensors). 
+    height_above_geopotential_datum; -1.3481
+    geopotential_datum_name; NAVD88
+    geopotential_datum_note; Elevation at seabed    
+    latitude; 39.03162
+    longitude; -74.78278
+    magnetic_variation; -12.05
+    Deployment_date; 2022-06-08 11:55
+    Recovery_date; 2022-08-12 19:30
+    DATA_CMNT;
+    platform_type; Grating Platform
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; Great Channel/Atlantic Ocean
+    VAR_FILL; 1.e+35
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov

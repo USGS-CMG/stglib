@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c7f81ccdf925dbc1395975808484708d24f414d4360b87c2877086a18b3e4221
-size 180
+basefile: 'bel5_19D105366_012221_120000_utf8'
+filename: 'bel53Cexo'
+skiprows: 9
+initial_instrument_height: 0.15
+S_41_min_diff: -10
+Turb_max_diff: 500
+ClockError: 10
+ClockDrift: 45

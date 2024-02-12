@@ -1,3 +1,25 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0a48d4eaa73b00c67aa29eab076da282ed9b450e085451c0e7c188746e821d01
-size 983
+    SciPi; N. Ganju
+    PROJECT; USGS Coastal and Marine Geology Program
+    EXPERIMENT; NFWF - Hurricane Sandy Coastal Resiliency Program: Ecological
+    DESCRIPTION; Thompsons Beach, New Jersey
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.6
+    MOORING; 1118A and 1118B
+    WATER_DEPTH; 2.4
+    WATER_DEPTH_NOTE; (meters), nominal depth
+    latitude; 39.19514
+    longitude; -74.98397
+    magnetic_variation; -11.98
+    Deployment_date; 2018-09-19 15:00
+    Recovery_date; 2019-02-26 18:40
+    DATA_CMNT; No magnetic variation recorded, used data from IGRF model via ngdc.noaa.gov. 
+    platform_type; FG Lander
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; Delaware Bay
+    VAR_FILL; 1.e+35
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov
