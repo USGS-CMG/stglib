@@ -152,15 +152,6 @@ def read_aquatroll(filnam, skiprows=69, encoding="utf-8", skipfooter=0):
     return df
 
 
-# def read_aquatroll_header(filnam, encoding="utf-8"):
-#     with open(filnam, encoding=encoding) as f:
-#         for line in f.readlines():
-#             if "Time Zone:" in line:
-#                 # remove commas and only return the value,
-#                 # not the 'Time Zone: ' part
-#                 return line.replace(",", "").strip()[11:]
-
-
 def ds_rename_vars(ds):
     varnames = {
         "pressure": "P_1ac",

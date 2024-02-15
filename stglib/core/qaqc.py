@@ -186,29 +186,6 @@ def trim_bad_ens_indiv(ds, var):
     return ds
 
 
-# def trim_by_salinity(ds, var):
-#     if (
-#         "trim_by_salinity" in ds.attrs
-#         and ds.attrs["trim_by_salinity"].lower() == "true"
-#         and var in ds
-#     ):  # xarray doesn't support writing attributes as booleans
-#         if (
-#             "trim_by_salinity_exclude" in ds.attrs
-#             and var in ds.attrs["trim_by_salinity_exclude"]
-#         ):
-#             pass
-#         else:
-#             print("%s: Trimming using valid salinity threshold" % var)
-#             ds[var][ds["S_41"].isnull()] = np.nan
-#
-#             if var != "S_41":
-#                 notetxt = "Values filled using valid salinity threshold. "
-#
-#                 ds = utils.insert_note(ds, var, notetxt)
-#
-#     return ds
-
-
 def trim_by_any(ds, var):
     attrlist = []
     for a in ds.attrs:

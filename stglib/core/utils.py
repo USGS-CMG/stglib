@@ -673,31 +673,6 @@ def create_epic_times(ds, waves=False):
     return ds
 
 
-# def create_2d_time(ds):
-#     print("Creating 2D time variable")
-#     # time increment in milliseconds
-#     td = ds.attrs["sample_interval"] * np.arange(ds.attrs["samples_per_burst"]) * 1000
-#
-#     # time_2d is a CF representation of a 2d time
-#     ds["time_2d"] = xr.DataArray(
-#         np.expand_dims(ds["time"], 1) + [np.timedelta64(int(x), "ms") for x in td],
-#         dims=("time", "sample"),
-#     )
-#
-#     raveljd = make_jd(pd.DatetimeIndex(np.ravel(ds["time_2d"])))
-#     jd_2d = np.reshape(raveljd, ds["time_2d"].shape)
-#
-#     ds["epic_time_2d"] = xr.DataArray(make_epic_time(jd_2d), dims=("time", "sample"))
-#     ds["epic_time_2d"].encoding["_FillValue"] = None
-#
-#     ds["epic_time2_2d"] = xr.DataArray(make_epic_time2(jd_2d), dims=("time", "sample"))
-#     ds["epic_time2_2d"].encoding["_FillValue"] = None
-#
-#     ds = ds.drop("time_2d")  # don't need it anymore
-#
-#     return ds
-
-
 def check_update_attrs(ds, key, value):
     """Update attr and raise warning if attr already exists and is different from replacement value"""
     if key in ds.attrs and ds.attrs[key] != value:
