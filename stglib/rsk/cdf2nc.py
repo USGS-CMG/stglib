@@ -262,7 +262,7 @@ def ds_add_attrs(ds):
         if utils.check_time_fits_in_int32(ds, "time"):
             ds["time"].encoding["dtype"] = "i4"
         else:
-            print("Casting time to double")
+            print("time variable will not fit in int32; casting to double")
             ds["time"].encoding["dtype"] = "double"
     else:
         if utils.check_time_fits_in_int32(ds, "time"):

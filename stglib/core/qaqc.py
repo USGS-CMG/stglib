@@ -406,8 +406,8 @@ def trim_std_ratio(ds, var):
             ds = utils.insert_note(ds, var, notetxt)
 
         else:
-            print(
-                f"{var}_std does not exist was NOT able to trim using standard deviation ratio method"
+            raise ValueError(
+                f"User specified {ds.attrs[var + '_std_ratio']=} but {var}_std does not exist. Was not able to trim using standard deviation ratio method"
             )
 
     return ds
@@ -416,9 +416,7 @@ def trim_std_ratio(ds, var):
 def trim_warmup(ds, var):
     if var + "_warmup_samples" in ds.attrs:
         if "sample" in ds[var].coords:
-            print(ds[var])
             ds[var] = ds[var].where(ds["sample"] > ds.attrs[var + "_warmup_samples"])
-            print(ds[var])
             notetxt = f"Removed {ds.attrs[var + '_warmup_samples']} samples at the beginning of each burst. "
 
             ds = utils.insert_note(ds, var, notetxt)
