@@ -253,6 +253,12 @@ def runvecdat2cdf():
     stglib.vec.dat2cdf.dat_to_cdf(metadata)
 
 
+def runvecnc2waves():
+    args = stglib.cmd.vecnc2waves_parser().parse_args()
+
+    stglib.aqd.vecnc2waves.nc_to_waves(args.ncname)
+
+
 def runwvscdf2nc():
     args = stglib.cmd.wvscdf2nc_parser().parse_args()
 

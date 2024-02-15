@@ -70,6 +70,7 @@ setup(
             "runeofecdf2nc.py=stglib.core.runcmd:runeofecdf2nc",
             "runvecdat2cdf.py=stglib.core.runcmd:runvecdat2cdf",
             "runveccdf2nc.py=stglib.core.runcmd:runveccdf2nc",
+            "runvecnc2waves.py=stglib.core.runcmd:runvecnc2waves",
             "runsigmat2cdf.py=stglib.core.runcmd:runsigmat2cdf",
             "runsigraw2cdf.py=stglib.core.runcmd:runsigraw2cdf",
             "runsigcdf2nc.py=stglib.core.runcmd:runsigcdf2nc",
