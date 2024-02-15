@@ -21,9 +21,39 @@ def nc_to_waves(nc_filename):
         if ds.attrs["puv"].lower() == "true":
             dopuv = True
 
-    # for k in ["P_1", "P_1ac", "sample", "T_28"]:
-    #     if k in ds:
-    #         ds = ds.drop_vars(k)
+    # keep burst mean P_1 and P_1ac for reference
+    for k in ["P_1", "P_1ac"]:
+        if k in ds:
+            ds[k] = ds[k].mean(dim="sample", keep_attrs=True)
+
+    for k in [
+        "burst",
+        "u_1205",
+        "v_1206",
+        "w_1204",
+        "vel1_1277",
+        "vel2_1278",
+        "vel3_1279",
+        "AGC1_1221",
+        "AGC2_1222",
+        "AGC3_1223",
+        "SNR1",
+        "SNR2",
+        "SNR3",
+        "cor1_1285",
+        "cor2_1286",
+        "cor3_1287",
+        "AnalogInput1",
+        "AnalogInput2",
+        "Hdg_1215",
+        "Ptch_1216",
+        "Roll_1217",
+        "Bat_106",
+        "Tx_1211",
+        "SV_80",
+    ]:
+        if k in ds:
+            ds = ds.drop(k)
 
     ds = utils.trim_max_wp(ds)
 

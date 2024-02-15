@@ -40,6 +40,7 @@ def dat_to_cdf(metadata):
 
     r = np.shape(dssen.Heading)[0]
     senburstlen = int(ds.attrs["VECSamplesPerBurst"] / ds.attrs["VECSamplingRate"] + 1)
+    ds.attrs["sample_interval"] = 1 / ds.attrs["VECSamplingRate"]
 
     mod = r % senburstlen
     if mod:
