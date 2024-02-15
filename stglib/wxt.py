@@ -179,11 +179,11 @@ def ds_rename_vars(ds):
 
 
 # Convert data from float 64 to float32
-def ds_convertfloat(ds):
-    for var in ds.variables:
-        if ds[var].name != "time":
-            ds[var] = ds[var].astype("float32")
-    return ds
+# def ds_convertfloat(ds):
+#     for var in ds.variables:
+#         if ds[var].name != "time":
+#             ds[var] = ds[var].astype("float32")
+#     return ds
 
 
 # Add attributes: units, standard name from CF website, epic code
