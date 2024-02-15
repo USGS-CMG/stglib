@@ -218,8 +218,8 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs, out="
     return u, v, w
 
 
-def swap_bindist_to_depth(ds):
-    return ds.swap_dims({"bindist": "depth"})
+# def swap_bindist_to_depth(ds):
+#     return ds.swap_dims({"bindist": "depth"})
 
 
 def set_orientation(VEL, T):

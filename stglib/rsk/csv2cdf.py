@@ -238,20 +238,20 @@ def csv_to_cdf(metadata):
     return ds
 
 
-def create_lat_lon_vars_from_attrs(ds):
-    ds["latitude"] = xr.DataArray(
-        [ds.attrs["latitude"]],
-        dims="latitude",
-        attrs={"units": "degree_north", "standard_name": "latitude", "axis": "Y"},
-    )
-
-    ds["longitude"] = xr.DataArray(
-        [ds.attrs["longitude"]],
-        dims="longitude",
-        attrs={"units": "degree_east", "standard_name": "longitude", "axis": "X"},
-    )
-
-    return ds
+# def create_lat_lon_vars_from_attrs(ds):
+#     ds["latitude"] = xr.DataArray(
+#         [ds.attrs["latitude"]],
+#         dims="latitude",
+#         attrs={"units": "degree_north", "standard_name": "latitude", "axis": "Y"},
+#     )
+#
+#     ds["longitude"] = xr.DataArray(
+#         [ds.attrs["longitude"]],
+#         dims="longitude",
+#         attrs={"units": "degree_east", "standard_name": "longitude", "axis": "X"},
+#     )
+#
+#     return ds
 
 
 def replace_spaces_in_var_names(ds):
