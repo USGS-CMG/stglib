@@ -13,12 +13,15 @@ def get_metadata(args):
     with open(args.config) as f:
         config = yaml.safe_load(f)
 
-    for k in config:
-        if k in metadata:
-            warnings.warn(
-                f"attrs collision. Replacing '{k}={metadata[k]}' from global attributes file with '{k}={config[k]}' from YAML config file."
-            )
-        metadata[k] = config[k]
+    try:
+        for k in config:
+            if k in metadata:
+                warnings.warn(
+                    f"attrs collision. Replacing '{k}={metadata[k]}' from global attributes file with '{k}={config[k]}' from YAML config file."
+                )
+            metadata[k] = config[k]
+    except TypeError:
+        raise TypeError(f"Could not load metadata from {args.config}")
 
     return metadata
 

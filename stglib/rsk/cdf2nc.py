@@ -217,37 +217,37 @@ def trim_min(ds, var):
     return ds
 
 
-def ds_add_depth_dim(ds):
-    print("Creating depth dimension")
-    if "P_1ac" in ds:
-        p = "P_1ac"
-    else:
-        p = "P_1"
-
-    if "NAVD88_ref" in ds.attrs:
-        ds["depth"] = xr.DataArray(
-            [-ds.attrs["NAVD88_ref"] - ds.attrs["initial_instrument_height"]],
-            dims="depth",
-        )
-        ds["depth"].attrs["VERT_DATUM"] = "NAVD88"
-        ds["depth"].attrs["NOTE"] = (
-            "Computed as platform depth "
-            "[m NAVD88] minus "
-            "initial_instrument_height"
-        )
-    else:
-        dim = ["time"]
-        if "sample" in ds:
-            dim.append("sample")
-        ds["depth"] = xr.DataArray(np.atleast_1d(ds[p].mean(dim=dim)), dims="depth")
-        ds["depth"].attrs["NOTE"] = "Computed as mean of the pressure sensor"
-    ds["depth"].attrs["positive"] = "down"
-    ds["depth"].attrs["axis"] = "Z"
-    ds["depth"].attrs["units"] = "m"
-    ds["depth"].attrs["epic_code"] = 3
-    ds["depth"].attrs["standard_name"] = "depth"
-
-    return ds
+# def ds_add_depth_dim(ds):
+#     print("Creating depth dimension")
+#     if "P_1ac" in ds:
+#         p = "P_1ac"
+#     else:
+#         p = "P_1"
+#
+#     if "NAVD88_ref" in ds.attrs:
+#         ds["depth"] = xr.DataArray(
+#             [-ds.attrs["NAVD88_ref"] - ds.attrs["initial_instrument_height"]],
+#             dims="depth",
+#         )
+#         ds["depth"].attrs["VERT_DATUM"] = "NAVD88"
+#         ds["depth"].attrs["NOTE"] = (
+#             "Computed as platform depth "
+#             "[m NAVD88] minus "
+#             "initial_instrument_height"
+#         )
+#     else:
+#         dim = ["time"]
+#         if "sample" in ds:
+#             dim.append("sample")
+#         ds["depth"] = xr.DataArray(np.atleast_1d(ds[p].mean(dim=dim)), dims="depth")
+#         ds["depth"].attrs["NOTE"] = "Computed as mean of the pressure sensor"
+#     ds["depth"].attrs["positive"] = "down"
+#     ds["depth"].attrs["axis"] = "Z"
+#     ds["depth"].attrs["units"] = "m"
+#     ds["depth"].attrs["epic_code"] = 3
+#     ds["depth"].attrs["standard_name"] = "depth"
+#
+#     return ds
 
 
 def ds_add_attrs(ds):
@@ -262,7 +262,7 @@ def ds_add_attrs(ds):
         if utils.check_time_fits_in_int32(ds, "time"):
             ds["time"].encoding["dtype"] = "i4"
         else:
-            print("Casting time to double")
+            print("time variable will not fit in int32; casting to double")
             ds["time"].encoding["dtype"] = "double"
     else:
         if utils.check_time_fits_in_int32(ds, "time"):
