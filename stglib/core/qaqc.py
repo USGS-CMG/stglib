@@ -186,29 +186,6 @@ def trim_bad_ens_indiv(ds, var):
     return ds
 
 
-def trim_by_salinity(ds, var):
-    if (
-        "trim_by_salinity" in ds.attrs
-        and ds.attrs["trim_by_salinity"].lower() == "true"
-        and var in ds
-    ):  # xarray doesn't support writing attributes as booleans
-        if (
-            "trim_by_salinity_exclude" in ds.attrs
-            and var in ds.attrs["trim_by_salinity_exclude"]
-        ):
-            pass
-        else:
-            print("%s: Trimming using valid salinity threshold" % var)
-            ds[var][ds["S_41"].isnull()] = np.nan
-
-            if var != "S_41":
-                notetxt = "Values filled using valid salinity threshold. "
-
-                ds = utils.insert_note(ds, var, notetxt)
-
-    return ds
-
-
 def trim_by_any(ds, var):
     attrlist = []
     for a in ds.attrs:
@@ -406,8 +383,8 @@ def trim_std_ratio(ds, var):
             ds = utils.insert_note(ds, var, notetxt)
 
         else:
-            print(
-                f"{var}_std does not exist was NOT able to trim using standard deviation ratio method"
+            raise ValueError(
+                f"User specified {ds.attrs[var + '_std_ratio']=} but {var}_std does not exist. Was not able to trim using standard deviation ratio method"
             )
 
     return ds
@@ -416,9 +393,7 @@ def trim_std_ratio(ds, var):
 def trim_warmup(ds, var):
     if var + "_warmup_samples" in ds.attrs:
         if "sample" in ds[var].coords:
-            print(ds[var])
             ds[var] = ds[var].where(ds["sample"] > ds.attrs[var + "_warmup_samples"])
-            print(ds[var])
             notetxt = f"Removed {ds.attrs[var + '_warmup_samples']} samples at the beginning of each burst. "
 
             ds = utils.insert_note(ds, var, notetxt)

@@ -673,31 +673,6 @@ def create_epic_times(ds, waves=False):
     return ds
 
 
-def create_2d_time(ds):
-    print("Creating 2D time variable")
-    # time increment in milliseconds
-    td = ds.attrs["sample_interval"] * np.arange(ds.attrs["samples_per_burst"]) * 1000
-
-    # time_2d is a CF representation of a 2d time
-    ds["time_2d"] = xr.DataArray(
-        np.expand_dims(ds["time"], 1) + [np.timedelta64(int(x), "ms") for x in td],
-        dims=("time", "sample"),
-    )
-
-    raveljd = make_jd(pd.DatetimeIndex(np.ravel(ds["time_2d"])))
-    jd_2d = np.reshape(raveljd, ds["time_2d"].shape)
-
-    ds["epic_time_2d"] = xr.DataArray(make_epic_time(jd_2d), dims=("time", "sample"))
-    ds["epic_time_2d"].encoding["_FillValue"] = None
-
-    ds["epic_time2_2d"] = xr.DataArray(make_epic_time2(jd_2d), dims=("time", "sample"))
-    ds["epic_time2_2d"].encoding["_FillValue"] = None
-
-    ds = ds.drop("time_2d")  # don't need it anymore
-
-    return ds
-
-
 def check_update_attrs(ds, key, value):
     """Update attr and raise warning if attr already exists and is different from replacement value"""
     if key in ds.attrs and ds.attrs[key] != value:
@@ -717,20 +692,20 @@ def add_start_stop_time(ds):
     return ds
 
 
-def add_lat_lon(ds, var):
-    """Add lat and lon dimensions"""
-
-    ds[var] = xr.concat([ds[var]], dim=ds["lon"])
-    ds[var] = xr.concat([ds[var]], dim=ds["lat"])
-
-    # Reorder so lat, lon are at the end.
-    dims = [d for d in ds[var].dims if (d != "lon") and (d != "lat")]
-    dims.extend(["lat", "lon"])
-    dims = tuple(dims)
-
-    ds[var] = ds[var].transpose(*dims)
-
-    return ds
+# def add_lat_lon(ds, var):
+#     """Add lat and lon dimensions"""
+#
+#     ds[var] = xr.concat([ds[var]], dim=ds["lon"])
+#     ds[var] = xr.concat([ds[var]], dim=ds["lat"])
+#
+#     # Reorder so lat, lon are at the end.
+#     dims = [d for d in ds[var].dims if (d != "lon") and (d != "lat")]
+#     dims.extend(["lat", "lon"])
+#     dims = tuple(dims)
+#
+#     ds[var] = ds[var].transpose(*dims)
+#
+#     return ds
 
 
 def ds_add_lat_lon(ds):
@@ -850,66 +825,66 @@ def create_water_depth_var(ds):
     return ds
 
 
-def create_water_depth(ds):
-    """Create WATER_DEPTH attribute"""
-
-    press = None
-
-    if "Pressure_ac" in ds:
-        press = "Pressure_ac"
-    elif "P_1ac" in ds:
-        press = "P_1ac"
-    elif "Pressure" in ds:
-        press = "Pressure"
-    elif "P_1" in ds:
-        press = "P_1"
-
-    if "sample" in ds.dims:
-        dims = ("time", "sample")
-    else:
-        dims = "time"
-
-    if "initial_instrument_height" in ds.attrs:
-        if press:
-            ds.attrs["nominal_instrument_depth"] = (
-                ds[press].squeeze().mean(dim=dims).values
-            )
-            # ds['water_depth'] = ds.attrs['nominal_instrument_depth']
-            wdepth = (
-                ds.attrs["nominal_instrument_depth"]
-                + ds.attrs["initial_instrument_height"]
-            )
-            if "ac" in press:
-                ds.attrs["WATER_DEPTH_source"] = (
-                    "water depth = MSL from "
-                    "pressure sensor, "
-                    "atmospherically corrected"
-                )
-            else:
-                ds.attrs["WATER_DEPTH_source"] = (
-                    "water depth = MSL from " "pressure sensor"
-                )
-            ds.attrs["WATER_DEPTH_datum"] = "MSL"
-        else:
-            wdepth = ds.attrs["WATER_DEPTH"]
-            ds.attrs["nominal_instrument_depth"] = (
-                ds.attrs["WATER_DEPTH"] - ds.attrs["initial_instrument_height"]
-            )
-        # ds['Depth'] = ds.attrs['nominal_instrument_depth']
-        # TODO: why is this being redefined here? Seems redundant
-        ds.attrs["WATER_DEPTH"] = wdepth
-
-    elif "nominal_instrument_depth" in ds.attrs:
-        ds.attrs["initial_instrument_height"] = (
-            ds.attrs["WATER_DEPTH"] - ds.attrs["nominal_instrument_depth"]
-        )
-        # ds['water_depth'] = ds.attrs['nominal_instrument_depth']
-
-    if "initial_instrument_height" not in ds.attrs:
-        # TODO: do we really want to set to zero?
-        ds.attrs["initial_instrument_height"] = 0
-
-    return ds
+# def create_water_depth(ds):
+#     """Create WATER_DEPTH attribute"""
+#
+#     press = None
+#
+#     if "Pressure_ac" in ds:
+#         press = "Pressure_ac"
+#     elif "P_1ac" in ds:
+#         press = "P_1ac"
+#     elif "Pressure" in ds:
+#         press = "Pressure"
+#     elif "P_1" in ds:
+#         press = "P_1"
+#
+#     if "sample" in ds.dims:
+#         dims = ("time", "sample")
+#     else:
+#         dims = "time"
+#
+#     if "initial_instrument_height" in ds.attrs:
+#         if press:
+#             ds.attrs["nominal_instrument_depth"] = (
+#                 ds[press].squeeze().mean(dim=dims).values
+#             )
+#             # ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+#             wdepth = (
+#                 ds.attrs["nominal_instrument_depth"]
+#                 + ds.attrs["initial_instrument_height"]
+#             )
+#             if "ac" in press:
+#                 ds.attrs["WATER_DEPTH_source"] = (
+#                     "water depth = MSL from "
+#                     "pressure sensor, "
+#                     "atmospherically corrected"
+#                 )
+#             else:
+#                 ds.attrs["WATER_DEPTH_source"] = (
+#                     "water depth = MSL from " "pressure sensor"
+#                 )
+#             ds.attrs["WATER_DEPTH_datum"] = "MSL"
+#         else:
+#             wdepth = ds.attrs["WATER_DEPTH"]
+#             ds.attrs["nominal_instrument_depth"] = (
+#                 ds.attrs["WATER_DEPTH"] - ds.attrs["initial_instrument_height"]
+#             )
+#         # ds['Depth'] = ds.attrs['nominal_instrument_depth']
+#         # TODO: why is this being redefined here? Seems redundant
+#         ds.attrs["WATER_DEPTH"] = wdepth
+#
+#     elif "nominal_instrument_depth" in ds.attrs:
+#         ds.attrs["initial_instrument_height"] = (
+#             ds.attrs["WATER_DEPTH"] - ds.attrs["nominal_instrument_depth"]
+#         )
+#         # ds['water_depth'] = ds.attrs['nominal_instrument_depth']
+#
+#     if "initial_instrument_height" not in ds.attrs:
+#         # TODO: do we really want to set to zero?
+#         ds.attrs["initial_instrument_height"] = 0
+#
+#     return ds
 
 
 def create_nominal_instrument_depth(ds):
@@ -1086,63 +1061,63 @@ def create_z(ds):
     return ds
 
 
-def add_z_if_no_pressure(ds, var):
-    # no_p = no pressure sensor. also use for exo
-    attrsbak = ds["z"].attrs
-    ds[var] = ds[var].expand_dims("z")
-    # reorder so z at end
-    dims = [d for d in ds[var].dims if (d != "z")]
-    dims.extend(["z"])
-    dims = tuple(dims)
-    ds[var] = ds[var].transpose(*dims)
-    ds["z"].attrs = attrsbak
-
-    return ds
-
-
-def no_p_create_depth(ds):
-    # no_p = no pressure sensor. also use for exo
-    if "NAVD88_ref" in ds.attrs:
-        ds["depth"] = xr.DataArray(
-            [-ds.attrs["NAVD88_ref"] - ds.attrs["initial_instrument_height"]],
-            dims="depth",
-        )
-        ds["depth"].attrs["VERT_DATUM"] = "NAVD88"
-        ds["depth"].attrs["NOTE"] = (
-            "Computed as platform depth "
-            "[m NAVD88] minus "
-            "initial_instrument_height"
-        )
-    else:
-        ds["depth"] = xr.DataArray(
-            [ds.attrs["WATER_DEPTH"] - ds.attrs["initial_instrument_height"]],
-            dims="depth",
-        )
-        ds["depth"].attrs["NOTE"] = (
-            "Computed as WATER_DEPTH minus " "initial_instrument_height"
-        )
-
-    ds["depth"].attrs["positive"] = "down"
-    ds["depth"].attrs["axis"] = "Z"
-    ds["depth"].attrs["units"] = "m"
-    ds["depth"].attrs["epic_code"] = 3
-    ds["depth"].encoding["_FillValue"] = None
-
-    return ds
+# def add_z_if_no_pressure(ds, var):
+#     # no_p = no pressure sensor. also use for exo
+#     attrsbak = ds["z"].attrs
+#     ds[var] = ds[var].expand_dims("z")
+#     # reorder so z at end
+#     dims = [d for d in ds[var].dims if (d != "z")]
+#     dims.extend(["z"])
+#     dims = tuple(dims)
+#     ds[var] = ds[var].transpose(*dims)
+#     ds["z"].attrs = attrsbak
+#
+#     return ds
 
 
-def no_p_add_depth(ds, var):
-    # no_p = no pressure sensor. also use for exo
-    ds[var] = xr.concat([ds[var]], dim=ds["depth"])
+# def no_p_create_depth(ds):
+#     # no_p = no pressure sensor. also use for exo
+#     if "NAVD88_ref" in ds.attrs:
+#         ds["depth"] = xr.DataArray(
+#             [-ds.attrs["NAVD88_ref"] - ds.attrs["initial_instrument_height"]],
+#             dims="depth",
+#         )
+#         ds["depth"].attrs["VERT_DATUM"] = "NAVD88"
+#         ds["depth"].attrs["NOTE"] = (
+#             "Computed as platform depth "
+#             "[m NAVD88] minus "
+#             "initial_instrument_height"
+#         )
+#     else:
+#         ds["depth"] = xr.DataArray(
+#             [ds.attrs["WATER_DEPTH"] - ds.attrs["initial_instrument_height"]],
+#             dims="depth",
+#         )
+#         ds["depth"].attrs["NOTE"] = (
+#             "Computed as WATER_DEPTH minus " "initial_instrument_height"
+#         )
+#
+#     ds["depth"].attrs["positive"] = "down"
+#     ds["depth"].attrs["axis"] = "Z"
+#     ds["depth"].attrs["units"] = "m"
+#     ds["depth"].attrs["epic_code"] = 3
+#     ds["depth"].encoding["_FillValue"] = None
+#
+#     return ds
 
-    # Reorder so lat, lon are at the end.
-    dims = [d for d in ds[var].dims if (d != "depth")]
-    dims.extend(["depth"])
-    dims = tuple(dims)
 
-    ds[var] = ds[var].transpose(*dims)
-
-    return ds
+# def no_p_add_depth(ds, var):
+#     # no_p = no pressure sensor. also use for exo
+#     ds[var] = xr.concat([ds[var]], dim=ds["depth"])
+#
+#     # Reorder so lat, lon are at the end.
+#     dims = [d for d in ds[var].dims if (d != "depth")]
+#     dims.extend(["depth"])
+#     dims = tuple(dims)
+#
+#     ds[var] = ds[var].transpose(*dims)
+#
+#     return ds
 
 
 def insert_note(ds, var, notetxt):

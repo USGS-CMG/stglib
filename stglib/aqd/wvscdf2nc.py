@@ -25,8 +25,6 @@ def cdf_to_nc(cdf_filename, atmpres=False, writefile=True):
     # Make bin_depth variable
     ds = aqdutils.make_bin_depth(ds, waves=True)
 
-    # Swap dimensions from bindist to depth
-    # ds = aqdutils.swap_bindist_to_depth(ds)
     ds = cdf2nc.ds_swap_dims(ds)
     # Rename DataArrays within Dataset for EPIC compliance
     # and append depth coord to velocities and amplitudes
