@@ -190,7 +190,14 @@ def load_dat(basefile):
         f"{basefile}.dat", header=None, delim_whitespace=True, names=names
     )
     dat = dat.set_index(["Burst", "Ensemble"])
-    return dat.to_xarray()
+    ds = dat.to_xarray()
+
+    if np.any(ds["Checksum"].isnull()):
+        warnings.warn(
+            "Found NaN values in checksum; this indicates short bursts. Proceed with caution."
+        )
+
+    return ds
 
 
 def read_vec_hdr(basefile):
