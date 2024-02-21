@@ -30,14 +30,14 @@ runveccdf2nc.py
    :ref: stglib.core.cmd.veccdf2nc_parser
    :prog: runveccdf2nc.py
 
-   Compute wave statistics
-   =======================
+Compute wave statistics
+=======================
 
-   Use stglib's built-in wave-statistics toolbox to compute a wave-statistics file.
+Use stglib's built-in wave-statistics toolbox to compute a wave-statistics file.
 
-   runvecnc2waves.py
-   -----------------
+runvecnc2waves.py
+-----------------
 
-   .. argparse::
-     :ref: stglib.core.cmd.vecnc2waves_parser
-     :prog: runvecnc2waves.py
+.. argparse::
+   :ref: stglib.core.cmd.vecnc2waves_parser
+   :prog: runvecnc2waves.py
