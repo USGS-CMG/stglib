@@ -11,7 +11,7 @@ First, export data from the Vector software to text format.
 Convert from text to a raw netCDF file with ``.cdf`` extension using runvechdr2cdf.py. This script
 depends on two arguments, the global attribute file and extra configuration information :doc:`configuration files </config>`.
 
-runvechdr2cdf.py
+runvecdat2cdf.py
 ----------------
 
 .. argparse::
