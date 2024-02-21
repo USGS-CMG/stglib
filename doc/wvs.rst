@@ -31,12 +31,12 @@ runwvscdf2nc.py
   :ref: stglib.core.cmd.wvscdf2nc_parser
   :prog: runwvscdf2nc.py
 
-Compute waves statistics
-========================
+Compute wave statistics
+=======================
 
 Using DIWASP: This is run separately in Matlab using the DIWASP toolbox (docs TODO).
 
-Use stglib's built-in waves statistics toolbox to compute a wave statistics file.
+Use stglib's built-in wave-statistics toolbox to compute a wave-statistics file.
 
 runwvsnc2waves.py
 -----------------
