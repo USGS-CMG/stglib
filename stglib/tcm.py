@@ -181,7 +181,7 @@ def ds_add_attrs(ds):
         ds["CD_310"].attrs.update(
             {
                 "units": "degree",
-                "long_name": "Current Diirection (True)",
+                "long_name": "Current Direction (True)",
                 "epic_code": 310,
                 "standard_name": "sea_water_velocity_to_direction",
             }
