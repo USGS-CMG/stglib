@@ -1090,30 +1090,33 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         if "w_1204" in ds:
             ds["w_1204"].attrs["units"] = "m s-1"
 
-        if "vel1_1277" in ds:
-            ds["vel1_1277"].attrs.update(
-                {
-                    "units": "m s-1",
-                    "long_name": "Beam 1 Velocity",
-                    "epic_code": 1277,
-                }
-            )
-        if "vel2_1278" in ds:
-            ds["vel2_1278"].attrs.update(
-                {
-                    "units": "m s-1",
-                    "long_name": "Beam 2 Velocity",
-                    "epic_code": 1278,
-                }
-            )
-        if "vel3_1279" in ds:
-            ds["vel3_1279"].attrs.update(
-                {
-                    "units": "m s-1",
-                    "long_name": "Beam 3 Velocity",
-                    "epic_code": 1279,
-                }
-            )
+    if "vel1_1277" in ds:
+        ds["vel1_1277"].attrs.update(
+            {
+                "units": "m s-1",
+                "long_name": "Beam 1 Velocity",
+                "epic_code": 1277,
+                "standard_name": "radial_sea_water_velocity_away_from_instrument",
+            }
+        )
+    if "vel2_1278" in ds:
+        ds["vel2_1278"].attrs.update(
+            {
+                "units": "m s-1",
+                "long_name": "Beam 2 Velocity",
+                "epic_code": 1278,
+                "standard_name": "radial_sea_water_velocity_away_from_instrument",
+            }
+        )
+    if "vel3_1279" in ds:
+        ds["vel3_1279"].attrs.update(
+            {
+                "units": "m s-1",
+                "long_name": "Beam 3 Velocity",
+                "epic_code": 1279,
+                "standard_name": "radial_sea_water_velocity_away_from_instrument",
+            }
+        )
 
     if "AGC1_1221" in ds:
         ds["AGC1_1221"].attrs.update(
