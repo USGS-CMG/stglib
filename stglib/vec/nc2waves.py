@@ -144,7 +144,7 @@ def ds_puv(ds):
             ds.attrs["velocity_sample_volume_height"],
             1 / ds.attrs["sample_interval"],
             first_frequency_cutoff=1 / 10,
-            last_frequency_cutoff=1 / 2.5,
+            last_frequency_cutoff=1 / 2,
         )
 
         for k in puvs:
