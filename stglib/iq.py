@@ -313,11 +313,11 @@ def cdf_to_nc(cdf_filename):
         ds = qaqc.trim_maxabs_diff_2d(ds, var)
         ds = qaqc.trim_fliers(ds, var)
 
-    ds = fill_velmean(ds)
-
     # after check for masking vars by other vars
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
+
+    ds = fill_velmean(ds)
 
     ds = utils.create_z(ds)  # added 7/31/2023
 
