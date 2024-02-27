@@ -317,6 +317,8 @@ def cdf_to_nc(cdf_filename):
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
 
+    ds = fill_velmean(ds)
+
     ds = utils.create_z(ds)  # added 7/31/2023
 
     ds = utils.add_standard_names(ds)
@@ -364,12 +366,16 @@ def cdf_to_nc(cdf_filename):
     print("Writing cleaned/trimmed data to .nc file")
 
     nc_filename = dsflow.attrs["filename"] + "flow-a.nc"
-    dsflow.to_netcdf(nc_filename, unlimited_dims=["time"])
+    dsflow.to_netcdf(
+        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+    )
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
     print("Done writing netCDF file", nc_filename)
 
     nc_filename = dsprof.attrs["filename"] + "prof-a.nc"
-    dsprof.to_netcdf(nc_filename, unlimited_dims=["time"])
+    dsprof.to_netcdf(
+        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+    )
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
     print("Done writing netCDF file", nc_filename)
 
@@ -630,6 +636,33 @@ def fill_vbper(ds):
     return ds
 
 
+def fill_velmean(ds):
+    meanvel = "Vel_Mean"
+    velvars = {
+        "Vel_X_Center",
+        "Vel_Z_Center",
+        "Vel_X_Left",
+        "Vel_X_Right",
+        "vel1_1277",
+        "vel2_1278",
+        "vel3_1279",
+        "vel4_1280",
+    }
+
+    print("Filling Vel_Mean data using mask of all velocity variables")
+
+    for k in velvars:
+        ds[meanvel] = ds[meanvel].where(~ds[k].isnull())
+
+    notetxt = "Filled Vel_Mean data using mask of all velocity variables."
+    ds = utils.insert_note(ds, meanvel, notetxt)
+
+    histtext = "Filled Vel_Mean data using mask of all velocity variables."
+    ds = utils.insert_history(ds, histtext)
+
+    return ds
+
+
 def rename_vars(ds):
     # set up dict of instrument -> EPIC variable names
 
@@ -793,7 +826,7 @@ def ds_add_attrs(ds):
 
     ds["Vel_Mean"].attrs.update(
         {
-            "long_name": "Mean velocity (depth-inegrated)",
+            "long_name": "Mean velocity (depth-integrated)",
             "positive_dir": f"{ds.attrs['positive_direction']}",
             "flood_dir": f"{ds.attrs['flood_direction']}",
             "mean_velocity_equation_type": f"{ds.attrs['mean_velocity_equation_type']}",
