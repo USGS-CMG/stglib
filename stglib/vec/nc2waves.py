@@ -130,11 +130,22 @@ def ds_puv(ds):
 
     puvs = {k: np.full_like(ds["time"].values, np.nan, dtype=float) for k in desc}
 
+    if "P_1ac" in ds:
+        pvar = "P_1ac"
+    else:
+        pvar = "P_1"
+
+    if "puv_first_frequency_cutoff" in ds.attrs:
+        first_frequency_cutoff = ds.attrs["puv_first_frequency_cutoff"]
+    else:
+        first_frequency_cutoff = 1 / 10
+
+    if "puv_last_frequency_cutoff" in ds.attrs:
+        last_frequency_cutoff = ds.attrs["puv_last_frequency_cutoff"]
+    else:
+        last_frequency_cutoff = 1 / 2.5
+
     for n in tqdm(range(N)):
-        if "P_1ac" in ds:
-            pvar = "P_1ac"
-        else:
-            pvar = "P_1"
         puv = waves.puv_quick(
             ds[pvar][n, :].values,
             ds["u_1205"][n, :],
@@ -143,8 +154,8 @@ def ds_puv(ds):
             ds.attrs["pressure_sensor_height"],
             ds.attrs["velocity_sample_volume_height"],
             1 / ds.attrs["sample_interval"],
-            first_frequency_cutoff=1 / 10,
-            last_frequency_cutoff=1 / 2,
+            first_frequency_cutoff=first_frequency_cutoff,
+            last_frequency_cutoff=last_frequency_cutoff,
         )
 
         for k in puvs:
