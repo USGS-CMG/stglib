@@ -101,15 +101,16 @@ def atmos_correct(ds, atmpres):
         - met["atmpres"].reindex_like(ds["Pressure"], method="nearest", tolerance="5s")
         - met["atmpres"].attrs["offset"]
     )
-    print(
-        f"Atmospherically correcting using time-series from {atmpres} and offset of {met['atmpres'].offset}"
-    )
     ds["Pressure_ac"].attrs = attrs
 
     ds.attrs["atmospheric_pressure_correction_file"] = atmpres
     ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
         "offset"
     ]
+
+    histtext = f"Atmospherically corrected using time-series from {atmpres} and offset of {met['atmpres'].offset}"
+
+    ds = utils.insert_history(ds, histtext)
 
     return ds
 
@@ -972,15 +973,15 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             and dsattrs["trim_method"].lower() == "water level sl"
         ):
             if "trim_surf_bins" in ds.attrs:
-                vel.attrs[
-                    "note"
-                ] = "Velocity bins trimmed if out of water or if side lobes intersect sea surface (with {} additional surface bins removed).".format(
-                    ds.attrs["trim_surf_bins"]
+                vel.attrs["note"] = (
+                    "Velocity bins trimmed if out of water or if side lobes intersect sea surface (with {} additional surface bins removed).".format(
+                        ds.attrs["trim_surf_bins"]
+                    )
                 )
             else:
-                vel.attrs[
-                    "note"
-                ] = "Velocity bins trimmed if out of water or if side lobes intersect sea surface."
+                vel.attrs["note"] = (
+                    "Velocity bins trimmed if out of water or if side lobes intersect sea surface."
+                )
 
     def add_attributes(var, dsattrs):
         if inst_type == "AQD":
@@ -1213,10 +1214,6 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
         add_attributes(ds["P_1ac"], ds.attrs)
-
-        histtext = "Atmospheric pressure compensated."
-
-        ds = utils.insert_history(ds, histtext)
 
     if "bin_depth" in ds:
         ds["bin_depth"].attrs.update({"units": "m", "long_name": "bin depth"})
