@@ -91,39 +91,39 @@ def ds_puv(ds):
 
     N, M = np.shape(ds["u_1205"].squeeze())
 
+    if "puv_first_frequency_cutoff" in ds.attrs:
+        first_frequency_cutoff = ds.attrs["puv_first_frequency_cutoff"]
+    else:
+        first_frequency_cutoff = 1 / 10
+
+    if "puv_last_frequency_cutoff" in ds.attrs:
+        last_frequency_cutoff = ds.attrs["puv_last_frequency_cutoff"]
+    else:
+        last_frequency_cutoff = 1 / 2.5
+
     desc = {
         "Hrmsp": "Hrms (=Hmo) from pressure",
         "Hrmsu": "Hrms from u,v",
-        "ubr": "Representative orbital velocity amplitude in freq. band ( first_frequency_cutoff <= f <= last_frequency_cutoff ) (m/s)",
+        "ubr": f"Representative orbital velocity amplitude in freq. band ( {first_frequency_cutoff} <= f <= {last_frequency_cutoff} ) (m/s)",
         "omegar": "Representative orbital velocity (radian frequency)",
         "Tr": "Representative orbital velocity period (s)",
         "Tpp": "Peak period from pressure (s)",
         "Tpu": "Peak period from velocity (s)",
         "phir": "Representative orbital velocity direction (angles from x-axis, positive ccw)",
         "azr": "Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees)",
-        "ublo": "ubr in freq. band (f <= first_frequency_cutoff) (m/s)",
-        "ubhi": "ubr in freq. band (f >= last_frequency_cutoff) (m/s)",
-        "ubig": "ubr in infra-gravity freq. band (first_frequency_cutoff f <= 1/20) (m/s)",
+        "ublo": f"ubr in freq. band (f <= {first_frequency_cutoff}) (m/s)",
+        "ubhi": f"ubr in freq. band (f >= {last_frequency_cutoff}) (m/s)",
+        "ubig": f"ubr in infra-gravity freq. band ({first_frequency_cutoff} f <= 1/20) (m/s)",
         "Hrmsp_tail": "Hrms (=Hmo) from pressure with tail applied",
         "Hrmsu_tail": "Hrms from u,v with tail applied",
         "phir_tail": "Representative orbital velocity direction (angles from x-axis, positive ccw) with tail applied",
         "azr_tail": "Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees) with tail applied",
     }
     standard_name = {
-        # "Hrmsp": "sea_surface_wave_significant_height",
-        # "Hrmsu": "sea_surface_wave_significant_height",
-        # "ubr": "Representative orbital velocity amplitude in freq. band ( first_frequency_cutoff <= f <= last_frequency_cutoff ) (m/s)",
-        # "omegar": "Representative orbital velocity (radian frequency)",
-        # "Tr": "Representative orbital velocity period (s)",
         "Tpp": "sea_surface_wave_period_at_variance_spectral_density_maximum",
         "Tpu": "sea_surface_wave_period_at_variance_spectral_density_maximum",
         "phir": "sea_surface_wave_from_direction",
         "azr": "sea_surface_wave_from_direction",
-        # "ublo": "ubr in freq. band (f <= first_frequency_cutoff) (m/s)",
-        # "ubhi": "ubr in freq. band (f >= last_frequency_cutoff) (m/s)",
-        # "ubig": "ubr in infra-gravity freq. band (first_frequency_cutoff f <= 1/20) (m/s)",
-        # "Hrmsp_tail": "sea_surface_wave_significant_height",
-        # "Hrmsu_tail": "sea_surface_wave_significant_height",
         "phir_tail": "sea_surface_wave_from_direction",
         "azr_tail": "sea_surface_wave_from_direction",
     }
@@ -134,16 +134,6 @@ def ds_puv(ds):
         pvar = "P_1ac"
     else:
         pvar = "P_1"
-
-    if "puv_first_frequency_cutoff" in ds.attrs:
-        first_frequency_cutoff = ds.attrs["puv_first_frequency_cutoff"]
-    else:
-        first_frequency_cutoff = 1 / 10
-
-    if "puv_last_frequency_cutoff" in ds.attrs:
-        last_frequency_cutoff = ds.attrs["puv_last_frequency_cutoff"]
-    else:
-        last_frequency_cutoff = 1 / 2.5
 
     for n in tqdm(range(N)):
         puv = waves.puv_quick(
