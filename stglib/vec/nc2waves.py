@@ -158,7 +158,6 @@ def ds_puv(ds):
         if k in standard_name:
             ds["puv_" + k].attrs["standard_name"] = standard_name[k]
 
-    # add in Hs
     ds["puv_Hsp"] = np.sqrt(2) * ds["puv_Hrmsp"]
     ds["puv_Hsp"].attrs["description"] = "Hs computed via sqrt(2) * Hrmsp"
     ds["puv_Hsp"].attrs["standard_name"] = "sea_surface_wave_significant_height"
