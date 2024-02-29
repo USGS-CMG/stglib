@@ -202,4 +202,4 @@ Lowell TCM Hobo
 Vector
 ------
 - ``pressure_sensor_height`` and ``velocity_sample_volume_height`` to specify the elevations of these two sensors.
-- ``puv``: set to ``true`` to compute PUV wave statistics.
+- ``puv``: set to ``true`` to compute PUV wave statistics. **(EXPERIMENTAL)**
