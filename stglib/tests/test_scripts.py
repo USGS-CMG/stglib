@@ -36,6 +36,18 @@ def exo_nc(nc_file, atmpres=None):
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
+def test_exo():
+    exo_raw("glob_attbel5C.txt", "config_bel5C.yaml")
+    exo_nc("bel53Cexo-raw.cdf")
+    exo_raw("glob_att1119a.txt", "1119Aexo_config.yaml")
+    exo_nc("1119Aexo-raw.cdf")
+    exo_raw("glob_att1151b.txt", "1151Bexo_config.yaml")
+    exo_nc("1151Bexo-raw.cdf")
+    # test for atmospheric correction
+    exo_raw("glob_attbel3C.txt", "config_bel3C.yaml")
+    exo_nc("BEL19B3C03exo-raw.cdf", "atmpres_BEL19B3C03exo.cdf")
+
+
 def aqd_raw(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runaqdhdr2cdf.py", glob_att, config_yaml],
@@ -76,18 +88,6 @@ def aqdhr_nc(nc_file):
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
-def test_exo():
-    exo_raw("glob_attbel5C.txt", "config_bel5C.yaml")
-    exo_nc("bel53Cexo-raw.cdf")
-    exo_raw("glob_att1119a.txt", "1119Aexo_config.yaml")
-    exo_nc("1119Aexo-raw.cdf")
-    exo_raw("glob_att1151b.txt", "1151Bexo_config.yaml")
-    exo_nc("1151Bexo-raw.cdf")
-    # test for atmospheric correction
-    exo_raw("glob_attbel3C.txt", "config_bel3C.yaml")
-    exo_nc("BEL19B3C03exo-raw.cdf", "atmpres_BEL19B3C03exo.cdf")
-
-
 def test_aqd():
     aqd_raw("glob_att1118a_b.txt", "aqd1118A_config.yaml")
     aqd_nc("1118ABaqd-raw.cdf")
@@ -121,6 +121,43 @@ def test_aqdturnaround():
     aqdturnaround("NBMCCE02")
     # and ENU coordinates
     aqdturnaround("BEL503")
+
+
+def vec_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runvecdat2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def vec_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [scripts / "runveccdf2nc.py", nc_file, "--atmpres", atmpres]
+    else:
+        runlist = [scripts / "runveccdf2nc.py", nc_file]
+    result = subprocess.run(
+        runlist,
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def vec_wvs(nc_file):
+    result = subprocess.run(
+        [scripts / "runvecnc2waves.py", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_vec():
+    vec_raw("gatts_NBM22CSB.txt", "config_NBM22CSB.yaml")
+    vec_nc("NBMCSBaq01-raw.cdf")
+    vec_wvs("NBMCSBaq01-a.nc")
 
 
 def wxt_raw(glob_att, config_yaml):

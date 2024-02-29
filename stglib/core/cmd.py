@@ -325,6 +325,14 @@ def veccdf2nc_parser():
     return parser
 
 
+def vecnc2waves_parser():
+    description = "Generate Vector waves statistics file"
+    parser = argparse.ArgumentParser(description=description)
+    ncarg(parser)
+
+    return parser
+
+
 def sigmat2cdf_parser():
     description = "Convert Signature files exported in Matlab format to raw .cdf format. Run this script from the directory containing Signature files."
     parser = argparse.ArgumentParser(description=description)

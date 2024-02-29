@@ -5,8 +5,7 @@ import xarray as xr
 
 
 def make_waves_ds(ds, noise=0.75):
-
-    print("Computing waves statistics")
+    print("Computing wave statistics")
     if "P_1ac" in ds:
         presvar = "P_1ac"
     else:
@@ -14,7 +13,10 @@ def make_waves_ds(ds, noise=0.75):
 
     f, Pxx = pressure_spectra(ds[presvar].squeeze(), fs=1 / ds.attrs["sample_interval"])
 
-    z = ds.attrs["initial_instrument_height"]
+    if "pressure_sensor_height" in ds.attrs:
+        z = ds.attrs["pressure_sensor_height"]
+    else:
+        z = ds.attrs["initial_instrument_height"]
     h = ds[presvar].squeeze().mean(dim="sample") + z
 
     k = np.asarray([qkfs(2 * np.pi * f, x) for x in h.values])

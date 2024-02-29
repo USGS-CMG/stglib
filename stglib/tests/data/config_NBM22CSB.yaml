@@ -1,0 +1,7 @@
+Conventions: CF-1.8
+basefile: NBMCSB02
+filename: NBMCSBaq01
+initial_instrument_height: 0.5 # DJN guessed value
+orientation: UP # for Vector instruments, UP is when the head is pointing down
+AnalogInput1: "true"
+AnalogInput1_warmup_samples: 1

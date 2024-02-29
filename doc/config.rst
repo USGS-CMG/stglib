@@ -192,9 +192,14 @@ Onset Hobo
 - ``names``: option for user specified column names (only recommended when code will not read names using automated/default method)
 
 Lowell TCM Hobo
-----------
+---------------
 
 - All the _min, _max, _bad_ens, etc. options available to the EXO.
 - ``skipfooter``: number of lines to skip in the CSV file at the end of the file
 - ``ncols``: number of columns of data to read, starting at first
 - ``names``: option for user specified column names (only recommended when code will not read names using automated/default method)
+
+Vector
+------
+- ``pressure_sensor_height`` and ``velocity_sample_volume_height`` to specify the elevations of these two sensors.
+- ``puv``: set to ``true`` to compute PUV wave statistics. **(EXPERIMENTAL)**

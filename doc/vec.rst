@@ -29,3 +29,17 @@ runveccdf2nc.py
 .. argparse::
    :ref: stglib.core.cmd.veccdf2nc_parser
    :prog: runveccdf2nc.py
+
+Compute wave statistics
+=======================
+
+Use stglib's built-in wave-statistics toolbox to compute a wave-statistics file.
+
+**Experimental** PUV support is also present. Testing welcome!
+
+runvecnc2waves.py
+-----------------
+
+.. argparse::
+   :ref: stglib.core.cmd.vecnc2waves_parser
+   :prog: runvecnc2waves.py
