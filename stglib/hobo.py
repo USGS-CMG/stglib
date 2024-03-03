@@ -57,11 +57,7 @@ def csv_to_cdf(metadata):
     else:
         kwargs["names"] = get_col_names(basefile + ".csv", metadata)
 
-    try:
-        ds = read_hobo(basefile + ".csv", **kwargs)
-    except UnicodeDecodeError:
-        # try reading as Mac OS Western for old versions of Mac Excel
-        ds = read_hobo(basefile + ".csv", encoding="mac-roman", **kwargs)
+    ds = read_hobo(basefile + ".csv", **kwargs)
 
     metadata.pop("skiprows")
     metadata.pop("skipfooter")
@@ -481,7 +477,6 @@ def cdf_to_nc(cdf_filename):
 
     if "vert_dim" in ds.attrs:
         vdim = ds.attrs["vert_dim"]
-        attrsbak = ds[vdim].attrs
         # axis attr set for z in utils.create_z so need to del if other than z
         if ds.attrs["vert_dim"] != "z":
             ds[vdim].attrs["axis"] = "Z"
