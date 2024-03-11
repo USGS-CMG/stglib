@@ -367,7 +367,6 @@ def cdf_to_nc(cdf_filename):
 
     if "vert_dim" in ds.attrs:
         vdim = ds.attrs["vert_dim"]
-        attrsbak = ds[vdim].attrs
         # axis attr set for z in utils.create_z so need to del if other than z
         if ds.attrs["vert_dim"] != "z":
             ds[vdim].attrs["axis"] = "Z"

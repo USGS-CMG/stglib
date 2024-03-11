@@ -1,8 +1,8 @@
 import pkgutil
 import time
+import warnings
 
 import dolfyn
-import xarray as xr
 import xmltodict
 
 from ..aqd import aqdutils
@@ -13,6 +13,13 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     """
     Load a raw .cdf file and generate a processed .nc file
     """
+
+    warnings.warn(
+        "The use of Dolfyn to process Signature data is not currently supported. Use mat_to_cdf instead. Refer to the stglib documentation for more details.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     # TODO: Add atmospheric pressure offset
     print(f"Loading {cdf_filename}")
     start_time = time.time()
