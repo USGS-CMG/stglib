@@ -176,7 +176,6 @@ def csv_to_cdf(metadata):
         if utils.check_fits_in_int32(ds, "obs"):
             ds["obs"].encoding["dtype"] = "i4"
 
-        dstime = ds["time"].values
         ds = ds.drop("time")
 
         ds = ds.rename({"obs": "time"}).set_coords("time").rename({"time": "obs"})
@@ -337,7 +336,7 @@ def get_metadata(ds, var, meta, field="dataheader"):
     thisname = np.where(metanames == var.replace("_", " "))[0][0]
     for v in ["units", "calibration", "ranging"]:
         if v in dh[thisname]:
-            if type(dh[thisname][v]) == dict:
+            if isinstance(dh[thisname][v], dict):
                 ds[var].attrs[v] = str(dh[thisname][v])
             else:
                 ds[var].attrs[v] = dh[thisname][v]
