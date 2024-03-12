@@ -812,6 +812,7 @@ def create_water_depth_var(ds):
             ds[press].squeeze().mean(dim="sample")
             + ds.attrs["initial_instrument_height"]
         )
+
     else:
         ds["water_depth"] = xr.DataArray(
             ds[press].squeeze() + ds.attrs["initial_instrument_height"]
@@ -1267,14 +1268,7 @@ def salinity_from_spcon(spcon):
     K5 = -6.4788
     K6 = 2.5842
 
-    return (
-        K1
-        + K2 * R**0.5
-        + K3 * R
-        + K4 * R ** (3 / 2)
-        + K5 * R**2
-        + K6 * R ** (5 / 2)
-    )
+    return K1 + K2 * R**0.5 + K3 * R + K4 * R ** (3 / 2) + K5 * R**2 + K6 * R ** (5 / 2)
 
 
 def spcon_from_salinity(S):

@@ -983,24 +983,23 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
                     "Velocity bins trimmed if out of water or if side lobes intersect sea surface."
                 )
 
-    def add_attributes(var, dsattrs):
-        if inst_type == "AQD":
-            sn = dsattrs["AQDSerial_Number"]
-        elif inst_type == "VEC":
-            sn = dsattrs["VECSerialNumber"]
-        elif inst_type == "SIG":
-            sn = dsattrs["SIGSerialNo"]
-        """
-        var.attrs.update(
-            {
-                # "serial_number": sn,
-                # "initial_instrument_height": dsattrs["initial_instrument_height"],
-                # "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
-                # "height_depth_units": "m",
-                # "sensor_type": dsattrs["INST_TYPE"],
-            }
-        )
-        """
+    # def add_attributes(var, dsattrs):
+    #     if inst_type == "AQD":
+    #         sn = dsattrs["AQDSerial_Number"]
+    #     elif inst_type == "VEC":
+    #         sn = dsattrs["VECSerialNumber"]
+    #     elif inst_type == "SIG":
+    #         sn = dsattrs["SIGSerialNo"]
+    #
+    #     var.attrs.update(
+    #         {
+    #             # "serial_number": sn,
+    #             # "initial_instrument_height": dsattrs["initial_instrument_height"],
+    #             # "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
+    #             # "height_depth_units": "m",
+    #             # "sensor_type": dsattrs["INST_TYPE"],
+    #         }
+    #     )
 
     # if utils.is_cf(ds):
     #    ds.attrs["featureType"] = "timeSeriesProfile"
@@ -1216,8 +1215,6 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         if "P_1ac_note" in ds.attrs:
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
-        add_attributes(ds["P_1ac"], ds.attrs)
-
     if "bin_depth" in ds:
         ds["bin_depth"].attrs.update({"units": "m", "long_name": "bin depth"})
 
@@ -1321,36 +1318,9 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         )
 
     if not waves:
-        for v in ["AGC_1202", "u_1205", "v_1206", "w_1204"]:
-            if v in ds:
-                add_attributes(ds[v], ds.attrs)
         for v in ["u_1205", "v_1206", "w_1204", "w2_1204"]:
             if v in ds:
                 add_vel_attributes(ds[v], ds.attrs)
-    elif waves:
-        for v in [
-            "vel1_1277",
-            "vel2_1278",
-            "vel3_1279",
-            "AGC1_1221",
-            "AGC2_1222",
-            "AGC3_1223",
-        ]:
-            if v in ds:
-                add_attributes(ds[v], ds.attrs)
-
-    for v in [
-        "P_1",
-        "Tx_1211",
-        "Hdg_1215",
-        "Ptch_1216",
-        "Roll_1217",
-        "Bat_106",
-        "bin_depth",
-        "bindist",
-    ]:
-        if v in ds:
-            add_attributes(ds[v], ds.attrs)
 
     return ds
 
