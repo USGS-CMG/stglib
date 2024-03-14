@@ -75,7 +75,7 @@ def load_sen(basefile):
         header=None,
         delim_whitespace=True,
         parse_dates={"datetime": [2, 0, 1, 3, 4, 5]},
-        date_parser=aqdutils.date_parser,
+        date_format="%Y %m %d %H %M %S",
         usecols=[0, 1, 2, 3, 4, 5, 8, 10, 11, 12, 13, 14, 15, 16],
     )
 

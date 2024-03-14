@@ -115,14 +115,6 @@ def atmos_correct(ds, atmpres):
     return ds
 
 
-def date_parser(year, month, day, hour, minute, second):
-    """read csv and parse dates
-    https://stackoverflow.com/q/27112591
-    """
-
-    return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second
-
-
 def add_delta_t(ds, waves=False):
     """
     set DELTA_T attribute for EPIC compliance.
