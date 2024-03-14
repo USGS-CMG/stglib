@@ -1,9 +1,8 @@
+import numpy as np
 import pandas as pd
 import xarray as xr
-import numpy as np
 
 from .aqd import aqdutils
-
 
 # def read_argonaut(filbase):
 #     return pd.read_csv(
@@ -20,7 +19,7 @@ def read_dat_raw(filnam):
         filnam,
         delim_whitespace=True,
         parse_dates={"time": ["Year", "Month", "Day", "Hour", "Minute", "Second"]},
-        date_parser=aqdutils.date_parser,
+        date_format="%Y %m %d %H %M %S",
     )
     df.set_index("time", inplace=True)
     return df
@@ -50,7 +49,7 @@ def read_vel_snr_std(filbase):
         delim_whitespace=True,
         header=[0, 1],
         parse_dates=[[1, 2, 3, 4, 5, 6]],
-        date_parser=aqdutils.date_parser,
+        date_format="%Y %m %d %H %M %S",
     )
 
     df = rename_columns(df)
@@ -98,7 +97,7 @@ def read_vel_snr_std(filbase):
         delim_whitespace=True,
         header=[0, 1],
         parse_dates=[[1, 2, 3, 4, 5, 6]],
-        date_parser=aqdutils.date_parser,
+        date_format="%Y %m %d %H %M %S",
     )
 
     snr = rename_columns(snr)
@@ -116,7 +115,7 @@ def read_vel_snr_std(filbase):
         delim_whitespace=True,
         header=[0, 1],
         parse_dates=[[1, 2, 3, 4, 5, 6]],
-        date_parser=aqdutils.date_parser,
+        date_format="%Y %m %d %H %M %S",
     )
 
     std = rename_columns(std)
@@ -145,7 +144,3 @@ def read_ctl(filnam):
             row = f.readline().rstrip()
 
         f.close()
-
-
-# parse_dates={'datetime': [2, 0, 1, 3, 4, 5]},
-# date_parser=aqdutils.date_parser,
