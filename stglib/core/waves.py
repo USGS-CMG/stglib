@@ -55,7 +55,7 @@ def make_waves_ds(ds, noise=0.75):
     spec["wh_4061"] = xr.DataArray(make_Hs(spec["m0"]), dims="time")
     spec["wp_4060"] = xr.DataArray(make_Tm(spec["m0"], spec["m2"]), dims="time")
     spec["wp_peak"] = xr.DataArray(make_Tp(spec["pspec"]), dims="time")
-    spec["kh"] = xr.DataArray(k, dims=("time", "frequency"))
+    spec["k"] = xr.DataArray(k, dims=("time", "frequency"))
 
     return spec
 
