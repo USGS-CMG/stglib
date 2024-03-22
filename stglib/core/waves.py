@@ -486,6 +486,8 @@ def puv_quick(
         Snp_tail = np.full_like(frequencies, np.nan)
     else:
         Snp_tail = make_tail(frequencies, Gpp / Hp**2, tailind)
+    # skip the zero frequency -- energy persists...
+    Snp_tail[0] = np.nan
 
     Kp_u = transfer_function(k, depth, height_of_velocity)
     tailind_u, noisecutind_u, fpeakcutind_u, Kpcutind_u = define_cutoff(
@@ -496,6 +498,8 @@ def puv_quick(
         Snu_tail = np.full_like(frequencies, np.nan)
     else:
         Snu_tail = make_tail(frequencies, Guv / Huv**2, tailind_u)
+    # skip the zero frequency -- energy persists...
+    Snu_tail[0] = np.nan
 
     # Determine rms wave height (multiply by another sqrt(2) for Hs)
     # Thornton and Guza say Hrms = sqrt(8 mo)
