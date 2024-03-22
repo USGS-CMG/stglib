@@ -171,14 +171,14 @@ def ds_puv(ds):
     ds["puv_Hsp_tail"] = np.sqrt(2) * ds["puv_Hrmsp_tail"]
     ds["puv_Hsp_tail"].attrs[
         "description"
-    ] = "Hs computed via sqrt(2) * Hrmsp with tail applied"
+    ] = "Hs computed via sqrt(2) * Hrmsp with f^-4 tail applied"
     ds["puv_Hsp_tail"].attrs["standard_name"] = "sea_surface_wave_significant_height"
     ds["puv_Hsp_tail"].attrs["units"] = "m"
 
     ds["puv_Hsu_tail"] = np.sqrt(2) * ds["puv_Hrmsu_tail"]
     ds["puv_Hsu_tail"].attrs[
         "description"
-    ] = "Hs computed via sqrt(2) * Hrmsu with tail applied"
+    ] = "Hs computed via sqrt(2) * Hrmsu with f^-4 tail applied"
     ds["puv_Hsu_tail"].attrs["standard_name"] = "sea_surface_wave_significant_height"
     ds["puv_Hsu_tail"].attrs["units"] = "m"
 
