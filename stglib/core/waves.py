@@ -481,29 +481,19 @@ def puv_quick(
     fclip = frequencies[ff:lf]
 
     Kp = transfer_function(k, depth, height_of_pressure)
-    if "waves_fractional_noise" in ds.attrs:
-        noise = ds.attrs["waves_fractional_noise"]
-    else:
-        noise = 0.9
-    tailind, noisecutind, fpeakcutind, Kpcutind = define_cutoff(
-        frequencies, Gpp, Kp, noise=noise
-    )
+    tailind, noisecutind, fpeakcutind, Kpcutind = define_cutoff(frequencies, Gpp, Kp)
     if np.isnan(tailind):
-        Snp_tail = np.nan
+        Snp_tail = np.full_like(frequencies, np.nan)
     else:
         Snp_tail = make_tail(frequencies, Gpp / Hp**2, tailind)
 
     Kp_u = transfer_function(k, depth, height_of_velocity)
-    if "waves_fractional_noise" in ds.attrs:
-        noise = ds.attrs["waves_fractional_noise"]
-    else:
-        noise = 0.9
     tailind_u, noisecutind_u, fpeakcutind_u, Kpcutind_u = define_cutoff(
-        frequencies, Guv, Kp_u, noise=noise
+        frequencies, Guv, Kp_u
     )
 
     if np.isnan(tailind_u):
-        Snu_tail = np.nan
+        Snu_tail = np.full_like(frequencies, np.nan)
     else:
         Snu_tail = make_tail(frequencies, Guv / Huv**2, tailind_u)
 
