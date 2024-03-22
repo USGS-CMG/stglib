@@ -114,21 +114,28 @@ def ds_puv(ds):
         "ublo": f"ubr in freq. band (f <= {first_frequency_cutoff}) (m/s)",
         "ubhi": f"ubr in freq. band (f >= {last_frequency_cutoff}) (m/s)",
         "ubig": f"ubr in infra-gravity freq. band ({first_frequency_cutoff} f <= 1/20) (m/s)",
-        "Hrmsp_tail": "Hrms (=Hmo) from pressure with tail applied",
-        "Hrmsu_tail": "Hrms from u,v with tail applied",
-        "phir_tail": "Representative orbital velocity direction (angles from x-axis, positive ccw) with tail applied",
-        "azr_tail": "Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees) with tail applied",
+        "Hrmsp_tail": "Hrms (=Hmo) from pressure with f^-4 tail applied",
+        "Hrmsu_tail": "Hrms from u,v with f^-4 tail applied",
+        "phir_tail": "Representative orbital velocity direction (angles from x-axis, positive ccw) with f^-4 tail applied",
+        "azr_tail": "Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees) with f^-4 tail applied",
+        "Snp": "Pressure-derived non-directional wave energy spectrum",
+        "Snp_tail": "Pressure-derived non-directional wave energy spectrum with f^-4 tail applied",
+        "frequencies": "Frequency",
+        "fclip": "Frequency",
     }
     standard_name = {
         "Tpp": "sea_surface_wave_period_at_variance_spectral_density_maximum",
         "Tpu": "sea_surface_wave_period_at_variance_spectral_density_maximum",
         "phir": "sea_surface_wave_from_direction",
-        "azr": "sea_surface_wave_from_direction",
         "phir_tail": "sea_surface_wave_from_direction",
+        "azr": "sea_surface_wave_from_direction",
         "azr_tail": "sea_surface_wave_from_direction",
+        "Snp": "sea_surface_wave_variance_spectral_density",
+        "Snp_tail": "sea_surface_wave_variance_spectral_density",
     }
 
-    puvs = {k: np.full_like(ds["time"].values, np.nan, dtype=float) for k in desc}
+    # puvs = {k: np.full_like(ds["time"].values, np.nan, dtype=float) for k in desc}
+    puvs = {k: [] for k in desc}
 
     if "P_1ac" in ds:
         pvar = "P_1ac"
@@ -149,10 +156,35 @@ def ds_puv(ds):
         )
 
         for k in puvs:
-            puvs[k][n] = puv[k]
+            # puvs[k][n] = puv[k]
+            puvs[k].append(puv[k])
 
     for k in puvs:
-        ds["puv_" + k] = xr.DataArray(puvs[k], dims="time")
+        puvs[k] = np.array(puvs[k])
+
+    ds["puv_frequency"] = xr.DataArray(
+        puvs["frequencies"][0],
+        dims="puv_frequency",
+        attrs={"standard_name": "sea_surface_wave_frequency", "units": "Hz"},
+    )
+    ds["puv_frequency_clipped"] = xr.DataArray(
+        puvs["fclip"][0],
+        dims="puv_frequency_clipped",
+        attrs={"standard_name": "sea_surface_wave_frequency", "units": "Hz"},
+    )
+
+    for k in puvs:
+        if k == "frequencies" or k == "fclip":
+            continue
+        if puvs[k].ndim == 1:
+            ds["puv_" + k] = xr.DataArray(puvs[k], dims="time")
+        elif puvs[k].ndim == 2:
+            try:
+                ds["puv_" + k] = xr.DataArray(puvs[k], dims=["time", "puv_frequency"])
+            except ValueError:
+                ds["puv_" + k] = xr.DataArray(
+                    puvs[k], dims=["time", "puv_frequency_clipped"]
+                )
         if k in desc:
             ds["puv_" + k].attrs["description"] = desc[k]
         if k in standard_name:
