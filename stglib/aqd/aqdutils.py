@@ -112,6 +112,9 @@ def atmos_correct(ds, atmpres):
 
     ds = utils.insert_history(ds, histtext)
 
+    # Also add it as a note
+    ds["Pressure_ac"].attrs["note"] = histtext
+
     return ds
 
 
