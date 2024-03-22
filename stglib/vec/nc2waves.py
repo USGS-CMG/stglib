@@ -102,18 +102,18 @@ def ds_puv(ds):
         last_frequency_cutoff = 1 / 2.5
 
     desc = {
-        "Hrmsp": "Hrms (=Hmo) from pressure",
-        "Hrmsu": "Hrms from u,v",
-        "ubr": f"Representative orbital velocity amplitude in freq. band ( {first_frequency_cutoff} <= f <= {last_frequency_cutoff} ) (m/s)",
+        "Hrmsp": f"Hrms (=Hmo) from pressure in freq. band {first_frequency_cutoff} <= f <= {last_frequency_cutoff}",
+        "Hrmsu": f"Hrms from u,v in freq. band {first_frequency_cutoff} <= f <= {last_frequency_cutoff}",
+        "ubr": f"Representative orbital velocity amplitude in freq. band {first_frequency_cutoff} <= f <= {last_frequency_cutoff}",
         "omegar": "Representative orbital velocity (radian frequency)",
-        "Tr": "Representative orbital velocity period (s)",
-        "Tpp": "Peak period from pressure (s)",
-        "Tpu": "Peak period from velocity (s)",
+        "Tr": f"Representative orbital velocity period {first_frequency_cutoff} <= f <= {last_frequency_cutoff}",
+        "Tpp": f"Peak period from pressure {first_frequency_cutoff} <= f <= {last_frequency_cutoff}",
+        "Tpu": f"Peak period from velocity {first_frequency_cutoff} <= f <= {last_frequency_cutoff}",
         "phir": "Representative orbital velocity direction (angles from x-axis, positive ccw)",
         "azr": "Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees)",
-        "ublo": f"ubr in freq. band (f <= {first_frequency_cutoff}) (m/s)",
-        "ubhi": f"ubr in freq. band (f >= {last_frequency_cutoff}) (m/s)",
-        "ubig": f"ubr in infra-gravity freq. band ({first_frequency_cutoff} f <= 1/20) (m/s)",
+        "ublo": f"ubr in freq. band f <= {first_frequency_cutoff}",
+        "ubhi": f"ubr in freq. band f >= {last_frequency_cutoff}",
+        "ubig": f"ubr in infra-gravity freq. band {first_frequency_cutoff} f <= 1/20",
         "Hrmsp_tail": "Hrms (=Hmo) from pressure with f^-4 tail applied",
         "Hrmsu_tail": "Hrms from u,v with f^-4 tail applied",
         "phir_tail": "Representative orbital velocity direction (angles from x-axis, positive ccw) with f^-4 tail applied",
@@ -132,6 +132,26 @@ def ds_puv(ds):
         "azr_tail": "sea_surface_wave_from_direction",
         "Snp": "sea_surface_wave_variance_spectral_density",
         "Snp_tail": "sea_surface_wave_variance_spectral_density",
+    }
+    unit = {
+        "Hrmsp": "m",
+        "Hrmsu": "m",
+        "ubr": "m s-1",
+        "omegar": "rad s-1",
+        "Tr": "s",
+        "Tpp": "s",
+        "Tpu": "s",
+        # "phir": "Representative orbital velocity direction (angles from x-axis, positive ccw)",
+        "azr": "degrees",
+        "ublo": "m s-1",
+        "ubhi": "m s-1",
+        "ubig": "m s-1",
+        "Hrmsp_tail": "m",
+        "Hrmsu_tail": "m",
+        # "phir_tail": "Representative orbital velocity direction (angles from x-axis, positive ccw) with f^-4 tail applied",
+        # "azr_tail": "Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees) with f^-4 tail applied",
+        # "Snp": "Pressure-derived non-directional wave energy spectrum",
+        # "Snp_tail": "Pressure-derived non-directional wave energy spectrum with f^-4 tail applied",
     }
 
     # puvs = {k: np.full_like(ds["time"].values, np.nan, dtype=float) for k in desc}
@@ -189,6 +209,8 @@ def ds_puv(ds):
             ds["puv_" + k].attrs["description"] = desc[k]
         if k in standard_name:
             ds["puv_" + k].attrs["standard_name"] = standard_name[k]
+        if k in unit:
+            ds["puv_" + k].attrs["units"] = unit[k]
 
     ds["puv_Hsp"] = np.sqrt(2) * ds["puv_Hrmsp"]
     ds["puv_Hsp"].attrs["description"] = "Hs computed via sqrt(2) * Hrmsp"
