@@ -1,3 +1,5 @@
+import warnings
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal as spsig
@@ -9,6 +11,9 @@ def make_waves_ds(ds, noise=0.75):
     if "P_1ac" in ds:
         presvar = "P_1ac"
     else:
+        warnings.warn(
+            "atmospherically corrected pressure not available; using raw pressure to compute wave statistics"
+        )
         presvar = "P_1"
 
     f, Pxx = pressure_spectra(ds[presvar].squeeze(), fs=1 / ds.attrs["sample_interval"])
@@ -16,6 +21,9 @@ def make_waves_ds(ds, noise=0.75):
     if "pressure_sensor_height" in ds.attrs:
         z = ds.attrs["pressure_sensor_height"]
     else:
+        warnings.warn(
+            "pressure_sensor_height not specified; using initial_instrument_height to compute wave statistics"
+        )
         z = ds.attrs["initial_instrument_height"]
     h = ds[presvar].squeeze().mean(dim="sample") + z
 
