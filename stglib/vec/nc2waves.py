@@ -23,7 +23,7 @@ def nc_to_waves(nc_filename):
             dopuv = True
 
     if dopuv:
-        ds = ds_puv(ds)
+        ds = do_puv(ds)
 
     # keep burst mean P_1 and P_1ac for reference
     for k in ["P_1", "P_1ac"]:
@@ -86,7 +86,7 @@ def nc_to_waves(nc_filename):
     return ds
 
 
-def ds_puv(ds):
+def do_puv(ds):
     print("Running puv_quick")
 
     N, M = np.shape(ds["u_1205"].squeeze())
