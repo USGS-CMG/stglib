@@ -89,6 +89,10 @@ def nc_to_waves(nc_filename):
 def do_puv(ds):
     print("Running puv_quick")
 
+    for k in ["pressure_sensor_height", "velocity_sample_volume_height"]:
+        if k not in ds.attrs:
+            raise KeyError(f"{k} must be specified to run PUV")
+
     N, M = np.shape(ds["u_1205"].squeeze())
 
     if "puv_first_frequency_cutoff" in ds.attrs:
