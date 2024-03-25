@@ -25,10 +25,14 @@ def cdf_to_nc(cdf_filename, atmpres=False, writefile=True):
     # Make bin_depth variable
     ds = aqdutils.make_bin_depth(ds, waves=True)
 
-    ds = cdf2nc.ds_swap_dims(ds)
+    ds = aqdutils.ds_swap_dims(ds)
     # Rename DataArrays within Dataset for EPIC compliance
     # and append depth coord to velocities and amplitudes
     ds = aqdutils.ds_rename(ds, waves=True)
+
+    # Drop unused variables
+    ds = cdf2nc.ds_drop(ds)
+
     # add EPIC and CMG attributes, set _FillValue
     ds = aqdutils.ds_add_attrs(ds, waves=True)
 
@@ -47,10 +51,10 @@ def cdf_to_nc(cdf_filename, atmpres=False, writefile=True):
     ds = utils.add_standard_names(ds)
 
     # Cast vars as float32
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            # cast as float32
-            ds = utils.set_var_dtype(ds, var)
+    # for var in ds.variables:
+    #     if (var not in ds.coords) and ("time" not in var):
+    #         # cast as float32
+    #         ds = utils.set_var_dtype(ds, var)
 
     # Ensure no _FillValue is assigned to coordinates
     ds = utils.ds_coord_no_fillvalue(ds)
