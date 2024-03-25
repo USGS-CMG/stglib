@@ -96,3 +96,4 @@ NBMCSB02.dat filter=lfs diff=lfs merge=lfs -text
 BEL503.wad filter=lfs diff=lfs merge=lfs -text
 BEL503.whd filter=lfs diff=lfs merge=lfs -text
 BEL5C_wvsconfig.yaml filter=lfs diff=lfs merge=lfs -text
+atmpres-BEL5Cwvs.cdf filter=lfs diff=lfs merge=lfs -text
