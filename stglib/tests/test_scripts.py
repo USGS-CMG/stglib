@@ -88,6 +88,37 @@ def aqdhr_nc(nc_file):
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
+def aqd_wvs_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runwvswad2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def aqd_wvs_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [scripts / "runwvscdf2nc.py", nc_file, "--atmpres", atmpres]
+    else:
+        runlist = [scripts / "runwvscdf2nc.py", nc_file]
+    result = subprocess.run(
+        runlist,
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def aqd_wvs_wvs(nc_file):
+    result = subprocess.run(
+        [scripts / "runwvsnc2waves.py", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done creating" in result.stdout.decode("utf8")
+
+
 def test_aqd():
     aqd_raw("glob_att1118a_b.txt", "aqd1118A_config.yaml")
     aqd_nc("1118ABaqd-raw.cdf")
@@ -103,6 +134,12 @@ def test_aqdhr():
     aqdhr_nc("CHC14TDH-raw.cdf")
     aqdhr_raw("glob_att1113_aqdHR_tst.txt", "aqdhr1113tst_config.yaml")
     aqdhr_nc("1113aqdHR-raw.cdf")
+
+
+def test_aqd_wvs():
+    aqd_wvs_raw("glob_attbel5C.txt", "BEL5C_wvsconfig.yaml")
+    aqd_wvs_nc("BEL19B5C04aqdwv-raw.cdf", atmpres="atmpres-BEL5Cwvs.cdf")
+    aqd_wvs_wvs("BEL19B5C04aqdwvb-cal.nc")
 
 
 def aqdturnaround(basefile):

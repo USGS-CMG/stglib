@@ -395,14 +395,20 @@ def ds_add_wave_attrs(ds):
 
     ds["pspec"].attrs.update(
         {
-            "long_name": "Pressure derived non-directional wave energy spectrum",
+            "long_name": "Pressure-derived non-directional wave energy spectrum",
             "units": "m^2/Hz",
             "note": "Use caution: all spectra are provisional",
             "standard_name": "sea_surface_wave_variance_spectral_density",
         }
     )
 
-    ds["frequency"].attrs.update({"long_name": "Frequency", "units": "Hz"})
+    ds["frequency"].attrs.update(
+        {
+            "standard_name": "sea_surface_wave_frequency",
+            "long_name": "Frequency",
+            "units": "Hz",
+        }
+    )
 
     if "direction" in ds.coords:
         ds["direction"].attrs.update(

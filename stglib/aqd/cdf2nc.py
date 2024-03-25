@@ -155,6 +155,9 @@ def ds_drop(ds):
         "AnalogInput2",
         "jd",
         "Depth",
+        "avgamp1",
+        "avgamp2",
+        "avgamp3",
     ]
 
     if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"].lower() == "true"):
