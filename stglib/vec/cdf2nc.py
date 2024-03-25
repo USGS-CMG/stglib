@@ -119,10 +119,21 @@ def set_orientation(VEL, T):
         # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
         if "NAVD88_ref" in VEL.attrs:
             elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
+            elev_vel = (
+                VEL.attrs["NAVD88_ref"] + VEL.attrs["velocity_sample_volume_height"]
+            )
+            elev_pres = VEL.attrs["NAVD88_ref"] + VEL.attrs["pressure_sensor_height"]
         elif "NAVD88_elevation_ref" in VEL.attrs:
             elev = (
                 VEL.attrs["NAVD88_elevation_ref"]
                 + VEL.attrs["transducer_offset_from_bottom"]
+            )
+            elev_vel = (
+                VEL.attrs["NAVD88_elevation_ref"]
+                + VEL.attrs["velocity_sample_volume_height"]
+            )
+            elev_pres = (
+                VEL.attrs["NAVD88_elevation_ref"] + VEL.attrs["pressure_sensor_height"]
             )
         long_name = "height relative to NAVD88"
         geopotential_datum_name = "NAVD88"
@@ -130,6 +141,14 @@ def set_orientation(VEL, T):
         elev = (
             VEL.attrs["height_above_geopotential_datum"]
             + VEL.attrs["transducer_offset_from_bottom"]
+        )
+        elev_vel = (
+            VEL.attrs["height_above_geopotential_datum"]
+            + VEL.attrs["velocity_sample_volume_height"]
+        )
+        elev_pres = (
+            VEL.attrs["height_above_geopotential_datum"]
+            + VEL.attrs["pressure_sensor_height"]
         )
         long_name = f"height relative to {VEL.attrs['geopotential_datum_name']}"
         geopotential_datum_name = VEL.attrs["geopotential_datum_name"]

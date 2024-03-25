@@ -15,7 +15,7 @@ def dat_to_cdf(metadata):
         basefile = metadata["prefix"] + basefile
 
     utils.check_valid_globalatts_metadata(metadata)
-    aqdutils.check_valid_config_metadata(metadata)
+    aqdutils.check_valid_config_metadata(metadata, inst_type="VEC")
 
     # get instrument metadata from the HDR file
     instmeta = read_vec_hdr(basefile)
