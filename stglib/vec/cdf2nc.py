@@ -258,9 +258,11 @@ def associate_z_coord(ds):
         "cor2_1286",
         "cor3_1287",
     ]:
-        ds[v] = ds[v].expand_dims("zvel")
+        if v in ds:
+            ds[v] = ds[v].expand_dims("zvel")
 
     for v in ["P_1ac", "P_1"]:
-        ds[v] = ds[v].expand_dims("zpres")
+        if v in ds:
+            ds[v] = ds[v].expand_dims("zpres")
 
     return ds

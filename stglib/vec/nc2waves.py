@@ -167,11 +167,7 @@ def do_puv(ds):
         pvar = "P_1ac"
     else:
         pvar = "P_1"
-        warnings.warn(
-            "Computing wave statistics on non-atmospherically corrected pressure"
-        )
 
-    print(ds[pvar].isel(time=0).shape)
     for n in tqdm(range(N)):
         puv = waves.puv_quick(
             ds[pvar].isel(time=n).squeeze(),

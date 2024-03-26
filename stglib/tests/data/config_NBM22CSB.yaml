@@ -1,7 +1,14 @@
 Conventions: CF-1.8
 basefile: NBMCSB02
-filename: NBMCSBaq01
+filename: NBMCSBvec01
 initial_instrument_height: 0.5 # DJN guessed value
 orientation: UP # for Vector instruments, UP is when the head is pointing down
 AnalogInput1: "true"
 AnalogInput1_warmup_samples: 1
+puv: "true"
+puv_first_frequency_cutoff: 0.1
+puv_last_frequency_cutoff: 0.5
+pressure_sensor_height: 0.62 # from NMB22-depB-mooringLogs-postDep-noPMB.pdf
+velocity_sample_volume_height: 0.25 # from NMB22-depB-mooringLogs-postDep-noPMB.pdf
+wp_max: 10
+wh_min: 0.02
