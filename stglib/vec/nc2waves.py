@@ -138,6 +138,8 @@ def do_puv(ds):
         "azr_tail": "sea_surface_wave_from_direction",
         "Snp": "sea_surface_wave_variance_spectral_density",
         "Snp_tail": "sea_surface_wave_variance_spectral_density",
+        "Snu": "sea_surface_wave_variance_spectral_density",
+        "Snu_tail": "sea_surface_wave_variance_spectral_density",
     }
     unit = {
         "Hrmsp": "m",
@@ -147,13 +149,17 @@ def do_puv(ds):
         "Tr": "s",
         "Tpp": "s",
         "Tpu": "s",
-        # "phir": "Representative orbital velocity direction (angles from x-axis, positive ccw)",
+        "phir": "radians",
+        "phir_tail": "radians",
         "azr": "degrees",
+        "azr_tail": "degrees",
         "ublo": "m s-1",
         "ubhi": "m s-1",
         "ubig": "m s-1",
         "Hrmsp_tail": "m",
         "Hrmsu_tail": "m",
+        "Snp": "m2/Hz",
+        "Snp_tail": "m2/Hz",
         # "phir_tail": "Representative orbital velocity direction (angles from x-axis, positive ccw) with f^-4 tail applied",
         # "azr_tail": "Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees) with f^-4 tail applied",
         # "Snp": "Pressure-derived non-directional wave energy spectrum",
@@ -168,34 +174,26 @@ def do_puv(ds):
     else:
         pvar = "P_1"
 
-    for n in tqdm(range(N)):
-        puv = waves.puv_quick(
-            ds[pvar].isel(time=n).squeeze(),
-            ds["u_1205"].isel(time=n).squeeze(),
-            ds["v_1206"].isel(time=n).squeeze(),
-            ds[pvar].isel(time=n).squeeze().mean().values
-            + ds.attrs["pressure_sensor_height"],
-            ds.attrs["pressure_sensor_height"],
-            ds.attrs["velocity_sample_volume_height"],
-            1 / ds.attrs["sample_interval"],
-            first_frequency_cutoff=first_frequency_cutoff,
-            last_frequency_cutoff=last_frequency_cutoff,
-        )
-
-        for k in puvs:
-            # puvs[k][n] = puv[k]
-            puvs[k].append(puv[k])
-
-    for k in puvs:
-        puvs[k] = np.array(puvs[k])
+    puvs = waves.puv_quick_vectorized(
+        ds[pvar].squeeze(),
+        ds["u_1205"].squeeze(),
+        ds["v_1206"].squeeze(),
+        ds[pvar].squeeze().mean(dim="sample").values
+        + ds.attrs["pressure_sensor_height"],
+        ds.attrs["pressure_sensor_height"],
+        ds.attrs["velocity_sample_volume_height"],
+        1 / ds.attrs["sample_interval"],
+        first_frequency_cutoff=first_frequency_cutoff,
+        last_frequency_cutoff=last_frequency_cutoff,
+    )
 
     ds["puv_frequency"] = xr.DataArray(
-        puvs["frequencies"][0],
+        puvs["frequencies"],
         dims="puv_frequency",
         attrs={"standard_name": "sea_surface_wave_frequency", "units": "Hz"},
     )
     ds["puv_frequency_clipped"] = xr.DataArray(
-        puvs["fclip"][0],
+        puvs["fclip"],
         dims="puv_frequency_clipped",
         attrs={"standard_name": "sea_surface_wave_frequency", "units": "Hz"},
     )
@@ -242,12 +240,5 @@ def do_puv(ds):
     ] = "Hs computed via sqrt(2) * Hrmsu with f^-4 tail applied"
     ds["puv_Hsu_tail"].attrs["standard_name"] = "sea_surface_wave_significant_height"
     ds["puv_Hsu_tail"].attrs["units"] = "m"
-
-    ds["puv_Tpp"].attrs["units"] = "s"
-
-    ds["puv_Tpu"].attrs["units"] = "s"
-
-    ds["puv_azr"].attrs["units"] = "degrees"
-    ds["puv_azr_tail"].attrs["units"] = "degrees"
 
     return ds

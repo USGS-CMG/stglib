@@ -395,6 +395,8 @@ def puv_quick_vectorized(
     ----------------
     converted to python and updated by Marinna Martini from Chris Sherwood's puvq.m.
     puvq.m also had contributions from Laura Landerman and Patrick Dickudt
+
+    DJN vectorized version for speed improvements
     """
 
     gravity = 9.81  # m/s^2
@@ -489,8 +491,8 @@ def puv_quick_vectorized(
         for burst in range(Gpp.shape[0])
     ]
     Snp_tail = np.array(Snp_tail)
-    # # skip the zero frequency -- energy persists...
-    # Snp_tail[0] = np.nan
+    # skip the zero frequency -- energy persists...
+    Snp_tail[:, 0] = np.nan
 
     Kp_u = transfer_function(k, depth, height_of_velocity)
     tailind_u, noisecutind_u, fpeakcutind_u, Kpcutind_u = zip(
@@ -502,8 +504,8 @@ def puv_quick_vectorized(
         for burst in range(Guv.shape[0])
     ]
     Snu_tail = np.array(Snu_tail)
-    # # skip the zero frequency -- energy persists...
-    # Snu_tail[0] = np.nan
+    # skip the zero frequency -- energy persists...
+    Snu_tail[:, 0] = np.nan
 
     # Determine rms wave height (multiply by another sqrt(2) for Hs)
     # Thornton and Guza say Hrms = sqrt(8 mo)
@@ -549,16 +551,15 @@ def puv_quick_vectorized(
     # Svv = sqrt(Gvv);
     # Suv = sqrt(Guv);
     # but I (CRS) think eqn. 24 is based on u^2, so following is ok:
-    rr = np.corrcoef(u, v)
-    print(f"{rr.shape=}")
-    print(rr)
-    # FIXME: This ortest is broken in the vectorized code
-    ortest = np.sign(rr[1][0])
+    rr = np.corrcoef(u, v).diagonal(u.shape[0])
+    ortest = np.sign(rr)
     phir = np.arctan2(
         ortest * np.sum(Gvv[:, ff:lf] * df, axis=-1),
         np.sum(Guu[:, ff:lf] * df, axis=-1),
     )
-    phir_tail = np.arctan2(ortest * np.sum(Gvv * df), np.sum(Guu * df))
+    phir_tail = np.arctan2(
+        ortest * np.sum(Gvv * df, axis=-1), np.sum(Guu * df, axis=-1)
+    )
 
     # convert to degrees; convert to geographic azimuth (0-360, 0=north)
     azr = 90 - (180 / np.pi) * phir
@@ -570,15 +571,15 @@ def puv_quick_vectorized(
     if 1 < ff:
         ublo = np.sqrt(2 * np.sum(Guv[:, 1:ff] * df, axis=-1))
     else:
-        ublo = 0
+        ublo = np.zeros_like(Hrmsp)
     if ig > ff:
         ubig = np.sqrt(2 * np.sum(Guv[:, ff:ig] * df, axis=-1))
     else:
-        ubig = 0
+        ubig = np.zeros_like(Hrmsp)
     if lf < fft_length:
         ubhi = np.sqrt(2 * np.sum(Guv[:, lf:] * df, axis=-1))
     else:
-        ubhi = 0
+        ubhi = np.zeros_like(Hrmsp)
 
     ws = {
         "Hrmsp": Hrmsp,
