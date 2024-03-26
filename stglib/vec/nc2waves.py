@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import xarray as xr
 from tqdm import tqdm
@@ -168,10 +170,11 @@ def do_puv(ds):
 
     for n in tqdm(range(N)):
         puv = waves.puv_quick(
-            ds[pvar][n, :].values,
-            ds["u_1205"][n, :],
-            ds["v_1206"][n, :],
-            ds[pvar][n, :].mean().values + ds.attrs["pressure_sensor_height"],
+            ds[pvar].isel(time=n).squeeze(),
+            ds["u_1205"].isel(time=n).squeeze(),
+            ds["v_1206"].isel(time=n).squeeze(),
+            ds[pvar].isel(time=n).squeeze().mean().values
+            + ds.attrs["pressure_sensor_height"],
             ds.attrs["pressure_sensor_height"],
             ds.attrs["velocity_sample_volume_height"],
             1 / ds.attrs["sample_interval"],

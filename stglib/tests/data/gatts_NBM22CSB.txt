@@ -1,8 +1,8 @@
 MOORING;	NBM22CSB
 PROGRAM;	Sediment Transport in Coastal Environments
-PROJECT;	Temporal variability in sediment delivery to a North and a Central San Francisco Bay salt marsh 
+PROJECT;	Temporal variability in sediment delivery to a North and a Central San Francisco Bay salt marsh
 EXPERIMENT;	NBM22
-Region;	Northern and Central San Francisco Bay 
+Region;	Northern and Central San Francisco Bay
 CruiseID;	2022-619-FA
 SciPi;	Jessica Lacy, Samantha McGill
 Year;	2022
@@ -11,11 +11,8 @@ platform_type;	Tripod
 latitude;	37.92865
 longitude;  -122.48343
 WATER_DEPTH;	2.2
-WATER_DEPTH_source; Ships echosounder	
+WATER_DEPTH_source; Ships echosounder
 WATER_DEPTH_note; Water depth at time of deployment
-NAVD88_elevation_ref;	999
-NAVD88_elevation_source;  RTK survey
-elevation_datum;	NAVD88
 Deployment_date;	14-JUN-2022 19:13
 Recovery_date;	10-AUG-2022 18:19
 OFAFunding;	 San Francisco Bay Regional Monitoring Program, San Francisco Estuary Institute
@@ -29,5 +26,5 @@ COORD_SYSTEM;	GEOGRAPHIC
 Conventions;	PMEL/EPIC
 POS_CONST;	0
 DEPTH_CONST;	0
-history;	
+history;
 DATA_CMNT; none

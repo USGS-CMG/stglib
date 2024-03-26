@@ -193,8 +193,8 @@ def vec_wvs(nc_file):
 
 def test_vec():
     vec_raw("gatts_NBM22CSB.txt", "config_NBM22CSB.yaml")
-    vec_nc("NBMCSBaq01-raw.cdf")
-    vec_wvs("NBMCSBaq01-a.nc")
+    vec_nc("NBMCSBvec01-raw.cdf")
+    vec_wvs("NBMCSBvec01-a.nc")
 
 
 def wxt_raw(glob_att, config_yaml):

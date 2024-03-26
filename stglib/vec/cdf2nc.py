@@ -51,6 +51,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Add EPIC and CMG attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
 
+    ds = associate_z_coord(ds)
+
     for v in ds.data_vars:
         # need to do this or else a "coordinates" attribute with value of "burst" hangs around
         ds[v].encoding["coordinates"] = None
@@ -117,10 +119,21 @@ def set_orientation(VEL, T):
         # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
         if "NAVD88_ref" in VEL.attrs:
             elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
+            elev_vel = (
+                VEL.attrs["NAVD88_ref"] + VEL.attrs["velocity_sample_volume_height"]
+            )
+            elev_pres = VEL.attrs["NAVD88_ref"] + VEL.attrs["pressure_sensor_height"]
         elif "NAVD88_elevation_ref" in VEL.attrs:
             elev = (
                 VEL.attrs["NAVD88_elevation_ref"]
                 + VEL.attrs["transducer_offset_from_bottom"]
+            )
+            elev_vel = (
+                VEL.attrs["NAVD88_elevation_ref"]
+                + VEL.attrs["velocity_sample_volume_height"]
+            )
+            elev_pres = (
+                VEL.attrs["NAVD88_elevation_ref"] + VEL.attrs["pressure_sensor_height"]
             )
         long_name = "height relative to NAVD88"
         geopotential_datum_name = "NAVD88"
@@ -129,11 +142,21 @@ def set_orientation(VEL, T):
             VEL.attrs["height_above_geopotential_datum"]
             + VEL.attrs["transducer_offset_from_bottom"]
         )
+        elev_vel = (
+            VEL.attrs["height_above_geopotential_datum"]
+            + VEL.attrs["velocity_sample_volume_height"]
+        )
+        elev_pres = (
+            VEL.attrs["height_above_geopotential_datum"]
+            + VEL.attrs["pressure_sensor_height"]
+        )
         long_name = f"height relative to {VEL.attrs['geopotential_datum_name']}"
         geopotential_datum_name = VEL.attrs["geopotential_datum_name"]
     else:
         # if we don't have NAVD88 elevations, reference to sea-bed elevation
         elev = VEL.attrs["transducer_offset_from_bottom"]
+        elev_vel = VEL.attrs["velocity_sample_volume_height"]
+        elev_pres = VEL.attrs["pressure_sensor_height"]
         long_name = "height relative to sea bed"
 
     T_orig = T.copy()
@@ -154,18 +177,23 @@ def set_orientation(VEL, T):
     else:
         raise ValueError("Could not determine instrument orientation from user input")
 
-    VEL["z"].attrs["standard_name"] = "height"
-    VEL["z"].attrs["units"] = "m"
-    VEL["z"].attrs["positive"] = "up"
-    VEL["z"].attrs["axis"] = "Z"
-    VEL["z"].attrs["long_name"] = long_name
-    if geopotential_datum_name:
-        VEL["z"].attrs["geopotential_datum_name"] = geopotential_datum_name
+    VEL["zvel"] = xr.DataArray([elev_vel], dims="zvel")
+    VEL["zpres"] = xr.DataArray([elev_pres], dims="zpres")
+
+    lnshim = {"z": "", "zvel": " of velocity sensor", "zpres": " of pressure sensor"}
+    for z in ["z", "zvel", "zpres"]:
+        VEL[z].attrs["standard_name"] = "height"
+        VEL[z].attrs["units"] = "m"
+        VEL[z].attrs["positive"] = "up"
+        VEL[z].attrs["axis"] = "Z"
+        VEL[z].attrs["long_name"] = long_name + lnshim[z]
+        if geopotential_datum_name:
+            VEL[z].attrs["geopotential_datum_name"] = geopotential_datum_name
 
     VEL["depth"].attrs["standard_name"] = "depth"
     VEL["depth"].attrs["units"] = "m"
     VEL["depth"].attrs["positive"] = "down"
-    VEL["depth"].attrs["long_name"] = "depth below mean sea level"
+    VEL["depth"].attrs["long_name"] = "depth below mean sea level of deployment"
 
     return VEL, T, T_orig
 
@@ -206,5 +234,35 @@ def scale_analoginput(ds):
     ds["AnalogInput2"] = ds["AnalogInput2"] * 5 / 65535
     notetxt = "Converted from counts to volts: volts=counts*5/65535."
     ds = utils.insert_note(ds, "AnalogInput2", notetxt)
+
+    return ds
+
+
+def associate_z_coord(ds):
+    """Associate the appropriate z coordinate to data variables.
+    We do this because there are multiple relevant elevations per deployment
+    (e.g., velocity and pressure were collected at different elevations,
+    and we need to indicate this)"""
+
+    for v in [
+        "u_1205",
+        "v_1206",
+        "w_1204",
+        "AGC1_1221",
+        "AGC2_1222",
+        "AGC3_1223",
+        "SNR1",
+        "SNR2",
+        "SNR3",
+        "cor1_1285",
+        "cor2_1286",
+        "cor3_1287",
+    ]:
+        if v in ds:
+            ds[v] = ds[v].expand_dims("zvel")
+
+    for v in ["P_1ac", "P_1"]:
+        if v in ds:
+            ds[v] = ds[v].expand_dims("zpres")
 
     return ds
