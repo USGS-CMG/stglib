@@ -448,14 +448,10 @@ def puv_quick_vectorized(
     kh = k * np.broadcast_to(np.atleast_2d(depth).T, k.shape)
     kzp = k * height_of_pressure
     kzuv = k * height_of_velocity
-    nf = len(omega)
     Hp = np.ones(kh.shape)
     Huv = np.ones(kh.shape)
 
     # change wavenumber at 0 Hz to 1 to avoid divide by zero
-    i = np.array(
-        range(nf)
-    )  # this is an index, thus needs to start at first element, in this case 0
     # for some reason in the MATLAB version CRS tests omega for nans instead of k.
     # Here we test k also because that's where the nans show up
 
