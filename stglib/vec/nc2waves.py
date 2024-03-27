@@ -126,6 +126,8 @@ def do_puv(ds):
         "azr_tail": "Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees) with f^-4 tail applied",
         "Snp": f"Pressure-derived non-directional wave energy spectrum in freq. band {first_frequency_cutoff} <= f <= {last_frequency_cutoff}",
         "Snp_tail": "Pressure-derived non-directional wave energy spectrum with f^-4 tail applied",
+        "Snu": f"Velocity-derived non-directional wave energy spectrum in freq. band {first_frequency_cutoff} <= f <= {last_frequency_cutoff}",
+        "Snu_tail": "Velocity-derived non-directional wave energy spectrum with f^-4 tail applied",
         "frequencies": "Frequency",
         "fclip": "Frequency",
     }
@@ -160,10 +162,6 @@ def do_puv(ds):
         "Hrmsu_tail": "m",
         "Snp": "m2/Hz",
         "Snp_tail": "m2/Hz",
-        # "phir_tail": "Representative orbital velocity direction (angles from x-axis, positive ccw) with f^-4 tail applied",
-        # "azr_tail": "Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees) with f^-4 tail applied",
-        # "Snp": "Pressure-derived non-directional wave energy spectrum",
-        # "Snp_tail": "Pressure-derived non-directional wave energy spectrum with f^-4 tail applied",
     }
 
     # puvs = {k: np.full_like(ds["time"].values, np.nan, dtype=float) for k in desc}

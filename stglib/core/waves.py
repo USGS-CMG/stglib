@@ -396,7 +396,7 @@ def puv_quick_vectorized(
     converted to python and updated by Marinna Martini from Chris Sherwood's puvq.m.
     puvq.m also had contributions from Laura Landerman and Patrick Dickudt
 
-    DJN vectorized version for speed improvements
+    Daniel Nowacki vectorized version for speed improvements
     """
 
     gravity = 9.81  # m/s^2
