@@ -7,4 +7,4 @@ Waves can be computed both with fixed frequency cutoffs, as well as dynamic cuto
 
 Spectra tails beyond the cutoff frequency are applied following `Jones & Monismith (2007) <https://doi.org/10.4319/lom.2007.5.317>`_.
 
-For more information, see the code in `stglib/core/waves.py`
+For more information, see the code in ``stglib/core/waves.py``.
