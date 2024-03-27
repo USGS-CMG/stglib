@@ -44,6 +44,7 @@ We have plans to support:
    overview
    config
    atmos
+   waves
    aqd
    wvs
    aqdhr
