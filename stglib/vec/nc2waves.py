@@ -162,6 +162,8 @@ def do_puv(ds):
         "Hrmsu_tail": "m",
         "Snp": "m2/Hz",
         "Snp_tail": "m2/Hz",
+        "Snu": "m2/Hz",
+        "Snu_tail": "m2/Hz",
     }
 
     # puvs = {k: np.full_like(ds["time"].values, np.nan, dtype=float) for k in desc}
