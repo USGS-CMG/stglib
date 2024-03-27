@@ -91,6 +91,10 @@ Aquadopp-specific options include:
 - ``<VAR>_maxabs_diff_2d``: trim values in a 2D DataArray when the absolute value of the increase is greater than a specified amount
 - ``AnalogInput1_<ATTR>`` or ``AnalogInput2_<ATTR>``: if ``<ATTR>`` is "standard_name", "long_name", "units", "institution", "comment", "source", or "references", this will create the appropriate attribute for the given variable.
 
+For Aquadopp waves:
+
+- ``puv``: set to ``true`` to compute PUV wave statistics. **(EXPERIMENTAL)**
+
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml
    :linenos:

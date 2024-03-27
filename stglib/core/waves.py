@@ -307,6 +307,336 @@ def qkfs(omega, h):
     return y / h
 
 
+def puv_quick_vectorized(
+    pressure,
+    u,
+    v,
+    depth,
+    height_of_pressure,
+    height_of_velocity,
+    sampling_frequency,
+    fft_length=512,
+    rho=1025.0,
+    first_frequency_cutoff=1 / 50,
+    infra_gravity_cutoff=0.05,
+    last_frequency_cutoff=1 / 5,
+    fft_window_type="hann",
+    show_diagnostic_plot=False,
+    check_variances=False,
+    variance_error=0.0,
+    overlap_length="default",
+):
+    """
+    Determine wave heights from pressure, east_velocity, v velocity data
+
+    Parameters
+    ----------
+    pressure : array_like
+        pressure (dbar)
+    u :  array_like
+        u velocities (m/s)
+    v :  array_like
+        v velocities (m/s)
+    depth : float
+        Average water depth (m, positive number)
+    height_of_pressure : float
+        Height of pressure sensor off bottom (m, positive number)
+    height_of_velocity : float
+        Height of velocity sensor off bottom (m, positive number)
+    sampling_frequency : float
+        Hz
+    fft_length : int
+        Length of data to window and process
+    rho : float
+        Water density (kg/m^3)
+    fft_window_type : str
+        Data fft_window for spectral calculation, per scipy signal package
+    first_frequency_cutoff : float
+        Low-frequency cutoff for wave motions
+    infra_gravity_cutoff : float
+        Infra-gravity wave frequency cutoff
+    last_frequency_cutoff : float
+        High-frequency cutoff for wave motions
+    show_diagnostic_plot : bool
+        print plots and other checks
+    check_variances : bool
+        test to see if variance is preserved in calculations
+    variance_error : float
+        tolerance for variance preservation, in percent
+    overlap_length : str "default" or int length, default will result in fft_length / 2
+
+    Returns
+    -------
+    dict::
+        'Hrmsp': Hrms (=Hmo) from pressure
+        'Hrmsu': Hrms from u,v
+        'ubr': Representative orbital velocity amplitude in freq. band
+            ( first_frequency_cutoff <= f <= last_frequency_cutoff ) (m/s)
+        'omegar': Representative orbital velocity (radian frequency)
+        'Tr': Representative orbital velocity period (s)
+        'Tpp': Peak period from pressure (s)
+        'Tpu': Peak period from velocity (s)
+        'phir': Representative orbital velocity direction (angles from x-axis, positive ccw)
+        'azr': Representative orb. velocity direction (deg; geographic azimuth; ambiguous =/- 180 degrees)
+        'ublo': ubr in freq. band (f <= first_frequency_cutoff) (m/s)
+        'ubhi': ubr in freq. band (f >= last_frequency_cutoff) (m/s)
+        'ubig': ubr in infra-gravity freq. band (first_frequency_cutoff f <= 1/20) (m/s)
+        'figure': figure handle
+        'axis': axis handle
+        'variance_test_passed': True if passing
+
+    References
+    ----------
+    Madsen (1994) Coastal Engineering 1994, Proc., 24th, Intl. Conf., Coastal Eng. Res. Council / ASCE. pp.384-398.
+        (esp. p. 395)
+    Thorton & Guza
+
+    Acknowledgements
+    ----------------
+    converted to python and updated by Marinna Martini from Chris Sherwood's puvq.m.
+    puvq.m also had contributions from Laura Landerman and Patrick Dickudt
+
+    Daniel Nowacki vectorized version for speed improvements
+    """
+
+    gravity = 9.81  # m/s^2
+    if fft_window_type == "hann":
+        fft_window_type = "hann"  # this is just the way scipy signal likes it
+    if overlap_length == "default":
+        overlap_length = int(np.floor(fft_length / 2))
+
+    pressure = spsig.detrend(pressure)
+    u = spsig.detrend(u)
+    v = spsig.detrend(v)
+
+    # compute wave height from velocities
+
+    # Determine velocity spectra for u and v
+    [frequencies, Gpp] = spsig.welch(
+        rho * gravity * pressure,
+        fs=sampling_frequency,
+        window=fft_window_type,
+        nperseg=fft_length,
+        noverlap=overlap_length,
+    )
+
+    df = frequencies[2] - frequencies[1]
+    [_, Guu] = spsig.welch(
+        u,
+        fs=sampling_frequency,
+        window=fft_window_type,
+        nperseg=fft_length,
+        noverlap=overlap_length,
+    )
+    [_, Gvv] = spsig.welch(
+        v,
+        fs=sampling_frequency,
+        window=fft_window_type,
+        nperseg=fft_length,
+        noverlap=overlap_length,
+    )
+
+    # determine wave number
+    omega = np.array(
+        [2 * np.pi * x for x in frequencies]
+    )  # omega must be numpy array for qkfs
+    # catch numpy errors
+    np.seterr(divide="ignore", invalid="ignore")
+    # k = qkfs(omega, float(depth))  # make sure it is float, or qkfs will bomb
+    k = np.array([qkfs(omega, d) for d in depth])
+    np.seterr(divide=None, invalid=None)
+
+    # compute linear wave transfer function
+    kh = k * np.broadcast_to(np.atleast_2d(depth).T, k.shape)
+    kzp = k * height_of_pressure
+    kzuv = k * height_of_velocity
+    Hp = np.ones(kh.shape)
+    Huv = np.ones(kh.shape)
+
+    # change wavenumber at 0 Hz to 1 to avoid divide by zero
+    # for some reason in the MATLAB version CRS tests omega for nans instead of k.
+    # Here we test k also because that's where the nans show up
+
+    Hp = rho * gravity * (np.cosh(kzp) / np.cosh(kh))
+    Huv = omega * (np.cosh(kzuv) / np.sinh(kh))
+
+    # do this after so we can vectorize the math above
+    if np.isnan(omega[0]) or (omega[0] <= 0):
+        Hp[:, 0] = 1
+        Huv[:, 0] = 1
+
+    Hp[np.isnan(k[:, 0]), 0] = 1
+    Huv[np.isnan(k[:, 0]), 0] = 1
+
+    # combine horizontal velocity spectra
+    Guv = Guu + Gvv
+
+    # create cut off frequency, so noise is not magnified
+    # at least in first testing, subtracting 1 here got closer to the intended freq. cutoff value
+    ff = np.argmax(frequencies > first_frequency_cutoff) - 1
+    lf = np.argmax(frequencies > last_frequency_cutoff)
+
+    # Determine wave height for velocity spectra
+    Snp = Gpp[:, ff:lf] / (Hp[:, ff:lf] ** 2)
+    Snu = Guv[:, ff:lf] / (Huv[:, ff:lf] ** 2)
+    fclip = frequencies[ff:lf]
+
+    Kp = transfer_function(k, depth, height_of_pressure)
+    tailind, noisecutind, fpeakcutind, Kpcutind = zip(
+        *[define_cutoff(frequencies, x, y) for x, y in zip(Gpp, Kp)]
+    )
+    tailind = np.array(tailind)
+    Snp_tail = [
+        make_tail(frequencies, Gpp[burst, :] / Hp[burst, :] ** 2, tailind[burst])
+        for burst in range(Gpp.shape[0])
+    ]
+    Snp_tail = np.array(Snp_tail)
+    # skip the zero frequency -- energy persists...
+    Snp_tail[:, 0] = np.nan
+
+    Kp_u = transfer_function(k, depth, height_of_velocity)
+    tailind_u, noisecutind_u, fpeakcutind_u, Kpcutind_u = zip(
+        *[define_cutoff(frequencies, x, y) for x, y in zip(Guv, Kp_u)]
+    )
+    tailind_u = np.array(tailind_u)
+    Snu_tail = [
+        make_tail(frequencies, Guv[burst, :] / Huv[burst, :] ** 2, tailind_u[burst])
+        for burst in range(Guv.shape[0])
+    ]
+    Snu_tail = np.array(Snu_tail)
+    # skip the zero frequency -- energy persists...
+    Snu_tail[:, 0] = np.nan
+
+    # Determine rms wave height (multiply by another sqrt(2) for Hs)
+    # Thornton and Guza say Hrms = sqrt(8 mo)
+    Hrmsu = 2 * np.sqrt(2 * np.sum(Snu * df, axis=-1))
+    Hrmsp = 2 * np.sqrt(2 * np.sum(Snp * df, axis=-1))
+
+    # # skip the zero frequency by starting at 1
+    Hrmsu_tail = 2 * np.sqrt(2 * np.sum(Snu_tail[:, 1:] * df, axis=-1))
+    Hrmsp_tail = 2 * np.sqrt(2 * np.sum(Snp_tail[:, 1:] * df, axis=-1))
+
+    # These are representative orbital velocities for w-c calculations,
+    # according to Madsen (1994) Coastal Engineering 1994, Proc., 24th
+    # Intl. Conf., Coastal Eng. Res. Council / ASCE. pp.384-398.
+    # (esp. p. 395)
+    ubr = np.sqrt(2 * np.sum(Guv[:, ff:lf] * df, axis=-1))
+    ubr_check = np.sqrt(2 * np.var(u) + 2 * np.var(v))
+    omegar = np.sum(omega[ff:lf] * Guv[:, ff:lf] * df, axis=-1) / np.sum(
+        Guv[:, ff:lf] * df, axis=-1
+    )
+    Tr = 2 * np.pi / omegar
+
+    if len(np.where(np.isnan(Snp))) > 0 | len(np.where(Snp == 0)) > 0:
+        Tpp = np.nan
+    else:
+        jpeak = np.argmax(Snp, axis=-1)  # index location of the maximum value
+        Tpp = 1 / fclip[jpeak]
+
+    if len(np.where(np.isnan(Snu))) > 0 | len(np.where(Snu == 0)) > 0:
+        Tpu = np.nan
+    else:
+        jpeak = np.argmax(Snu, axis=-1)
+        Tpu = 1 / fclip[jpeak]
+
+    # phi is angle wrt to x axis; this assumes Guu is in x direction
+    # phir = atan2( sum(Guu(ff:lf)*df), sum(Gvv(ff:lf)*df) );
+
+    # this is the line changed on 6/24/03 - I still think it is wrong (CRS)
+    # phir = atan2( sum(Gvv(ff:lf)*df), sum(Guu(ff:lf)*df) );
+
+    # This is Jessie's replacement for direction
+    # 12/08 Jessie notes that Madsen uses velocity and suggests
+    # Suu = sqrt(Guu);
+    # Svv = sqrt(Gvv);
+    # Suv = sqrt(Guv);
+    # but I (CRS) think eqn. 24 is based on u^2, so following is ok:
+    rr = np.corrcoef(u, v).diagonal(u.shape[0])
+    ortest = np.sign(rr)
+    phir = np.arctan2(
+        ortest * np.sum(Gvv[:, ff:lf] * df, axis=-1),
+        np.sum(Guu[:, ff:lf] * df, axis=-1),
+    )
+    phir_tail = np.arctan2(
+        ortest * np.sum(Gvv * df, axis=-1), np.sum(Guu * df, axis=-1)
+    )
+
+    # convert to degrees; convert to geographic azimuth (0-360, 0=north)
+    azr = 90 - (180 / np.pi) * phir
+    azr_tail = 90 - (180 / np.pi) * phir_tail
+
+    # Freq. bands for variance contributions
+    ig = np.max(np.where(frequencies <= infra_gravity_cutoff))
+    # low freq, infragravity, high-freq
+    if 1 < ff:
+        ublo = np.sqrt(2 * np.sum(Guv[:, 1:ff] * df, axis=-1))
+    else:
+        ublo = np.zeros_like(Hrmsp)
+    if ig > ff:
+        ubig = np.sqrt(2 * np.sum(Guv[:, ff:ig] * df, axis=-1))
+    else:
+        ubig = np.zeros_like(Hrmsp)
+    if lf < fft_length:
+        ubhi = np.sqrt(2 * np.sum(Guv[:, lf:] * df, axis=-1))
+    else:
+        ubhi = np.zeros_like(Hrmsp)
+
+    ws = {
+        "Hrmsp": Hrmsp,
+        "Hrmsu": Hrmsu,
+        "ubr": ubr,
+        "ubr_check": ubr_check,
+        "omegar": omegar,
+        "Tr": Tr,
+        "Tpp": Tpp,
+        "Tpu": Tpu,
+        "phir": phir,
+        "azr": azr,
+        "ublo": ublo,
+        "ubhi": ubhi,
+        "ubig": ubig,
+        "frequencies": frequencies,
+        "Gpp": Gpp,
+        "Guv": Guv,
+        "Guu": Guu,
+        "Gvv": Gvv,
+        "Snp": Snp,
+        "Snu": Snu,
+        "Snp_tail": Snp_tail,
+        "Snu_tail": Snu_tail,
+        "Hrmsp_tail": Hrmsp_tail,
+        "Hrmsu_tail": Hrmsu_tail,
+        "phir_tail": phir_tail,
+        "azr_tail": azr_tail,
+        "fclip": fclip,
+    }
+
+    if check_variances:
+        variance_preserved = test_variances(
+            u, v, pressure, Gpp, Guu, Gvv, df, allowable_error=variance_error
+        )
+        ws["variance_test_passed"] = variance_preserved
+
+    if show_diagnostic_plot:
+        fig, ax = plot_spectra(
+            Guu,
+            Gvv,
+            Guv,
+            Gpp,
+            frequencies,
+            first_frequency_cutoff,
+            ff,
+            last_frequency_cutoff,
+            lf,
+            infra_gravity_cutoff,
+            ig,
+        )
+        ws["figure"] = fig
+        ws["axis"] = ax
+
+    return ws
+
+
 def puv_quick(
     pressure,
     u,
