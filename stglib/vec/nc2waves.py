@@ -13,7 +13,7 @@ def nc_to_waves(nc_filename):
 
     spec = waves.make_waves_ds(ds)
 
-    for k in ["wp_peak", "wh_4061", "wp_4060", "pspec"]:
+    for k in ["wp_peak", "wh_4061", "wp_4060", "pspec", "pspec_jonswap"]:
         ds[k] = spec[k]
 
     dopuv = False
