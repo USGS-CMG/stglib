@@ -44,6 +44,7 @@ We have plans to support:
    overview
    config
    atmos
+   waves
    aqd
    wvs
    aqdhr
@@ -57,6 +58,7 @@ We have plans to support:
    wxt
    eofe
    lisst
+   tcm
    indexvel
    turnaround
    code
