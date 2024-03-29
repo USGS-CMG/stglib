@@ -52,4 +52,4 @@ Libraries found in the "lib" directory are distributed under
 open source (or open source-like) licenses/agreements. Appropriate license
 agreements for each library can be found in the "lib" directory.
 
- - jonswap (https://github.com/haphaeu/jonswap)
+ - [jonswap](https://github.com/haphaeu/jonswap)
