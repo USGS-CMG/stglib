@@ -143,7 +143,7 @@ def csv_to_cdf(metadata):
         for p in range(len(row_start)):
             if p > 0:
                 row_start[p] = row_start[p - 1] + pr.row_size[p - 1]
-        pr["row_start"] = xr.DataArray(rs, dims="profile")
+        pr["row_start"] = xr.DataArray(row_start, dims="profile")
         pr["row_start"].attrs["long_name"] = "starting obs for this profile"
         pr["row_start"].attrs["sample_dimension"] = "obs"
         pr["row_start"].encoding["dtype"] = "i4"
