@@ -126,22 +126,32 @@ def csv_to_cdf(metadata):
         pr["profile"].encoding["dtype"] = "i4"
 
         timeavg = []
-        rowsize = []
+        row_size = []
         for s, e in zip(starts, ends):
             dss = ds.time.sel(time=slice(s, e))
             timeavg.append(dss[0].values)
-            rowsize.append(len(dss))
+            row_size.append(len(dss))
 
         pr["time"] = xr.DataArray(timeavg, dims="profile")
-        pr["rowSize"] = xr.DataArray(rowsize, dims="profile")
-        pr["rowSize"].attrs["long_name"] = "number of obs for this profile"
-        pr["rowSize"].attrs["sample_dimension"] = "obs"
-        pr["rowSize"].encoding["dtype"] = "i4"
+        pr["row_size"] = xr.DataArray(row_size, dims="profile")
+        pr["row_size"].attrs["long_name"] = "number of obs for this profile"
+        pr["row_size"].attrs["sample_dimension"] = "obs"
+        pr["row_size"].encoding["dtype"] = "i4"
+
+        # row_start (rowStart) defined at https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#_contiguous_ragged_array_representation_of_time_series
+        row_start = np.zeros(pr.row_size.shape, dtype=int)
+        for p in range(len(row_start)):
+            if p > 0:
+                row_start[p] = row_start[p - 1] + pr.row_size[p - 1]
+        pr["row_start"] = xr.DataArray(row_start, dims="profile")
+        pr["row_start"].attrs["long_name"] = "starting obs for this profile"
+        pr["row_start"].attrs["sample_dimension"] = "obs"
+        pr["row_start"].encoding["dtype"] = "i4"
 
         if "latitude" in ds.attrs and "longitude" in ds.attrs:
-            if len(ds.attrs["latitude"]) == len(rowsize) and len(
+            if len(ds.attrs["latitude"]) == len(row_size) and len(
                 ds.attrs["longitude"]
-            ) == len(rowsize):
+            ) == len(row_size):
                 ds["latitude"] = xr.DataArray(
                     np.array(ds.attrs["latitude"]).astype(float), dims="profile"
                 )
@@ -168,7 +178,7 @@ def csv_to_cdf(metadata):
                 ds.attrs.pop("longitude")
             else:
                 raise ValueError(
-                    f"size of latitude ({len(ds.attrs['latitude'])}) and longitude ({len(ds.attrs['longitude'])}) does not match number of profiles ({len(rowsize)})"
+                    f"size of latitude ({len(ds.attrs['latitude'])}) and longitude ({len(ds.attrs['longitude'])}) does not match number of profiles ({len(row_size)})"
                 )
 
         # dscp = ds.copy(deep=True)

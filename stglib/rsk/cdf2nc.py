@@ -128,7 +128,7 @@ def open_raw_cdf(cdf_filename):
 
 
 def get_slice(ds, profile):
-    rscs = ds.rowSize.cumsum()
+    rscs = ds.row_size.cumsum()
 
     if profile == 0:
         rl = slice(0, rscs.sel(profile=profile).values - 1)
