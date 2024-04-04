@@ -138,7 +138,7 @@ def csv_to_cdf(metadata):
         pr["row_size"].attrs["sample_dimension"] = "obs"
         pr["row_size"].encoding["dtype"] = "i4"
 
-        # determine row_start
+        # row_start (rowStart) defined at https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#_contiguous_ragged_array_representation_of_time_series
         row_start = np.zeros(pr.row_size.shape, dtype=int)
         for p in range(len(row_start)):
             if p > 0:
