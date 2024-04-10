@@ -639,7 +639,7 @@ def calc_boundary_elev(ds):
             ds["boundary_elevation"] = xr.DataArray(
                 ds.attrs["WATER_DEPTH"]
                 + (ds.brange * -1)
-                + ds.attrs["initial_instrument_height"]
+                - ds.attrs["initial_instrument_height"]
             )
 
     if "height_above_geopotential_datum" in ds.attrs or "NAVD88_ref" in ds.attrs:
