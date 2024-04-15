@@ -215,6 +215,11 @@ def ds_drop(ds):
         "AnalogInput2",
         "Depth",
         "Checksum",
+        "ErrorCode",
+        "StatusCode",
+        "vel1_1277",
+        "vel2_1278",
+        "vel3_1279",
     ]
 
     if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"].lower() == "true"):
