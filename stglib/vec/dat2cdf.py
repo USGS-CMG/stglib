@@ -50,20 +50,20 @@ def dat_to_cdf(metadata):
         ds = utils.insert_history(ds, histtext)
         dssen = dssen.sel(time=dssen.time[0:-mod])
 
-    dssen["timenew"] = xr.DataArray(dssen["time"].values[::senburstlen], dims="timenew")
-    dssen["sensample"] = xr.DataArray(range(senburstlen), dims="sensample")
-    for var in ["Heading", "Pitch", "Roll", "Battery", "Temperature", "Soundspeed"]:
-        dssen[var + "new"] = xr.DataArray(
-            dssen[var].values.reshape((-1, senburstlen)),
-            dims=["timenew", "sensample"],
-        ).mean(dim="sensample")
-    for var in dssen.data_vars:
-        if "new" not in var:
-            dssen = dssen.drop(var)
-    for var in dssen.data_vars:
-        dssen = dssen.rename({var: var.replace("new", "")})
-    dssen = dssen.drop(["time", "sensample"])
-    dssen = dssen.rename({"timenew": "time"})
+    # dssen["timenew"] = xr.DataArray(dssen["time"].values[::senburstlen], dims="timenew")
+    # dssen["sensample"] = xr.DataArray(range(senburstlen), dims="sensample")
+    # for var in ["Heading", "Pitch", "Roll", "Battery", "Temperature", "Soundspeed", "ErrorCode", "StatusCode"]:
+    #     dssen[var + "new"] = xr.DataArray(
+    #         dssen[var].values.reshape((-1, senburstlen)),
+    #         dims=["timenew", "sensample"],
+    #     ).mean(dim="sensample")
+    # for var in dssen.data_vars:
+    #     if "new" not in var:
+    #         dssen = dssen.drop(var)
+    # for var in dssen.data_vars:
+    #     dssen = dssen.rename({var: var.replace("new", "")})
+    # dssen = dssen.drop(["time", "sensample"])
+    # dssen = dssen.rename({"timenew": "time"})
 
     # Apply time from VHD file to DAT data
     ds["time"] = dsvhd["time"]
