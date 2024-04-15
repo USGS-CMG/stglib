@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import xarray as xr
 
@@ -161,8 +163,15 @@ def set_orientation(VEL, T):
 
     T_orig = T.copy()
 
+    # last bit of statuscode is orientation
+    sc = str(VEL["StatusCode"].isel(time=int(len(VEL["time"]) / 2)).values)[-1]
+
     if VEL.attrs["orientation"].upper() == "UP":
         print("User instructed that instrument was pointing UP")
+        if sc != "0":
+            warnings.warn(
+                "User-provided orientation does not match orientation status code at middle of deployment"
+            )
 
         # 0.15 is the sample volume distance, but isn't actually relevant here...?
         # VEL["z"] = xr.DataArray(elev + [0.15], dims="z")
@@ -174,6 +183,11 @@ def set_orientation(VEL, T):
 
     elif VEL.attrs["orientation"].upper() == "DOWN":
         print("User instructed that instrument was pointing DOWN")
+        if sc != "1":
+            warnings.warn(
+                "User-provided orientation does not match orientation status code at middle of deployment"
+            )
+
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
 
