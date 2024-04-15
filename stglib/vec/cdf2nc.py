@@ -164,24 +164,34 @@ def set_orientation(VEL, T):
     if VEL.attrs["orientation"].upper() == "UP":
         print("User instructed that instrument was pointing UP")
 
-        VEL["z"] = xr.DataArray(elev + [0.15], dims="z")
-        VEL["depth"] = xr.DataArray(np.nanmean(VEL[presvar]) - [0.15], dims="depth")
+        # 0.15 is the sample volume distance, but isn't actually relevant here...?
+        # VEL["z"] = xr.DataArray(elev + [0.15], dims="z")
+        diff = elev_pres - elev_vel
+        VEL["depthvel"] = xr.DataArray(
+            np.nanmean(VEL[presvar]) + [diff], dims="depthvel"
+        )
+        VEL["depthpres"] = xr.DataArray([np.nanmean(VEL[presvar])], dims="depthpres")
 
     elif VEL.attrs["orientation"].upper() == "DOWN":
         print("User instructed that instrument was pointing DOWN")
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
 
-        VEL["z"] = xr.DataArray(elev - [0.15], dims="z")
-        VEL["depth"] = xr.DataArray(np.nanmean(VEL[presvar]) + [0.15], dims="depth")
+        # 0.15 is the sample volume distance, but isn't actually relevant here...?
+        # VEL["z"] = xr.DataArray(elev - [0.15], dims="z")
+        diff = elev_pres - elev_vel
+        VEL["depthvel"] = xr.DataArray(
+            np.nanmean(VEL[presvar]) + [diff], dims="depthvel"
+        )
+        VEL["depthpres"] = xr.DataArray([np.nanmean(VEL[presvar])], dims="depthpres")
     else:
         raise ValueError("Could not determine instrument orientation from user input")
 
     VEL["zvel"] = xr.DataArray([elev_vel], dims="zvel")
     VEL["zpres"] = xr.DataArray([elev_pres], dims="zpres")
 
-    lnshim = {"z": "", "zvel": " of velocity sensor", "zpres": " of pressure sensor"}
-    for z in ["z", "zvel", "zpres"]:
+    lnshim = {"zvel": " of velocity sensor", "zpres": " of pressure sensor"}
+    for z in ["zvel", "zpres"]:
         VEL[z].attrs["standard_name"] = "height"
         VEL[z].attrs["units"] = "m"
         VEL[z].attrs["positive"] = "up"
@@ -190,10 +200,15 @@ def set_orientation(VEL, T):
         if geopotential_datum_name:
             VEL[z].attrs["geopotential_datum_name"] = geopotential_datum_name
 
-    VEL["depth"].attrs["standard_name"] = "depth"
-    VEL["depth"].attrs["units"] = "m"
-    VEL["depth"].attrs["positive"] = "down"
-    VEL["depth"].attrs["long_name"] = "depth below mean sea level of deployment"
+    for d in ["depthvel", "depthpres"]:
+        VEL[d].attrs["standard_name"] = "depth"
+        VEL[d].attrs["units"] = "m"
+        VEL[d].attrs["positive"] = "down"
+        VEL[d].attrs["long_name"] = f"depth {lnshim} below mean sea level of deployment"
+
+    # "z" is ambiguous, so drop it from Dataset for now
+    # FIXME: remove creation of z variable above instead of just dropping it
+    # VEL = VEL.drop("z")
 
     return VEL, T, T_orig
 
