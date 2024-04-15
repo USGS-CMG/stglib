@@ -46,9 +46,8 @@ def dat_to_cdf(metadata):
     if mod:
         print(f"{ds.attrs['VECSamplesPerBurst']=}")
         print(f"{ds.attrs['VECSamplingRate']=}")
-        print(
-            "Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
-        )
+        histtext = "Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
+        ds = utils.insert_history(ds, histtext)
         dssen = dssen.sel(time=dssen.time[0:-mod])
 
     dssen["timenew"] = xr.DataArray(dssen["time"].values[::senburstlen], dims="timenew")
