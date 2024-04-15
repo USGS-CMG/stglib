@@ -71,7 +71,16 @@ def dat_to_cdf(metadata):
     ds = ds.swap_dims({"Burst": "time"})
     ds = ds.rename({"Ensemble": "sample"})
 
-    for var in ["Heading", "Pitch", "Roll", "Battery", "Temperature", "Soundspeed"]:
+    for var in [
+        "Heading",
+        "Pitch",
+        "Roll",
+        "Battery",
+        "Temperature",
+        "Soundspeed",
+        "ErrorCode",
+        "StatusCode",
+    ]:
         ds[var] = dssen[var].reindex_like(ds, method="nearest")
 
     ds["TransMatrix"] = xr.DataArray(ds.attrs["VECTransMatrix"])
@@ -155,7 +164,11 @@ def load_sen(basefile):
         "Checksum",
     ]
     sen = pd.read_csv(
-        f"{basefile}.sen", delim_whitespace=True, header=None, names=names
+        f"{basefile}.sen",
+        delim_whitespace=True,
+        header=None,
+        names=names,
+        converters={"ErrorCode": str, "StatusCode": str},
     )
     sen["time"] = pd.to_datetime(
         sen[["Year", "Month", "Day", "Hour", "Minute", "Second"]]
