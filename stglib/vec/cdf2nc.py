@@ -163,6 +163,11 @@ def set_orientation(VEL, T):
 
     T_orig = T.copy()
 
+    # User orientation refers to probe orientation
+    # Nortek status code orientation refers to z-axis positive direction
+    # See Nortek "The Comprehensive Manual - Velocimeters"
+    # section 3.1.7 Orientation of Vector probes
+    userorient = VEL.attrs["orientation"]
     # last bit of statuscode is orientation
     sc = str(VEL["StatusCode"].isel(time=int(len(VEL["time"]) / 2)).values)[-1]
     if sc == "0":
@@ -175,17 +180,34 @@ def set_orientation(VEL, T):
         f"Instrument reported {headtype} case with orientation status code {sc} = z-axis positive {scname} at middle of deployment"
     )
 
-    if VEL.attrs["orientation"].upper() == "UP":
-        print("User instructed that z is positive UP")
-    elif VEL.attrs["orientation"].upper() == "DOWN":
-        print("User instructed that z is positive DOWN")
+    if userorient == "UP":
+        print("User instructed probe is pointing UP (sample volume above probe)")
+    elif userorient == "DOWN":
+        print("User instructed probe is pointing DOWN (sample volume below probe)")
     else:
         raise ValueError("Could not determine instrument orientation from user input")
 
-    if scname != VEL.attrs["orientation"].upper():
+    flag = False
+    if headtype == "VEC":
+        if sc == "0" and userorient == "UP":
+            flag = True
+        elif sc == "1" and userorient == "DOWN":
+            flag = True
+    elif headtype == "VCH":
+        if sc == "0" and userorient == "DOWN":
+            flag = True
+        elif sc == "1" and userorient == "UP":
+            flag = True
+
+    if flag == False:
+        print(
+            "User-provided orientation matches orientation status code at middle of deployment"
+        )
+    elif flag == True:
         warnings.warn(
             "User-provided orientation does not match orientation status code at middle of deployment"
         )
+
         histtext = "Modifying transformation matrix to match user-provided orientation"
 
         warnings.warn(histtext)
