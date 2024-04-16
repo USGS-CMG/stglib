@@ -120,16 +120,16 @@ def set_orientation(VEL, T):
     if "NAVD88_ref" in VEL.attrs or "NAVD88_elevation_ref" in VEL.attrs:
         # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
         if "NAVD88_ref" in VEL.attrs:
-            elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
+            # elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
             elev_vel = (
                 VEL.attrs["NAVD88_ref"] + VEL.attrs["velocity_sample_volume_height"]
             )
             elev_pres = VEL.attrs["NAVD88_ref"] + VEL.attrs["pressure_sensor_height"]
         elif "NAVD88_elevation_ref" in VEL.attrs:
-            elev = (
-                VEL.attrs["NAVD88_elevation_ref"]
-                + VEL.attrs["transducer_offset_from_bottom"]
-            )
+            # elev = (
+            #     VEL.attrs["NAVD88_elevation_ref"]
+            #     + VEL.attrs["transducer_offset_from_bottom"]
+            # )
             elev_vel = (
                 VEL.attrs["NAVD88_elevation_ref"]
                 + VEL.attrs["velocity_sample_volume_height"]
@@ -140,10 +140,10 @@ def set_orientation(VEL, T):
         long_name = "height relative to NAVD88"
         geopotential_datum_name = "NAVD88"
     elif "height_above_geopotential_datum" in VEL.attrs:
-        elev = (
-            VEL.attrs["height_above_geopotential_datum"]
-            + VEL.attrs["transducer_offset_from_bottom"]
-        )
+        # elev = (
+        #     VEL.attrs["height_above_geopotential_datum"]
+        #     + VEL.attrs["transducer_offset_from_bottom"]
+        # )
         elev_vel = (
             VEL.attrs["height_above_geopotential_datum"]
             + VEL.attrs["velocity_sample_volume_height"]
@@ -156,7 +156,7 @@ def set_orientation(VEL, T):
         geopotential_datum_name = VEL.attrs["geopotential_datum_name"]
     else:
         # if we don't have NAVD88 elevations, reference to sea-bed elevation
-        elev = VEL.attrs["transducer_offset_from_bottom"]
+        # elev = VEL.attrs["transducer_offset_from_bottom"]
         elev_vel = VEL.attrs["velocity_sample_volume_height"]
         elev_pres = VEL.attrs["pressure_sensor_height"]
         long_name = "height relative to sea bed"
@@ -199,11 +199,11 @@ def set_orientation(VEL, T):
         elif sc == "1" and userorient == "UP":
             flag = True
 
-    if flag == False:
+    if flag is False:
         print(
             "User-provided orientation matches orientation status code at middle of deployment"
         )
-    elif flag == True:
+    elif flag is True:
         warnings.warn(
             "User-provided orientation does not match orientation status code at middle of deployment"
         )
