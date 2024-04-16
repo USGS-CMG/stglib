@@ -1,7 +1,23 @@
 Vector
 ******
 
-Data will generally be processed using a series of run scripts that use command line arguments.
+Instrument orientation
+======================
+
+Vector orientation refers to the direction of the z-axis, whether positive UP or DOWN.
+
+.. note::
+   For fixed stem vertical case systems, as well as cable probe vertical case systems, orientation = UP means the probe head is pointing DOWN (sample volume below probe). The I/O connector must be at the top, and probe cable at the bottom.
+
+   For fixed stem vertical case systems, as well as cable probe vertical case systems, orientation = DOWN means the probe head is pointing UP (sample volume above probe). The I/O connector must be at the bottom, and probe cable at the top.
+
+   For cable probe horizontal case systems, orientation = UP means the probe head is pointing UP (sample volume above probe) when the orientation marking on the case is UP.
+
+   For cable probe horizontal case systems, orientation = DOWN means the probe head is pointing DOWN (sample volume above probe) when the orientation marking on the case is DOWN.
+
+If your setup differs from any of the above, you may need to override the orientation with the ``orientation`` variable in the config file. This is a required variable and the user will be warned if it does not match what the instrument reports.
+
+For more information, see "The Comprehensive Manual - Velocimeters" available from Nortek.
 
 Instrument data to raw .cdf
 ===========================
