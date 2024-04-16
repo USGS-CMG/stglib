@@ -165,42 +165,39 @@ def set_orientation(VEL, T):
 
     # last bit of statuscode is orientation
     sc = str(VEL["StatusCode"].isel(time=int(len(VEL["time"]) / 2)).values)[-1]
+    if sc == "0":
+        scname = "UP"
+    elif sc == "1":
+        scname = "DOWN"
+    headtype = VEL.attrs["VECHeadSerialNumber"][0:3]
+
+    print(
+        f"Instrument reported {headtype} case with orientation status code {sc} = z-axis positive {scname} at middle of deployment"
+    )
 
     if VEL.attrs["orientation"].upper() == "UP":
-        print("User instructed that instrument was pointing UP")
-        if sc != "0":
-            warnings.warn(
-                "User-provided orientation does not match orientation status code at middle of deployment"
-            )
-
-        # 0.15 is the sample volume distance, but isn't actually relevant here...?
-        # VEL["z"] = xr.DataArray(elev + [0.15], dims="z")
-        diff = elev_pres - elev_vel
-        VEL["depthvel"] = xr.DataArray(
-            np.nanmean(VEL[presvar]) + [diff], dims="depthvel"
-        )
-        VEL["depthpres"] = xr.DataArray([np.nanmean(VEL[presvar])], dims="depthpres")
-
+        print("User instructed that z is positive UP")
     elif VEL.attrs["orientation"].upper() == "DOWN":
-        print("User instructed that instrument was pointing DOWN")
-        if sc != "1":
-            warnings.warn(
-                "User-provided orientation does not match orientation status code at middle of deployment"
-            )
+        print("User instructed that z is positive DOWN")
+    else:
+        raise ValueError("Could not determine instrument orientation from user input")
+
+    if scname != VEL.attrs["orientation"].upper():
+        warnings.warn(
+            "User-provided orientation does not match orientation status code at middle of deployment"
+        )
+        histtext = "Modifying transformation matrix to match user-provided orientation"
+
+        warnings.warn(histtext)
+
+        VEL = utils.insert_history(VEL, histtext)
 
         T[1, :] = -T[1, :]
         T[2, :] = -T[2, :]
 
-        # 0.15 is the sample volume distance, but isn't actually relevant here...?
-        # VEL["z"] = xr.DataArray(elev - [0.15], dims="z")
-        diff = elev_pres - elev_vel
-        VEL["depthvel"] = xr.DataArray(
-            np.nanmean(VEL[presvar]) + [diff], dims="depthvel"
-        )
-        VEL["depthpres"] = xr.DataArray([np.nanmean(VEL[presvar])], dims="depthpres")
-    else:
-        raise ValueError("Could not determine instrument orientation from user input")
-
+    diff = elev_pres - elev_vel
+    VEL["depthvel"] = xr.DataArray(np.nanmean(VEL[presvar]) + [diff], dims="depthvel")
+    VEL["depthpres"] = xr.DataArray([np.nanmean(VEL[presvar])], dims="depthpres")
     VEL["zvel"] = xr.DataArray([elev_vel], dims="zvel")
     VEL["zpres"] = xr.DataArray([elev_pres], dims="zpres")
 
