@@ -68,6 +68,15 @@ def dat_to_cdf(metadata):
     # Apply time from VHD file to DAT data
     ds["time"] = dsvhd["time"]
 
+    # bring in sample volume distance from VHD
+    for var in [
+        "DistProbeStartAvg",
+        "DistSVolStartAvg",
+        "DistProbeEndAvg",
+        "DistSVolEndAvg",
+    ]:
+        ds[var] = dsvhd[var]
+
     ds = ds.swap_dims({"Burst": "time"})
     ds = ds.rename({"Ensemble": "sample"})
 
