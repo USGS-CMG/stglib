@@ -177,7 +177,7 @@ def set_orientation(VEL, T):
     headtype = VEL.attrs["VECHeadSerialNumber"][0:3]
 
     print(
-        f"Instrument reported {headtype} case with orientation status code {sc} = z-axis positive {scname} at middle of deployment"
+        f"Instrument reported {headtype} case with orientation status code {sc} -> z-axis positive {scname} at middle of deployment"
     )
 
     if userorient == "UP":
