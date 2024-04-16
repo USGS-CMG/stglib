@@ -1331,6 +1331,10 @@ def check_valid_config_metadata(metadata, inst_type="AQD"):
     if inst_type == "AQD" or inst_type == "VEC":
         vars.append("orientation")
 
+    if inst_type == "VEC":
+        vars.append("pressure_sensor_height")
+        vars.append("velocity_sample_volume_height")
+
     for k in vars:
         if k not in metadata:
             raise KeyError(f"{k} must be defined, most likely in YAML config file")
