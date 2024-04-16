@@ -207,3 +207,4 @@ Vector
 ------
 - ``pressure_sensor_height`` and ``velocity_sample_volume_height`` to specify the elevations of these two sensors.
 - ``puv``: set to ``true`` to compute PUV wave statistics. **(EXPERIMENTAL)**
+- ``orientation``: ``UP`` means probe head is pointing up (sample volume above probe head). ``DOWN`` means probe head is pointing down (sample volume below probe head).

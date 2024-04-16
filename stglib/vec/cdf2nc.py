@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import xarray as xr
 
@@ -118,16 +120,16 @@ def set_orientation(VEL, T):
     if "NAVD88_ref" in VEL.attrs or "NAVD88_elevation_ref" in VEL.attrs:
         # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
         if "NAVD88_ref" in VEL.attrs:
-            elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
+            # elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
             elev_vel = (
                 VEL.attrs["NAVD88_ref"] + VEL.attrs["velocity_sample_volume_height"]
             )
             elev_pres = VEL.attrs["NAVD88_ref"] + VEL.attrs["pressure_sensor_height"]
         elif "NAVD88_elevation_ref" in VEL.attrs:
-            elev = (
-                VEL.attrs["NAVD88_elevation_ref"]
-                + VEL.attrs["transducer_offset_from_bottom"]
-            )
+            # elev = (
+            #     VEL.attrs["NAVD88_elevation_ref"]
+            #     + VEL.attrs["transducer_offset_from_bottom"]
+            # )
             elev_vel = (
                 VEL.attrs["NAVD88_elevation_ref"]
                 + VEL.attrs["velocity_sample_volume_height"]
@@ -138,10 +140,10 @@ def set_orientation(VEL, T):
         long_name = "height relative to NAVD88"
         geopotential_datum_name = "NAVD88"
     elif "height_above_geopotential_datum" in VEL.attrs:
-        elev = (
-            VEL.attrs["height_above_geopotential_datum"]
-            + VEL.attrs["transducer_offset_from_bottom"]
-        )
+        # elev = (
+        #     VEL.attrs["height_above_geopotential_datum"]
+        #     + VEL.attrs["transducer_offset_from_bottom"]
+        # )
         elev_vel = (
             VEL.attrs["height_above_geopotential_datum"]
             + VEL.attrs["velocity_sample_volume_height"]
@@ -154,34 +156,75 @@ def set_orientation(VEL, T):
         geopotential_datum_name = VEL.attrs["geopotential_datum_name"]
     else:
         # if we don't have NAVD88 elevations, reference to sea-bed elevation
-        elev = VEL.attrs["transducer_offset_from_bottom"]
+        # elev = VEL.attrs["transducer_offset_from_bottom"]
         elev_vel = VEL.attrs["velocity_sample_volume_height"]
         elev_pres = VEL.attrs["pressure_sensor_height"]
         long_name = "height relative to sea bed"
 
     T_orig = T.copy()
 
-    if VEL.attrs["orientation"].upper() == "UP":
-        print("User instructed that instrument was pointing UP")
+    # User orientation refers to probe orientation
+    # Nortek status code orientation refers to z-axis positive direction
+    # See Nortek "The Comprehensive Manual - Velocimeters"
+    # section 3.1.7 Orientation of Vector probes
+    userorient = VEL.attrs["orientation"]
+    # last bit of statuscode is orientation
+    sc = str(VEL["StatusCode"].isel(time=int(len(VEL["time"]) / 2)).values)[-1]
+    if sc == "0":
+        scname = "UP"
+    elif sc == "1":
+        scname = "DOWN"
+    headtype = VEL.attrs["VECHeadSerialNumber"][0:3]
 
-        VEL["z"] = xr.DataArray(elev + [0.15], dims="z")
-        VEL["depth"] = xr.DataArray(np.nanmean(VEL[presvar]) - [0.15], dims="depth")
+    print(
+        f"Instrument reported {headtype} case with orientation status code {sc} -> z-axis positive {scname} at middle of deployment"
+    )
 
-    elif VEL.attrs["orientation"].upper() == "DOWN":
-        print("User instructed that instrument was pointing DOWN")
-        T[1, :] = -T[1, :]
-        T[2, :] = -T[2, :]
-
-        VEL["z"] = xr.DataArray(elev - [0.15], dims="z")
-        VEL["depth"] = xr.DataArray(np.nanmean(VEL[presvar]) + [0.15], dims="depth")
+    if userorient == "UP":
+        print("User instructed probe is pointing UP (sample volume above probe)")
+    elif userorient == "DOWN":
+        print("User instructed probe is pointing DOWN (sample volume below probe)")
     else:
         raise ValueError("Could not determine instrument orientation from user input")
 
+    flag = False
+    if headtype == "VEC":
+        if sc == "0" and userorient == "UP":
+            flag = True
+        elif sc == "1" and userorient == "DOWN":
+            flag = True
+    elif headtype == "VCH":
+        if sc == "0" and userorient == "DOWN":
+            flag = True
+        elif sc == "1" and userorient == "UP":
+            flag = True
+
+    if flag is False:
+        print(
+            "User-provided orientation matches orientation status code at middle of deployment"
+        )
+    elif flag is True:
+        warnings.warn(
+            "User-provided orientation does not match orientation status code at middle of deployment"
+        )
+
+        histtext = "Modifying transformation matrix to match user-provided orientation"
+
+        warnings.warn(histtext)
+
+        VEL = utils.insert_history(VEL, histtext)
+
+        T[1, :] = -T[1, :]
+        T[2, :] = -T[2, :]
+
+    diff = elev_pres - elev_vel
+    VEL["depthvel"] = xr.DataArray(np.nanmean(VEL[presvar]) + [diff], dims="depthvel")
+    VEL["depthpres"] = xr.DataArray([np.nanmean(VEL[presvar])], dims="depthpres")
     VEL["zvel"] = xr.DataArray([elev_vel], dims="zvel")
     VEL["zpres"] = xr.DataArray([elev_pres], dims="zpres")
 
-    lnshim = {"z": "", "zvel": " of velocity sensor", "zpres": " of pressure sensor"}
-    for z in ["z", "zvel", "zpres"]:
+    lnshim = {"zvel": " of velocity sensor", "zpres": " of pressure sensor"}
+    for z in ["zvel", "zpres"]:
         VEL[z].attrs["standard_name"] = "height"
         VEL[z].attrs["units"] = "m"
         VEL[z].attrs["positive"] = "up"
@@ -190,10 +233,15 @@ def set_orientation(VEL, T):
         if geopotential_datum_name:
             VEL[z].attrs["geopotential_datum_name"] = geopotential_datum_name
 
-    VEL["depth"].attrs["standard_name"] = "depth"
-    VEL["depth"].attrs["units"] = "m"
-    VEL["depth"].attrs["positive"] = "down"
-    VEL["depth"].attrs["long_name"] = "depth below mean sea level of deployment"
+    for d in ["depthvel", "depthpres"]:
+        VEL[d].attrs["standard_name"] = "depth"
+        VEL[d].attrs["units"] = "m"
+        VEL[d].attrs["positive"] = "down"
+        VEL[d].attrs["long_name"] = f"depth {lnshim} below mean sea level of deployment"
+
+    # "z" is ambiguous, so drop it from Dataset for now
+    # FIXME: remove creation of z variable above instead of just dropping it
+    # VEL = VEL.drop("z")
 
     return VEL, T, T_orig
 
@@ -215,6 +263,11 @@ def ds_drop(ds):
         "AnalogInput2",
         "Depth",
         "Checksum",
+        "ErrorCode",
+        "StatusCode",
+        "vel1_1277",
+        "vel2_1278",
+        "vel3_1279",
     ]
 
     if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"].lower() == "true"):

@@ -1,7 +1,15 @@
 Vector
 ******
 
-Data will generally be processed using a series of run scripts that use command line arguments.
+Instrument orientation
+======================
+
+Orientation in stglib refers to the probe head, whether pointing UP (sample volume above probe) or DOWN (sample volume below probe).
+
+The orientation status code bit in the Vector data file refers to the direction of the z-axis, whether positive UP or down.
+For more information, see "The Comprehensive Manual - Velocimeters" available from Nortek.
+
+The ``orientation`` variable (indicating the probe head orientation) in the config file is required and the user will be warned if it does not match what the instrument reports.
 
 Instrument data to raw .cdf
 ===========================

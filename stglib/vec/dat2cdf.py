@@ -46,25 +46,24 @@ def dat_to_cdf(metadata):
     if mod:
         print(f"{ds.attrs['VECSamplesPerBurst']=}")
         print(f"{ds.attrs['VECSamplingRate']=}")
-        print(
-            "Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
-        )
+        histtext = "Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
+        ds = utils.insert_history(ds, histtext)
         dssen = dssen.sel(time=dssen.time[0:-mod])
 
-    dssen["timenew"] = xr.DataArray(dssen["time"].values[::senburstlen], dims="timenew")
-    dssen["sensample"] = xr.DataArray(range(senburstlen), dims="sensample")
-    for var in ["Heading", "Pitch", "Roll", "Battery", "Temperature", "Soundspeed"]:
-        dssen[var + "new"] = xr.DataArray(
-            dssen[var].values.reshape((-1, senburstlen)),
-            dims=["timenew", "sensample"],
-        ).mean(dim="sensample")
-    for var in dssen.data_vars:
-        if "new" not in var:
-            dssen = dssen.drop(var)
-    for var in dssen.data_vars:
-        dssen = dssen.rename({var: var.replace("new", "")})
-    dssen = dssen.drop(["time", "sensample"])
-    dssen = dssen.rename({"timenew": "time"})
+    # dssen["timenew"] = xr.DataArray(dssen["time"].values[::senburstlen], dims="timenew")
+    # dssen["sensample"] = xr.DataArray(range(senburstlen), dims="sensample")
+    # for var in ["Heading", "Pitch", "Roll", "Battery", "Temperature", "Soundspeed", "ErrorCode", "StatusCode"]:
+    #     dssen[var + "new"] = xr.DataArray(
+    #         dssen[var].values.reshape((-1, senburstlen)),
+    #         dims=["timenew", "sensample"],
+    #     ).mean(dim="sensample")
+    # for var in dssen.data_vars:
+    #     if "new" not in var:
+    #         dssen = dssen.drop(var)
+    # for var in dssen.data_vars:
+    #     dssen = dssen.rename({var: var.replace("new", "")})
+    # dssen = dssen.drop(["time", "sensample"])
+    # dssen = dssen.rename({"timenew": "time"})
 
     # Apply time from VHD file to DAT data
     ds["time"] = dsvhd["time"]
@@ -72,7 +71,16 @@ def dat_to_cdf(metadata):
     ds = ds.swap_dims({"Burst": "time"})
     ds = ds.rename({"Ensemble": "sample"})
 
-    for var in ["Heading", "Pitch", "Roll", "Battery", "Temperature", "Soundspeed"]:
+    for var in [
+        "Heading",
+        "Pitch",
+        "Roll",
+        "Battery",
+        "Temperature",
+        "Soundspeed",
+        "ErrorCode",
+        "StatusCode",
+    ]:
         ds[var] = dssen[var].reindex_like(ds, method="nearest")
 
     ds["TransMatrix"] = xr.DataArray(ds.attrs["VECTransMatrix"])
@@ -156,7 +164,11 @@ def load_sen(basefile):
         "Checksum",
     ]
     sen = pd.read_csv(
-        f"{basefile}.sen", delim_whitespace=True, header=None, names=names
+        f"{basefile}.sen",
+        delim_whitespace=True,
+        header=None,
+        names=names,
+        converters={"ErrorCode": str, "StatusCode": str},
     )
     sen["time"] = pd.to_datetime(
         sen[["Year", "Month", "Day", "Hour", "Minute", "Second"]]
