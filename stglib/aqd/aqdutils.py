@@ -493,6 +493,11 @@ def read_aqd_hdr(basefile):
 
     Instmeta = {}
 
+    while "User setup" not in row:
+        row = f.readline().rstrip()
+        if "Number of checksum errors" in row:
+            Instmeta["AQDNumberOfChecksumErrors"] = int(row[38:])
+
     while "Hardware configuration" not in row:
         row = f.readline().rstrip()
         if hr:
