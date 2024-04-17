@@ -43,6 +43,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Rename DataArrays for EPIC compliance
     ds = aqdutils.ds_rename(ds)
 
+    ds = dist_to_boundary(ds)
+
     ds = scale_analoginput(ds)
 
     # Drop unused variables
@@ -317,5 +319,21 @@ def associate_z_coord(ds):
     for v in ["P_1ac", "P_1"]:
         if v in ds:
             ds[v] = ds[v].expand_dims("zpres")
+
+    return ds
+
+
+def dist_to_boundary(ds):
+    """Create range to boundary variable from start/end values"""
+    ds["brange"] = (ds["DistProbeStartAvg"] + ds["DistProbeEndAvg"]) / 2
+    ds["vrange"] = (ds["DistSVolStartAvg"] + ds["DistSVolEndAvg"]) / 2
+
+    for v in [
+        "DistProbeStartAvg",
+        "DistProbeEndAvg",
+        "DistSVolStartAvg",
+        "DistSVolEndAvg",
+    ]:
+        ds = ds.drop(v)
 
     return ds
