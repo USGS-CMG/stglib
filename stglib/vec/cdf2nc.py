@@ -182,6 +182,17 @@ def set_orientation(VEL, T):
         f"Instrument reported {headtype} case with orientation status code {sc} -> z-axis positive {scname} at middle of deployment"
     )
 
+    # in all cases, if sc == 1, we need to flip the transformation matrix to make z positive up
+    if sc == "1":
+        histtext = (
+            f"Modifying transformation matrix because orientation status code is {sc}"
+        )
+
+        VEL = utils.insert_history(VEL, histtext)
+
+        T[1, :] = -T[1, :]
+        T[2, :] = -T[2, :]
+
     if userorient == "UP":
         print("User instructed probe is pointing UP (sample volume above probe)")
     elif userorient == "DOWN":
