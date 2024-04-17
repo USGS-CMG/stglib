@@ -342,6 +342,12 @@ def associate_z_coord(ds):
         if v in ds:
             ds[v] = ds[v].expand_dims("zpres")
 
+    if "AnalogInput1" in ds:
+        ds[v] = ds[v].expand_dims("zai1")
+
+    if "AnalogInput2" in ds:
+        ds[v] = ds[v].expand_dims("zai2")
+
     return ds
 
 
