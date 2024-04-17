@@ -51,14 +51,15 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         ds = trim_min(ds, v)
         ds = qaqc.trim_bad_ens(ds, v)
 
-    if "Turb" in ds:
-        ds = qaqc.trim_min(ds, "Turb")
-        ds = qaqc.trim_max(ds, "Turb")
-        ds = qaqc.trim_min_diff(ds, "Turb")
-        ds = qaqc.trim_min_diff_pct(ds, "Turb")
-        ds = qaqc.trim_max_diff(ds, "Turb")
-        ds = qaqc.trim_max_diff_pct(ds, "Turb")
-        ds = qaqc.trim_bad_ens(ds, "Turb")
+    for v in ["Turb", "C_51", "S_41", "T_28"]:
+        if v in ds:
+            ds = qaqc.trim_min(ds, v)
+            ds = qaqc.trim_max(ds, v)
+            ds = qaqc.trim_min_diff(ds, v)
+            ds = qaqc.trim_min_diff_pct(ds, v)
+            ds = qaqc.trim_max_diff(ds, v)
+            ds = qaqc.trim_max_diff_pct(ds, v)
+            ds = qaqc.trim_bad_ens(ds, v)
 
     if not is_profile:
         # add z coordinate dim
