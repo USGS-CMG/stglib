@@ -2,8 +2,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .aqd import aqdutils
-
 # def read_argonaut(filbase):
 #     return pd.read_csv(
 #         filnam,
@@ -17,7 +15,7 @@ from .aqd import aqdutils
 def read_dat_raw(filnam):
     df = pd.read_csv(
         filnam,
-        delim_whitespace=True,
+        sep="\s+",
         parse_dates={"time": ["Year", "Month", "Day", "Hour", "Minute", "Second"]},
         date_format="%Y %m %d %H %M %S",
     )
@@ -46,7 +44,7 @@ def rename_columns(df):
 def read_vel_snr_std(filbase):
     df = pd.read_csv(
         filbase + ".vel",
-        delim_whitespace=True,
+        sep="\s+",
         header=[0, 1],
         parse_dates=[[1, 2, 3, 4, 5, 6]],
         date_format="%Y %m %d %H %M %S",
@@ -94,7 +92,7 @@ def read_vel_snr_std(filbase):
 
     snr = pd.read_csv(
         filbase + ".snr",
-        delim_whitespace=True,
+        sep="\s+",
         header=[0, 1],
         parse_dates=[[1, 2, 3, 4, 5, 6]],
         date_format="%Y %m %d %H %M %S",
@@ -112,7 +110,7 @@ def read_vel_snr_std(filbase):
 
     std = pd.read_csv(
         filbase + ".std",
-        delim_whitespace=True,
+        sep="\s+",
         header=[0, 1],
         parse_dates=[[1, 2, 3, 4, 5, 6]],
         date_format="%Y %m %d %H %M %S",
