@@ -46,6 +46,8 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     #     if 'time' not in var:
     #         ds = utils.add_lat_lon(ds, var)
 
+    ds = qaqc.drop_vars(ds)
+
     # trim by minimum pressure for instruments that go out of water_depth
     for v in ["P_1", "P_1ac"]:
         ds = trim_min(ds, v)
