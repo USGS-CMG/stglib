@@ -73,7 +73,7 @@ def load_sen(ds):
     SEN = pd.read_csv(
         senfile,
         header=None,
-        delim_whitespace=True,
+        sep="\s+",
         parse_dates={"datetime": [2, 0, 1, 3, 4, 5]},
         date_format="%Y %m %d %H %M %S.%f",
         usecols=[0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18],
@@ -133,7 +133,7 @@ def load_amp_vel_cor(RAW, basefile):
 
     for n in [1, 2, 3]:
         afile = basefile + ".a" + str(n)
-        a = pd.read_csv(afile, header=None, delim_whitespace=True)
+        a = pd.read_csv(afile, header=None, sep="\s+")
 
         spb = int(RAW.attrs["AQDHRSamplesPerBurst"])
 
@@ -151,7 +151,7 @@ def load_amp_vel_cor(RAW, basefile):
         )
 
         vfile = basefile + ".v" + str(n)
-        v = pd.read_csv(vfile, header=None, delim_whitespace=True)
+        v = pd.read_csv(vfile, header=None, sep="\s+")
 
         if RAW.attrs["AQDHRCoordinateSystem"] == "BEAM":
             thevars = {1: "VEL1", 2: "VEL2", 3: "VEL3"}
@@ -168,7 +168,7 @@ def load_amp_vel_cor(RAW, basefile):
 
         try:
             cfile = basefile + ".c" + str(n)
-            c = pd.read_csv(cfile, header=None, delim_whitespace=True)
+            c = pd.read_csv(cfile, header=None, sep="\s+")
 
             spb = int(RAW.attrs["AQDHRSamplesPerBurst"])
 
