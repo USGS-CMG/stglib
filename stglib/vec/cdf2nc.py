@@ -235,9 +235,9 @@ def set_orientation(VEL, T):
     VEL["depthpres"] = xr.DataArray([np.nanmean(VEL[presvar])], dims="depthpres")
     VEL["zvel"] = xr.DataArray([elev_vel], dims="zvel")
     VEL["zpres"] = xr.DataArray([elev_pres], dims="zpres")
-    if f"AnalogInput1_height" in ds.attrs:
+    if f"AnalogInput1_height" in VEL.attrs:
         VEL[f"zai1"] = xr.DataArray([elev_ai1], dims=f"zai1")
-    if f"AnalogInput2_height" in ds.attrs:
+    if f"AnalogInput2_height" in VEL.attrs:
         VEL[f"zai2"] = xr.DataArray([elev_ai2], dims=f"zai2")
 
     lnshim = {
