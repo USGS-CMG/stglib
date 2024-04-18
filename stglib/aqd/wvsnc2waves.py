@@ -1,10 +1,7 @@
-import numpy as np
 import xarray as xr
-from tqdm import tqdm
 
-from ..core import utils, waves
+from ..core import qaqc, utils, waves
 from ..vec import nc2waves
-from . import aqdutils
 
 
 def nc_to_waves(nc_filename):
@@ -70,6 +67,8 @@ def nc_to_waves(nc_filename):
     for k in keys:
         if k in ds:
             ds = ds.drop(k)
+
+    ds = qaqc.drop_vars(ds)
 
     ds = utils.trim_max_wp(ds)
 
