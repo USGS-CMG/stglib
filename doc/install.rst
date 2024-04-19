@@ -43,6 +43,13 @@ Install and activate an stglib environment:
   mamba create -n stglib stglib
   mamba activate stglib
 
+To update stglib
+
+::
+
+   mamba activate stglib
+   mamba update stglib
+
 Now you can start processing data!
 
 Anaconda or Miniconda
