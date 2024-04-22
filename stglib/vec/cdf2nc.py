@@ -129,9 +129,9 @@ def set_orientation(VEL, T):
         # elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
         elev_vel = navd88_ref + VEL.attrs["velocity_sample_volume_height"]
         elev_pres = navd88_ref + VEL.attrs["pressure_sensor_height"]
-        if f"AnalogInput1_height" in VEL.attrs:
+        if "AnalogInput1_height" in VEL.attrs:
             elev_ai1 = navd88_ref + VEL.attrs["AnalogInput1_height"]
-        if f"AnalogInput2_height" in VEL.attrs:
+        if "AnalogInput2_height" in VEL.attrs:
             elev_ai2 = navd88_ref + VEL.attrs["AnalogInput2_height"]
 
         long_name = "height relative to NAVD88"
@@ -149,12 +149,12 @@ def set_orientation(VEL, T):
             VEL.attrs["height_above_geopotential_datum"]
             + VEL.attrs["pressure_sensor_height"]
         )
-        if f"AnalogInput1_height" in VEL.attrs:
+        if "AnalogInput1_height" in VEL.attrs:
             elev_ai1 = (
                 VEL.attrs["height_above_geopotential_datum"]
                 + VEL.attrs["AnalogInput1_height"]
             )
-        if f"AnalogInput2_height" in VEL.attrs:
+        if "AnalogInput2_height" in VEL.attrs:
             elev_ai2 = (
                 VEL.attrs["height_above_geopotential_datum"]
                 + VEL.attrs["AnalogInput2_height"]
@@ -167,9 +167,9 @@ def set_orientation(VEL, T):
         # elev = VEL.attrs["transducer_offset_from_bottom"]
         elev_vel = VEL.attrs["velocity_sample_volume_height"]
         elev_pres = VEL.attrs["pressure_sensor_height"]
-        if f"AnalogInput1_height" in VEL.attrs:
+        if "AnalogInput1_height" in VEL.attrs:
             elev_ai1 = VEL.attrs["AnalogInput1_height"]
-        if f"AnalogInput2_height" in VEL.attrs:
+        if "AnalogInput2_height" in VEL.attrs:
             elev_ai2 = VEL.attrs["AnalogInput2_height"]
 
         long_name = "height relative to sea bed"
@@ -235,10 +235,10 @@ def set_orientation(VEL, T):
     VEL["depthpres"] = xr.DataArray([np.nanmean(VEL[presvar])], dims="depthpres")
     VEL["zvel"] = xr.DataArray([elev_vel], dims="zvel")
     VEL["zpres"] = xr.DataArray([elev_pres], dims="zpres")
-    if f"AnalogInput1_height" in VEL.attrs:
-        VEL[f"zai1"] = xr.DataArray([elev_ai1], dims=f"zai1")
-    if f"AnalogInput2_height" in VEL.attrs:
-        VEL[f"zai2"] = xr.DataArray([elev_ai2], dims=f"zai2")
+    if "AnalogInput1_height" in VEL.attrs:
+        VEL["zai1"] = xr.DataArray([elev_ai1], dims="zai1")
+    if "AnalogInput2_height" in VEL.attrs:
+        VEL["zai2"] = xr.DataArray([elev_ai2], dims="zai2")
 
     lnshim = {
         "zvel": "of velocity sensor",
