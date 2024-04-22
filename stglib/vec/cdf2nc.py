@@ -57,9 +57,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = associate_z_coord(ds)
 
-    for v in ds.data_vars:
+    for var in ds.data_vars:
         # need to do this or else a "coordinates" attribute with value of "burst" hangs around
-        ds[v].encoding["coordinates"] = None
+        ds[var].encoding["coordinates"] = None
         ds = qaqc.trim_min(ds, var)
         ds = qaqc.trim_max(ds, var)
         ds = qaqc.trim_min_diff(ds, var)
@@ -73,7 +73,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = qaqc.trim_bad_ens(ds, var)
         ds = qaqc.trim_bad_ens_indiv(ds, var)
         ds = qaqc.trim_fliers(ds, var)
-        ds = qaqc.trim_warmup(ds, v)
+        ds = qaqc.trim_warmup(ds, var)
+
+    # after check for masking vars by other vars
+    for var in ds.data_vars:
+        ds = qaqc.trim_mask(ds, var)
 
     # Add start_time and stop_time attrs
     ds = utils.add_start_stop_time(ds)

@@ -307,6 +307,20 @@ def qkfs(omega, h):
     return y / h
 
 
+def detrend_nan(arr):
+    """Helper function for spsig.detrend().
+    This fills nans with zeros so that detrend won't fail, and then nans out the
+    values that had nans in them (since the result of the detrend is not reliable
+    and we won't be using the values anyway)"""
+
+    goods = ~arr.isnull()
+    arr = arr.where(goods, 0)
+    arr = spsig.detrend(arr)
+    # now it's a numpy array so can't use .where
+    arr[~goods] = np.nan
+    return arr
+
+
 def puv_quick_vectorized(
     pressure,
     u,
@@ -405,9 +419,9 @@ def puv_quick_vectorized(
     if overlap_length == "default":
         overlap_length = int(np.floor(fft_length / 2))
 
-    pressure = spsig.detrend(pressure)
-    u = spsig.detrend(u)
-    v = spsig.detrend(v)
+    pressure = detrend_nan(pressure)
+    u = detrend_nan(u)
+    v = detrend_nan(v)
 
     # compute wave height from velocities
 
