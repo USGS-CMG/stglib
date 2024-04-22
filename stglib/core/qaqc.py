@@ -337,10 +337,12 @@ def trim_mask(ds, var):
 
         for trimvar in trmvars:
             if ds[var].dims == ds[trimvar].dims:
-                ds[var] = ds[var].where(~ds[trimvar].isnull())
+                cond = ~ds[trimvar].isnull()
+                ds[var] = ds[var].where(cond)
 
-                print(f"{var}: Trimming using {trimvar} mask")
-                notetxt = f"Values filled using {trimvar} mask."
+                affected = cond.size - cond.sum()
+
+                notetxt = f"Values filled using {trimvar} mask; {affected.values} values affected. "
                 ds = utils.insert_note(ds, var, notetxt)
             else:
                 raise ValueError(

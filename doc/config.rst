@@ -79,6 +79,7 @@ Options applicable to many instrument types include:
 - ``<VAR>_max_blip_pct``: fill short-lived maximum "blips", values that increase more than this percent and then immediately decrease at the next time step.
 - ``<VAR>_trim_fliers``: fill flier values, which are data points surrounded by filled data. Set to the maximum size of flier clumps to remove.
 - ``<VAR>_warmup_samples``: fill these many samples at the beginning of each burst.
+- ``<VAR>_mask``: a single variable or list of variables which should be used to fill the given variable. For example ``u_1205_mask: ["cor1_1285", "cor2_1286", "cor3_1287"]`` will set ``u_1205`` to ``_FillValue`` wherever the correlation variables are ``_FillValue``
 - ``drop_vars``: a list of variables to be removed from the final file. For example, ``drop_vars: ['nLF_Cond_µS_per_cm', 'Wiper_Position_volt', 'Cable_Pwr_V']``.
 
 Aquadopp
