@@ -267,6 +267,11 @@ def set_orientation(VEL, T):
             np.nanmean(VEL[presvar]) + VEL["bindist"].values, dims="depth"
         )
 
+    if "AnalogInput1_height" in VEL.attrs:
+        VEL["zai1"] = xr.DataArray([elev_ai1], dims="zai1")
+    if "AnalogInput2_height" in VEL.attrs:
+        VEL["zai2"] = xr.DataArray([elev_ai2], dims="zai2")
+
     VEL["z"].attrs["standard_name"] = "height"
     VEL["z"].attrs["units"] = "m"
     VEL["z"].attrs["positive"] = "up"
