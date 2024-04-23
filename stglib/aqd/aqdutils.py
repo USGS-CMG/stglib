@@ -228,12 +228,16 @@ def set_orientation(VEL, T):
     if "NAVD88_ref" in VEL.attrs or "NAVD88_elevation_ref" in VEL.attrs:
         # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
         if "NAVD88_ref" in VEL.attrs:
-            elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
+            navd88_ref = VEL.attrs["NAVD88_ref"]
         elif "NAVD88_elevation_ref" in VEL.attrs:
-            elev = (
-                VEL.attrs["NAVD88_elevation_ref"]
-                + VEL.attrs["transducer_offset_from_bottom"]
-            )
+            navd88_ref = VEL.attrs["NAVD88_elevation_ref"]
+
+        elev = navd88_ref + VEL.attrs["transducer_offset_from_bottom"]
+        if "AnalogInput1_height" in VEL.attrs:
+            elev_ai1 = navd88_ref + VEL.attrs["AnalogInput1_height"]
+        if "AnalogInput2_height" in VEL.attrs:
+            elev_ai2 = navd88_ref + VEL.attrs["AnalogInput2_height"]
+
         long_name = "height relative to NAVD88"
         geopotential_datum_name = "NAVD88"
     elif "height_above_geopotential_datum" in VEL.attrs:
@@ -241,11 +245,27 @@ def set_orientation(VEL, T):
             VEL.attrs["height_above_geopotential_datum"]
             + VEL.attrs["transducer_offset_from_bottom"]
         )
+        if "AnalogInput1_height" in VEL.attrs:
+            elev_ai1 = (
+                VEL.attrs["height_above_geopotential_datum"]
+                + VEL.attrs["AnalogInput1_height"]
+            )
+        if "AnalogInput2_height" in VEL.attrs:
+            elev_ai2 = (
+                VEL.attrs["height_above_geopotential_datum"]
+                + VEL.attrs["AnalogInput2_height"]
+            )
+
         long_name = f"height relative to {VEL.attrs['geopotential_datum_name']}"
         geopotential_datum_name = VEL.attrs["geopotential_datum_name"]
     else:
         # if we don't have NAVD88 elevations, reference to sea-bed elevation
         elev = VEL.attrs["transducer_offset_from_bottom"]
+        if "AnalogInput1_height" in VEL.attrs:
+            elev_ai1 = VEL.attrs["AnalogInput1_height"]
+        if "AnalogInput2_height" in VEL.attrs:
+            elev_ai2 = VEL.attrs["AnalogInput2_height"]
+
         long_name = "height relative to sea bed"
 
     T_orig = T.copy()
@@ -267,18 +287,31 @@ def set_orientation(VEL, T):
             np.nanmean(VEL[presvar]) + VEL["bindist"].values, dims="depth"
         )
 
-    VEL["z"].attrs["standard_name"] = "height"
-    VEL["z"].attrs["units"] = "m"
-    VEL["z"].attrs["positive"] = "up"
-    VEL["z"].attrs["axis"] = "Z"
-    VEL["z"].attrs["long_name"] = long_name
-    if geopotential_datum_name:
-        VEL["z"].attrs["geopotential_datum_name"] = geopotential_datum_name
+    if "AnalogInput1_height" in VEL.attrs:
+        VEL["zai1"] = xr.DataArray([elev_ai1], dims="zai1")
+    if "AnalogInput2_height" in VEL.attrs:
+        VEL["zai2"] = xr.DataArray([elev_ai2], dims="zai2")
+
+    lnshim = {
+        "z": "",
+        "zai1": "of analog input 1",
+        "zai2": "of analog input 2",
+    }
+    for z in ["z", "zai1", "zai2"]:
+        if z not in VEL:
+            continue
+        VEL[z].attrs["standard_name"] = "height"
+        VEL[z].attrs["units"] = "m"
+        VEL[z].attrs["positive"] = "up"
+        VEL[z].attrs["axis"] = "Z"
+        VEL[z].attrs["long_name"] = long_name
+        if geopotential_datum_name:
+            VEL[z].attrs["geopotential_datum_name"] = geopotential_datum_name
 
     VEL["depth"].attrs["standard_name"] = "depth"
     VEL["depth"].attrs["units"] = "m"
     VEL["depth"].attrs["positive"] = "down"
-    VEL["depth"].attrs["long_name"] = "depth below mean sea level"
+    VEL["depth"].attrs["long_name"] = "depth below mean sea level of deployment"
 
     return VEL, T, T_orig
 
@@ -983,27 +1016,6 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
                     "Velocity bins trimmed if out of water or if side lobes intersect sea surface."
                 )
 
-    # def add_attributes(var, dsattrs):
-    #     if inst_type == "AQD":
-    #         sn = dsattrs["AQDSerial_Number"]
-    #     elif inst_type == "VEC":
-    #         sn = dsattrs["VECSerialNumber"]
-    #     elif inst_type == "SIG":
-    #         sn = dsattrs["SIGSerialNo"]
-    #
-    #     var.attrs.update(
-    #         {
-    #             # "serial_number": sn,
-    #             # "initial_instrument_height": dsattrs["initial_instrument_height"],
-    #             # "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
-    #             # "height_depth_units": "m",
-    #             # "sensor_type": dsattrs["INST_TYPE"],
-    #         }
-    #     )
-
-    # if utils.is_cf(ds):
-    #    ds.attrs["featureType"] = "timeSeriesProfile"
-
     # Update attributes for EPIC and STG compliance
     ds = utils.ds_coord_no_fillvalue(ds)
 
@@ -1516,9 +1528,8 @@ def average_burst(ds):
     return ds
 
 
-def ds_swap_dims(
-    ds,
-):  # swap vert dim to z or dim specified by vert_dim in config yaml file
+def ds_swap_dims(ds):
+    # swap vert dim to z or dim specified by vert_dim in config yaml file
     # need to preserve z attrs because swap_dims will remove them
 
     if "vert_dim" in ds.attrs:
@@ -1546,5 +1557,29 @@ def ds_swap_dims(
                 ds[v] = ds[v].swap_dims({"bindist": "z"})
 
         ds["z"].attrs = attrsbak
+
+    if "AnalogInput1" in ds:
+        ds["AnalogInput1"] = ds["AnalogInput1"].expand_dims("zai1", axis=-1)
+
+    if "AnalogInput2" in ds:
+        ds["AnalogInput2"] = ds["AnalogInput2"].expand_dims("zai2", axis=-1)
+
+    return ds
+
+
+def ds_checksum_check(ds):
+    warn = False
+
+    if np.any(ds["Checksum"] == 1):
+        warn = True
+
+    if "AQDNumberOfChecksumErrors" in ds.attrs:
+        if ds.attrs["AQDNumberOfChecksumErrors"] != 0:
+            warn = True
+
+    if warn:
+        warnings.warn(
+            "Non-zero checksum values found in data. This indicates a failed checksum and potentially bad data. Proceed with caution."
+        )
 
     return ds

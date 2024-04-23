@@ -139,23 +139,18 @@ def set_orientation(VEL, T):
     if "NAVD88_ref" in VEL.attrs or "NAVD88_elevation_ref" in VEL.attrs:
         # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
         if "NAVD88_ref" in VEL.attrs:
-            # elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
-            elev_vel = (
-                VEL.attrs["NAVD88_ref"] + VEL.attrs["velocity_sample_volume_height"]
-            )
-            elev_pres = VEL.attrs["NAVD88_ref"] + VEL.attrs["pressure_sensor_height"]
+            navd88_ref = VEL.attrs["NAVD88_ref"]
         elif "NAVD88_elevation_ref" in VEL.attrs:
-            # elev = (
-            #     VEL.attrs["NAVD88_elevation_ref"]
-            #     + VEL.attrs["transducer_offset_from_bottom"]
-            # )
-            elev_vel = (
-                VEL.attrs["NAVD88_elevation_ref"]
-                + VEL.attrs["velocity_sample_volume_height"]
-            )
-            elev_pres = (
-                VEL.attrs["NAVD88_elevation_ref"] + VEL.attrs["pressure_sensor_height"]
-            )
+            navd88_ref = VEL.attrs["NAVD88_elevation_ref"]
+
+        # elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
+        elev_vel = navd88_ref + VEL.attrs["velocity_sample_volume_height"]
+        elev_pres = navd88_ref + VEL.attrs["pressure_sensor_height"]
+        if "AnalogInput1_height" in VEL.attrs:
+            elev_ai1 = navd88_ref + VEL.attrs["AnalogInput1_height"]
+        if "AnalogInput2_height" in VEL.attrs:
+            elev_ai2 = navd88_ref + VEL.attrs["AnalogInput2_height"]
+
         long_name = "height relative to NAVD88"
         geopotential_datum_name = "NAVD88"
     elif "height_above_geopotential_datum" in VEL.attrs:
@@ -171,6 +166,17 @@ def set_orientation(VEL, T):
             VEL.attrs["height_above_geopotential_datum"]
             + VEL.attrs["pressure_sensor_height"]
         )
+        if "AnalogInput1_height" in VEL.attrs:
+            elev_ai1 = (
+                VEL.attrs["height_above_geopotential_datum"]
+                + VEL.attrs["AnalogInput1_height"]
+            )
+        if "AnalogInput2_height" in VEL.attrs:
+            elev_ai2 = (
+                VEL.attrs["height_above_geopotential_datum"]
+                + VEL.attrs["AnalogInput2_height"]
+            )
+
         long_name = f"height relative to {VEL.attrs['geopotential_datum_name']}"
         geopotential_datum_name = VEL.attrs["geopotential_datum_name"]
     else:
@@ -178,6 +184,11 @@ def set_orientation(VEL, T):
         # elev = VEL.attrs["transducer_offset_from_bottom"]
         elev_vel = VEL.attrs["velocity_sample_volume_height"]
         elev_pres = VEL.attrs["pressure_sensor_height"]
+        if "AnalogInput1_height" in VEL.attrs:
+            elev_ai1 = VEL.attrs["AnalogInput1_height"]
+        if "AnalogInput2_height" in VEL.attrs:
+            elev_ai2 = VEL.attrs["AnalogInput2_height"]
+
         long_name = "height relative to sea bed"
 
     T_orig = T.copy()
@@ -252,14 +263,25 @@ def set_orientation(VEL, T):
     VEL["depthpres"] = xr.DataArray([np.nanmean(VEL[presvar])], dims="depthpres")
     VEL["zvel"] = xr.DataArray([elev_vel], dims="zvel")
     VEL["zpres"] = xr.DataArray([elev_pres], dims="zpres")
+    if "AnalogInput1_height" in VEL.attrs:
+        VEL["zai1"] = xr.DataArray([elev_ai1], dims="zai1")
+    if "AnalogInput2_height" in VEL.attrs:
+        VEL["zai2"] = xr.DataArray([elev_ai2], dims="zai2")
 
-    lnshim = {"zvel": " of velocity sensor", "zpres": " of pressure sensor"}
-    for z in ["zvel", "zpres"]:
+    lnshim = {
+        "zvel": "of velocity sensor",
+        "zpres": "of pressure sensor",
+        "zai1": "of analog input 1",
+        "zai2": "of analog input 2",
+    }
+    for z in ["zvel", "zpres", "zai1", "zai2"]:
+        if z not in VEL:
+            continue
         VEL[z].attrs["standard_name"] = "height"
         VEL[z].attrs["units"] = "m"
         VEL[z].attrs["positive"] = "up"
         VEL[z].attrs["axis"] = "Z"
-        VEL[z].attrs["long_name"] = long_name + lnshim[z]
+        VEL[z].attrs["long_name"] = f"{long_name} {lnshim[z]}"
         if geopotential_datum_name:
             VEL[z].attrs["geopotential_datum_name"] = geopotential_datum_name
 
@@ -267,7 +289,9 @@ def set_orientation(VEL, T):
         VEL[d].attrs["standard_name"] = "depth"
         VEL[d].attrs["units"] = "m"
         VEL[d].attrs["positive"] = "down"
-        VEL[d].attrs["long_name"] = f"depth {lnshim} below mean sea level of deployment"
+        VEL[d].attrs[
+            "long_name"
+        ] = f"depth {lnshim[z]} below mean sea level of deployment"
 
     # "z" is ambiguous, so drop it from Dataset for now
     # FIXME: remove creation of z variable above instead of just dropping it
@@ -342,11 +366,18 @@ def associate_z_coord(ds):
         "cor3_1287",
     ]:
         if v in ds:
-            ds[v] = ds[v].expand_dims("zvel")
+            # pass axis=-1 to add z dim to end for CF compliance
+            ds[v] = ds[v].expand_dims("zvel", axis=-1)
 
     for v in ["P_1ac", "P_1"]:
         if v in ds:
-            ds[v] = ds[v].expand_dims("zpres")
+            ds[v] = ds[v].expand_dims("zpres", axis=-1)
+
+    if "AnalogInput1" in ds:
+        ds["AnalogInput1"] = ds["AnalogInput1"].expand_dims("zai1", axis=-1)
+
+    if "AnalogInput2" in ds:
+        ds["AnalogInput2"] = ds["AnalogInput2"].expand_dims("zai2", axis=-1)
 
     return ds
 
