@@ -165,6 +165,10 @@ def atmos_correct_profile(ds, atmpres):
     ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
         "offset"
     ]
+    if "comment" in met["atmpres"].attrs:
+        ds.attrs["atmospheric_pressure_correction_comment"] = met["atmpres"].attrs[
+            "comment"
+        ]
 
     return ds
 
