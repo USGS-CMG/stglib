@@ -133,13 +133,10 @@ def open_raw_cdf(cdf_filename):
 def get_slice(ds, profile):
     rscs = ds.row_size.cumsum()
 
-    if profile == 0:
-        rl = slice(0, rscs.sel(profile=profile).values - 1)
-    else:
-        rl = slice(
-            rscs.sel(profile=profile - 1).values, rscs.sel(profile=profile).values - 1
-        )
-    return rl
+    row_start = ds.row_start.sel(profile=profile).values
+    row_size = ds.row_size.sel(profile=profile).values
+
+    return slice(row_start, row_start + row_size - 1)
 
 
 def atmos_correct_profile(ds, atmpres):
@@ -172,7 +169,7 @@ def atmos_correct_profile(ds, atmpres):
 def do_split_profiles(ds):
     max_profile_len = len(str(ds.profile.max().values))
     for profile in ds.profile.values:
-        dss = ds.isel(obs=get_slice(ds, profile), profile=profile).copy(deep=True)
+        dss = ds.sel(obs=get_slice(ds, profile), profile=profile).copy(deep=True)
 
         for v in dss.data_vars:
             if "obs" not in dss[v].coords:
@@ -352,18 +349,22 @@ def profile_clip_ds(ds):
         # we have good ensemble indices in the metadata
 
         # so we can deal with multiple good_ens ranges, or just a single range
+        # these are good profile numbers
         good_ens = ds.attrs["good_ens"]
         goods = []
-
         for n in range(0, len(good_ens), 2):
             goods.append(np.arange(good_ens[n], good_ens[n + 1]))
         goods = np.hstack(goods)
 
+        # these are good obs numbers
+        goodobs = []
         for profile in ds.profile.values:
-            if profile not in goods:
-                for v in ds.data_vars:
-                    if "obs" in ds[v].coords:
-                        ds[v].loc[dict(obs=get_slice(ds, profile))] = np.nan
+            if profile in goods:
+                s = get_slice(ds, profile)
+                goodobs.append(list(range(s.start, s.stop + 1)))
+        goodobs = np.hstack(goodobs)
+
+        ds = ds.sel(profile=goods, obs=goodobs)
 
         histtext = "Data clipped using good_ens values of {}.".format(str(good_ens))
 
@@ -371,5 +372,12 @@ def profile_clip_ds(ds):
 
     else:
         print("Did not clip data; no values specified in metadata")
+
+    print(
+        f"first profile in clipped file: {ds['time'].min().values}, idx {np.argmin(ds['time'].values)}"
+    )
+    print(
+        f"last profile in clipped file: {ds['time'].max().values}, idx {np.argmax(ds['time'].values)}"
+    )
 
     return ds
