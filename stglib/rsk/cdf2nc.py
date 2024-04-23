@@ -53,7 +53,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         ds = trim_min(ds, v)
         ds = qaqc.trim_bad_ens(ds, v)
 
-    for v in ["Turb", "C_51", "S_41", "T_28"]:
+    for v in ["Turb", "C_51", "S_41", "T_28", "SpC_48"]:
         if v in ds:
             ds = qaqc.trim_min(ds, v)
             ds = qaqc.trim_max(ds, v)
