@@ -10,5 +10,6 @@ AnalogInput1: 'true'
 AnalogInput1_long_name: 'turbidity'
 AnalogInput1_units: 'V'
 AnalogInput1_min: 0.01
+AnalogInput1_height: 0.3
 height_above_geopotential_datum: 0.631 # grate elevation in m
 geopotential_datum_name: 'NAVD88'

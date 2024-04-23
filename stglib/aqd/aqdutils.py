@@ -1523,9 +1523,7 @@ def average_burst(ds):
     return ds
 
 
-def ds_swap_dims(
-    ds,
-):
+def ds_swap_dims(ds):
     # swap vert dim to z or dim specified by vert_dim in config yaml file
     # need to preserve z attrs because swap_dims will remove them
 
@@ -1554,6 +1552,12 @@ def ds_swap_dims(
                 ds[v] = ds[v].swap_dims({"bindist": "z"})
 
         ds["z"].attrs = attrsbak
+
+    if "AnalogInput1" in ds:
+        ds["AnalogInput1"] = ds["AnalogInput1"].expand_dims("zai1", axis=-1)
+
+    if "AnalogInput2" in ds:
+        ds["AnalogInput2"] = ds["AnalogInput2"].expand_dims("zai2", axis=-1)
 
     return ds
 
