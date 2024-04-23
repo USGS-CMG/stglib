@@ -349,7 +349,7 @@ def associate_z_coord(ds):
         ds["AnalogInput1"] = ds["AnalogInput1"].expand_dims("zai1", axis=-1)
 
     if "AnalogInput2" in ds:
-        ds["AnalogInput1"] = ds["AnalogInput1"].expand_dims("zai2", axis=-1)
+        ds["AnalogInput2"] = ds["AnalogInput2"].expand_dims("zai2", axis=-1)
 
     return ds
 
