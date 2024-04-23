@@ -1166,6 +1166,10 @@ def atmos_correct(ds, atmpres):
     ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
         "offset"
     ]
+    if "comment" in met["atmpres"].attrs:
+        ds.attrs["atmospheric_pressure_correction_comment"] = met["atmpres"].attrs[
+            "comment"
+        ]
 
     # Is reindexing with a tolerance still necessary? Keeping old code around to check
     # ds["P_1ac"] = (
