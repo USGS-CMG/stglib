@@ -336,18 +336,13 @@ def trim_mask(ds, var):
             trmvars = [trmvars]
 
         for trimvar in trmvars:
-            if ds[var].dims == ds[trimvar].dims:
-                cond = ~ds[trimvar].isnull()
-                ds[var] = ds[var].where(cond)
+            cond = ~ds[trimvar].isnull()
+            ds[var] = ds[var].where(cond)
 
-                affected = cond.size - cond.sum()
+            affected = cond.size - cond.sum()
 
-                notetxt = f"Values filled using {trimvar} mask; {affected.values} values affected. "
-                ds = utils.insert_note(ds, var, notetxt)
-            else:
-                raise ValueError(
-                    f"dimension mismatch between {var} and masking variable {trimvar}"
-                )
+            notetxt = f"Values filled using {trimvar} mask; {affected.values} values affected. "
+            ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
