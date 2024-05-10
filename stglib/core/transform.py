@@ -17,9 +17,9 @@ def coord_transform(ds, out="enu"):
             f"Data already in {cs} coordinates and conversion to {out} requested. Doing nothing."
         )
 
-        ds["E"] = ds.VEL1
-        ds["N"] = ds.VEL2
-        ds["U"] = ds.VEL3
+        ds["U"] = ds.VEL1
+        ds["V"] = ds.VEL2
+        ds["W"] = ds.VEL3
 
     elif cs.lower() == "beam" and out.lower() == "xyz":
 
@@ -37,11 +37,11 @@ def coord_transform(ds, out="enu"):
             ds
         )  # need to create orienation matrix using heading, pitch, and roll
 
-        e, n, u = vec_xyz_to_enu(ds.VEL1, ds.VEL2, ds.VEL3, orientmat)
+        u, v, w = vec_xyz_to_enu(ds.VEL1, ds.VEL2, ds.VEL3, orientmat)
 
-        ds["E"] = xr.DataArray(e, dims=("time"))
-        ds["N"] = xr.DataArray(n, dims=("time"))
         ds["U"] = xr.DataArray(u, dims=("time"))
+        ds["V"] = xr.DataArray(v, dims=("time"))
+        ds["W"] = xr.DataArray(w, dims=("time"))
 
     elif cs.lower() == "beam" and out.lower() == "enu":
 
@@ -57,11 +57,11 @@ def coord_transform(ds, out="enu"):
             ds
         )  # need to create orienation matrix using heading, pitch, and roll
 
-        e, n, u = vec_xyz_to_enu(ds.X, ds.Y, ds.Z, orientmat)  # now transform to enu
+        u, v, w = vec_xyz_to_enu(ds.X, ds.Y, ds.Z, orientmat)  # now transform to enu
 
-        ds["E"] = xr.DataArray(e, dims=("time"))
-        ds["N"] = xr.DataArray(n, dims=("time"))
         ds["U"] = xr.DataArray(u, dims=("time"))
+        ds["V"] = xr.DataArray(v, dims=("time"))
+        ds["W"] = xr.DataArray(w, dims=("time"))
 
     elif (
         cs.lower() == "enu" and out.lower() == "xyz"
@@ -143,13 +143,13 @@ def vec_beam_to_xyz(vel1, vel2, vel3, T):
 
 def vec_xyz_to_enu(vel1, vel2, vel3, orientmat):
     xyz = np.array([vel1, vel2, vel3])
-    enu = np.einsum("ijk,i...k->j...k", orientmat, xyz)
+    uvw = np.einsum("ijk,i...k->j...k", orientmat, xyz)
 
-    e = enu[0]
-    n = enu[1]
-    u = enu[2]
+    u = uvw[0]
+    v = uvw[1]
+    w = uvw[2]
 
-    return e, n, u
+    return u, v, w
 
 
 def create_orientmat(ds):
