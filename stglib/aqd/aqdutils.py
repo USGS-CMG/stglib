@@ -377,6 +377,9 @@ def magvar_correct(ds):
         elif "u_1205" in ds and "v_1206" in ds:
             uvar = "u_1205"
             vvar = "v_1206"
+        elif "E" in ds and "N" in ds:
+            uvar = "E"
+            vvar = "N"
 
         ds[uvar], ds[vvar] = rotate(ds[uvar], ds[vvar], magvardeg)
 
