@@ -1,10 +1,11 @@
 import warnings
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from ..aqd import aqdutils
-from ..core import qaqc, utils
+from ..core import qaqc, transform, utils
 
 
 def cdf_to_nc(cdf_filename, atmpres=False):
@@ -20,32 +21,23 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.create_nominal_instrument_depth(ds)
 
-    ds, T, T_orig = set_orientation(ds, ds["TransMatrix"].values)
+    ds = set_orientation(ds)
 
-    u, v, w = aqdutils.coord_transform(
-        ds["VEL1"],
-        ds["VEL2"],
-        ds["VEL3"],
-        ds["Heading"].values,
-        ds["Pitch"].values,
-        ds["Roll"].values,
-        T,
-        T_orig,
-        ds.attrs["VECCoordinateSystem"],
-    )
-
-    ds["U"] = xr.DataArray(u, dims=("time", "sample"))
-    ds["V"] = xr.DataArray(v, dims=("time", "sample"))
-    ds["W"] = xr.DataArray(w, dims=("time", "sample"))
+    ds = transform.coord_transform(ds)
 
     ds = aqdutils.magvar_correct(ds)
 
     # Rename DataArrays for EPIC compliance
     ds = aqdutils.ds_rename(ds)
 
-    ds = dist_to_boundary(ds)
+    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
+        ds = dist_to_boundary(ds)
 
     ds = scale_analoginput(ds)
+
+    # Shape into burst if not continuous mode
+    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
+        ds = reshape(ds)
 
     # Drop unused variables
     ds = ds_drop(ds)
@@ -87,43 +79,16 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_standard_names(ds)
 
-    if "prefix" in ds.attrs:
-        nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "-a.nc"
-    else:
-        nc_filename = ds.attrs["filename"] + "-a.nc"
+    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
+        create_burst_nc(ds)
 
-    ds.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
-    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
-
-    print("Done writing netCDF file", nc_filename)
-
-    print("Creating burst-mean statistics file")
-
-    dsmean = ds.mean(dim="sample", keep_attrs=True)
-
-    # we already applied ClockDrift, ClockError in dat2cdf so don't re-apply it here.
-    # but we do want to shift time since we are presenting mean values.
-    dsmean = utils.shift_time(
-        dsmean,
-        dsmean.attrs["VECSamplesPerBurst"] / dsmean.attrs["VECSamplingRate"] / 2,
-        apply_clock_error=False,
-        apply_clock_drift=False,
-    )
-
-    if "prefix" in dsmean.attrs:
-        nc_filename = dsmean.attrs["prefix"] + dsmean.attrs["filename"] + "-s.nc"
-    else:
-        nc_filename = dsmean.attrs["filename"] + "-s.nc"
-
-    dsmean.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
-    utils.check_compliance(nc_filename, conventions=dsmean.attrs["Conventions"])
-
-    print("Done writing netCDF file", nc_filename)
+    if ds.attrs["VECBurstInterval"] == "CONTINUOUS":
+        create_cont_nc(ds)
 
     return ds
 
 
-def set_orientation(VEL, T):
+def set_orientation(VEL):
     """
     Create z variable depending on instrument orientation
     Mostly taken from ../aqd/aqdutils.py
@@ -191,15 +156,13 @@ def set_orientation(VEL, T):
 
         long_name = "height relative to sea bed"
 
-    T_orig = T.copy()
-
     # User orientation refers to probe orientation
     # Nortek status code orientation refers to z-axis positive direction
     # See Nortek "The Comprehensive Manual - Velocimeters"
     # section 3.1.7 Orientation of Vector probes
     userorient = VEL.attrs["orientation"]
-    # last bit of statuscode is orientation
-    sc = str(VEL["StatusCode"].isel(time=int(len(VEL["time"]) / 2)).values)[-1]
+    # last bit of statuscode is orientation, which is saved as variable for vel transformations (inspried by dolfyn)
+    sc = str(VEL["orientation"].isel(time=int(len(VEL["time"]) / 2)).values)
     if sc == "0":
         scname = "UP"
     elif sc == "1":
@@ -209,17 +172,6 @@ def set_orientation(VEL, T):
     print(
         f"Instrument reported {headtype} case with orientation status code {sc} -> z-axis positive {scname} at middle of deployment"
     )
-
-    # in all cases, if sc == 1, we need to flip the transformation matrix to make z positive up
-    if sc == "1":
-        histtext = (
-            f"Modifying transformation matrix because orientation status code is {sc}"
-        )
-
-        VEL = utils.insert_history(VEL, histtext)
-
-        T[1, :] = -T[1, :]
-        T[2, :] = -T[2, :]
 
     if userorient == "UP":
         print("User instructed probe is pointing UP (sample volume above probe)")
@@ -249,14 +201,9 @@ def set_orientation(VEL, T):
             "User-provided orientation does not match orientation status code at middle of deployment"
         )
 
-        histtext = "Modifying transformation matrix to match user-provided orientation"
-
-        warnings.warn(histtext)
-
-        VEL = utils.insert_history(VEL, histtext)
-
-        T[1, :] = -T[1, :]
-        T[2, :] = -T[2, :]
+        warnings.warn(
+            "Incorrect vector orientation will cause erroneous velocity transformations. Check deployment orientation details and vector manual to verify vector was oriented correctly"
+        )
 
     diff = elev_pres - elev_vel
     VEL["depthvel"] = xr.DataArray(np.nanmean(VEL[presvar]) + [diff], dims="depthvel")
@@ -297,7 +244,7 @@ def set_orientation(VEL, T):
     # FIXME: remove creation of z variable above instead of just dropping it
     # VEL = VEL.drop("z")
 
-    return VEL, T, T_orig
+    return VEL
 
 
 def ds_drop(ds):
@@ -396,3 +343,87 @@ def dist_to_boundary(ds):
         ds = ds.drop(v)
 
     return ds
+
+
+def reshape(ds):
+
+    t = ds["time"][ds["sample"].values == 1]
+
+    for i in np.arange(0, len(t)):
+        t2, samp = np.meshgrid(
+            t[i],
+            ds["sample"].sel(
+                time=slice(
+                    t[i],
+                    t[i]
+                    + np.timedelta64(ds.attrs["VECBurstInterval"], "s")
+                    - np.timedelta64(
+                        int(1 / ds.attrs["VECSamplingRate"] * 1000 * 0.5), "ms"
+                    ),
+                )
+            ),
+        )
+
+        if i == 0:
+            s = np.array(samp.transpose().flatten())
+            t3 = np.array(t2.transpose().flatten())
+        else:
+            s = np.append(s, samp.transpose().flatten())
+            t3 = np.append(t3, t2.transpose().flatten())
+
+    ind = pd.MultiIndex.from_arrays((t3, s), names=("new_time", "new_sample"))
+
+    ds = ds.sel(time=slice(t[0], ds["time"][-1])).assign(time=ind).unstack("time")
+
+    ds = ds.drop("sample").rename({"new_time": "time", "new_sample": "sample"})
+
+    return ds
+
+
+def create_burst_nc(ds):
+
+    if "prefix" in ds.attrs:
+        nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "b-cal.nc"
+    else:
+        nc_filename = ds.attrs["filename"] + "b-cal.nc"
+
+    ds.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+
+    print("Done writing netCDF file", nc_filename)
+
+    print("Creating burst-mean statistics file")
+
+    dsmean = ds.mean(dim="sample", keep_attrs=True)
+
+    # we already applied ClockDrift, ClockError in dat2cdf so don't re-apply it here.
+    # but we do want to shift time since we are presenting mean values.
+    dsmean = utils.shift_time(
+        dsmean,
+        dsmean.attrs["VECSamplesPerBurst"] / dsmean.attrs["VECSamplingRate"] / 2,
+        apply_clock_error=False,
+        apply_clock_drift=False,
+    )
+
+    if "prefix" in dsmean.attrs:
+        nc_filename = dsmean.attrs["prefix"] + dsmean.attrs["filename"] + "-a.nc"
+    else:
+        nc_filename = dsmean.attrs["filename"] + "-a.nc"
+
+    dsmean.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    utils.check_compliance(nc_filename, conventions=dsmean.attrs["Conventions"])
+
+    print("Done writing netCDF file", nc_filename)
+
+
+def create_cont_nc(ds):
+
+    if "prefix" in ds.attrs:
+        nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "cont-cal.nc"
+    else:
+        nc_filename = ds.attrs["filename"] + "cont-cal.nc"
+
+    ds.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+
+    print("Done writing netCDF file", nc_filename)
