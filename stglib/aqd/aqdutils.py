@@ -1130,6 +1130,14 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
+    if "agc" in ds:
+        ds["agc"].attrs.update(
+            {
+                "units": "counts",
+                "long_name": "Echo Intensity (AGC) for Beams",
+            }
+        )
+
     if "AGC1_1221" in ds:
         ds["AGC1_1221"].attrs.update(
             {
@@ -1157,6 +1165,22 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
+    if "amp" in ds:
+        ds["amp"].attrs.update(
+            {
+                "units": "Counts",
+                "long_name": "Signal Strength (amplitude) for Beams",
+            }
+        )
+
+    if "snr" in ds:
+        ds["snr"].attrs.update(
+            {
+                "units": "dB",
+                "long_name": "Signal to Noise Ratio for Beams",
+            }
+        )
+
     if "SNR1" in ds:
         ds["SNR1"].attrs.update(
             {
@@ -1178,6 +1202,14 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             {
                 "units": "dB",
                 "long_name": "Signal to Noise Ratio Beam 3",
+            }
+        )
+
+    if "cor" in ds:
+        ds["cor"].attrs.update(
+            {
+                "units": "percent",
+                "long_name": "Correlation for Beams",
             }
         )
 
@@ -1328,6 +1360,17 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
                 "long_name": "Distance from sample volume to boundary",
                 "standard_name": "height_above_sea_floor",
                 "note": "Calculated from average of start and end values for burst",
+            }
+        )
+
+    if (
+        inst_type == "VEC"
+    ):  # can apply this to all instruments if needed, but keeping just for vec now
+        ds["orientation"].attrs.update(
+            {
+                "units": 1,
+                "long_name": "instrument orientation",
+                "note": "0 = UP; 1 = DOWN",
             }
         )
 

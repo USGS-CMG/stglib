@@ -82,7 +82,9 @@ def dat_to_cdf(metadata):
 
     # ds = ds.swap_dims({"Burst": "time"})
 
-    dssen = dssen.drop(["Month", "Day", "Year", "Hour", "Minute", "Second"])
+    dssen = dssen.drop(
+        ["Month", "Day", "Year", "Hour", "Minute", "Second", "AnalogInput"]
+    )
 
     for var in dssen:
         ds[var] = dssen[var].reindex_like(ds, method="nearest")
