@@ -63,6 +63,10 @@ def coord_transform(ds, out="enu"):
         ds["V"] = xr.DataArray(v, dims=("time"))
         ds["W"] = xr.DataArray(w, dims=("time"))
 
+        ds = ds.drop(
+            ["X", "Y", "Z"]
+        )  # do not need intermediate XYZ vels because we keep Beam and now have ENU vels
+
     elif (
         cs.lower() == "enu" and out.lower() == "xyz"
     ):  # reverse transformation enu to xyz
@@ -177,6 +181,12 @@ def create_orientmat(ds):
     orientmat = orientmat.transpose(2, 1, 0)
 
     ds["orientmat"] = xr.DataArray(orientmat, dims=["earth", "inst", "time"])
+    ds["orientmat"].attrs[
+        "long_name"
+    ] = "XYZ (inst) to ENU (earth) Transformation Matrix"
+    ds["orientmat"].attrs[
+        "note"
+    ] = "Generated from instrument heading, pitch, and roll data"
 
     ds["earth"] = ["E", "N", "U"]
     ds["earth"].attrs["units"] = 1

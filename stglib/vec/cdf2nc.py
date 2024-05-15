@@ -27,8 +27,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = aqdutils.magvar_correct(ds)
 
-    # Rename DataArrays for EPIC compliance
-    ds = aqdutils.ds_rename(ds)
+    ds = combine_vars(ds)
 
     if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
         ds = dist_to_boundary(ds)
@@ -43,6 +42,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = ds_drop(ds)
 
     ds = qaqc.drop_vars(ds)
+
+    # Rename DataArrays for EPIC compliance
+    ds = aqdutils.ds_rename(ds)
 
     # Add EPIC and CMG attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
@@ -259,7 +261,12 @@ def ds_drop(ds):
         "AMP1",
         "AMP2",
         "AMP3",
-        "TransMatrix",
+        "SNR1",
+        "SNR2",
+        "SNR3",
+        "COR1",
+        "COR2",
+        "COR3",
         "AnalogInput1",
         "AnalogInput2",
         "Depth",
@@ -376,6 +383,30 @@ def reshape(ds):
     ds = ds.sel(time=slice(t[0], ds["time"][-1])).assign(time=ind).unstack("time")
 
     ds = ds.drop("sample").rename({"new_time": "time", "new_sample": "sample"})
+
+    return ds
+
+
+def combine_vars(ds):
+
+    ds["AGC_1202"] = (ds["AMP1"] + ds["AMP2"] + ds["AMP3"]) / 3
+
+    veldim = ds.attrs["VECCoordinateSystem"].lower()
+    ds["vel"] = xr.DataArray([ds.VEL1, ds.VEL2, ds.VEL3], dims=[veldim, "time"])
+    ds["vel"].attrs.update(
+        {
+            "units": "m s-1",
+            "long_name": f"Velocity, {veldim} coordinate system",
+        }
+    )
+
+    ds["cor"] = xr.DataArray([ds.COR1, ds.COR2, ds.COR3], dims=["beam", "time"])
+    ds["amp"] = xr.DataArray([ds.AMP1, ds.AMP2, ds.AMP3], dims=["beam", "time"])
+    ds["snr"] = xr.DataArray([ds.SNR1, ds.SNR2, ds.SNR3], dims=["beam", "time"])
+
+    ds["beam"] = [1, 2, 3]
+    ds["beam"].attrs["units"] = 1
+    ds["beam"].attrs["long_name"] = "Beam Reference Frame"
 
     return ds
 
