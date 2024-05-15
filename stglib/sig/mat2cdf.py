@@ -52,6 +52,23 @@ def load_mat_file(filnam):
             * np.arange(mat["Config"]["EchoSounder_NCells"])
         )
 
+    if mat["Config"]["Plan_AverageEnabled"] == "True":
+        bindistAVG = (
+            mat["Config"]["Average_BlankingDistance"]
+            + mat["Config"]["Average_CellSize"] / 2
+            + mat["Config"]["Average_CellSize"]
+            * np.arange(mat["Config"]["Average_NCells"])
+        )
+
+    if "Alt_Plan_AveargedEnabled" in mat["Config"]:
+        if mat["Config"]["Alt_Plan_AverageEnabled"] == "True":
+            bindistAltAVG = (
+                mat["Config"]["Alt_Average_BlankingDistance"]
+                + mat["Config"]["Alt_Average_CellSize"] / 2
+                + mat["Config"]["Alt_Average_CellSize"]
+                * np.arange(mat["Config"]["Alt_Average_NCells"])
+            )
+
     ds_dict = {}  # initialize dictionary for xarray datasets
     if (
         mat["Config"]["Plan_BurstEnabled"] == "True"
@@ -59,22 +76,26 @@ def load_mat_file(filnam):
         and mat["Config"]["Burst_Altimeter"] == "True"
     ):
         # BurstRawAltimeter
-        dsbra = xr.Dataset()
-        dsbra["time"] = xr.DataArray(
-            [matlab2datetime(x) for x in mat["Data"]["BurstRawAltimeter_Time"]],
-            dims="time",
-        )
-        dsbra["time"] = pd.DatetimeIndex(dsbra["time"])
-        dsbra["time"] = pd.DatetimeIndex(dsbra["time"])
-        dsbra.attrs["data_type"] = "BurstRawAltimeter"
-        ds_dict["dsbra"] = dsbra
+        if "BurstRawAltimeter_Time" in mat["Data"]:
+            dsbra = xr.Dataset()
+            dsbra["time"] = xr.DataArray(
+                [matlab2datetime(x) for x in mat["Data"]["BurstRawAltimeter_Time"]],
+                dims="time",
+            )
+            dsbra["time"] = pd.DatetimeIndex(dsbra["time"])
+            dsbra["time"] = pd.DatetimeIndex(dsbra["time"])
+            dsbra.attrs["data_type"] = "BurstRawAltimeter"
+            ds_dict["dsbra"] = dsbra
 
     if (
         mat["Config"]["Plan_BurstEnabled"] == "True"
         and mat["Config"]["Burst_NBeams"] == 5
     ):
         # IBurst
-        if mat["Config"]["Burst_HighResolution5"] == "True":
+        if (
+            mat["Config"]["Burst_HighResolution5"] == "True"
+            and "IBurstHR_Time" in mat["Data"]
+        ):
             dsi = xr.Dataset()
             dsi["time"] = pd.DatetimeIndex(
                 xr.DataArray(
@@ -87,7 +108,7 @@ def load_mat_file(filnam):
             dsi.attrs["data_type"] = "IBurstHR"
             ds_dict["dsi"] = dsi
 
-        else:
+        elif "IBurst_Time" in mat["Data"]:
             dsi = xr.Dataset()
             dsi["time"] = pd.DatetimeIndex(
                 xr.DataArray(
@@ -102,7 +123,10 @@ def load_mat_file(filnam):
 
     if mat["Config"]["Plan_BurstEnabled"] == "True":
         # Burst
-        if mat["Config"]["Burst_HighResolution"] == "True":
+        if (
+            mat["Config"]["Burst_HighResolution"] == "True"
+            and "BurstHR_Time" in mat["Data"]
+        ):
             dsb = xr.Dataset()
             dsb["time"] = pd.DatetimeIndex(
                 xr.DataArray(
@@ -115,7 +139,7 @@ def load_mat_file(filnam):
             dsb.attrs["data_type"] = "BurstHR"
             ds_dict["dsb"] = dsb
 
-        else:
+        elif "Burst_Time" in mat["Data"]:
             dsb = xr.Dataset()
             dsb["time"] = pd.DatetimeIndex(
                 xr.DataArray(
@@ -133,18 +157,54 @@ def load_mat_file(filnam):
         and mat["Config"]["Burst_EchoSounder"] == "True"
     ):
         # echo1 data - only handling echo1 data to start
-        freq1 = mat["Config"]["EchoSounder_Frequency1"]
-        dse1 = xr.Dataset()
-        dse1["time"] = pd.DatetimeIndex(
-            xr.DataArray(
-                [matlab2datetime(x) for x in mat["Data"][f"Echo1Bin1_{freq1}kHz_Time"]],
-                dims="time",
+        if "EchoSounder_Frequency1" in mat["Config"]:
+            freq1 = mat["Config"]["EchoSounder_Frequency1"]
+            if f"Echo1Bin1_{freq1}kHz_Time" in mat["Data"]:
+                dse1 = xr.Dataset()
+                dse1["time"] = pd.DatetimeIndex(
+                    xr.DataArray(
+                        [
+                            matlab2datetime(x)
+                            for x in mat["Data"][f"Echo1Bin1_{freq1}kHz_Time"]
+                        ],
+                        dims="time",
+                    )
+                )
+                dse1["time"] = pd.DatetimeIndex(dse1["time"])
+                dse1["bindist"] = xr.DataArray(bindistECHO, dims="bindist")
+                dse1.attrs["data_type"] = "Echo1"
+                ds_dict["dse1"] = dse1
+
+    if mat["Config"]["Plan_AverageEnabled"] == "True":
+        if "Average_Time" in mat["Data"]:
+            # Average
+            dsa = xr.Dataset()
+            dsa["time"] = pd.DatetimeIndex(
+                xr.DataArray(
+                    [matlab2datetime(x) for x in mat["Data"]["Average_Time"]],
+                    dims="time",
+                )
             )
-        )
-        dse1["time"] = pd.DatetimeIndex(dse1["time"])
-        dse1["bindist"] = xr.DataArray(bindistECHO, dims="bindist")
-        dse1.attrs["data_type"] = "Echo1"
-        ds_dict["dse1"] = dse1
+            dsa["time"] = pd.DatetimeIndex(dsa["time"])
+            dsa["bindist"] = xr.DataArray(bindistAVG, dims="bindist")
+            dsa.attrs["data_type"] = "Average"
+            ds_dict["dsa"] = dsa
+
+    if "Alt_Plan_AveargedEnabled" in mat["Config"]:
+        if mat["Config"]["Alt_Plan_AverageEnabled"] == "True":
+            if "Alt_Average_Time" in mat["Data"]:
+                # Alt Average
+                dsalt = xr.Dataset()
+                dsalt["time"] = pd.DatetimeIndex(
+                    xr.DataArray(
+                        [matlab2datetime(x) for x in mat["Data"]["Alt_Average_Time"]],
+                        dims="time",
+                    )
+                )
+                dsalt["time"] = pd.DatetimeIndex(dsalt["time"])
+                dsalt["bindist"] = xr.DataArray(bindistAltAVG, dims="bindist")
+                dsalt.attrs["data_type"] = "Alt_Average"
+                ds_dict["dsalt"] = dsalt
 
     for k in mat["Data"]:
         if "BurstRawAltimeter" in k:
@@ -253,6 +313,66 @@ def load_mat_file(filnam):
 
                 else:
                     print("still need to process", k, mat["Data"][k].shape)
+
+        elif re.match("^Average_", k):
+            if "_Time" not in k:
+                if mat["Data"][k].ndim == 1:
+                    dsa[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
+                elif mat["Data"][k].ndim == 2:
+                    if "AHRSRotationMatrix" in k:
+                        coords = {"dimRM": np.arange(9)}
+                        dsa["AHRSRotationMatrix"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimRM"]
+                        )
+                    if "Magnetometer" in k:
+                        coords = {"dimM": np.arange(3)}
+                        dsa["Magnetometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimM"]
+                        )
+                    if "Accelerometer" in k:
+                        coords = {"dimA": np.arange(3)}
+                        dsa["Accelerometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimA"]
+                        )
+                    # only checks to see if cells match on first sample
+                    elif dsa.attrs["data_type"] == "Average":
+                        if mat["Data"][k].shape[1] == mat["Data"]["Average_NCells"][0]:
+                            dsa[k.split("_")[1]] = xr.DataArray(
+                                mat["Data"][k], dims=["time", "bindist"]
+                            )
+
+                    else:
+                        print("still need to process", k, mat["Data"][k].shape)
+
+        elif re.match("^Alt_Average_", k):
+            if "_Time" not in k:
+                if mat["Data"][k].ndim == 1:
+                    dsalt[k.split("_")[2]] = xr.DataArray(mat["Data"][k], dims="time")
+                elif mat["Data"][k].ndim == 2:
+                    if "AHRSRotationMatrix" in k:
+                        coords = {"dimRM": np.arange(9)}
+                        dsalt["AHRSRotationMatrix"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimRM"]
+                        )
+                    if "Magnetometer" in k:
+                        coords = {"dimM": np.arange(3)}
+                        dsalt["Magnetometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimM"]
+                        )
+                    if "Accelerometer" in k:
+                        coords = {"dimA": np.arange(3)}
+                        dsalt["Accelerometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimA"]
+                        )
+                    # only checks to see if cells match on first sample
+                    elif dsalt.attrs["data_type"] == "Alt_Average":
+                        if mat["Data"][k].shape[1] == mat["Data"]["Average_NCells"][0]:
+                            dsalt[k.split("_")[2]] = xr.DataArray(
+                                mat["Data"][k], dims=["time", "bindist"]
+                            )
+
+                    else:
+                        print("still need to process", k, mat["Data"][k].shape)
         else:
             print("missing variable:", k)
 
@@ -271,7 +391,7 @@ def load_mat_file(filnam):
 
 def read_config_mat(mat, ds):
     for k in mat["Config"]:
-        if k == "Burst_Beam2xyz":
+        if re.search("_Beam2xyz$", k):
             ds.attrs[f"SIG{k}"] = str(mat["Config"][k])
         else:
             ds.attrs[f"SIG{k}"] = mat["Config"][k]
@@ -295,8 +415,8 @@ def add_units(mat, ds):
 
 def add_transmatrix(mat, ds):
     for k in mat["Config"]:
-        if "Beam2xyz" in k:
-            var = k.split("_")[1]
+        if f"{ds.attrs['data_type']}_Beam2xyz" in k:
+            var = k.split("_")[-1]
             ds[var] = xr.DataArray(mat["Config"][k])
 
 
@@ -347,7 +467,11 @@ def mat_to_cdf(metadata):
             print(f"Finished writing data to {cdf_filename}")
 
     matfiles = glob.glob(f"{basefile}_*.mat")
-    Parallel(n_jobs=-1, verbose=10)(delayed(loadpar)(f) for f in matfiles)
+    print(matfiles)
+    if len(matfiles) > 1:
+        Parallel(n_jobs=-1, verbose=10)(delayed(loadpar)(f) for f in matfiles)
+    else:
+        loadpar(matfiles[0])
 
     dsd = load_mat_file(matfiles[0])  # get minimal dsd file for below
     cdffiles = glob.glob(f"{prefix}{outdir}*-raw.cdf")
@@ -451,6 +575,52 @@ def mat_to_cdf(metadata):
         except ValueError as ve:
             print(
                 f"Failed to read or write netCDF file(s) for data_type {dse1.attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
+            )
+
+    if "dsa" in dsd:
+        dsa = dsd["dsa"]
+        fin = outdir + f"*-{dsa.attrs['data_type']}-*.cdf"
+        try:
+            ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
+            ds = aqdutils.check_attrs(ds, inst_type="SIG")
+            if "Beam2xyz" in ds:
+                if "time" in ds["Beam2xyz"].dims:
+                    ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
+            # write out all into single -raw.cdf files per data_type
+            cdf_filename = prefix + ds.attrs["filename"] + "_avgd-raw.cdf"
+            print("writing Average to netcdf")
+            delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
+            with ProgressBar():
+                delayed_obj.compute()
+
+            print(f"Finished writing data to {cdf_filename}")
+
+        except ValueError as ve:
+            print(
+                f"Failed to read or write netCDF file(s) for data_type {dsa.attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
+            )
+
+    if "dsalt" in dsd:
+        dsalt = dsd["dsalt"]
+        fin = outdir + f"*-{dsalt.attrs['data_type']}-*.cdf"
+        try:
+            ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
+            ds = aqdutils.check_attrs(ds, inst_type="SIG")
+            if "Beam2xyz" in ds:
+                if "time" in ds["Beam2xyz"].dims:
+                    ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
+            # write out all into single -raw.cdf files per data_type
+            cdf_filename = prefix + ds.attrs["filename"] + "_altavgd-raw.cdf"
+            print("writing Average to netcdf")
+            delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
+            with ProgressBar():
+                delayed_obj.compute()
+
+            print(f"Finished writing data to {cdf_filename}")
+
+        except ValueError as ve:
+            print(
+                f"Failed to read or write netCDF file(s) for data_type {dsalt.attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
             )
 
     toc = time.time()

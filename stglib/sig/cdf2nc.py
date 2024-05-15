@@ -1,3 +1,4 @@
+import re
 import time
 
 import numpy as np
@@ -52,7 +53,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Need to clip data after coord transform when using dolfyn
     ds = utils.clip_ds(ds)
 
-    if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "BurstHR":
+    if (
+        ds.attrs["data_type"] == "Burst"
+        or ds.attrs["data_type"] == "BurstHR"
+        or ds.attrs["data_type"] == "Average"
+        or ds.attrs["data_type"] == "Alt_Average"
+    ):
         # Create separate vel variables first
         ds["U"] = ds["VelEast"]
         ds["V"] = ds["VelNorth"]
@@ -129,6 +135,22 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
     """
+    att2del = []
+    for k in ds.attrs:
+        if re.search("_Beam2xyz$", k):
+            print(k)
+            att2del.append(k)
+
+    for k in att2del:
+        del ds.attrs[k]
+
+    for j in ds.data_vars:
+        for k in ds[j].attrs:
+
+            if type(ds[j].attrs[k]) is np.ndarray:
+                shp = len(ds[j].attrs[k].shape)
+                print(f"{j},{k},{shp}")
+
     # write out nc file by data_type
     if "prefix" in ds.attrs:
         nc_filename = ds.attrs["prefix"] + ds.attrs["filename"]
@@ -154,6 +176,24 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     elif ds.attrs["data_type"] == "Echo1":
         nc_out = nc_filename + "e1-cal.nc"
         print("writing Echo1 (echo1) data to netCDF nc file")
+        delayed_obj = ds.to_netcdf(nc_out, compute=False)
+        with ProgressBar():
+            delayed_obj.compute()
+        print("Done writing netCDF file", nc_out)
+
+    elif ds.attrs["data_type"] == "Average":
+        nc_out = nc_filename + "avg-cal.nc"
+        print("writing Average (avg) data to netCDF nc file")
+        print(ds.attrs)
+        delayed_obj = ds.to_netcdf(nc_out, compute=False)
+        with ProgressBar():
+            delayed_obj.compute()
+        print("Done writing netCDF file", nc_out)
+
+    elif ds.attrs["data_type"] == "Alt_Average":
+        nc_out = nc_filename + "alt-cal.nc"
+        print("writing Alt_Average (avg) data to netCDF nc file")
+        print(ds.attrs)
         delayed_obj = ds.to_netcdf(nc_out, compute=False)
         with ProgressBar():
             delayed_obj.compute()
@@ -286,6 +326,10 @@ def ds_rename_sig(ds, waves=False):
         "AmpBeam5": "amp_b5",
         "CorBeam5": "corr_b5",
         "Echo": "echo_amp",
+        "Headingstd": "Hdg_std",
+        "Pitchstd": "Ptch_std",
+        "Rollstd": "Roll_std",
+        "Pressurestd": "Pres_std",
     }
 
     for v in varnames:
@@ -692,6 +736,46 @@ def ds_add_attrs_sig(ds):
                 "units": "percent",
                 "long_name": "Beam 2 Correlation",
                 "epic_code": 1286,
+            }
+        )
+
+    if "Hdg_std" in ds:
+        ds["Hdg_std"].attrs.update(
+            {
+                "units": "degrees",
+                "long_name": "Instrument heading standard deviation",
+                "standard_name": "platform_orientation",
+                "cell_methods": "time: standard_deviation",
+            }
+        )
+
+    if "Ptch_std" in ds:
+        ds["Ptch_std"].attrs.update(
+            {
+                "units": "degrees",
+                "long_name": "Instrument pitch standard deviation",
+                "standard_name": "platform_pitch",
+                "cell_methods": "time: standard_deviation",
+            }
+        )
+
+    if "Roll_std" in ds:
+        ds["Roll_std"].attrs.update(
+            {
+                "units": "degrees",
+                "long_name": "Instrument roll standard deviation",
+                "standard_name": "platform_roll",
+                "cell_methods": "time: standard_deviation",
+            }
+        )
+
+    if "Pres_std" in ds:
+        ds["Pres_std"].attrs.update(
+            {
+                "units": "dbar",
+                "long_name": "Uncorrected pressure standard deviation",
+                "standard_name": "sea_water_pressure",
+                "cell_methods": "time: standard_deviation",
             }
         )
 
