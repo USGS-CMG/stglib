@@ -192,8 +192,4 @@ def create_orientmat(ds):
     ds["earth"].attrs["units"] = 1
     ds["earth"].attrs["long_name"] = "Earth Reference Frame"
 
-    ds["inst"] = ["X", "Y", "Z"]
-    ds["inst"].attrs["units"] = 1
-    ds["inst"].attrs["long_name"] = "Inst Reference Frame"
-
     return orientmat

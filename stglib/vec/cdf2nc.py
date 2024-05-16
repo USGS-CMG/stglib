@@ -81,6 +81,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_standard_names(ds)
 
+    ds["AGC_1202"].attrs.pop("standard_name")
+
     if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
         create_burst_nc(ds)
 
@@ -392,6 +394,10 @@ def combine_vars(ds):
     ds["AGC_1202"] = (ds["AMP1"] + ds["AMP2"] + ds["AMP3"]) / 3
 
     veldim = ds.attrs["VECCoordinateSystem"].lower()
+
+    if veldim == "xyz":
+        veldim = "inst"
+
     ds["vel"] = xr.DataArray([ds.VEL1, ds.VEL2, ds.VEL3], dims=[veldim, "time"])
     ds["vel"].attrs.update(
         {
@@ -403,10 +409,6 @@ def combine_vars(ds):
     ds["cor"] = xr.DataArray([ds.COR1, ds.COR2, ds.COR3], dims=["beam", "time"])
     ds["amp"] = xr.DataArray([ds.AMP1, ds.AMP2, ds.AMP3], dims=["beam", "time"])
     ds["snr"] = xr.DataArray([ds.SNR1, ds.SNR2, ds.SNR3], dims=["beam", "time"])
-
-    ds["beam"] = [1, 2, 3]
-    ds["beam"].attrs["units"] = 1
-    ds["beam"].attrs["long_name"] = "Beam Reference Frame"
 
     return ds
 
