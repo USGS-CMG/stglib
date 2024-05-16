@@ -89,7 +89,18 @@ def dat_to_cdf(metadata):
     for var in dssen:
         ds[var] = dssen[var].reindex_like(ds, method="nearest")
 
-    ds["TransMatrix"] = xr.DataArray(ds.attrs["VECTransMatrix"])
+    ds["TransMatrix"] = xr.DataArray(ds.attrs["VECTransMatrix"], dims=["inst", "beam"])
+    ds["TransMatrix"].attrs["long_name"] = "Beam to XYZ (inst) Transformation Matrix"
+    ds["TransMatrix"].attrs["note"] = "Provided by Nortek, based on transducer geometry"
+
+    ds["inst"] = ["X", "Y", "Z"]
+    ds["inst"].attrs["units"] = "1"
+    ds["inst"].attrs["long_name"] = "Inst Reference Frame"
+
+    ds["beam"] = [1, 2, 3]
+    ds["beam"].attrs["units"] = "1"
+    ds["beam"].attrs["long_name"] = "Beam Reference Frame"
+
     # Remove VECTransMatrix from attrs for netCDF compliance
     ds.attrs.pop("VECTransMatrix")
 

@@ -1368,7 +1368,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
     ):  # can apply this to all instruments if needed, but keeping just for vec now
         ds["orientation"].attrs.update(
             {
-                "units": 1,
+                "units": "1",
                 "long_name": "instrument orientation",
                 "note": "0 = UP; 1 = DOWN",
             }
