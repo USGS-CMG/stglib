@@ -60,7 +60,7 @@ def load_mat_file(filnam):
             * np.arange(mat["Config"]["Average_NCells"])
         )
 
-    if "Alt_Plan_AveargedEnabled" in mat["Config"]:
+    if "Alt_Plan_AverageEnabled" in mat["Config"]:
         if mat["Config"]["Alt_Plan_AverageEnabled"] == "True":
             bindistAltAVG = (
                 mat["Config"]["Alt_Average_BlankingDistance"]
@@ -172,7 +172,7 @@ def load_mat_file(filnam):
                 )
                 dse1["time"] = pd.DatetimeIndex(dse1["time"])
                 dse1["bindist"] = xr.DataArray(bindistECHO, dims="bindist")
-                dse1.attrs["data_type"] = "Echo1"
+                dse1.attrs["data_type"] = "EchoSounder"
                 ds_dict["dse1"] = dse1
 
     if mat["Config"]["Plan_AverageEnabled"] == "True":
@@ -190,7 +190,7 @@ def load_mat_file(filnam):
             dsa.attrs["data_type"] = "Average"
             ds_dict["dsa"] = dsa
 
-    if "Alt_Plan_AveargedEnabled" in mat["Config"]:
+    if "Alt_Plan_AverageEnabled" in mat["Config"]:
         if mat["Config"]["Alt_Plan_AverageEnabled"] == "True":
             if "Alt_Average_Time" in mat["Data"]:
                 # Alt Average
@@ -580,6 +580,7 @@ def mat_to_cdf(metadata):
     if "dsa" in dsd:
         dsa = dsd["dsa"]
         fin = outdir + f"*-{dsa.attrs['data_type']}-*.cdf"
+        print(fin)
         try:
             ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
             ds = aqdutils.check_attrs(ds, inst_type="SIG")

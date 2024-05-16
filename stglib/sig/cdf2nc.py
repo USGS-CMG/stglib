@@ -89,6 +89,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = aqdutils.make_bin_depth(ds)
 
+    ds = ds_make_tmat(ds)
+
     ds = ds_make_magaccel_vars(ds)
 
     ds = ds_make_ahrs_vars(ds)
@@ -107,11 +109,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
     ds = ds_add_attrs_sig(ds)  # for signature vars
 
-    # Add min/max values
-    # if ds.attrs["data_type"] not in ["Echo1"]:
-    print("add max/min variable attributes")
-    ds = utils.add_min_max(ds)
-
     # Add DELTA_T for EPIC compliance
     # ds = utils.add_delta_t(ds)
 
@@ -123,33 +120,18 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_standard_names(ds)  # add common standard names
 
-    # ds = drop_unused_dims(ds)
+    ds = drop_unused_dims(ds)
 
-    # ds = fix_encoding(ds)
+    ds = fix_encoding(ds)
 
     ds = utils.ds_add_lat_lon(ds)
 
     ds = utils.ds_coord_no_fillvalue(ds)
-    """
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-    """
-    att2del = []
-    for k in ds.attrs:
-        if re.search("_Beam2xyz$", k):
-            print(k)
-            att2del.append(k)
 
-    for k in att2del:
-        del ds.attrs[k]
+    ds = drop_attrs(ds)
 
-    for j in ds.data_vars:
-        for k in ds[j].attrs:
-
-            if type(ds[j].attrs[k]) is np.ndarray:
-                shp = len(ds[j].attrs[k].shape)
-                print(f"{j},{k},{shp}")
+    # Add min/max values
+    ds = utils.add_min_max(ds)
 
     # write out nc file by data_type
     if "prefix" in ds.attrs:
@@ -173,7 +155,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             delayed_obj.compute()
         print("Done writing netCDF file", nc_out)
 
-    elif ds.attrs["data_type"] == "Echo1":
+    elif ds.attrs["data_type"] == "EchoSounder":
         nc_out = nc_filename + "e1-cal.nc"
         print("writing Echo1 (echo1) data to netCDF nc file")
         delayed_obj = ds.to_netcdf(nc_out, compute=False)
@@ -224,6 +206,50 @@ def drop_unused_dims(ds):
     return ds
 
 
+def drop_attrs(ds):
+    """Drop some global attrs"""
+    att2del = []
+    for k in ds.attrs:
+        if re.search("_Beam2xyz$", k):
+            att2del.append(k)
+
+    for k in att2del:
+        del ds.attrs[k]
+
+    # Get rid of some of the instrument header attributes for other data_types
+    dtlist = [
+        "Burst",
+        "BurstHR",
+        "IBurst",
+        "IBurstHR",
+        "EchoSounder",
+        "Average",
+        "Alt_Average",
+        "Alt_Burst",
+    ]
+    if ds.attrs["data_type"] in dtlist:
+        dtlist.remove(ds.attrs["data_type"])
+
+    rm = []  # initialize list of attrs to be removed
+    for k in dtlist:
+        for j in ds.attrs:
+            if re.match(f"^SIG{k}_", j):
+                rm.append(j)
+    for k in rm:
+        del ds.attrs[k]
+
+    """
+    for j in ds.data_vars:
+        for k in ds[j].attrs:
+
+            if type(ds[j].attrs[k]) is np.ndarray:
+                shp = len(ds[j].attrs[k].shape)
+                print(f"{j},{k},{shp}")
+    """
+
+    return ds
+
+
 def ds_drop(ds):
     """
     Drop old DataArrays from Dataset that won't make it into the final .nc file
@@ -254,7 +280,7 @@ def ds_drop(ds):
         "VelY",
         "VelZ1",
         "VelZ2",
-        "Beam2xyz",
+        # "Beam2xyz",
         "AHRSRotationMatrix",
         "AHRSGyroX",
         "AHRSGyroY",
@@ -330,6 +356,7 @@ def ds_rename_sig(ds, waves=False):
         "Pitchstd": "Ptch_std",
         "Rollstd": "Roll_std",
         "Pressurestd": "Pres_std",
+        # "Beam2xyz": "TransMatrix",
     }
 
     for v in varnames:
@@ -739,6 +766,14 @@ def ds_add_attrs_sig(ds):
             }
         )
 
+    if "TransMatrix" in ds:
+        ds["TransMatrix"].attrs.update(
+            {
+                "units": "1",
+                "long_name": "Instrument Transformation Matrix",
+            }
+        )
+
     if "Hdg_std" in ds:
         ds["Hdg_std"].attrs.update(
             {
@@ -846,5 +881,35 @@ def ds_make_ahrs_vars(ds):
         ds["quaternions"] = xr.concat(
             [ds[f"AHRSQuaternion{i}"] for i in ds["q"].values], dim="q"
         )
+
+    return ds
+
+
+def ds_make_tmat(ds):
+    """
+    add instrument Transformation Matrix to xarray Dataset
+    """
+    # rename to TransMatrix
+    varnames = {"Beam2xyz": "TransMatrix"}
+    for v in varnames:
+        if v in ds:
+            ds = ds.rename({v: varnames[v]})
+
+    # swap dims in Tmat
+    if "TransMatrix" in ds.data_vars:
+        n = ds["TransMatrix"].shape[0]
+        if n == 4:
+            if "inst4" not in ds.dims:
+                ds["inst4"] = xr.DataArray(["X", "Y", "Z1", "Z2"], dims="inst4")
+
+            if "beam" not in ds.dims:
+                ds["beam"] = xr.DataArray(
+                    range(1, ds["NBeams"][0].values + 1), dims="beam"
+                )
+
+            v = "TransMatrix"
+            tdims = ds[v].dims
+            ds[v] = ds[v].swap_dims({tdims[0]: "inst4"})
+            ds[v] = ds[v].swap_dims({tdims[1]: "beam"})
 
     return ds
