@@ -5,7 +5,6 @@ dependencies:
   - python
   - compliance-checker
   - dask
-  - dolfyn
   - git-lfs
   - joblib
   - matplotlib-base
