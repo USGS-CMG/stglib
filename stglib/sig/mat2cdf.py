@@ -467,7 +467,7 @@ def mat_to_cdf(metadata):
             print(f"Finished writing data to {cdf_filename}")
 
     matfiles = glob.glob(f"{basefile}_*.mat")
-    print(matfiles)
+    # print(matfiles)
     if len(matfiles) > 1:
         Parallel(n_jobs=-1, verbose=10)(delayed(loadpar)(f) for f in matfiles)
     else:
@@ -488,9 +488,10 @@ def mat_to_cdf(metadata):
         chunksizes = {"time": 200000, "bindist": 48}
         print(f"Using default chunksizes = {chunksizes}")
 
-    if "dsb" in dsd:
-        dsb = dsd["dsb"]
-        fin = outdir + f"*-{dsb.attrs['data_type']}-*.cdf"
+    for k in dsd:
+        # dsb = dsd["dsb"]
+        fin = outdir + f"*-{dsd[k].attrs['data_type']}-*.cdf"
+        print(k)
         try:
             ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
             ds = aqdutils.check_attrs(ds, inst_type="SIG")
@@ -498,8 +499,27 @@ def mat_to_cdf(metadata):
                 if "time" in ds["Beam2xyz"].dims:
                     ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
             # write out all into single -raw.cdf files per data_type
-            cdf_filename = prefix + ds.attrs["filename"] + "_burst-raw.cdf"
-            print("writing Burst to netcdf")
+            if (
+                ds.attrs["data_type"].lower() == "burst"
+                or ds.attrs["data_type"].lower() == "bursthr"
+            ):
+                ftype = "burst"
+            elif (
+                ds.attrs["data_type"].lower() == "iburst"
+                or ds.attrs["data_type"].lower() == "ibursthr"
+            ):
+                ftype = "iburst"
+            elif ds.attrs["data_type"].lower() == "echosounder":
+                ftype = "echo1"
+            elif ds.attrs["data_type"].lower() == "burstrawaltimeter":
+                ftype = "burstrawalt"
+            elif ds.attrs["data_type"].lower() == "average":
+                ftype = "avgd"
+            elif ds.attrs["data_type"].lower() == "alt_average":
+                ftype = "altavgd"
+
+            cdf_filename = prefix + ds.attrs["filename"] + f"_{ftype}-raw.cdf"
+            print(f"writing {ftype} to netcdf")
             delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
             with ProgressBar():
                 delayed_obj.compute()
@@ -508,120 +528,7 @@ def mat_to_cdf(metadata):
 
         except ValueError as ve:
             print(
-                f"Failed to read or write netCDF file(s) for data_type {dsb.attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
-            )
-
-    if "dsi" in dsd:
-        dsi = dsd["dsi"]
-        fin = outdir + f"*-{dsi.attrs['data_type']}-*.cdf"
-        try:
-            ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
-            ds = aqdutils.check_attrs(ds, inst_type="SIG")
-            if "Beam2xyz" in ds:
-                if "time" in ds["Beam2xyz"].dims:
-                    ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
-            # write out all into single -raw.cdf files per data_type
-            cdf_filename = prefix + ds.attrs["filename"] + "_iburst-raw.cdf"
-            print("writing IBurst to netcdf")
-            delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
-            with ProgressBar():
-                delayed_obj.compute()
-
-            print(f"Finished writing data to {cdf_filename}")
-
-        except ValueError as ve:
-            print(
-                f"Failed to read or write netCDF file(s) for data_type {dsi.attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
-            )
-
-    if "dsbra" in dsd:
-        dsbra = dsd["dsbra"]
-        fin = outdir + f"*-{dsbra.attrs['data_type']}-*.cdf"
-        try:
-            ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
-            ds = aqdutils.check_attrs(ds, inst_type="SIG")
-            # write out all into single -raw.cdf files per data_type
-            cdf_filename = prefix + ds.attrs["filename"] + "_burstrawalt-raw.cdf"
-            print("writing BurstRawAltimeter to netcdf")
-            delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
-            with ProgressBar():
-                delayed_obj.compute()
-
-            print(f"Finished writing data to {cdf_filename}")
-
-        except ValueError as ve:
-            print(
-                f"Failed to read or write netCDF file(s) for data_type {dsbra.attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
-            )
-
-    if "dse1" in dsd:
-        dse1 = dsd["dse1"]
-        try:
-            fin = outdir + f"*-{dse1.attrs['data_type']}-*.cdf"
-            ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
-            ds = aqdutils.check_attrs(ds, inst_type="SIG")
-            if "Beam2xyz" in ds:
-                if "time" in ds["Beam2xyz"].dims:
-                    ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
-            # write out all into single -raw.cdf files per data_type
-            cdf_filename = prefix + ds.attrs["filename"] + "_echo1-raw.cdf"
-            print("writing Echo1 to netcdf")
-            delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
-            with ProgressBar():
-                delayed_obj.compute()
-
-            print(f"Finished writing data to {cdf_filename}")
-
-        except ValueError as ve:
-            print(
-                f"Failed to read or write netCDF file(s) for data_type {dse1.attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
-            )
-
-    if "dsa" in dsd:
-        dsa = dsd["dsa"]
-        fin = outdir + f"*-{dsa.attrs['data_type']}-*.cdf"
-        print(fin)
-        try:
-            ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
-            ds = aqdutils.check_attrs(ds, inst_type="SIG")
-            if "Beam2xyz" in ds:
-                if "time" in ds["Beam2xyz"].dims:
-                    ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
-            # write out all into single -raw.cdf files per data_type
-            cdf_filename = prefix + ds.attrs["filename"] + "_avgd-raw.cdf"
-            print("writing Average to netcdf")
-            delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
-            with ProgressBar():
-                delayed_obj.compute()
-
-            print(f"Finished writing data to {cdf_filename}")
-
-        except ValueError as ve:
-            print(
-                f"Failed to read or write netCDF file(s) for data_type {dsa.attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
-            )
-
-    if "dsalt" in dsd:
-        dsalt = dsd["dsalt"]
-        fin = outdir + f"*-{dsalt.attrs['data_type']}-*.cdf"
-        try:
-            ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
-            ds = aqdutils.check_attrs(ds, inst_type="SIG")
-            if "Beam2xyz" in ds:
-                if "time" in ds["Beam2xyz"].dims:
-                    ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
-            # write out all into single -raw.cdf files per data_type
-            cdf_filename = prefix + ds.attrs["filename"] + "_altavgd-raw.cdf"
-            print("writing Average to netcdf")
-            delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
-            with ProgressBar():
-                delayed_obj.compute()
-
-            print(f"Finished writing data to {cdf_filename}")
-
-        except ValueError as ve:
-            print(
-                f"Failed to read or write netCDF file(s) for data_type {dsalt.attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
+                f"Failed to read or write netCDF file(s) for data_type {dsd[k].attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
             )
 
     toc = time.time()

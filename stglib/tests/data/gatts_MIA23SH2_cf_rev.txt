@@ -1,0 +1,22 @@
+MOORING; MIA23SH2
+PROGRAM; Coastal and Marine Hazards and Resources Program
+PROJECT; Coral Reefs
+EXPERIMENT; Miami X-Reefs
+Region; Florida
+CruiseID; 2023-623-FA
+SciPi; Curt Storlazzi, Olivia Cheriton, Kurt Rosenberger
+Year; 2023
+Site; SH2
+platform_type; Artificial Reef Box
+latitude; 25.866503
+longitude; -80.116706
+LatLonDatum; WGS84
+WATER_DEPTH; 5
+Deployment_date; 2023-06-23 15:30
+Recovery_date; 2024-01-17 10:00
+OFAFunding;	
+CollaboratingAgency; University of Miami
+DESCRIPTION; Seahive structure
+WATER_DEPTH_SOURCE; pressure data
+magnetic_variation; -7.25
+Conventions; CF-1.8
