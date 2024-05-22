@@ -336,13 +336,24 @@ def trim_mask(ds, var):
             trmvars = [trmvars]
 
         for trimvar in trmvars:
-            cond = ~ds[trimvar].isnull()
-            ds[var] = ds[var].where(cond)
+            if "beam" in ds[trimvar].dims:
+                for bm in np.arange(1, len(ds["beam"]) + 1):
+                    cond = ~ds[trimvar].sel(beam=bm).isnull()
+                    ds[var] = ds[var].where(cond)
 
-            affected = cond.size - cond.sum()
+                    affected = cond.size - cond.sum()
 
-            notetxt = f"Values filled using {trimvar} mask; {affected.values} values affected. "
-            ds = utils.insert_note(ds, var, notetxt)
+                    notetxt = f"Values filled using {trimvar} beam {bm} mask; {affected.values} values affected. "
+                    ds = utils.insert_note(ds, var, notetxt)
+
+            elif "beam" not in ds[trimvar].dims:
+                cond = ~ds[trimvar].isnull()
+                ds[var] = ds[var].where(cond)
+
+                affected = cond.size - cond.sum()
+
+                notetxt = f"Values filled using {trimvar} mask; {affected.values} values affected. "
+                ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
