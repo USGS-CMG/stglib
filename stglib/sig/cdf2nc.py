@@ -75,7 +75,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
                 dim="beam",
             )
         if "CorBeam1" in ds:
-            ds["corr"] = xr.concat(
+            ds["cor"] = xr.concat(
                 [ds[f"CorBeam{i}"] for i in range(1, ds["NBeams"][0].values + 1)],
                 dim="beam",
             )
@@ -334,10 +334,10 @@ def ds_rename_sig(ds, waves=False):
         "AltimeterQualityAST": "ast_quality",
         "AltimeterTimeOffsetAST": "ast_offset_time",
         "AltimeterPressure": "ast_pressure",
-        "NominalCorrelation": "corr_nominal",
+        "NominalCorrelation": "cor_nominal",
         "VelBeam5": "vel_b5",
         "AmpBeam5": "amp_b5",
-        "CorBeam5": "corr_b5",
+        "CorBeam5": "cor_b5",
         "Echo": "echo_amp",
         "Headingstd": "Hdg_std",
         "Pitchstd": "Ptch_std",
@@ -373,14 +373,13 @@ def fix_encoding(ds):
     if "units" in ds["time"].encoding:
         ds["time"].encoding.pop("units")
 
-    tstep = ds["time"][1] - ds["time"][0]
+    tstep = ds["time"][1] - ds["time"][0]  # use time step to select time encoding
     # if "sample" not in ds.dims:
     if tstep < np.timedelta64(1, "m"):
         print(
             f"make time encoding to dtype double because tstep {tstep} seconds is < 1 minute, round to milliseconds first"
         )
         ds["time"] = ds["time"].dt.round("ms")  # round time to milliseconds first
-        print("make time encoding to dtype double because time step < 1 minute")
         ds["time"].encoding["dtype"] = "double"
 
     else:
@@ -398,7 +397,7 @@ def fix_encoding(ds):
     for var in ds.data_vars:
         if ds[var].dtype == "uint32" or ds[var].dtype == "uint8":
             ds[var].encoding["dtype"] = "int32"
-        if var in ["corr", "corr_b5"]:
+        if var in ["cor", "cor_b5"]:
             ds[var].encoding["dtype"] = "float32"
         if ds[var].dtype == "float64":
             ds[var].encoding["dtype"] = "float32"
@@ -431,7 +430,7 @@ def ds_add_attrs_sig(ds):
         ds["inst"].attrs.update(
             {
                 # "units": "1",
-                "long_name": "Instrumnet Reference Frame",
+                "long_name": "Instrument Reference Frame",
             }
         )
 
@@ -439,7 +438,7 @@ def ds_add_attrs_sig(ds):
         ds["inst4"].attrs.update(
             {
                 # "units": "1",
-                "long_name": "Instrumnet Reference Frame for 4 beam ADCP",
+                "long_name": "Instrument Reference Frame for 4 beam ADCP",
             }
         )
 
@@ -560,8 +559,8 @@ def ds_add_attrs_sig(ds):
             }
         )
 
-    if "corr" in ds:
-        ds["corr"].attrs.update(
+    if "cor" in ds:
+        ds["cor"].attrs.update(
             {
                 "units": "percent",
                 "standard_name": "beam_consistency_indicator_from_multibeam_acoustic_doppler_velocity_profiler_in_sea_water",
@@ -569,8 +568,8 @@ def ds_add_attrs_sig(ds):
             }
         )
 
-    if "corr_b5" in ds:
-        ds["corr_b5"].attrs.update(
+    if "cor_b5" in ds:
+        ds["cor_b5"].attrs.update(
             {
                 "units": "percent",
                 "standard_name": "beam_consistency_indicator_from_multibeam_acoustic_doppler_velocity_profiler_in_sea_water",
@@ -578,8 +577,8 @@ def ds_add_attrs_sig(ds):
             }
         )
 
-    if "corr_nominal" in ds:
-        ds["corr_nominal"].attrs.update(
+    if "cor_nominal" in ds:
+        ds["cor_nominal"].attrs.update(
             {
                 "units": "percent",
                 "long_name": "Nominal Correlation",
@@ -625,7 +624,7 @@ def ds_add_attrs_sig(ds):
         ds["brangeAST"].attrs.update(
             {
                 "units": "m",
-                # "standard_name": "altimeter_range",
+                "standard_name": "altimeter_range",
                 "long_name": "Acoustic Surface Tracking (AST) Range",
             }
         )

@@ -179,7 +179,7 @@ def add_min_max(ds, exclude_vars=None):
 
     exclude = list(ds.dims)
     [exclude.append(k) for k in ds.variables if "time" in k]
-    exclude.extend(["TIM", "TransMatrix", "orientmat", "beam2xyz"])
+    exclude.extend(["TIM", "TransMatrix", "orientmat"])
     if exclude_vars:
         exclude.extend(exclude_vars)
 
