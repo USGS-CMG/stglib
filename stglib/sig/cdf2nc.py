@@ -393,7 +393,7 @@ def fix_encoding(ds):
         ds["time"] = ds["time"].dt.round("s")
 
         # check time to make sure it fits in int32, assume seconds for time units
-        utils.check_fits_in_int32(ds, "time", "s")
+        utils.check_time_fits_in_int32(ds, "time")
 
         ds["time"].encoding["dtype"] = "i4"
 

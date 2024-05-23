@@ -1301,27 +1301,14 @@ def spcon_from_salinity(S):
     )
 
 
-def check_fits_in_int32(ds, var, units="s"):
-    # check to see if var is time and if so handle it differently
-    if var == "time":
-        tmax = (ds["time"][-1].values - ds["time"][0].values) / np.timedelta64(1, units)
-
-        if np.abs(tmax) > (2**31 - 1):
-            warnings.warn(
-                f"32-bit integer overflow on {var} with units of '{units}'; setting encoding to i4 will fail"
-            )
-            return False
-
-        else:
-            return True
+def check_fits_in_int32(ds, var):
+    if np.nanmax(np.abs(ds[var])) > (2**31 - 1):
+        warnings.warn(
+            f"32-bit integer overflow on {var}; setting encoding to i4 will fail"
+        )
+        return False
     else:
-        if np.nanmax(np.abs(ds[var])) > (2**31 - 1):
-            warnings.warn(
-                f"32-bit integer overflow on {var}; setting encoding to i4 will fail"
-            )
-            return False
-        else:
-            return True
+        return True
 
 
 def check_time_fits_in_int32(ds, var):
