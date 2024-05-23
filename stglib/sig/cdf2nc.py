@@ -1,3 +1,4 @@
+import re
 import time
 
 import numpy as np
@@ -45,14 +46,18 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # print(ds)
 
     # create Z depending on orientation
-    # ds, T, T_orig = aqdutils.set_orientation(ds, ds["Burst_Beam2xyz"].values)
     ds = utils.create_z(ds)
 
     # Clip data to in/out water times or via good_ens
     # Need to clip data after coord transform when using dolfyn
     ds = utils.clip_ds(ds)
 
-    if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "BurstHR":
+    if (
+        ds.attrs["data_type"] == "Burst"
+        or ds.attrs["data_type"] == "BurstHR"
+        or ds.attrs["data_type"] == "Average"
+        or ds.attrs["data_type"] == "Alt_Average"
+    ):
         # Create separate vel variables first
         ds["U"] = ds["VelEast"]
         ds["V"] = ds["VelNorth"]
@@ -70,7 +75,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
                 dim="beam",
             )
         if "CorBeam1" in ds:
-            ds["corr"] = xr.concat(
+            ds["cor"] = xr.concat(
                 [ds[f"CorBeam{i}"] for i in range(1, ds["NBeams"][0].values + 1)],
                 dim="beam",
             )
@@ -82,6 +87,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             )
 
     ds = aqdutils.make_bin_depth(ds)
+
+    ds = ds_make_tmat(ds)
 
     ds = ds_make_magaccel_vars(ds)
 
@@ -101,10 +108,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
     ds = ds_add_attrs_sig(ds)  # for signature vars
 
-    # Add min/max values
-    # if ds.attrs["data_type"] not in ["Echo1"]:
-    print("add max/min variable attributes")
-    ds = utils.add_min_max(ds)
+    ds = fix_encoding(ds)
 
     # Add DELTA_T for EPIC compliance
     # ds = utils.add_delta_t(ds)
@@ -117,18 +121,17 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_standard_names(ds)  # add common standard names
 
-    # ds = drop_unused_dims(ds)
-
-    # ds = fix_encoding(ds)
+    ds = drop_unused_dims(ds)
 
     ds = utils.ds_add_lat_lon(ds)
 
     ds = utils.ds_coord_no_fillvalue(ds)
-    """
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-    """
+
+    ds = drop_attrs(ds)
+
+    # Add min/max values
+    ds = utils.add_min_max(ds)
+
     # write out nc file by data_type
     if "prefix" in ds.attrs:
         nc_filename = ds.attrs["prefix"] + ds.attrs["filename"]
@@ -151,9 +154,25 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             delayed_obj.compute()
         print("Done writing netCDF file", nc_out)
 
-    elif ds.attrs["data_type"] == "Echo1":
+    elif ds.attrs["data_type"] == "EchoSounder":
         nc_out = nc_filename + "e1-cal.nc"
         print("writing Echo1 (echo1) data to netCDF nc file")
+        delayed_obj = ds.to_netcdf(nc_out, compute=False)
+        with ProgressBar():
+            delayed_obj.compute()
+        print("Done writing netCDF file", nc_out)
+
+    elif ds.attrs["data_type"] == "Average":
+        nc_out = nc_filename + "avg-cal.nc"
+        print("writing Average (avg) data to netCDF nc file")
+        delayed_obj = ds.to_netcdf(nc_out, compute=False)
+        with ProgressBar():
+            delayed_obj.compute()
+        print("Done writing netCDF file", nc_out)
+
+    elif ds.attrs["data_type"] == "Alt_Average":
+        nc_out = nc_filename + "alt-cal.nc"
+        print("writing Alt_Average (avg) data to netCDF nc file")
         delayed_obj = ds.to_netcdf(nc_out, compute=False)
         with ProgressBar():
             delayed_obj.compute()
@@ -180,6 +199,41 @@ def drop_unused_dims(ds):
     for x in ds.dims:
         if x not in thedims:
             ds = ds.drop_vars(x)
+
+    return ds
+
+
+def drop_attrs(ds):
+    """Drop some global attrs"""
+    att2del = []
+    for k in ds.attrs:
+        if re.search("_Beam2xyz$", k):
+            att2del.append(k)
+
+    for k in att2del:
+        del ds.attrs[k]
+
+    # Get rid of some of the instrument header attributes for other data_types
+    dtlist = [
+        "Burst",
+        "BurstHR",
+        "IBurst",
+        "IBurstHR",
+        "EchoSounder",
+        "Average",
+        "Alt_Average",
+        "Alt_Burst",
+    ]
+    if ds.attrs["data_type"] in dtlist:
+        dtlist.remove(ds.attrs["data_type"])
+
+    rm = []  # initialize list of attrs to be removed
+    for k in dtlist:
+        for j in ds.attrs:
+            if re.match(f"^SIG{k}_", j):
+                rm.append(j)
+    for k in rm:
+        del ds.attrs[k]
 
     return ds
 
@@ -214,7 +268,6 @@ def ds_drop(ds):
         "VelY",
         "VelZ1",
         "VelZ2",
-        "Beam2xyz",
         "AHRSRotationMatrix",
         "AHRSGyroX",
         "AHRSGyroY",
@@ -281,11 +334,15 @@ def ds_rename_sig(ds, waves=False):
         "AltimeterQualityAST": "ast_quality",
         "AltimeterTimeOffsetAST": "ast_offset_time",
         "AltimeterPressure": "ast_pressure",
-        "NominalCorrelation": "corr_nominal",
+        "NominalCorrelation": "cor_nominal",
         "VelBeam5": "vel_b5",
         "AmpBeam5": "amp_b5",
-        "CorBeam5": "corr_b5",
+        "CorBeam5": "cor_b5",
         "Echo": "echo_amp",
+        "Headingstd": "Hdg_std",
+        "Pitchstd": "Ptch_std",
+        "Rollstd": "Roll_std",
+        "Pressurestd": "Pres_std",
     }
 
     for v in varnames:
@@ -313,19 +370,31 @@ def ds_rename_sig(ds, waves=False):
 
 def fix_encoding(ds):
     """ensure we don't set dtypes uint for CF compliance"""
-    if "sample" not in ds.dims:
-        print(
-            "make time encoding to dtype double because no sample dimension, round to milliseconds first"
-        )
-        ds["time"] = ds["time"].dt.round("ms")  # round time to milliseconds first
+    if "units" in ds["time"].encoding:
+        ds["time"].encoding.pop("units")
+
+    # use time step to select time encoding
+    tstep = ds["time"][1] - ds["time"][0]
+
+    if tstep < np.timedelta64(1, "m"):
+
+        histtext = f"make time encoding to dtype double because tstep {tstep} seconds is < 1 minute, round to milliseconds first"
+        ds = utils.insert_history(ds, histtext)
+
+        # round time to milliseconds first
+        ds["time"] = ds["time"].dt.round("ms")
         ds["time"].encoding["dtype"] = "double"
-        """if ds[var].max() > 2**31 - 1 or ds[var].min() < -(2**31):
-                print(
-                    f"warning {var} may be too big to fit in int32: min {ds[var].min().values}, max {ds[var].max().values} so make double"
-                )
-               ds[var].encoding["dtype"] = "double"
-               """
+
     else:
+        histtext = f"make time encoding int because tstep {tstep} seconds is >= 1 minute, round time to seconds first"
+        ds = utils.insert_history(ds, histtext)
+
+        # round time to seconds if time interval >= 1 minute
+        ds["time"] = ds["time"].dt.round("s")
+
+        # check time to make sure it fits in int32, assume seconds for time units
+        utils.check_time_fits_in_int32(ds, "time")
+
         ds["time"].encoding["dtype"] = "i4"
 
     if "beam" in ds.dims:
@@ -334,7 +403,7 @@ def fix_encoding(ds):
     for var in ds.data_vars:
         if ds[var].dtype == "uint32" or ds[var].dtype == "uint8":
             ds[var].encoding["dtype"] = "int32"
-        if var in ["corr", "corr_b5"]:
+        if var in ["cor", "cor_b5"]:
             ds[var].encoding["dtype"] = "float32"
         if ds[var].dtype == "float64":
             ds[var].encoding["dtype"] = "float32"
@@ -346,24 +415,36 @@ def ds_add_attrs_sig(ds):
     """
     add attributes to xarray Dataset
     """
-    """
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-    """
+
     if "earth" in ds:
         ds["earth"].attrs.update(
             {
-                "units": "1",
+                # "units": "1",
                 "long_name": "Earth Reference Frame",
+            }
+        )
+
+    if "earth4" in ds:
+        ds["earth4"].attrs.update(
+            {
+                # "units": "1",
+                "long_name": "Earth Reference Frame for 4 beam ADCP",
             }
         )
 
     if "inst" in ds:
         ds["inst"].attrs.update(
             {
-                "units": "1",
-                "long_name": "Instrumnet Reference Frame",
+                # "units": "1",
+                "long_name": "Instrument Reference Frame",
+            }
+        )
+
+    if "inst4" in ds:
+        ds["inst4"].attrs.update(
+            {
+                # "units": "1",
+                "long_name": "Instrument Reference Frame for 4 beam ADCP",
             }
         )
 
@@ -484,8 +565,8 @@ def ds_add_attrs_sig(ds):
             }
         )
 
-    if "corr" in ds:
-        ds["corr"].attrs.update(
+    if "cor" in ds:
+        ds["cor"].attrs.update(
             {
                 "units": "percent",
                 "standard_name": "beam_consistency_indicator_from_multibeam_acoustic_doppler_velocity_profiler_in_sea_water",
@@ -493,8 +574,8 @@ def ds_add_attrs_sig(ds):
             }
         )
 
-    if "corr_b5" in ds:
-        ds["corr_b5"].attrs.update(
+    if "cor_b5" in ds:
+        ds["cor_b5"].attrs.update(
             {
                 "units": "percent",
                 "standard_name": "beam_consistency_indicator_from_multibeam_acoustic_doppler_velocity_profiler_in_sea_water",
@@ -502,8 +583,8 @@ def ds_add_attrs_sig(ds):
             }
         )
 
-    if "corr_nominal" in ds:
-        ds["corr_nominal"].attrs.update(
+    if "cor_nominal" in ds:
+        ds["cor_nominal"].attrs.update(
             {
                 "units": "percent",
                 "long_name": "Nominal Correlation",
@@ -549,7 +630,7 @@ def ds_add_attrs_sig(ds):
         ds["brangeAST"].attrs.update(
             {
                 "units": "m",
-                # "standard_name": "altimeter_range",
+                "standard_name": "altimeter_range",
                 "long_name": "Acoustic Surface Tracking (AST) Range",
             }
         )
@@ -695,6 +776,54 @@ def ds_add_attrs_sig(ds):
             }
         )
 
+    if "TransMatrix" in ds:
+        ds["TransMatrix"].attrs.update(
+            {
+                # "units": "1",
+                "long_name": "Instrument Transformation Matrix",
+            }
+        )
+
+    if "Hdg_std" in ds:
+        ds["Hdg_std"].attrs.update(
+            {
+                "units": "degrees",
+                "long_name": "Instrument heading standard deviation",
+                "standard_name": "platform_orientation",
+                "cell_methods": "time: standard_deviation",
+            }
+        )
+
+    if "Ptch_std" in ds:
+        ds["Ptch_std"].attrs.update(
+            {
+                "units": "degrees",
+                "long_name": "Instrument pitch standard deviation",
+                "standard_name": "platform_pitch",
+                "cell_methods": "time: standard_deviation",
+            }
+        )
+
+    if "Roll_std" in ds:
+        ds["Roll_std"].attrs.update(
+            {
+                "units": "degrees",
+                "long_name": "Instrument roll standard deviation",
+                "standard_name": "platform_roll",
+                "cell_methods": "time: standard_deviation",
+            }
+        )
+
+    if "Pres_std" in ds:
+        ds["Pres_std"].attrs.update(
+            {
+                "units": "dbar",
+                "long_name": "Uncorrected pressure standard deviation",
+                "standard_name": "sea_water_pressure",
+                "cell_methods": "time: standard_deviation",
+            }
+        )
+
     return ds
 
 
@@ -762,5 +891,35 @@ def ds_make_ahrs_vars(ds):
         ds["quaternions"] = xr.concat(
             [ds[f"AHRSQuaternion{i}"] for i in ds["q"].values], dim="q"
         )
+
+    return ds
+
+
+def ds_make_tmat(ds):
+    """
+    add instrument Transformation Matrix to xarray Dataset
+    """
+    # rename to TransMatrix
+    varnames = {"Beam2xyz": "TransMatrix"}
+    for v in varnames:
+        if v in ds:
+            ds = ds.rename({v: varnames[v]})
+
+    # swap dims in Tmat
+    if "TransMatrix" in ds.data_vars:
+        n = ds["TransMatrix"].shape[0]
+        if n == 4:
+            if "inst4" not in ds.dims:
+                ds["inst4"] = xr.DataArray(["X", "Y", "Z1", "Z2"], dims="inst4")
+
+            if "beam" not in ds.dims:
+                ds["beam"] = xr.DataArray(
+                    range(1, ds["NBeams"][0].values + 1), dims="beam"
+                )
+
+            v = "TransMatrix"
+            tdims = ds[v].dims
+            ds[v] = ds[v].swap_dims({tdims[0]: "inst4"})
+            ds[v] = ds[v].swap_dims({tdims[1]: "beam"})
 
     return ds

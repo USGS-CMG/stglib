@@ -835,6 +835,10 @@ def check_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             ds.attrs["bin_size"] = ds.attrs["SIGBurstHR_CellSize"]
         elif ds.attrs["data_type"].upper() == "ECHO1":
             ds.attrs["bin_size"] = ds.attrs["SIGEchoSounder_CellSize"]
+        elif ds.attrs["data_type"].upper() == "AVERAGE":
+            ds.attrs["bin_size"] = ds.attrs["SIGAverage_CellSize"]
+        elif ds.attrs["data_type"].upper() == "ALT_AVERAGE":
+            ds.attrs["bin_size"] = ds.attrs["SIGAlt_Average_CellSize"]
 
         if ds.attrs["frequency"] == 1000 or ds.attrs["frequency"] == 500:
             ds.attrs["beam_angle"] = 25
