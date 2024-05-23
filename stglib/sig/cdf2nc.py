@@ -373,22 +373,28 @@ def fix_encoding(ds):
     if "units" in ds["time"].encoding:
         ds["time"].encoding.pop("units")
 
-    tstep = ds["time"][1] - ds["time"][0]  # use time step to select time encoding
-    # if "sample" not in ds.dims:
+    # use time step to select time encoding
+    tstep = ds["time"][1] - ds["time"][0]
+
     if tstep < np.timedelta64(1, "m"):
-        print(
-            f"make time encoding to dtype double because tstep {tstep} seconds is < 1 minute, round to milliseconds first"
-        )
-        ds["time"] = ds["time"].dt.round("ms")  # round time to milliseconds first
+
+        histtext = f"make time encoding to dtype double because tstep {tstep} seconds is < 1 minute, round to milliseconds first"
+        ds = utils.insert_history(ds, histtext)
+
+        # round time to milliseconds first
+        ds["time"] = ds["time"].dt.round("ms")
         ds["time"].encoding["dtype"] = "double"
 
     else:
-        print(
-            f"make time encoding int because tstep {tstep} seconds is >= 1 minute, round time to seconds first"
-        )
-        ds["time"] = ds["time"].dt.round(
-            "s"
-        )  # round time to seconds if time interval >= 1 minute
+        histtext = f"make time encoding int because tstep {tstep} seconds is >= 1 minute, round time to seconds first"
+        ds = utils.insert_history(ds, histtext)
+
+        # round time to seconds if time interval >= 1 minute
+        ds["time"] = ds["time"].dt.round("s")
+
+        # check time to make sure it fits in int32, assume seconds for time units
+        utils.check_fits_in_int32(ds, "time", "s")
+
         ds["time"].encoding["dtype"] = "i4"
 
     if "beam" in ds.dims:
