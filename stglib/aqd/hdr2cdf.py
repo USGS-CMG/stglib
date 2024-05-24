@@ -74,23 +74,32 @@ def load_sen(basefile):
         senfile,
         header=None,
         sep="\s+",
-        parse_dates={"datetime": [2, 0, 1, 3, 4, 5]},
-        date_format="%Y %m %d %H %M %S",
         usecols=[0, 1, 2, 3, 4, 5, 8, 10, 11, 12, 13, 14, 15, 16],
     )
 
     # rename columns from numeric to human-readable
     SEN.rename(
         columns={
+            0: "Month",
+            1: "Day",
+            2: "Year",
+            3: "Hour",
+            4: "Minute",
+            5: "Second",
+            8: "Battery",
             10: "Heading",
             11: "Pitch",
             12: "Roll",
             13: "Pressure",
             14: "Temperature",
-            8: "Battery",
         },
         inplace=True,
     )
+
+    SEN["datetime"] = pd.to_datetime(
+        SEN[["Year", "Month", "Day", "Hour", "Minute", "Second"]]
+    )
+    SEN.drop(columns=["Year", "Month", "Day", "Hour", "Minute", "Second"], inplace=True)
 
     SEN.rename(columns={15: "AnalogInput1"}, inplace=True)
     SEN["AnalogInput1"] = SEN["AnalogInput1"] * 5 / 65535

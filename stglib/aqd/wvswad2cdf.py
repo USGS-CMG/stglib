@@ -90,14 +90,18 @@ def load_whd(metadata):
         whdfile,
         header=None,
         sep="\s+",
-        parse_dates={"datetime": [2, 0, 1, 3, 4, 5]},
-        date_format="%Y %m %d %H %M %S",
         usecols=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20],
     )
 
     # rename columns from numeric to human-readable
     WHD.rename(
         columns={
+            0: "Month",
+            1: "Day",
+            2: "Year",
+            3: "Hour",
+            4: "Minute",
+            5: "Second",
             6: "burst",
             7: "nrecs",
             8: "cellpos",
@@ -115,6 +119,11 @@ def load_whd(metadata):
         },
         inplace=True,
     )
+
+    WHD["datetime"] = pd.to_datetime(
+        WHD[["Year", "Month", "Day", "Hour", "Minute", "Second"]]
+    )
+    WHD.drop(columns=["Year", "Month", "Day", "Hour", "Minute", "Second"], inplace=True)
 
     ds = xr.Dataset.from_dataframe(WHD)
     ds = ds.rename({"index": "time"})
