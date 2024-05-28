@@ -83,6 +83,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds["AGC_1202"].attrs.pop("standard_name")
 
+    ds = time_encoding(ds)
+
     if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
         create_burst_nc(ds)
 
@@ -417,6 +419,38 @@ def combine_vars(ds):
     return ds
 
 
+def time_encoding(ds):
+    """ensure we don't set dtypes uint for CF compliance"""
+    if "units" in ds["time"].encoding:
+        ds["time"].encoding.pop("units")
+
+    # use time step to select time encoding
+    tstep = ds["time"][1] - ds["time"][0]
+
+    if tstep < np.timedelta64(1, "m"):
+
+        histtext = f"make time encoding to dtype double because tstep {tstep} seconds is < 1 minute, round to milliseconds first"
+        ds = utils.insert_history(ds, histtext)
+
+        # round time to milliseconds first
+        ds["time"] = ds["time"].dt.round("ms")
+        ds["time"].encoding["dtype"] = "double"
+
+    else:
+        histtext = f"make time encoding int because tstep {tstep} seconds is >= 1 minute, round time to seconds first"
+        ds = utils.insert_history(ds, histtext)
+
+        # round time to seconds if time interval >= 1 minute
+        ds["time"] = ds["time"].dt.round("s")
+
+        # check time to make sure it fits in int32, assume seconds for time units
+        utils.check_time_fits_in_int32(ds, "time")
+
+        ds["time"].encoding["dtype"] = "i4"
+
+    return ds
+
+
 def create_burst_nc(ds):
 
     if "prefix" in ds.attrs:
@@ -447,7 +481,7 @@ def create_burst_nc(ds):
     else:
         nc_filename = dsmean.attrs["filename"] + "-a.nc"
 
-    dsmean.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    dsmean.to_netcdf(nc_filename)
     utils.check_compliance(nc_filename, conventions=dsmean.attrs["Conventions"])
 
     print("Done writing netCDF file", nc_filename)
@@ -460,7 +494,7 @@ def create_cont_nc(ds):
     else:
         nc_filename = ds.attrs["filename"] + "cont-cal.nc"
 
-    ds.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    ds.to_netcdf(nc_filename)
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done writing netCDF file", nc_filename)
