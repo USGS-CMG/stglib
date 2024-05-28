@@ -102,3 +102,11 @@ atmpres-BEL5Cwvs.cdf filter=lfs diff=lfs merge=lfs -text
 gatts_055109_20220808_1605.txt filter=lfs diff=lfs merge=lfs -text
 *.cdf filter=lfs diff=lfs merge=lfs -text
 mat3/** filter=lfs diff=lfs merge=lfs -text
+V1482304.dat filter=lfs diff=lfs merge=lfs -text
+V1482304.hdr filter=lfs diff=lfs merge=lfs -text
+V1482304.pck filter=lfs diff=lfs merge=lfs -text
+V1482304.sen filter=lfs diff=lfs merge=lfs -text
+V1482304.ssl filter=lfs diff=lfs merge=lfs -text
+V1482304.vhd filter=lfs diff=lfs merge=lfs -text
+config_1126vec14823.yaml filter=lfs diff=lfs merge=lfs -text
+glob_att1126_msl.txt filter=lfs diff=lfs merge=lfs -text
