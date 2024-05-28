@@ -1,11 +1,3 @@
 *.ipynb filter=nbstripout
 *.ipynb diff=ipynb
 stglib/_version.py export-subst
-stglib/tests/data/V1482304.dat filter=lfs diff=lfs merge=lfs -text
-stglib/tests/data/V1482304.hdr filter=lfs diff=lfs merge=lfs -text
-stglib/tests/data/V1482304.pck filter=lfs diff=lfs merge=lfs -text
-stglib/tests/data/V1482304.sen filter=lfs diff=lfs merge=lfs -text
-stglib/tests/data/V1482304.ssl filter=lfs diff=lfs merge=lfs -text
-stglib/tests/data/V1482304.vhd filter=lfs diff=lfs merge=lfs -text
-stglib/tests/data/config_1126vec14823.yaml filter=lfs diff=lfs merge=lfs -text
-stglib/tests/data/glob_att1126_msl.txt filter=lfs diff=lfs merge=lfs -text
