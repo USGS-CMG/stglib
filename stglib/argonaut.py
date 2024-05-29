@@ -15,7 +15,7 @@ import xarray as xr
 def read_dat_raw(filnam):
     df = pd.read_csv(
         filnam,
-        sep="\s+",
+        sep=r"\s+",
         parse_dates={"time": ["Year", "Month", "Day", "Hour", "Minute", "Second"]},
         date_format="%Y %m %d %H %M %S",
     )
@@ -44,7 +44,7 @@ def rename_columns(df):
 def read_vel_snr_std(filbase):
     df = pd.read_csv(
         filbase + ".vel",
-        sep="\s+",
+        sep=r"\s+",
         header=[0, 1],
         parse_dates=[[1, 2, 3, 4, 5, 6]],
         date_format="%Y %m %d %H %M %S",
@@ -92,7 +92,7 @@ def read_vel_snr_std(filbase):
 
     snr = pd.read_csv(
         filbase + ".snr",
-        sep="\s+",
+        sep=r"\s+",
         header=[0, 1],
         parse_dates=[[1, 2, 3, 4, 5, 6]],
         date_format="%Y %m %d %H %M %S",
@@ -110,7 +110,7 @@ def read_vel_snr_std(filbase):
 
     std = pd.read_csv(
         filbase + ".std",
-        sep="\s+",
+        sep=r"\s+",
         header=[0, 1],
         parse_dates=[[1, 2, 3, 4, 5, 6]],
         date_format="%Y %m %d %H %M %S",
