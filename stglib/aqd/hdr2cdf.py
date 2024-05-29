@@ -73,7 +73,7 @@ def load_sen(basefile):
     SEN = pd.read_csv(
         senfile,
         header=None,
-        sep="\s+",
+        sep=r"\s+",
         usecols=[0, 1, 2, 3, 4, 5, 8, 10, 11, 12, 13, 14, 15, 16],
     )
 
@@ -119,7 +119,7 @@ def load_amp_vel(RAW, basefile):
 
     for n in [1, 2, 3]:
         afile = basefile + ".a" + str(n)
-        a = pd.read_csv(afile, header=None, sep="\s+")
+        a = pd.read_csv(afile, header=None, sep=r"\s+")
 
         if "bindist" in RAW:
             coords = [RAW["time"], RAW["bindist"]]
@@ -129,7 +129,7 @@ def load_amp_vel(RAW, basefile):
         RAW["AMP" + str(n)] = xr.DataArray(a, dims=("time", "bindist"), coords=coords)
 
         vfile = basefile + ".v" + str(n)
-        v = pd.read_csv(vfile, header=None, sep="\s+")
+        v = pd.read_csv(vfile, header=None, sep=r"\s+")
 
         if RAW.attrs["AQDCoordinateSystem"] == "BEAM":
             thevars = {1: "VEL1", 2: "VEL2", 3: "VEL3"}

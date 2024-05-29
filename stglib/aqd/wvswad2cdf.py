@@ -89,7 +89,7 @@ def load_whd(metadata):
     WHD = pd.read_csv(
         whdfile,
         header=None,
-        sep="\s+",
+        sep=r"\s+",
         usecols=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20],
     )
 
@@ -150,7 +150,7 @@ def load_wad(ds):
     wadfile = ds.attrs["basefile"] + ".wad"
     print("Loading wave data from " + wadfile + "; this may take some time")
     # pd.read_csv is ~10x faster than np.loadtxt or np.genfromtxt
-    WAD = pd.read_csv(wadfile, header=None, sep="\s+").values
+    WAD = pd.read_csv(wadfile, header=None, sep=r"\s+").values
 
     r, c = np.shape(WAD)
     print(wadfile + " has " + str(r) + " rows and " + str(c) + " columns")
