@@ -142,7 +142,7 @@ def load_vhd(basefile):
         "DistProbeEndAvg",
         "DistSVolEndAvg",
     ]
-    vhd = pd.read_csv(f"{basefile}.vhd", sep="\s+", header=None, names=names)
+    vhd = pd.read_csv(f"{basefile}.vhd", sep=r"\s+", header=None, names=names)
     vhd["time"] = pd.to_datetime(
         vhd[["Year", "Month", "Day", "Hour", "Minute", "Second"]]
     )
@@ -172,7 +172,7 @@ def load_sen(basefile):
     ]
     sen = pd.read_csv(
         f"{basefile}.sen",
-        sep="\s+",
+        sep=r"\s+",
         header=None,
         names=names,
         converters={"ErrorCode": str, "StatusCode": str},
@@ -206,7 +206,7 @@ def load_dat(basefile):
         "AnalogInput2",
         "Checksum",
     ]
-    dat = pd.read_csv(f"{basefile}.dat", header=None, sep="\s+", names=names)
+    dat = pd.read_csv(f"{basefile}.dat", header=None, sep=r"\s+", names=names)
     dat = dat.set_index(["Burst", "Ensemble"])
     ds = dat.to_xarray()
 
