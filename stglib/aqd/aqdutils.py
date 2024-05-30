@@ -292,11 +292,6 @@ def set_orientation(VEL, T):
     if "AnalogInput2_height" in VEL.attrs:
         VEL["zai2"] = xr.DataArray([elev_ai2], dims="zai2")
 
-    lnshim = {
-        "z": "",
-        "zai1": "of analog input 1",
-        "zai2": "of analog input 2",
-    }
     for z in ["z", "zai1", "zai2"]:
         if z not in VEL:
             continue
@@ -521,7 +516,7 @@ def read_aqd_hdr(basefile):
         if "Extended velocity range" in f.read():
             hr = True
 
-    f = open(hdrFile, "r")
+    f = open(hdrFile)
     row = ""
 
     Instmeta = {}

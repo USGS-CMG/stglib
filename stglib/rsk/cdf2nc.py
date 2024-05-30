@@ -131,8 +131,6 @@ def open_raw_cdf(cdf_filename):
 
 
 def get_slice(ds, profile):
-    rscs = ds.row_size.cumsum()
-
     row_start = ds.row_start.sel(profile=profile).values
     row_size = ds.row_size.sel(profile=profile).values
 
@@ -201,7 +199,11 @@ def do_split_profiles(ds):
 
 def trim_min(ds, var):
     if var + "_min" in ds.attrs:
-        print("%s: Trimming using minimum value of %f" % (var, ds.attrs[var + "_min"]))
+        print(
+            "{}: Trimming using minimum value of {:f}".format(
+                var, ds.attrs[var + "_min"]
+            )
+        )
         # remove full burst if any of the burst values are less than
         # the indicated value
 

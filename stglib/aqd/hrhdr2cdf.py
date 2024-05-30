@@ -194,7 +194,7 @@ def load_amp_vel_cor(RAW, basefile):
                 coords=coords,
             )
 
-        except:
+        except FileNotFoundError:
             print("No correlation data available")
 
     return RAW
