@@ -469,9 +469,7 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
             ds = utils.insert_history(ds, histtext)
 
         # find first bin that is all bad values
-        # there might be a better way to do this using xarray and named
-        # dimensions, but this works for now
-        lastbin = np.argmin(np.all(np.isnan(ds[data_vars[0]].values), axis=0) == False)
+        lastbin = ds[data_vars[0]].isnull().all(dim="time").argmax(dim="bindist").values
 
         if not lastbin == 0:
             # this trims so there are no all-nan rows in the data
