@@ -57,11 +57,7 @@ def csv_to_cdf(metadata):
     else:
         kwargs["names"] = get_col_names(basefile + ".csv", metadata)
 
-    try:
-        ds = read_hobo(basefile + ".csv", **kwargs)
-    except UnicodeDecodeError:
-        # try reading as Mac OS Western for old versions of Mac Excel
-        ds = read_hobo(basefile + ".csv", encoding="mac-roman", **kwargs)
+    ds = read_hobo(basefile + ".csv", **kwargs)
 
     metadata.pop("skiprows")
     metadata.pop("skipfooter")

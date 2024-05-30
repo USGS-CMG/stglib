@@ -1,4 +1,6 @@
-rootdir = '/Volumes/Backstaff/field/gb_proc/';
+rootdir = '/your/directory/here/';
+% this script assumes a directory structure like rootdir/1076a/10763Aaqd/
+
 % mooring = '1076';
 % dep = 'a';
 % mooring = '1076';
@@ -26,7 +28,7 @@ cellpos = ncread(infile, 'cellpos'); % this assumes atmospherically corrected pr
 adcpheight = ncreadatt(infile, '/', 'initial_instrument_height');
 heading = ncread(infile, 'Hdg_1215');
 pitch = ncread(infile, 'Ptch_1216');
-roll = ncread(infile, 'Roll_1217'); 
+roll = ncread(infile, 'Roll_1217');
 
 %%
 addpath /Users/dnowacki/Documents/matlabdjn/diwasp_1_1GD
@@ -36,7 +38,7 @@ ID.fs = fs;
 SM.nperburst = nperburst;
 SM.nsegs=16;
 SM.nfft = 2^(nextpow2(SM.nperburst/SM.nsegs));
-SM.iter = 100; 
+SM.iter = 100;
 SM.dres=180;
 SM.nfreqs=SM.nfft/2;
 SM.freqs = ID.fs/SM.nfft:ID.fs/SM.nfft:ID.fs/2;
@@ -49,14 +51,14 @@ for burst = 1:size(pres,2)
     ID.data = [pres(:,burst) vel1(:,burst)/1000 vel2(:,burst)/1000 vel3(:,burst)/1000];
     ID.layout = make_xyzpos(0, heading(burst), pitch(burst), roll(burst), cellpos(burst), adcpheight)'; % magvar has already been applied
     ID.datatypes={'pres' 'radial' 'radial' 'radial'};
-    
+
 %     SM.freqs = 1/256:1/128:ID.fs/2-1/256;
 %     SM.dirs = 5:10:360-5;
 
 %     SM.funit = 'Hz';
 %     SM.dunit = 'naut';
-    
-    
+
+
     % 'DFTM' Direct Fourier transform method
     % 'EMLM' Extended maximum likelihood method
     % 'IMLM' Iterated maximum likelihood method
@@ -65,7 +67,7 @@ for burst = 1:size(pres,2)
     %EP.nfft = 8;
     %EP.dres = 10;
     %EP.smooth = 'off';
-    
+
     [diwasp.S(burst), diwasp.E(burst)] = dirspec(ID, SM, EP, {'MESSAGE', 0, 'PLOTTYPE', 0});
 %     [diwasp.Hs(burst), diwasp.Tp(burst), diwasp.Dtp(burst), diwasp.Dp(burst)] = infospec(diwasp.S(burst));
     [diwasp.H(burst),diwasp.HsConf(burst,:),diwasp.Tp(burst),diwasp.DTp(burst),diwasp.Dp(burst)] = infospec(diwasp.S(burst));
@@ -120,7 +122,7 @@ ncwrite(outfile, 'dspec', dw.dspec);
 
 save([outfile(1:end-2) 'mat'], 'diwasp')
 
-%% 
+%%
 function xyzpositions = make_xyzpos(magvar, heading, pitch, roll, height, adcpheight)
 
 xyzpos=ones(3,3);

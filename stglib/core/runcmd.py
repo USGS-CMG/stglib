@@ -180,12 +180,6 @@ def runrskcsv2cdf():
     stglib.rsk.csv2cdf.csv_to_cdf(metadata)
 
 
-def runrsknc2diwasp():
-    args = stglib.cmd.rsknc2diwasp_parser().parse_args()
-
-    stglib.rsk.nc2diwasp.nc_to_diwasp(args.ncname)
-
-
 def runrsknc2waves():
     args = stglib.cmd.rsknc2waves_parser().parse_args()
 
@@ -206,26 +200,12 @@ def runsigcdf2nc():
     run_cdf_to_nc(stglib.sig.cdf2nc.cdf_to_nc, args)
 
 
-def runsigdlfncdf2nc():
-    args = stglib.cmd.sigdlfncdf2nc_parser().parse_args()
-
-    run_cdf_to_nc(stglib.sig.dlfncdf2nc.cdf_to_nc, args)
-
-
 def runsigmat2cdf():
     args = stglib.cmd.sigmat2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.sig.mat2cdf.mat_to_cdf(metadata)
-
-
-def runsigraw2cdf():
-    args = stglib.cmd.sigraw2cdf_parser().parse_args()
-
-    metadata = get_metadata(args)
-
-    stglib.sig.raw2cdf.raw_to_cdf(metadata)
 
 
 def runtrollcdf2nc():

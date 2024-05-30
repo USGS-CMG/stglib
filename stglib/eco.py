@@ -115,11 +115,7 @@ def csv_to_cdf(metadata):
         "skiprows": metadata["skiprows"],
         "skipfooter": metadata["skipfooter"],
     }
-    try:
-        ds = f(basefile, **kwargs)
-    except UnicodeDecodeError:
-        # try reading as Mac OS Western for old versions of Mac Excel
-        ds = f(basefile, encoding="mac-roman", **kwargs)
+    ds = f(basefile, **kwargs)
 
     metadata.pop("skiprows")
     metadata.pop("skipfooter")

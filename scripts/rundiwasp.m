@@ -1,4 +1,5 @@
-rootdir = '/Volumes/Backstaff/field/gb_proc/';
+rootdir = '/your/directory/here/';
+% this script assumes a directory structure like rootdir/1076a/10763Adw/
 
 % mooring = '1076';
 % dep = 'b';
@@ -36,7 +37,7 @@ ID.fs = fs;
 SM.nperburst = nperburst;
 SM.nsegs=16;
 SM.nfft = 2^(nextpow2(SM.nperburst/SM.nsegs));
-SM.iter = 100; 
+SM.iter = 100;
 SM.dres=180;
 SM.nfreqs=SM.nfft/2;
 SM.freqs = ID.fs/SM.nfft:ID.fs/SM.nfft:ID.fs/2;
@@ -47,28 +48,28 @@ EP.method = 'IMLM';
 for burst = 1:size(pres, 2)
     ID.data = pres(:,burst);
     ID.depth = mean(ID.data) + initial_instrument_height;
-    
+
     ID.layout = [0
                  0
                  initial_instrument_height];
     ID.datatypes = {'pres'};
-    
-    
+
+
 %     ID.fs = fs;
-    
+
 %     SM.freqs = 1/256:1/128:ID.fs/2-1/256;
 %     SM.dirs = 22.5:45:360-22.5;
 %     SM.xaxisdir = 90;
 %     SM.funit = 'Hz';
 %     SM.dunit = 'naut';
-%     
+%
 %     EP.method = 'IMLM';
     % 'DFTM' Direct Fourier transform method
     % 'EMLM' Extended maximum likelihood method
     % 'IMLM' Iterated maximum likelihood method
     % 'EMEP' Extended maximum entropy principle
     % 'BDM' Bayesian direct method
-    
+
     [diwasp.S(burst), diwasp.E(burst)] = dirspec(ID, SM, EP, {'MESSAGE', 0, 'PLOTTYPE', 0});
     [diwasp.H(burst),diwasp.HsConf(burst,:),diwasp.Tp(burst),diwasp.DTp(burst),diwasp.Dp(burst)] = infospec(diwasp.S(burst));
 %     [diwasp.Hs(burst), diwasp.Tp(burst), diwasp.Dtp(burst), diwasp.Dp(burst)] = infospec(diwasp.S(burst));

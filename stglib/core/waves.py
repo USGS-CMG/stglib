@@ -54,9 +54,11 @@ def make_waves_ds(ds):
     spec["Kpcutind"] = xr.DataArray(np.asarray(Kpcutind), dims="time")
     thetail = [
         make_tail(
-            spec["frequency"], spec["Pnn"][burst, :], spec["tailind"][burst].values
+            spec["frequency"],
+            spec["Pnn"].sel(time=time),
+            spec["tailind"].sel(time=time).values,
         )
-        for burst in range(len(spec["time"]))
+        for time in spec["time"]
     ]
     spec["pspec"] = xr.DataArray(thetail, dims=("time", "frequency"))
     spec["m0"] = xr.DataArray(
