@@ -451,6 +451,10 @@ def time_encoding(ds):
 
         ds["time"].encoding["dtype"] = "i4"
 
+    ds["time"].attrs.update(
+        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
+    )
+
     return ds
 
 
@@ -461,7 +465,9 @@ def create_burst_nc(ds):
     else:
         nc_filename = ds.attrs["filename"] + "b-cal.nc"
 
-    ds.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    delayed_obj = ds.to_netcdf(nc_filename, compute=False)
+    with ProgressBar():
+        delayed_obj.compute()
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done writing netCDF file", nc_filename)
@@ -484,8 +490,14 @@ def create_burst_nc(ds):
     else:
         nc_filename = dsmean.attrs["filename"] + "-a.nc"
 
-    dsmean.to_netcdf(nc_filename)
-    utils.check_compliance(nc_filename, conventions=dsmean.attrs["Conventions"])
+    delayed_obj = dsmean.to_netcdf(
+        nc_filename,
+        encoding={"time": {"dtype": ds["time"].encoding["dtype"]}},
+        compute=False,
+    )
+    with ProgressBar():
+        delayed_obj.compute()
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done writing netCDF file", nc_filename)
 
