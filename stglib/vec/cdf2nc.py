@@ -3,6 +3,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import xarray as xr
+from dask.diagnostics import ProgressBar
 
 from ..aqd import aqdutils
 from ..core import qaqc, transform, utils
@@ -82,6 +83,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = utils.add_standard_names(ds)
 
     ds["AGC_1202"].attrs.pop("standard_name")
+
+    ds = ds.chunk({"time": 200000})
 
     ds = time_encoding(ds)
 
@@ -494,7 +497,9 @@ def create_cont_nc(ds):
     else:
         nc_filename = ds.attrs["filename"] + "cont-cal.nc"
 
-    ds.to_netcdf(nc_filename)
+    delayed_obj = ds.to_netcdf(nc_filename, compute=False)
+    with ProgressBar():
+        delayed_obj.compute()
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done writing netCDF file", nc_filename)
