@@ -26,7 +26,7 @@ def dat_to_cdf(metadata):
 
     ds = load_dat(basefile)
 
-    ds = ds_checksum_check(ds)
+    ds = aqdutils.ds_checksum_check(ds)
 
     ds = utils.write_metadata(ds, metadata)
 
@@ -37,6 +37,8 @@ def dat_to_cdf(metadata):
     dsvhd = load_vhd(basefile)
 
     dssen = load_sen(basefile)
+
+    dssen = aqdutils.ds_checksum_check(dssen)
 
     r = np.shape(dssen.Heading)[0]
     senburstlen = int(ds.attrs["VECSamplesPerBurst"] / ds.attrs["VECSamplingRate"] + 1)
@@ -343,12 +345,3 @@ def read_vec_hdr(basefile):
                 Instmeta["VECPressureCal"] = row[38:]
 
     return Instmeta
-
-
-def ds_checksum_check(ds):
-    if np.any(ds["Checksum"] == 1):
-        warnings.warn(
-            "Non-zero checksum values found in data. This indicates a failed checksum and potentially bad data. Proceed with caution."
-        )
-
-    return ds
