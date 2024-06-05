@@ -36,7 +36,7 @@ def dat_to_cdf(metadata):
 
     ds = aqdutils.check_attrs(ds, inst_type="VEC")
 
-    dssen = load_sen(basefile, metadata)
+    dssen = load_sen(basefile)
 
     # r = np.shape(dssen.Heading)[0]
     # senburstlen = int(ds.attrs["VECSamplesPerBurst"] / ds.attrs["VECSamplingRate"] + 1)
@@ -158,7 +158,7 @@ def load_vhd(basefile):
     return vhd.to_xarray()
 
 
-def load_sen(basefile, metadata):
+def load_sen(basefile):
     print(f"Loading {basefile}.sen")
     names = [
         "Month",
@@ -276,12 +276,12 @@ def read_vec_hdr(basefile):
                 if "CONTINUOUS" not in row:
                     idx = row.find(" sec")
                     Instmeta["VECBurstInterval"] = int(row[38:idx])
-                elif "CONTINUOUS" in row:
+                else:
                     Instmeta["VECBurstInterval"] = row[38:]
             if "Samples per burst" in row:
                 if "N/A" not in row:
                     Instmeta["VECSamplesPerBurst"] = int(row[38:])
-                elif "N/A" in row:
+                else:
                     Instmeta["VECSamplesPerBurst"] = row[38:]
             if "Sampling volume" in row:
                 Instmeta["VECSamplingVolume"] = row[38:]
