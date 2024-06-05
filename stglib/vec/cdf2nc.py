@@ -361,7 +361,10 @@ def dist_to_boundary(ds):
 
 def reshape(ds):
 
+    # find times of first sample in each burst
     t = ds["time"][ds["sample"].values == 1]
+    # get corresponding burst number
+    b_num = ds["Burst"][ds["sample"].values == 1]
 
     for i in np.arange(0, len(t)):
         t2, samp = np.meshgrid(
@@ -369,11 +372,7 @@ def reshape(ds):
             ds["sample"].sel(
                 time=slice(
                     t[i],
-                    t[i]
-                    + np.timedelta64(ds.attrs["VECBurstInterval"], "s")
-                    - np.timedelta64(
-                        int(1 / ds.attrs["VECSamplingRate"] * 1000 * 0.5), "ms"
-                    ),
+                    ds.time[ds["Burst"] == b_num[i]].max(),
                 )
             ),
         )
