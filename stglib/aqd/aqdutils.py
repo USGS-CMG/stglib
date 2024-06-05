@@ -1363,9 +1363,8 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
-    if (
-        inst_type == "VEC"
-    ):  # can apply this to all instruments if needed, but keeping just for vec now
+    if inst_type == "VEC":
+        # can apply this to all instruments if needed, but keeping just for vec now
         ds["orientation"].attrs.update(
             {
                 "units": "1",

@@ -23,9 +23,8 @@ def coord_transform(ds, out="enu"):
 
     elif cs.lower() == "beam" and out.lower() == "xyz":
 
-        x, y, z = vec_beam_to_xyz(
-            ds.VEL1, ds.VEL2, ds.VEL3, ds["TransMatrix"]
-        )  # transform to xyz (inst)
+        x, y, z = vec_beam_to_xyz(ds.VEL1, ds.VEL2, ds.VEL3, ds["TransMatrix"])
+        # transform to xyz (inst)
 
         ds["X"] = xr.DataArray(x, dims=("time"))
         ds["Y"] = xr.DataArray(y, dims=("time"))
@@ -33,9 +32,8 @@ def coord_transform(ds, out="enu"):
 
     elif cs.lower() == "xyz" and out.lower() == "enu":
 
-        orientmat = create_orientmat(
-            ds
-        )  # need to create orienation matrix using heading, pitch, and roll
+        orientmat = create_orientmat(ds)
+        # need to create orienation matrix using heading, pitch, and roll
 
         u, v, w = vec_xyz_to_enu(ds.VEL1, ds.VEL2, ds.VEL3, orientmat)
 
@@ -45,63 +43,53 @@ def coord_transform(ds, out="enu"):
 
     elif cs.lower() == "beam" and out.lower() == "enu":
 
-        x, y, z = vec_beam_to_xyz(
-            ds.VEL1, ds.VEL2, ds.VEL3, ds["TransMatrix"]
-        )  # first transform to xyz (inst)
+        x, y, z = vec_beam_to_xyz(ds.VEL1, ds.VEL2, ds.VEL3, ds["TransMatrix"])
+        # first transform to xyz (inst)
 
         ds["X"] = xr.DataArray(x, dims=("time"))
         ds["Y"] = xr.DataArray(y, dims=("time"))
         ds["Z"] = xr.DataArray(z, dims=("time"))
 
-        orientmat = create_orientmat(
-            ds
-        )  # need to create orienation matrix using heading, pitch, and roll
+        orientmat = create_orientmat(ds)
+        # need to create orienation matrix using heading, pitch, and roll
 
-        u, v, w = vec_xyz_to_enu(ds.X, ds.Y, ds.Z, orientmat)  # now transform to enu
+        u, v, w = vec_xyz_to_enu(ds.X, ds.Y, ds.Z, orientmat)
+        # now transform to enu
 
         ds["U"] = xr.DataArray(u, dims=("time"))
         ds["V"] = xr.DataArray(v, dims=("time"))
         ds["W"] = xr.DataArray(w, dims=("time"))
 
-        ds = ds.drop(
-            ["X", "Y", "Z"]
-        )  # do not need intermediate XYZ vels because we keep Beam and now have ENU vels
+        ds = ds.drop(["X", "Y", "Z"])
+        # do not need intermediate XYZ vels because we keep Beam and now have ENU vels
 
-    elif (
-        cs.lower() == "enu" and out.lower() == "xyz"
-    ):  # reverse transformation enu to xyz
+    elif cs.lower() == "enu" and out.lower() == "xyz":
+        # reverse transformation enu to xyz
 
-        orientmat = create_orientmat(
-            ds
-        )  # need to create orienation matrix using heading, pitch, and roll
+        orientmat = create_orientmat(ds)
+        # need to create orienation matrix using heading, pitch, and roll
 
-        orientmat_transpose = orientmat.transpose(
-            "inst", "earth", "time"
-        )  # need to transpose orientation matrix for reverse transformation
+        orientmat_transpose = orientmat.transpose("inst", "earth", "time")
+        # need to transpose orientation matrix for reverse transformation
 
-        x, y, z = vec_xyz_to_enu(
-            ds.E, ds.N, ds.U, orientmat_transpose
-        )  # now transform to xyz
+        x, y, z = vec_xyz_to_enu(ds.E, ds.N, ds.U, orientmat_transpose)
+        # now transform to xyz
 
         ds["X"] = xr.DataArray(x, dims=("time"))
         ds["Y"] = xr.DataArray(y, dims=("time"))
         ds["Z"] = xr.DataArray(z, dims=("time"))
 
-    elif (
-        cs.lower() == "enu" and out.lower() == "beam"
-    ):  # reverse transformation enu to beam
+    elif cs.lower() == "enu" and out.lower() == "beam":
+        # reverse transformation enu to beam
 
-        orientmat = create_orientmat(
-            ds
-        )  # need to create orienation matrix using heading, pitch, and roll
+        orientmat = create_orientmat(ds)
+        # need to create orienation matrix using heading, pitch, and roll
 
-        orientmat_transpose = orientmat.transpose(
-            "inst", "earth", "time"
-        )  # need to transpose orientation matrix for reverse transformation
+        orientmat_transpose = orientmat.transpose("inst", "earth", "time")
+        # need to transpose orientation matrix for reverse transformation
 
-        x, y, z = vec_xyz_to_enu(
-            ds.VEL1, ds.VEL2, ds.VEL3, orientmat_transpose
-        )  # now transform to xyz
+        x, y, z = vec_xyz_to_enu(ds.VEL1, ds.VEL2, ds.VEL3, orientmat_transpose)
+        # now transform to xyz
 
         ds["X"] = xr.DataArray(x, dims=("time"))
         ds["Y"] = xr.DataArray(y, dims=("time"))
@@ -109,23 +97,20 @@ def coord_transform(ds, out="enu"):
 
         T = inv(ds["TransMatrix"])
 
-        v1, v2, v3 = vec_beam_to_xyz(
-            ds.X, ds.Y, ds.Z, T
-        )  # use same def as beam2inst but using inverse, so it's reversed to beam
+        v1, v2, v3 = vec_beam_to_xyz(ds.X, ds.Y, ds.Z, T)
+        # use same def as beam2inst but using inverse, so it's reversed to beam
 
         ds["BEAM1VEL"] = xr.DataArray(v1, dims=("time"))
         ds["BEAM2VEL"] = xr.DataArray(v2, dims=("time"))
         ds["BEAM3VEL"] = xr.DataArray(v3, dims=("time"))
 
-    elif (
-        cs.lower() == "xyz" and out.lower() == "beam"
-    ):  # reserve transformation xyz to beam
+    elif cs.lower() == "xyz" and out.lower() == "beam":
+        # reserve transformation xyz to beam
 
         T = inv(ds["TransMatrix"])
 
-        v1, v2, v3 = vec_beam_to_xyz(
-            ds.VEL1, ds.VEL2, ds.VEL3, T
-        )  # use same def as beam2inst but using inverse, so it's reversed to beam
+        v1, v2, v3 = vec_beam_to_xyz(ds.VEL1, ds.VEL2, ds.VEL3, T)
+        # use same def as beam2inst but using inverse, so it's reversed to beam
 
         ds["BEAM1VEL"] = xr.DataArray(v1, dims=("time"))
         ds["BEAM2VEL"] = xr.DataArray(v2, dims=("time"))
@@ -162,9 +147,8 @@ def create_orientmat(ds):
     Pitch = ds.Pitch.copy()
     Roll = ds.Roll.copy()
 
-    if (
-        ds.orientation
-    ).any() == 1:  # if bit 0 (starting from right side) in the status code is 1, the instrument was pointing down. Need to change sign of rows 2 and 3 of orientation matrix (orientmat)
+    if (ds.orientation).any() == 1:
+        # if bit 0 (starting from right side) in the status code is 1, the instrument was pointing down. Need to change sign of rows 2 and 3 of orientation matrix (orientmat)
         Roll[ds.orientation == 1] += 180
 
     hh = np.pi * (Heading - 90) / 180

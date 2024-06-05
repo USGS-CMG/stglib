@@ -395,6 +395,7 @@ def reshape(ds):
 
 
 def combine_vars(ds):
+    """Combines beam variables (cor, amp, snr) and raw (beam or xyz) velocities into matrix to limit number of variables"""
 
     ds["AGC_1202"] = (ds["AMP1"] + ds["AMP2"] + ds["AMP3"]) / 3
 
