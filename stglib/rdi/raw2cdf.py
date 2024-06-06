@@ -3,7 +3,7 @@ import pandas as pd
 import xarray as xr
 
 from ..core import utils
-from . import rdiadcpy, rdradcp
+from . import rdiadcpy
 
 
 def raw_to_cdf(metadata):

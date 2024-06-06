@@ -10,7 +10,7 @@ from . import utils
 def trim_min(ds, var):
     if var + "_min" in ds.attrs:
         cond = ds[var] >= ds.attrs[var + "_min"]
-        affected = cond.size - cond.sum()
+        affected = cond.size - cond.sum() - ds[var].isnull().sum()
         ds[var] = ds[var].where(cond)
 
         notetxt = f"Values filled where less than {ds.attrs[var + '_min']} units; {affected.values} values affected. "
@@ -23,7 +23,7 @@ def trim_min(ds, var):
 def trim_max(ds, var):
     if var + "_max" in ds.attrs:
         cond = ds[var] <= ds.attrs[var + "_max"]
-        affected = cond.size - cond.sum()
+        affected = cond.size - cond.sum() - ds[var].isnull().sum()
         ds[var] = ds[var].where(cond)
 
         notetxt = f"Values filled where greater than {ds.attrs[var + '_max']} units; {affected.values} values affected. "
@@ -280,10 +280,10 @@ def trim_fliers(ds, var):
         a = a.filled()
 
         cond = np.isfinite(a)
-        affected = cond.size - cond.sum()
+        affected = cond.size - cond.sum() - ds[var].isnull().sum()
         ds[var] = ds[var].where(cond)
 
-        notetxt = f"Fliers of {ds.attrs[var + '_fliers']} or fewer points removed; {affected} values affected. "
+        notetxt = f"Fliers of {ds.attrs[var + '_fliers']} or fewer points removed; {affected.values} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
@@ -339,7 +339,7 @@ def trim_mask(ds, var):
             cond = ~ds[trimvar].isnull()
             ds[var] = ds[var].where(cond)
 
-            affected = cond.size - cond.sum()
+            affected = cond.size - cond.sum() - ds[var].isnull().sum()
 
             notetxt = f"Values filled using {trimvar} mask; {affected.values} values affected. "
             ds = utils.insert_note(ds, var, notetxt)

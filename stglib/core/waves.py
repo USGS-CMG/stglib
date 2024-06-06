@@ -249,14 +249,18 @@ def make_moment(f, Pnn, n):
 
 
 def make_Hs(m0):
+    """Compute significant wave height as 4 * np.sqrt(m0)"""
     return 4 * np.sqrt(m0)
 
 
 def make_Tm(m0, m2):
+    """Compute mean period as sqrt(m0 / m2)"""
     return np.sqrt(m0 / m2)
 
 
 def make_Tp(Pnn):
+    """Compute peak period as 1 / fp,
+    where fp is the frequency with greatest energy in the elevation spectra"""
     # ensure we don't return 0 frequency as a peak period
     fp = Pnn["frequency"][Pnn.fillna(0).argmax(dim="frequency")].values
     fp[fp == 0] = np.nan

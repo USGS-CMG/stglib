@@ -220,17 +220,14 @@ def load_mat_file(filnam):
                     dsi[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
                     if "AHRSRotationMatrix" in k:
-                        coords = {"dimRM": np.arange(9)}
                         dsi["AHRSRotationMatrix"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimRM"]
                         )
                     if "Magnetometer" in k:
-                        coords = {"dimM": np.arange(3)}
                         dsi["Magnetometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimM"]
                         )
                     if "Accelerometer" in k:
-                        coords = {"dimA": np.arange(3)}
                         dsi["Accelerometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimA"]
                         )
@@ -254,17 +251,14 @@ def load_mat_file(filnam):
                     dsb[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
                     if "AHRSRotationMatrix" in k:
-                        coords = {"dimRM": np.arange(9)}
                         dsb["AHRSRotationMatrix"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimRM"]
                         )
                     if "Magnetometer" in k:
-                        coords = {"dimM": np.arange(3)}
                         dsb["Magnetometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimM"]
                         )
                     if "Accelerometer" in k:
-                        coords = {"dimA": np.arange(3)}
                         dsb["Accelerometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimA"]
                         )
@@ -288,17 +282,14 @@ def load_mat_file(filnam):
                     dse1[k.split("_")[2]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
                     if "AHRSRotationMatrix" in k:
-                        coords = {"dimRM": np.arange(9)}
                         dse1["AHRSRotationMatrix"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimRM"]
                         )
                     if "Magnetometer" in k:
-                        coords = {"dimM": np.arange(3)}
                         dse1["Magnetometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimM"]
                         )
                     if "Accelerometer" in k:
-                        coords = {"dimA": np.arange(3)}
                         dse1["Accelerometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimA"]
                         )
@@ -320,17 +311,14 @@ def load_mat_file(filnam):
                     dsa[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
                     if "AHRSRotationMatrix" in k:
-                        coords = {"dimRM": np.arange(9)}
                         dsa["AHRSRotationMatrix"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimRM"]
                         )
                     if "Magnetometer" in k:
-                        coords = {"dimM": np.arange(3)}
                         dsa["Magnetometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimM"]
                         )
                     if "Accelerometer" in k:
-                        coords = {"dimA": np.arange(3)}
                         dsa["Accelerometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimA"]
                         )
@@ -350,17 +338,14 @@ def load_mat_file(filnam):
                     dsalt[k.split("_")[2]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
                     if "AHRSRotationMatrix" in k:
-                        coords = {"dimRM": np.arange(9)}
                         dsalt["AHRSRotationMatrix"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimRM"]
                         )
                     if "Magnetometer" in k:
-                        coords = {"dimM": np.arange(3)}
                         dsalt["Magnetometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimM"]
                         )
                     if "Accelerometer" in k:
-                        coords = {"dimA": np.arange(3)}
                         dsalt["Accelerometer"] = xr.DataArray(
                             mat["Data"][k], dims=["time", "dimA"]
                         )

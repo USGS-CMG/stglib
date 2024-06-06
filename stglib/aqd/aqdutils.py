@@ -974,7 +974,7 @@ def update_attrs(ds, waves=False, hr=False):
         }
     )
 
-    ds["TransMatrix"].attrs["long_name"] = "Transformation Matrix " "for this Aquadopp"
+    ds["TransMatrix"].attrs["long_name"] = "Transformation Matrix for this Aquadopp"
     if "burst" in ds:
         ds["burst"].attrs.update({"units": "count", "long_name": "Burst number"})
 
