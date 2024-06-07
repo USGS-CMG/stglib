@@ -1,3 +1,8 @@
+# from ..lib import pyDIWASP
+# from ..lib import pyDIWASP.dirspec
+# from ..lib.pyDWASP import dirspec
+import os
+import sys
 import warnings
 
 import matplotlib.pyplot as plt
@@ -5,8 +10,53 @@ import numpy as np
 import scipy.signal as spsig
 import xarray as xr
 
+parent_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+lib_dir = os.path.join(parent_dir, "lib")
+sys.path.append(lib_dir)
+
+import pyDIWASP
+
+
+def make_diwasp_pres(ds):
+    if "P_1ac" in ds:
+        presvar = "P_1ac"
+    else:
+        warnings.warn(
+            "atmospherically corrected pressure not available; using raw pressure to compute wave statistics"
+        )
+        presvar = "P_1"
+
+    print(ds)
+    data = ds[presvar].isel(time=100).values.T
+    layout = np.atleast_2d([0, 0, ds.attrs["pressure_sensor_height"]]).T
+    datatypes = ["pres"]
+    depth = float(data.mean() + ds.attrs["pressure_sensor_height"])
+    fs = int(1 / ds.attrs["sample_interval"])
+    ID = {
+        "data": data,
+        "layout": layout,
+        "datatypes": datatypes,
+        "depth": depth,
+        "fs": fs,
+    }
+
+    freqspace = 1 / 32
+    dirspace = 22.5
+    SM = {
+        "freqs": np.arange(freqspace / 2, ID["fs"] / 2, freqspace),
+        "dirs": np.arange(dirspace / 2, 360, dirspace),
+    }
+
+    EP = {"method": "IMLM"}
+
+    print(dir(pyDIWASP))
+    SMout = pyDIWASP.dirspec.dirspec(ID, SM, EP)
+
+    print(SMout)
+
 
 def make_waves_ds(ds):
+    print(dir(pyDIWASP))
     print("Computing wave statistics")
     if "P_1ac" in ds:
         presvar = "P_1ac"
