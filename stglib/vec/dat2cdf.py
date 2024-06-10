@@ -231,10 +231,12 @@ def load_dat(basefile, metadata, dsvhd):
     if metadata["instmeta"]["VECBurstInterval"] != "CONTINUOUS":
         array = np.zeros(np.shape(dat.VEL1))
 
-        for i in range(np.shape(dsvhd["time"])[0]):
-            index = np.where(dat.Burst == i + 1)
-            array[index] = dsvhd["time"][i]
+        # Use burst number from vhd and dat files to match time
+        for i in dsvhd["Burst"].values:
+            index = np.where(dat.Burst == i)
+            array[index] = dsvhd["time"][dsvhd["Burst"] == i]
 
+        # Use ensemble number (sample number) and frequency so time increases correctly throughout the burst
         array = pd.to_datetime(array)
         frequency = 1000 / metadata["instmeta"]["VECSamplingRate"]
         delta = frequency * (dat.Ensemble.values - 1)
@@ -242,10 +244,24 @@ def load_dat(basefile, metadata, dsvhd):
         dat = dat.set_index(["time"])
 
     elif metadata["instmeta"]["VECBurstInterval"] == "CONTINUOUS":
-        start = dsvhd["time"][0].values
-        length = len(dat.Burst)
-        frequency = str(1000 / metadata["instmeta"]["VECSamplingRate"]) + "ms"
-        dat["time"] = pd.date_range(start, periods=length, freq=frequency)
+        array = np.zeros(np.shape(dat.VEL1))
+        array[:] = dsvhd["time"]
+        # for continuous data, the ensemble values max out at 65535 and then repeat starting at 1
+        # need to get this into continuous ensemble values to correctly create time
+        # first get difference between ensemble numbers, in case there are any samples skipped
+        sample = dat.Ensemble.diff()
+        # since the first value will be NaN (can't take diff of the first value), need to make diff 1
+        # since the ensemble maxes out at 65535, need to make step from 65535 back to 1 a diff value of 1
+        index = np.where(sample == -65535)[0]
+        index = np.append(index, [0])
+        sample[index] = 1
+        # next take cummlative sum so that ensemble/sample numbers are continous and will include possible sample jumps
+        sample = (sample.cumsum()) - 1
+        # Use ensemble number (sample number) and frequency so time increases correctly throughout the dataset
+        array = pd.to_datetime(array)
+        frequency = 1000 / metadata["instmeta"]["VECSamplingRate"]
+        delta = frequency * (sample)
+        dat["time"] = array + delta.astype("timedelta64[ms]")
         dat = dat.set_index(["time"])
 
     ds = dat.to_xarray()
