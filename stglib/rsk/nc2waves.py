@@ -57,7 +57,7 @@ def nc_to_waves(nc_filename):
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     if dodiwasp:
-        diwasp_filename = ds.attrs["filename"] + "_diwasp-cal.nc.nc"
+        diwasp_filename = ds.attrs["filename"] + "_diwasp-cal.nc"
         diwasp.to_netcdf(diwasp_filename)
         utils.check_compliance(diwasp_filename, conventions=ds.attrs["Conventions"])
 
