@@ -68,7 +68,7 @@ def make_diwasp_pres(ds):
         SMout, EPout = pyDIWASP.dirspec.dirspec(
             ID, SM, EP, ["MESSAGE", 0, "PLOTTYPE", 0]
         )
-        print(f"{EPout=}")
+        # print(f"{EPout=}")
         S[burst, :, :] = SMout["S"]
 
         H[burst], Tp[burst], DTp[burst], Dp[burst] = pyDIWASP.infospec.infospec(SMout)
