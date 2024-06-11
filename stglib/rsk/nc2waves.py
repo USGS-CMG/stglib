@@ -23,6 +23,7 @@ def nc_to_waves(nc_filename):
 
     dodiwasp = False
     if "diwasp" in ds.attrs and ds.attrs["diwasp"].lower() == "true":
+        print("Running DIWASP")
         dodiwasp = True
         diwasp = waves.make_diwasp_pres(ds)
         print(diwasp)
