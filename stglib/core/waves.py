@@ -48,7 +48,7 @@ def make_diwasp_pres(ds):
     DTp = np.full(len(ds.time), np.nan)
     Dp = np.full(len(ds.time), np.nan)
 
-    for burst in tqdm(np.arange(0, 10)):  # 150):
+    for burst in tqdm(np.arange(0, 100)):  # 150):
         SM = {
             "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
             "dirs": np.arange(dirspace / 2, 360, dirspace),
@@ -83,7 +83,6 @@ def make_diwasp_pres(ds):
 
 
 def make_waves_ds(ds):
-    print(dir(pyDIWASP))
     print("Computing wave statistics")
     if "P_1ac" in ds:
         presvar = "P_1ac"
