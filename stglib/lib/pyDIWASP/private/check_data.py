@@ -43,9 +43,9 @@ def check_data(DDS, type_):
                     np.array(DDS['layout'])[2, :] = 0
                 else:
                     error = 'layout'
-    
-        if ('datatypes' not in DDS or type(DDS['datatypes']) not in 
-            (list, np.ndarray) or np.squeeze(DDS['datatypes']).ndim != 1
+
+        if ('datatypes' not in DDS or type(DDS['datatypes']) not in
+            (list, np.ndarray) # or np.squeeze(DDS['datatypes']).ndim != 1
             or max(np.shape(DDS['datatypes'])) != nc):
             error = 'datatypes'
         else:
