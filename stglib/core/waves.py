@@ -28,8 +28,8 @@ def make_diwasp_pres(ds):
         presvar = "P_1"
 
     fs = int(1 / ds.attrs["sample_interval"])
-    freqspace = fs / 20
-    dirspace = 22.5
+    freqspace = fs / 100
+    dirspace = 360 / 100
     datatypes = ["pres"]
     SM = {
         "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
@@ -45,8 +45,6 @@ def make_diwasp_pres(ds):
     S = np.full((len(ds.time), len(dsSM["freqs"]), len(dsSM["dirs"])), np.nan)
     H = np.full(len(ds.time), np.nan)
     Tp = np.full(len(ds.time), np.nan)
-    DTp = np.full(len(ds.time), np.nan)
-    Dp = np.full(len(ds.time), np.nan)
 
     for burst in tqdm(np.arange(0, 100)):  # 150):
         SM = {
@@ -68,16 +66,12 @@ def make_diwasp_pres(ds):
         SMout, EPout = pyDIWASP.dirspec.dirspec(
             ID, SM, EP, ["MESSAGE", 0, "PLOTTYPE", 0]
         )
-        # print(f"{EPout=}")
-        S[burst, :, :] = SMout["S"]
 
-        H[burst], Tp[burst], DTp[burst], Dp[burst] = pyDIWASP.infospec.infospec(SMout)
+        H[burst], Tp[burst], _, _ = pyDIWASP.infospec.infospec(SMout)
 
     # dsSM['S'] = xr.DataArray(S, dims=('time', 'freqs', 'dirs'))
     dsSM["H"] = xr.DataArray(H, dims="time")
     dsSM["Tp"] = xr.DataArray(Tp, dims="time")
-    dsSM["DTp"] = xr.DataArray(DTp, dims="time")
-    dsSM["Dp"] = xr.DataArray(Dp, dims="time")
 
     return dsSM
 
