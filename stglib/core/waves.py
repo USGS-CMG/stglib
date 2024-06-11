@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal as spsig
 import xarray as xr
+from tqdm import tqdm
 
 parent_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 lib_dir = os.path.join(parent_dir, "lib")
@@ -26,33 +27,59 @@ def make_diwasp_pres(ds):
         )
         presvar = "P_1"
 
-    print(ds)
-    data = ds[presvar].isel(time=100).values.T
-    layout = np.atleast_2d([0, 0, ds.attrs["pressure_sensor_height"]]).T
-    datatypes = ["pres"]
-    depth = float(data.mean() + ds.attrs["pressure_sensor_height"])
     fs = int(1 / ds.attrs["sample_interval"])
-    ID = {
-        "data": data,
-        "layout": layout,
-        "datatypes": datatypes,
-        "depth": depth,
-        "fs": fs,
-    }
-
-    freqspace = 1 / 32
+    freqspace = fs / 20
     dirspace = 22.5
+    datatypes = ["pres"]
     SM = {
-        "freqs": np.arange(freqspace / 2, ID["fs"] / 2, freqspace),
+        "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
         "dirs": np.arange(dirspace / 2, 360, dirspace),
     }
+    layout = np.atleast_2d([0, 0, ds.attrs["pressure_sensor_height"]]).T
 
-    EP = {"method": "IMLM"}
+    dsSM = xr.Dataset()
+    dsSM["freqs"] = xr.DataArray(SM["freqs"], dims="freqs")
+    dsSM["dirs"] = xr.DataArray(SM["dirs"], dims="dirs")
+    dsSM["time"] = xr.DataArray(ds.time, dims="time")
+    # dsSM['S'] = xr.DataArray(), dims=['freqs', 'dirs'])
+    S = np.full((len(ds.time), len(dsSM["freqs"]), len(dsSM["dirs"])), np.nan)
+    H = np.full(len(ds.time), np.nan)
+    Tp = np.full(len(ds.time), np.nan)
+    DTp = np.full(len(ds.time), np.nan)
+    Dp = np.full(len(ds.time), np.nan)
 
-    print(dir(pyDIWASP))
-    SMout = pyDIWASP.dirspec.dirspec(ID, SM, EP)
+    for burst in tqdm(np.arange(0, 10)):  # 150):
+        SM = {
+            "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
+            "dirs": np.arange(dirspace / 2, 360, dirspace),
+        }
+        EP = {"method": "IMLM"}
+        data = np.atleast_2d(ds[presvar].isel(time=burst).values).T
+        depth = float(data.mean() + ds.attrs["pressure_sensor_height"])
 
-    print(SMout)
+        ID = {
+            "data": data,
+            "layout": layout,
+            "datatypes": datatypes,
+            "depth": depth,
+            "fs": fs,
+        }
+
+        SMout, EPout = pyDIWASP.dirspec.dirspec(
+            ID, SM, EP, ["MESSAGE", 0, "PLOTTYPE", 0]
+        )
+        print(f"{EPout=}")
+        S[burst, :, :] = SMout["S"]
+
+        H[burst], Tp[burst], DTp[burst], Dp[burst] = pyDIWASP.infospec.infospec(SMout)
+
+    # dsSM['S'] = xr.DataArray(S, dims=('time', 'freqs', 'dirs'))
+    dsSM["H"] = xr.DataArray(H, dims="time")
+    dsSM["Tp"] = xr.DataArray(Tp, dims="time")
+    dsSM["DTp"] = xr.DataArray(DTp, dims="time")
+    dsSM["Dp"] = xr.DataArray(Dp, dims="time")
+
+    return dsSM
 
 
 def make_waves_ds(ds):
