@@ -35,17 +35,17 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = scale_analoginput(ds)
 
+    # Drop unused variables
+    ds = ds_drop(ds)
+
+    # Rename DataArrays for EPIC compliance
+    ds = aqdutils.ds_rename(ds)
+
     # Shape into burst if not continuous mode
     if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
         ds = reshape(ds)
 
-    # Drop unused variables
-    ds = ds_drop(ds)
-
     ds = qaqc.drop_vars(ds)
-
-    # Rename DataArrays for EPIC compliance
-    ds = aqdutils.ds_rename(ds)
 
     # Add EPIC and CMG attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
@@ -82,17 +82,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_standard_names(ds)
 
-    ds["AGC_1202"].attrs.pop("standard_name")
-
     ds = ds.chunk({"time": 200000})
 
     ds = time_encoding(ds)
 
-    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
-        create_burst_nc(ds)
-
-    if ds.attrs["VECBurstInterval"] == "CONTINUOUS":
-        create_cont_nc(ds)
+    create_nc(ds)
 
     return ds
 
@@ -364,7 +358,7 @@ def reshape(ds):
     # find times of first sample in each burst
     t = ds["time"][ds["sample"].values == 1]
     # get corresponding burst number
-    b_num = ds["Burst"][ds["sample"].values == 1]
+    b_num = ds["burst"][ds["sample"].values == 1]
 
     for i in np.arange(0, len(t)):
         t2, samp = np.meshgrid(
@@ -372,7 +366,7 @@ def reshape(ds):
             ds["sample"].sel(
                 time=slice(
                     t[i],
-                    ds.time[ds["Burst"] == b_num[i]].max(),
+                    ds.time[ds["burst"] == b_num[i]].max(),
                 )
             ),
         )
@@ -412,10 +406,10 @@ def combine_vars(ds):
     )
 
     ds["cor"] = xr.DataArray([ds.COR1, ds.COR2, ds.COR3], dims=["beam", "time"]).astype(
-        "int32"
+        "int8"
     )
     ds["amp"] = xr.DataArray([ds.AMP1, ds.AMP2, ds.AMP3], dims=["beam", "time"]).astype(
-        "int32"
+        "int8"
     )
     ds["snr"] = xr.DataArray([ds.SNR1, ds.SNR2, ds.SNR3], dims=["beam", "time"])
 
@@ -427,29 +421,15 @@ def time_encoding(ds):
     if "units" in ds["time"].encoding:
         ds["time"].encoding.pop("units")
 
-    # use time step to select time encoding
-    tstep = ds["time"][1] - ds["time"][0]
-
-    if tstep < np.timedelta64(1, "m"):
-
-        histtext = f"make time encoding to dtype double because tstep {tstep} seconds is < 1 minute, round to milliseconds first"
-        ds = utils.insert_history(ds, histtext)
-
-        # round time to milliseconds first
-        ds["time"] = ds["time"].dt.round("ms")
-        ds["time"].encoding["dtype"] = "double"
-
+    if ds.attrs["VECBurstInterval"] == "CONTINUOUS":
+        if utils.check_time_fits_in_int32(ds, "time"):
+            ds["time"].encoding["dtype"] = "i4"
+        else:
+            print("time variable will not fit in int32; casting to double")
+            ds["time"].encoding["dtype"] = "double"
     else:
-        histtext = f"make time encoding int because tstep {tstep} seconds is >= 1 minute, round time to seconds first"
-        ds = utils.insert_history(ds, histtext)
-
-        # round time to seconds if time interval >= 1 minute
-        ds["time"] = ds["time"].dt.round("s")
-
-        # check time to make sure it fits in int32, assume seconds for time units
-        utils.check_time_fits_in_int32(ds, "time")
-
-        ds["time"].encoding["dtype"] = "i4"
+        if utils.check_time_fits_in_int32(ds, "time"):
+            ds["time"].encoding["dtype"] = "i4"
 
     ds["time"].attrs.update(
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
@@ -458,58 +438,55 @@ def time_encoding(ds):
     return ds
 
 
-def create_burst_nc(ds):
+def create_nc(ds):
 
-    if "prefix" in ds.attrs:
-        nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "b-cal.nc"
-    else:
-        nc_filename = ds.attrs["filename"] + "b-cal.nc"
+    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
 
-    delayed_obj = ds.to_netcdf(nc_filename, compute=False)
-    with ProgressBar():
-        delayed_obj.compute()
-    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+        if "prefix" in ds.attrs:
+            nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "b-cal.nc"
+        else:
+            nc_filename = ds.attrs["filename"] + "b-cal.nc"
 
-    print("Done writing netCDF file", nc_filename)
+        delayed_obj = ds.to_netcdf(nc_filename, compute=False)
+        with ProgressBar():
+            delayed_obj.compute()
+        utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
-    print("Creating burst-mean statistics file")
+        print("Done writing netCDF file", nc_filename)
 
-    dsmean = ds.mean(dim="sample", keep_attrs=True)
+        print("Creating burst-mean statistics file")
 
-    # we already applied ClockDrift, ClockError in dat2cdf so don't re-apply it here.
-    # but we do want to shift time since we are presenting mean values.
-    dsmean = utils.shift_time(
-        dsmean,
-        dsmean.attrs["VECSamplesPerBurst"] / dsmean.attrs["VECSamplingRate"] / 2,
-        apply_clock_error=False,
-        apply_clock_drift=False,
-    )
+        dsmean = ds.mean(dim="sample", keep_attrs=True)
 
-    if "prefix" in dsmean.attrs:
-        nc_filename = dsmean.attrs["prefix"] + dsmean.attrs["filename"] + "-a.nc"
-    else:
-        nc_filename = dsmean.attrs["filename"] + "-a.nc"
+        # we already applied ClockDrift, ClockError in dat2cdf so don't re-apply it here.
+        # but we do want to shift time since we are presenting mean values.
+        dsmean = utils.shift_time(
+            dsmean,
+            dsmean.attrs["VECSamplesPerBurst"] / dsmean.attrs["VECSamplingRate"] / 2,
+            apply_clock_error=False,
+            apply_clock_drift=False,
+        )
 
-    delayed_obj = dsmean.to_netcdf(
-        nc_filename,
-        encoding={"time": {"dtype": ds["time"].encoding["dtype"]}},
-        compute=False,
-    )
-    with ProgressBar():
-        delayed_obj.compute()
-    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+        if "prefix" in dsmean.attrs:
+            nc_filename = dsmean.attrs["prefix"] + dsmean.attrs["filename"] + "-a.nc"
+        else:
+            nc_filename = dsmean.attrs["filename"] + "-a.nc"
 
-    print("Done writing netCDF file", nc_filename)
+        delayed_obj = dsmean.to_netcdf(
+            nc_filename,
+            encoding={"time": {"dtype": ds["time"].encoding["dtype"]}},
+            compute=False,
+        )
 
+    elif ds.attrs["VECBurstInterval"] == "CONTINUOUS":
 
-def create_cont_nc(ds):
+        if "prefix" in ds.attrs:
+            nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "cont-cal.nc"
+        else:
+            nc_filename = ds.attrs["filename"] + "cont-cal.nc"
 
-    if "prefix" in ds.attrs:
-        nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "cont-cal.nc"
-    else:
-        nc_filename = ds.attrs["filename"] + "cont-cal.nc"
+        delayed_obj = ds.to_netcdf(nc_filename, compute=False)
 
-    delayed_obj = ds.to_netcdf(nc_filename, compute=False)
     with ProgressBar():
         delayed_obj.compute()
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])

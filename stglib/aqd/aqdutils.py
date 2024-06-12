@@ -1134,7 +1134,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds["agc"].attrs.update(
             {
                 "units": "counts",
-                "long_name": "Echo Intensity (AGC) for Beams",
+                "long_name": "Echo Intensity (AGC)",
             }
         )
 
@@ -1169,7 +1169,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds["amp"].attrs.update(
             {
                 "units": "Counts",
-                "long_name": "Signal Strength (amplitude) for Beams",
+                "long_name": "Signal Strength (amplitude)",
             }
         )
 
@@ -1177,7 +1177,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds["snr"].attrs.update(
             {
                 "units": "dB",
-                "long_name": "Signal to Noise Ratio for Beams",
+                "long_name": "Signal to Noise Ratio",
             }
         )
 
@@ -1209,7 +1209,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds["cor"].attrs.update(
             {
                 "units": "percent",
-                "long_name": "Correlation for Beams",
+                "long_name": "Correlation",
             }
         )
 
@@ -1363,8 +1363,8 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
+    # can apply this to all instruments if needed, but keeping just for vec now
     if inst_type == "VEC":
-        # can apply this to all instruments if needed, but keeping just for vec now
         ds["orientation"].attrs.update(
             {
                 "units": "1",
