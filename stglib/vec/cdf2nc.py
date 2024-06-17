@@ -82,9 +82,14 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_standard_names(ds)
 
-    ds = ds.chunk({"time": 200000})
+    if "chunks" in ds.attrs:
+        ds = ds.chunk({str(ds.attrs["chunks"][0]): int(ds.attrs["chunks"][1])})
+    else:
+        ds = ds.chunk({"time": 2000})
 
     ds = time_encoding(ds)
+
+    ds = var_encoding(ds)
 
     create_nc(ds)
 
@@ -406,10 +411,10 @@ def combine_vars(ds):
     )
 
     ds["cor"] = xr.DataArray([ds.COR1, ds.COR2, ds.COR3], dims=["beam", "time"]).astype(
-        "int8"
+        "int32"
     )
     ds["amp"] = xr.DataArray([ds.AMP1, ds.AMP2, ds.AMP3], dims=["beam", "time"]).astype(
-        "int8"
+        "int32"
     )
     ds["snr"] = xr.DataArray([ds.SNR1, ds.SNR2, ds.SNR3], dims=["beam", "time"])
 
@@ -434,6 +439,14 @@ def time_encoding(ds):
     ds["time"].attrs.update(
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
+
+    return ds
+
+
+def var_encoding(ds):
+    for v in ["burst", "orientation", "cor", "amp"]:
+        ds[v].encoding["dtype"] = "int32"
+        ds[v].encoding["_FillValue"] = -2147483648
 
     return ds
 
