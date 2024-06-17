@@ -85,6 +85,12 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         if len(ds["sample"]) == 1:
             ds = ds.squeeze(dim="sample")
 
+    if "obstime" in ds:
+        if utils.check_time_fits_in_int32(ds, "obstime"):
+            ds["obstime"].encoding["dtype"] = "i4"
+        else:
+            ds["obstime"].encoding["dtype"] = "float64"
+
     if writefile:
         # Write to .nc file
         print("Writing cleaned/trimmed data to .nc file")
@@ -126,7 +132,9 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
 def open_raw_cdf(cdf_filename):
     ds = xr.load_dataset(cdf_filename)
     # remove units in case we change and we can use larger time steps
-    ds.time.encoding.pop("units")
+    ds["time"].encoding.pop("units")
+    if "obstime" in ds:
+        ds["obstime"].encoding.pop("units")
     return ds
 
 
