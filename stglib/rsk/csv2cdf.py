@@ -186,10 +186,16 @@ def csv_to_cdf(metadata):
         if utils.check_fits_in_int32(ds, "obs"):
             ds["obs"].encoding["dtype"] = "i4"
 
+        obstime = ds["time"].values
+
         ds = ds.drop("time")
 
         ds = ds.rename({"obs": "time"}).set_coords("time").rename({"time": "obs"})
         ds["obs"].attrs["long_name"] = "sample number"
+
+        ds["obstime"] = xr.DataArray(obstime, dims="obs")
+        ds["obstime"].attrs["long_name"] = "time (UTC)"
+        ds["obstime"].attrs["standard_name"] = "time"
 
         ds = xr.merge([ds, pr])
 
