@@ -1,6 +1,7 @@
 # from ..lib import pyDIWASP
 # from ..lib import pyDIWASP.dirspec
 # from ..lib.pyDWASP import dirspec
+import multiprocessing
 import os
 import sys
 import warnings
@@ -16,6 +17,40 @@ lib_dir = os.path.join(parent_dir, "lib")
 sys.path.append(lib_dir)
 
 import pyDIWASP
+
+
+def diwasp_mp(ds, presvar, burst):
+    fs = int(1 / ds.attrs["sample_interval"])
+    freqspace = fs / 64
+    dirspace = 360 / 64
+    datatypes = ["pres"]
+    SM = {
+        "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
+        "dirs": np.arange(dirspace / 2, 360, dirspace),
+    }
+    layout = np.atleast_2d([0, 0, ds.attrs["pressure_sensor_height"]]).T
+    SM = {
+        "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
+        "dirs": np.arange(dirspace / 2, 360, dirspace),
+    }
+    EP = {"method": "IMLM"}
+    data = np.atleast_2d(ds[presvar].isel(time=burst).values).T
+    depth = float(data.mean() + ds.attrs["pressure_sensor_height"])
+
+    ID = {
+        "data": data,
+        "layout": layout,
+        "datatypes": datatypes,
+        "depth": depth,
+        "fs": fs,
+    }
+
+    SMout, EPout = pyDIWASP.dirspec.dirspec(ID, SM, EP, ["MESSAGE", 0, "PLOTTYPE", 0])
+    # print(f"{EPout=}")
+    # S[burst, :, :] = SMout["S"]
+
+    mpH, mpTp, mpDTp, mpDp = pyDIWASP.infospec.infospec(SMout)
+    return (burst, mpH, mpTp)
 
 
 def make_diwasp_pres(ds):
@@ -46,7 +81,18 @@ def make_diwasp_pres(ds):
     H = np.full(len(ds.time), np.nan)
     Tp = np.full(len(ds.time), np.nan)
 
-    for burst in tqdm(np.arange(0, 100)):  # 150):
+    # pool = multiprocessing.Pool()
+    # bursts = []
+    # for x in range(10):
+    #     bursts.append((ds,presvar,x))
+    # with pool as p:
+    #     for burst, mpH, mpTp in p.starmap(diwasp_mp,tqdm(bursts, total=len(bursts))):
+    #         H[burst] = mpH
+    #         Tp[burst] = mpTp
+
+    # trying to use multiprocessing.Pool takes much longer than just the serial loop below
+    # 1:49 vs 0:49 in a test of 10 bursts
+    for burst in tqdm(range(len(ds.time))):  # 150):
         SM = {
             "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
             "dirs": np.arange(dirspace / 2, 360, dirspace),
