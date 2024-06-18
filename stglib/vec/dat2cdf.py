@@ -24,7 +24,9 @@ def dat_to_cdf(metadata):
 
     print("Loading ASCII files")
 
-    ds = load_dat(basefile)
+    dsvhd = load_vhd(basefile)
+
+    ds = load_dat(basefile, metadata, dsvhd)
 
     ds = ds_checksum_check(ds)
 
@@ -34,21 +36,19 @@ def dat_to_cdf(metadata):
 
     ds = aqdutils.check_attrs(ds, inst_type="VEC")
 
-    dsvhd = load_vhd(basefile)
-
     dssen = load_sen(basefile)
 
-    r = np.shape(dssen.Heading)[0]
-    senburstlen = int(ds.attrs["VECSamplesPerBurst"] / ds.attrs["VECSamplingRate"] + 1)
+    # r = np.shape(dssen.Heading)[0]
+    # senburstlen = int(ds.attrs["VECSamplesPerBurst"] / ds.attrs["VECSamplingRate"] + 1)
     ds.attrs["sample_interval"] = 1 / ds.attrs["VECSamplingRate"]
 
-    mod = r % senburstlen
-    if mod:
-        print(f"{ds.attrs['VECSamplesPerBurst']=}")
-        print(f"{ds.attrs['VECSamplingRate']=}")
-        histtext = "Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
-        ds = utils.insert_history(ds, histtext)
-        dssen = dssen.sel(time=dssen.time[0:-mod])
+    # mod = r % senburstlen
+    # if mod:
+    # print(f"{ds.attrs['VECSamplesPerBurst']=}")
+    # print(f"{ds.attrs['VECSamplingRate']=}")
+    # histtext = "Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
+    # ds = utils.insert_history(ds, histtext)
+    # dssen = dssen.sel(time=dssen.time[0:-mod])
 
     # dssen["timenew"] = xr.DataArray(dssen["time"].values[::senburstlen], dims="timenew")
     # dssen["sensample"] = xr.DataArray(range(senburstlen), dims="sensample")
@@ -66,33 +66,41 @@ def dat_to_cdf(metadata):
     # dssen = dssen.rename({"timenew": "time"})
 
     # Apply time from VHD file to DAT data
-    ds["time"] = dsvhd["time"]
+    # ds["time"] = dsvhd["time"]
 
-    # bring in sample volume distance from VHD
-    for var in [
-        "DistProbeStartAvg",
-        "DistSVolStartAvg",
-        "DistProbeEndAvg",
-        "DistSVolEndAvg",
-    ]:
-        ds[var] = dsvhd[var]
-
-    ds = ds.swap_dims({"Burst": "time"})
     ds = ds.rename({"Ensemble": "sample"})
 
-    for var in [
-        "Heading",
-        "Pitch",
-        "Roll",
-        "Battery",
-        "Temperature",
-        "Soundspeed",
-        "ErrorCode",
-        "StatusCode",
-    ]:
+    # bring in sample volume distance from VHD, if burst mode
+    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
+        for var in [
+            "DistProbeStartAvg",
+            "DistSVolStartAvg",
+            "DistProbeEndAvg",
+            "DistSVolEndAvg",
+        ]:
+            ds[var] = dsvhd[var].reindex_like(ds, method="nearest")
+
+    # ds = ds.swap_dims({"Burst": "time"})
+
+    dssen = dssen.drop(
+        ["Month", "Day", "Year", "Hour", "Minute", "Second", "AnalogInput"]
+    )
+
+    for var in dssen:
         ds[var] = dssen[var].reindex_like(ds, method="nearest")
 
-    ds["TransMatrix"] = xr.DataArray(ds.attrs["VECTransMatrix"])
+    ds["TransMatrix"] = xr.DataArray(ds.attrs["VECTransMatrix"], dims=["inst", "beam"])
+    ds["TransMatrix"].attrs["long_name"] = "Beam to XYZ (inst) Transformation Matrix"
+    ds["TransMatrix"].attrs["note"] = "Provided by Nortek, based on transducer geometry"
+
+    ds["inst"] = ["X", "Y", "Z"]
+    ds["inst"].attrs["units"] = "1"
+    ds["inst"].attrs["long_name"] = "Inst Reference Frame"
+
+    ds["beam"] = [1, 2, 3]
+    ds["beam"].attrs["units"] = "1"
+    ds["beam"].attrs["long_name"] = "Beam Reference Frame"
+
     # Remove VECTransMatrix from attrs for netCDF compliance
     ds.attrs.pop("VECTransMatrix")
 
@@ -146,7 +154,7 @@ def load_vhd(basefile):
     vhd["time"] = pd.to_datetime(
         vhd[["Year", "Month", "Day", "Hour", "Minute", "Second"]]
     )
-    vhd = vhd.set_index("Burst")
+    vhd = vhd.set_index("time")
     return vhd.to_xarray()
 
 
@@ -180,11 +188,22 @@ def load_sen(basefile):
     sen["time"] = pd.to_datetime(
         sen[["Year", "Month", "Day", "Hour", "Minute", "Second"]]
     )
+
+    x = sen["StatusCode"].values
+    status = np.zeros(len(sen["time"]))
+
+    for i in range(len(sen["StatusCode"])):
+        status[i] = int(x[i], 2)
+
+    sen["StatusCode"] = np.uint(status)
+
+    sen["orientation"] = (sen["StatusCode"] & 1).astype(int)
+
     sen = sen.set_index("time")
     return sen.to_xarray()
 
 
-def load_dat(basefile):
+def load_dat(basefile, metadata, dsvhd):
     print(f"Loading {basefile}.dat")
     names = [
         "Burst",
@@ -206,8 +225,45 @@ def load_dat(basefile):
         "AnalogInput2",
         "Checksum",
     ]
+
     dat = pd.read_csv(f"{basefile}.dat", header=None, sep=r"\s+", names=names)
-    dat = dat.set_index(["Burst", "Ensemble"])
+
+    if metadata["instmeta"]["VECBurstInterval"] != "CONTINUOUS":
+        array = np.zeros(np.shape(dat.VEL1))
+
+        # Use burst number from vhd and dat files to match time
+        for i in dsvhd["Burst"].values:
+            index = np.where(dat.Burst == i)
+            array[index] = dsvhd["time"][dsvhd["Burst"] == i]
+
+        # Use ensemble number (sample number) and frequency so time increases correctly throughout the burst
+        array = pd.to_datetime(array)
+        frequency = 1000 / metadata["instmeta"]["VECSamplingRate"]
+        delta = frequency * (dat.Ensemble.values - 1)
+        dat["time"] = array + delta.astype("timedelta64[ms]")
+        dat = dat.set_index(["time"])
+
+    elif metadata["instmeta"]["VECBurstInterval"] == "CONTINUOUS":
+        array = np.zeros(np.shape(dat.VEL1))
+        array[:] = dsvhd["time"]
+        # for continuous data, the ensemble values max out at 65535 and then repeat starting at 1
+        # need to get this into continuous ensemble values to correctly create time
+        # first get difference between ensemble numbers, in case there are any samples skipped
+        sample = dat.Ensemble.diff()
+        # since the first value will be NaN (can't take diff of the first value), need to make diff 1
+        # since the ensemble maxes out at 65535, need to make step from 65535 back to 1 a diff value of 1
+        index = np.where(sample == -65535)[0]
+        index = np.append(index, [0])
+        sample[index] = 1
+        # next take cummlative sum so that ensemble/sample numbers are continous and will include possible sample jumps
+        sample = (sample.cumsum()) - 1
+        # Use ensemble number (sample number) and frequency so time increases correctly throughout the dataset
+        array = pd.to_datetime(array)
+        frequency = 1000 / metadata["instmeta"]["VECSamplingRate"]
+        delta = frequency * (sample)
+        dat["time"] = array + delta.astype("timedelta64[ms]")
+        dat = dat.set_index(["time"])
+
     ds = dat.to_xarray()
 
     if np.any(ds["Checksum"].isnull()):
@@ -233,10 +289,16 @@ def read_vec_hdr(basefile):
             if "Nominal velocity range" in row:
                 Instmeta["VECNominalVelocityRange"] = row[38:]
             if "Burst interval" in row:
-                idx = row.find(" sec")
-                Instmeta["VECBurstInterval"] = int(row[38:idx])
+                if "CONTINUOUS" not in row:
+                    idx = row.find(" sec")
+                    Instmeta["VECBurstInterval"] = int(row[38:idx])
+                else:
+                    Instmeta["VECBurstInterval"] = row[38:]
             if "Samples per burst" in row:
-                Instmeta["VECSamplesPerBurst"] = int(row[38:])
+                if "N/A" not in row:
+                    Instmeta["VECSamplesPerBurst"] = int(row[38:])
+                else:
+                    Instmeta["VECSamplesPerBurst"] = row[38:]
             if "Sampling volume" in row:
                 Instmeta["VECSamplingVolume"] = row[38:]
             if "Measurement load" in row:

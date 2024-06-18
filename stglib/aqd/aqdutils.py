@@ -377,6 +377,9 @@ def magvar_correct(ds):
         elif "u_1205" in ds and "v_1206" in ds:
             uvar = "u_1205"
             vvar = "v_1206"
+        elif "E" in ds and "N" in ds:
+            uvar = "E"
+            vvar = "N"
 
         ds[uvar], ds[vvar] = rotate(ds[uvar], ds[vvar], magvardeg)
 
@@ -1127,6 +1130,14 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
+    if "agc" in ds:
+        ds["agc"].attrs.update(
+            {
+                "units": "counts",
+                "long_name": "Echo Intensity (AGC)",
+            }
+        )
+
     if "AGC1_1221" in ds:
         ds["AGC1_1221"].attrs.update(
             {
@@ -1154,6 +1165,22 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
+    if "amp" in ds:
+        ds["amp"].attrs.update(
+            {
+                "units": "Counts",
+                "long_name": "Signal Strength (amplitude)",
+            }
+        )
+
+    if "snr" in ds:
+        ds["snr"].attrs.update(
+            {
+                "units": "dB",
+                "long_name": "Signal to Noise Ratio",
+            }
+        )
+
     if "SNR1" in ds:
         ds["SNR1"].attrs.update(
             {
@@ -1175,6 +1202,14 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             {
                 "units": "dB",
                 "long_name": "Signal to Noise Ratio Beam 3",
+            }
+        )
+
+    if "cor" in ds:
+        ds["cor"].attrs.update(
+            {
+                "units": "percent",
+                "long_name": "Correlation",
             }
         )
 
@@ -1325,6 +1360,16 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
                 "long_name": "Distance from sample volume to boundary",
                 "standard_name": "height_above_sea_floor",
                 "note": "Calculated from average of start and end values for burst",
+            }
+        )
+
+    # can apply this to all instruments if needed, but keeping just for vec now
+    if inst_type == "VEC":
+        ds["orientation"].attrs.update(
+            {
+                "units": "1",
+                "long_name": "instrument orientation",
+                "note": "0 = UP; 1 = DOWN",
             }
         )
 
