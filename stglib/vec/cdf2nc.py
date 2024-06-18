@@ -35,10 +35,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = scale_analoginput(ds)
 
-    # Shape into burst if not continuous mode
-    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
-        ds = reshape(ds)
-
     # Drop unused variables
     ds = ds_drop(ds)
 
@@ -50,9 +46,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = reshape(ds)
 
     ds = qaqc.drop_vars(ds)
-
-    # Rename DataArrays for EPIC compliance
-    ds = aqdutils.ds_rename(ds)
 
     # Add EPIC and CMG attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
