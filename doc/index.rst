@@ -19,7 +19,7 @@ Currently, this package has at least partial support for:
 - Nortek Aquadopp profilers, in mean-current wave-burst, and HR modes
 - Nortek Vector velocimeters
 - Nortek Signature profilers
-- RBR pressure (including waves) and turbidity sensors
+- Multiple RBR instruments, including moored and casting deployments
 - YSI EXO2 water-quality sondes
 - SonTek IQ flow monitors
 - WET labs sensors, including ECO NTUSB and ECO PAR
