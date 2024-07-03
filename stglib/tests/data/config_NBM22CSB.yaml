@@ -12,9 +12,8 @@ pressure_sensor_height: 0.62 # from NMB22-depB-mooringLogs-postDep-noPMB.pdf
 velocity_sample_volume_height: 0.25 # from NMB22-depB-mooringLogs-postDep-noPMB.pdf
 wp_max: 10
 wh_min: 0.02
-u_1205_mask: ['cor1_1285', 'cor2_1286', 'cor3_1287']
-v_1206_mask: ['cor1_1285', 'cor2_1286', 'cor3_1287']
-w_1204_mask: ['cor1_1285', 'cor2_1286', 'cor3_1287']
-cor1_1285_min: 70
-cor2_1286_min: 70
-cor3_1287_min: 70
+u_1205_mask: ['cor']
+v_1206_mask: ['cor']
+w_1204_mask: ['cor']
+cor_min: 70
+
