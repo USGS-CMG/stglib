@@ -210,3 +210,8 @@ Vector
 - ``puv``: set to ``true`` to compute PUV wave statistics. **(EXPERIMENTAL)**
 - ``orientation``: ``UP`` means probe head is pointing up (sample volume above probe head). ``DOWN`` means probe head is pointing down (sample volume below probe head).
 - Many of the Aquadopp options apply to the Vector.
+
+SBE 37 MicroCAT
+---------------
+- All the _min, _max, _bad_ens, etc. options available to the EXO
+- ``skiprows``: number of lines to skip in the ASC before the real data begins

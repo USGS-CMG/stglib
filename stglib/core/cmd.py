@@ -384,3 +384,19 @@ def tcmcdf2nc_parser():
     cdfarg(parser)
 
     return parser
+
+def mcasc2cdf_parser():
+    description = "Convert SBE 37 MicroCAT .asc file to raw .cdf format. Run this script from the directory containing MicroCAT .asc file."
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def mccdf2nc_parser():
+    description = "Convert raw SBE 37 MicroCAT .cdf format to processed .nc files"
+    parser = argparse.ArgumentParser(description=description)
+    cdfarg(parser)
+
+    return parser

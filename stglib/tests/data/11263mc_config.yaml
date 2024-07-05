@@ -1,0 +1,6 @@
+basefile: mc3575
+filename: 11263mc
+LatLonDatum: NAD83
+skiprows: 50
+initial_instrument_height: 0.15
+initial_instrument_height_note: height above seabed

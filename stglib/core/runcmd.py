@@ -294,3 +294,16 @@ def runtcmcsv2cdf():
     metadata = get_metadata(args)
 
     stglib.tcm.csv_to_cdf(metadata)
+
+def runmccdf2nc():
+    args = stglib.cmd.mccdf2nc_parser().parse_args()
+
+    run_cdf_to_nc(stglib.mc.cdf_to_nc, args)
+
+
+def runmcasc2cdf():
+    args = stglib.cmd.mcasc2cdf_parser().parse_args()
+
+    metadata = get_metadata(args)
+
+    stglib.mc.asc_to_cdf(metadata)
