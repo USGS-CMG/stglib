@@ -26,8 +26,8 @@ def read_asc(filnam, skiprows=50, encoding="utf-8"):
         filnam,
         skiprows=skiprows,
         header=None,
-        names=["Temp","Cond","Sal","Date","Time"],
-        parse_dates={"time": ["Date","Time"]},
+        names=["Temp", "Cond", "Sal", "Date", "Time"],
+        parse_dates={"time": ["Date", "Time"]},
         encoding=encoding,
         index_col=False,
     )
@@ -70,10 +70,10 @@ def cdf_to_nc(cdf_filename):
 
     # Rename variables to CF compliant names
     ds = ds_rename_vars(ds)
-    
+
     # Add attributes
     ds = ds_add_attrs(ds)
-    
+
     # Call QAQC
     ds = mc_qaqc(ds)
 
@@ -99,11 +99,7 @@ def cdf_to_nc(cdf_filename):
 
 # Rename variables to be CF compliant
 def ds_rename_vars(ds):
-    varnames = {
-        "Temp": "T_28",
-        "Cond": "C_51",
-        "Sal": "S_41"
-    }
+    varnames = {"Temp": "T_28", "Cond": "C_51", "Sal": "S_41"}
 
     # Check to make sure they exist before trying to rename
     newvars = {}
@@ -123,9 +119,12 @@ def ds_add_attrs(ds):
 
     if "T_28" in ds:
         ds["T_28"].attrs.update(
-            {"units": "degree_C", "standard_name": "sea_water_temperature","Long_name": "Temperature"}
+            {
+                "units": "degree_C",
+                "standard_name": "sea_water_temperature",
+                "Long_name": "Temperature",
+            }
         )
-
 
     if "C_51" in ds:
         ds["C_51"].attrs.update(
@@ -146,17 +145,14 @@ def ds_add_attrs(ds):
             }
         )
 
+
 def mc_qaqc(ds):
     """
     QA/QC
     Trim MicroCAT data based on metadata
     """
 
-    varlist = [
-        "T_28",
-        "C_51",
-        "S_41"
-    ]
+    varlist = ["T_28", "C_51", "S_41"]
 
     [varlist.append(k) for k in ds.data_vars if k not in varlist]
 
