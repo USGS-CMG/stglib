@@ -78,6 +78,8 @@ setup(
             "runlisstcdf2nc.py=stglib.core.runcmd:runlisstcdf2nc",
             "runtcmcsv2cdf.py=stglib.core.runcmd:runtcmcsv2cdf",
             "runtcmcdf2nc.py=stglib.core.runcmd:runtcmcdf2nc",
+            "runmcasc2cdf.py=stglib.core.runcmd:runmcasc2cdf",
+            "runmccdf2nc.py=stglib.core.runcmd:runmccdf2nc",
         ],
     },
     include_package_data=True,
