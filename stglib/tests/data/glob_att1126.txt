@@ -10,7 +10,7 @@ Conventions; CF-1.8
 MOORING; 1126  
 WATER_DEPTH; 8.7
 WATER_DEPTH_NOTE; "(meters), Mean water level from pressure data"
-height_above_geopotential_datum; NaN
+height_above_geopotential_datum; -0.5
 geopotential_datum_name; NAVD88
 latitude; 41.742668
 longitude; -70.330457
