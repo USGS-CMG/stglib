@@ -487,5 +487,5 @@ def mc_nc(nc_file):
 
 
 def test_mc():
-    mc_raw("glob_att1126.txt", "11263mc_config.yaml")
+    mc_raw("glob_att1126_mc.txt", "11263mc_config.yaml")
     mc_nc("11263mc-raw.cdf")
