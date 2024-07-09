@@ -1,6 +1,6 @@
 Seabird SBE 37 MicroCAT
 **************
-
+     
 Data will generally be processed using a series of run scripts. The first script for each instrument type
 depends on two :doc:`configuration files </config>`.
 
