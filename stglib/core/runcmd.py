@@ -295,6 +295,7 @@ def runtcmcsv2cdf():
 
     stglib.tcm.csv_to_cdf(metadata)
 
+
 def runmccdf2nc():
     args = stglib.cmd.mccdf2nc_parser().parse_args()
 
