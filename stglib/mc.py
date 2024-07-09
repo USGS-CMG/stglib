@@ -31,6 +31,7 @@ def read_asc(filnam, skiprows=50, encoding="utf-8"):
         encoding=encoding,
         index_col=False,
     )
+    print(df)
     df.index.names = ["time"]
     mc = xr.Dataset.from_dataframe(df)
     return mc
@@ -41,7 +42,9 @@ def asc_to_cdf(metadata):
     basefile = metadata["basefile"]
 
     ds = read_asc(basefile + ".asc", skiprows=metadata["skiprows"])
+
     metadata.pop("skiprows")
+
     ds = utils.write_metadata(ds, metadata)
 
     ds = utils.ensure_cf(ds)
@@ -80,11 +83,11 @@ def cdf_to_nc(cdf_filename):
     # Run utilities
     ds = utils.create_z(ds)
     ds = utils.clip_ds(ds)
-    ds = utils.add_start_stop_time(ds)
     ds = utils.ds_add_lat_lon(ds)
+    ds = utils.create_nominal_instrument_depth(ds)
+    ds = utils.add_start_stop_time(ds)
     ds = utils.add_min_max(ds)
     ds = utils.add_delta_t(ds)
-    ds = utils.create_nominal_instrument_depth(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
@@ -144,6 +147,8 @@ def ds_add_attrs(ds):
                 "standard_name": "sea_water_practical_salinity",
             }
         )
+
+    return ds
 
 
 def mc_qaqc(ds):
