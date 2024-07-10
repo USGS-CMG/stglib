@@ -35,7 +35,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     #                       ds.attrs['burst_interval'] *
     #                       ds.attrs['sample_interval'] / 2)
 
-    ds = ds_add_attrs(ds)
+    ds = ds_add_attrs(ds, is_profile)
 
     # if "P_1" in ds:
     #    ds = ds_add_depth_dim(ds)
@@ -283,13 +283,15 @@ def trim_min(ds, var):
 #     return ds
 
 
-def ds_add_attrs(ds):
+def ds_add_attrs(ds, is_profile):
     # Update attributes for EPIC and STG compliance
     ds = utils.ds_coord_no_fillvalue(ds)
 
     ds["time"].attrs.update(
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
+    if is_profile:
+        ds["time"].attrs["long_name"] = "observation time (UTC)"
 
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("sample" not in ds):
         if utils.check_time_fits_in_int32(ds, "time"):
