@@ -172,7 +172,7 @@ def ds_add_attrs(ds):
                 "long_name": "Conductivity",
                 "comment": "Temperature compensated to 25 °C; low range",
                 "epic_code": 48,
-                "standard_name": "sea_water_electrical_conductivity",
+                "standard_name": "sea_water_electrical_conductivity_at_reference_temperature",
             }
         )
 
@@ -196,7 +196,7 @@ def ds_add_attrs(ds):
                 "long_name": "Conductivity",
                 "comment": "Temperature compensated to 25 °C; high range",
                 "epic_code": 48,
-                "standard_name": "sea_water_electrical_conductivity",
+                "standard_name": "sea_water_electrical_conductivity_at_reference_temperature",
             }
         )
 
