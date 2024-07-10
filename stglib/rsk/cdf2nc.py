@@ -325,7 +325,7 @@ def ds_add_attrs(ds):
     if "SpC_48" in ds:
         ds["SpC_48"].attrs.update(
             {
-                "standard_name": "sea_water_electrical_conductivity",
+                "standard_name": "sea_water_electrical_conductivity_at_reference_temperature",
                 "comment": "Temperature compensated to 25 °C",
             }
         )
