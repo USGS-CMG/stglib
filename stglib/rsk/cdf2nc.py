@@ -35,7 +35,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     #                       ds.attrs['burst_interval'] *
     #                       ds.attrs['sample_interval'] / 2)
 
-    ds = ds_add_attrs(ds)
+    ds = ds_add_attrs(ds, is_profile)
 
     # if "P_1" in ds:
     #    ds = ds_add_depth_dim(ds)
@@ -80,6 +80,27 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
 
     ds = dw_add_delta_t(ds)
 
+    if is_profile:
+        # reset obs and row_start after we are done trimming
+        # this is because row_start is supposed to begin at zero according to CF
+        # the original obs and row_start are based on the indexes from the raw file as downloaded from the instrument
+        # this makes it so there are no skips in obs from removed casts
+
+        attrsbak = ds["obs"].attrs
+        obs = np.arange(len(ds["obs"]))
+        ds = ds.assign_coords(obs=obs)
+        ds["obs"].attrs = attrsbak
+        # reset dtype since we changed the values and it got reset to int64
+        if utils.check_fits_in_int32(ds, "obs"):
+            ds["obs"].encoding["dtype"] = "i4"
+
+        # TODO: this code is mostly redundant with the row_start code in csv2cdf.py. They should be calling the same function
+        row_start = np.zeros(ds.row_size.shape, dtype=int)
+        for p in range(len(row_start)):
+            if p > 0:
+                row_start[p] = row_start[p - 1] + ds.row_size[p - 1]
+        ds["row_start"].values = row_start
+
     # if we are dealing with continuous instruments, drop sample since it is a singleton dimension
     if "sample" in ds:
         if len(ds["sample"]) == 1:
@@ -89,6 +110,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         if utils.check_time_fits_in_int32(ds, "obstime"):
             ds["obstime"].encoding["dtype"] = "i4"
         else:
+            print("Could not set obstime to i4; setting to float64 instead")
             ds["obstime"].encoding["dtype"] = "float64"
 
     if writefile:
@@ -261,13 +283,15 @@ def trim_min(ds, var):
 #     return ds
 
 
-def ds_add_attrs(ds):
+def ds_add_attrs(ds, is_profile):
     # Update attributes for EPIC and STG compliance
     ds = utils.ds_coord_no_fillvalue(ds)
 
     ds["time"].attrs.update(
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
+    if is_profile:
+        ds["time"].attrs["long_name"] = "observation time (UTC)"
 
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("sample" not in ds):
         if utils.check_time_fits_in_int32(ds, "time"):

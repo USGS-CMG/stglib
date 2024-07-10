@@ -191,10 +191,10 @@ def csv_to_cdf(metadata):
         ds = ds.drop("time")
 
         ds = ds.rename({"obs": "time"}).set_coords("time").rename({"time": "obs"})
-        ds["obs"].attrs["long_name"] = "sample number"
+        ds["obs"].attrs["long_name"] = "observation number"
 
         ds["obstime"] = xr.DataArray(obstime, dims="obs")
-        ds["obstime"].attrs["long_name"] = "time (UTC)"
+        ds["obstime"].attrs["long_name"] = "observation start time (UTC)"
         ds["obstime"].attrs["standard_name"] = "time"
 
         ds = xr.merge([ds, pr])
