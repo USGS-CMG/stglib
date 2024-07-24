@@ -32,13 +32,15 @@ def read_asc(filnam, skiprows=50, encoding="utf-8"):
         index_col=False,
     )
     print(df)
-    df.index.names = ["time"]
-    mc = xr.Dataset.from_dataframe(df)
+    df.set_index("time", inplace=True)
+    mc = df.to_xarray()
     return mc
 
 
-# Make raw CDF
 def asc_to_cdf(metadata):
+    """
+    Load a raw .asc file and generate a .cdf file
+    """
     basefile = metadata["basefile"]
 
     ds = read_asc(basefile + ".asc", skiprows=metadata["skiprows"])
@@ -54,12 +56,11 @@ def asc_to_cdf(metadata):
 
     ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
 
-    print("Finished writing data to %s" % cdf_filename)
+    print(f"Finished writing data to {cdf_filename}")
 
     return ds
 
 
-# Process data and write to .nc file
 def cdf_to_nc(cdf_filename):
     """
     Load a raw .cdf file and generate a processed .nc file
@@ -97,11 +98,13 @@ def cdf_to_nc(cdf_filename):
         nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
     )
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
-    print("Done writing netCDF file", nc_filename)
+    print(f"Done writing netCDF file {nc_filename}")
 
 
-# Rename variables to be CF compliant
 def ds_rename_vars(ds):
+    """
+    Rename variables to be CF compliant
+    """
     varnames = {"Temp": "T_28", "Cond": "C_51", "Sal": "S_41"}
 
     # Check to make sure they exist before trying to rename
@@ -112,8 +115,10 @@ def ds_rename_vars(ds):
     return ds.rename(newvars)
 
 
-# Add attributes: units, standard name from CF website, long names
 def ds_add_attrs(ds):
+    """
+    Add attributes: units, standard name from CF website, long names
+    """
     ds = utils.ds_coord_no_fillvalue(ds)
 
     ds["time"].attrs.update(
@@ -125,7 +130,7 @@ def ds_add_attrs(ds):
             {
                 "units": "degree_C",
                 "standard_name": "sea_water_temperature",
-                "Long_name": "Temperature",
+                "long_name": "Temperature",
             }
         )
 
