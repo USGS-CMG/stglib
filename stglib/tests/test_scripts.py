@@ -466,3 +466,26 @@ def test_ensure_cf():
         "glob_att1123A_msl_EPIC.txt",
         "1123Aea_example_config.yaml",
     )
+
+
+def mc_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runmcasc2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def mc_nc(nc_file):
+    result = subprocess.run(
+        [scripts / "runmccdf2nc.py", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_mc():
+    mc_raw("glob_att1126_mc.txt", "11263mc_config.yaml")
+    mc_nc("11263mc-raw.cdf")

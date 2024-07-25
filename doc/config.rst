@@ -1,6 +1,6 @@
 Configuration files
 *******************
-
+    
 There are two required configuration files for processing data: the global attributes file, which describes attributes that apply to the mooring, and the instrument configuration file, which describes attributes that apply to an instrument on a mooring. Contents of both files will be included as attributes in both the xarray Dataset and the netCDF files.
 
 A note on time and time zones
@@ -210,3 +210,8 @@ Vector
 - ``puv``: set to ``true`` to compute PUV wave statistics. **(EXPERIMENTAL)**
 - ``orientation``: ``UP`` means probe head is pointing up (sample volume above probe head). ``DOWN`` means probe head is pointing down (sample volume below probe head).
 - Many of the Aquadopp options apply to the Vector.
+
+SBE 37 MicroCAT
+---------------
+- All the _min, _max, _bad_ens, etc. options available to the EXO
+- ``skiprows``: number of lines to skip in the ASC before the real data begins
