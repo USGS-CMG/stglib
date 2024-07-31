@@ -313,7 +313,7 @@ def runmcasc2cdf():
 def runsgcdf2nc():
     args = stglib.cmd.sgcdf2nc_parser().parse_args()
 
-    run_cdf_to_nc(stglib.sg.cdf2nc.cdf_to_nc, args)
+    run_cdf_to_nc(stglib.sg.cdf_to_nc, args)
 
 
 def runsgtid2cdf():
@@ -321,10 +321,10 @@ def runsgtid2cdf():
 
     metadata = get_metadata(args)
 
-    stglib.sg.tid2cdf.dat_to_cdf(metadata)
+    stglib.sg.tid_to_cdf(metadata)
 
 
 def runsgnc2waves():
     args = stglib.cmd.sgnc2waves_parser().parse_args()
 
-    stglib.sg.nc2waves.nc_to_waves(args.ncname)
+    stglib.sg.nc_to_waves(args.ncname)
