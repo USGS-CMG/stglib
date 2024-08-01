@@ -5,20 +5,7 @@ from .core import qaqc, utils
 
 
 def read_tid(filnam, encoding="utf-8"):
-    """Read data from an SBE 26plus Seagauge .tid file into an xarray dataset.
-
-    Parameters
-    ----------
-    filnam : string
-        The filename
-    encoding : string, optional
-        File encoding. Default 'utf-8'
-    Returns
-    -------
-    xarray.Dataset
-        An xarray Dataset of the Seagauge data
-    """
-
+    """Read data from an SBE 26plus Seagauge .tid file into an xarray dataset."""
     df = pd.read_csv(
         filnam,
         header=None,
@@ -35,10 +22,17 @@ def read_tid(filnam, encoding="utf-8"):
 
 def tid_to_cdf(metadata):
     """
-    Load a raw .tid file and generate a .cdf file
+    Load a raw .tid and .hex file and generate a .cdf file
     """
     basefile = metadata["basefile"]
 
+    # Get metadata from .hex file
+    hexmeta = read_hex(basefile + ".hex")
+
+    # Append to metadata variable
+    metadata.update(hexmeta)
+
+    # Read in data
     ds = read_tid(basefile + ".tid")
 
     # Convert pressure from psia to dbar
@@ -85,10 +79,10 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     ds = sg_qaqc(ds)
 
     # Run utilities
-    ds = utils.create_z(ds)
     ds = utils.clip_ds(ds)
     ds = utils.ds_add_lat_lon(ds)
     ds = utils.create_nominal_instrument_depth(ds)
+    ds = utils.create_z(ds)
     ds = utils.add_start_stop_time(ds)
     ds = utils.add_min_max(ds)
     ds = utils.add_delta_t(ds)
@@ -222,3 +216,122 @@ def atmos_correct(ds, atmpres):
     ds["Pressure_ac"].attrs["note"] = histtext
 
     return ds
+
+
+def read_hex(filnam):
+    """Read metadata from an SBE 26plus Seagauge .hex file"""
+    hexmeta = {}
+
+    f = open(filnam)
+    row = ""
+
+    while "S>DD" not in row:
+        row = f.readline().rstrip()
+        if "Software Version" in row:
+            col = row.split()
+            hexmeta["SoftwareVersion"] = col[2]
+        elif "SBE 26plus-quartz V" in row:
+            col = row.split()
+            hexmeta["InstrumentType"] = col[0][1:] + " " + col[1]
+            hexmeta["FirmwareVersion"] = col[3]
+            hexmeta["InstrumentSerialNumber"] = col[5]
+        elif "quartz pressure sensor" in row:
+            col = row.split()
+            hexmeta["PressureSensorSerial"] = col[6][:-1]
+        elif "tide measurement: interval" in row:
+            col = row.split()
+            hexmeta["TideInterval"] = col[4]
+            hexmeta["TideIntervalUnits"] = col[5][:-1]
+            hexmeta["TideDuration"] = col[8]
+            hexmeta["TideDurationUnits"] = col[9]
+        elif "measure waves every" in row:
+            col = row.split()
+            hexmeta["WaveInterval"] = col[3]
+            hexmeta["WaveIntervalUnits"] = col[4] + " " + col[5]
+        elif "wave samples/burst" in row:
+            col = row.split()
+            hexmeta["WaveSamples"] = col[0][1:]
+            hexmeta["WaveSampleRate"] = col[4]
+            hexmeta["WaveSampleRateUnits"] = col[5][:-1]
+            hexmeta["BurstDuration"] = col[8]
+            hexmeta["BurstDurationUnits"] = col[9]
+        elif "tide samples/day" in row:
+            col = row.split()
+            hexmeta["TideSamplesPerDay"] = col[3]
+        elif "wave bursts/day" in row:
+            col = row.split()
+            hexmeta["WaveBurstsPerDay"] = col[3]
+        elif "total recorded tide measurements" in row:
+            col = row.split()
+            hexmeta["NumberOfTideMeasurements"] = col[5]
+        elif "total recorded wave bursts" in row:
+            col = row.split()
+            hexmeta["NumberOfWaveBursts"] = col[5]
+        elif "Pressure coefficients" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationDate"] = col[2]
+        elif "U0 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationU0"] = float(col[3])
+        elif "Y1 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationY1"] = float(col[3])
+        elif "Y2 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationY2"] = float(col[3])
+        elif "Y3 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationY3"] = float(col[3])
+        elif "C1 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationC1"] = float(col[3])
+        elif "C2 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationC2"] = float(col[3])
+        elif "C3 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationC3"] = float(col[3])
+        elif "D1 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationD1"] = float(col[3])
+        elif "D2 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationD2"] = float(col[3])
+        elif "T1 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationT1"] = float(col[3])
+        elif "T2 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationT2"] = float(col[3])
+        elif "T3 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationT3"] = float(col[3])
+        elif "T4 =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationT4"] = float(col[3])
+        elif "M =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationM"] = float(col[3])
+        elif "B =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationB"] = float(col[3])
+        elif "OFFSET =" in row:
+            col = row.split()
+            hexmeta["PressureCalibrationOFFSET"] = float(col[3])
+        elif "Temperature coefficients" in row:
+            col = row.split()
+            hexmeta["TemperatureCalibrationDate"] = col[2]
+        elif "TA0 =" in row:
+            col = row.split()
+            hexmeta["TemperatureCalibrationTA0"] = float(col[3])
+        elif "TA1 =" in row:
+            col = row.split()
+            hexmeta["TemperatureCalibrationTA1"] = float(col[3])
+        elif "TA2 =" in row:
+            col = row.split()
+            hexmeta["TemperatureCalibrationTA2"] = float(col[3])
+        elif "TA3 =" in row:
+            col = row.split()
+            hexmeta["TemperatureCalibrationTA3"] = float(col[3])
+    f.close()
+    return hexmeta
