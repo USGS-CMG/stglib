@@ -10,7 +10,7 @@ def read_tid(filnam, encoding="utf-8"):
         filnam,
         header=None,
         sep=r"\s+",
-        names=["Sample", "Date", "Time", "Pressure", "Temp"],
+        names=["Sample", "Date", "Time", "P_1", "Temp"],
         parse_dates={"time": ["Date", "Time"]},
         encoding=encoding,
         index_col=False,
@@ -36,7 +36,7 @@ def tid_to_cdf(metadata):
     ds = read_tid(basefile + ".tid")
 
     # Convert pressure from psia to dbar
-    ds["Pressure"] = ds.Pressure / 14.503773800722 * 10
+    ds["P_1"] = ds.P_1 / 14.503773800722 * 10
 
     ds = utils.write_metadata(ds, metadata)
 
@@ -65,12 +65,12 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # Drop sample variable
     ds = ds.drop_vars("Sample")
 
-    # Atmospheric pressure correction
-    if atmpres is not None:
-        ds = utils.atmos_correct(ds, atmpres)
-
     # Rename variables to CF compliant names
     ds = ds_rename_vars(ds)
+
+    # Atmospheric pressure correction
+    if atmpres is not None:
+        ds = atmos_correct(ds, atmpres)
 
     # Add attributes
     ds = ds_add_attrs(ds)
@@ -103,7 +103,7 @@ def ds_rename_vars(ds):
     """
     Rename variables to be CF compliant
     """
-    varnames = {"Temp": "T_28", "Pressure": "P_1", "Pressure_ac": "P_1ac"}
+    varnames = {"Temp": "T_28"}
 
     # Check to make sure they exist before trying to rename
     newvars = {}
@@ -131,7 +131,6 @@ def ds_add_attrs(ds):
                 "long_name": "Temperature",
             }
         )
-
     if "P_1" in ds:
         ds["P_1"].attrs.update(
             {
@@ -140,14 +139,12 @@ def ds_add_attrs(ds):
                 "standard_name": "sea_water_pressure",
             }
         )
-    return ds
-
     if "P_1ac" in ds:
         ds["P_1ac"].attrs.update(
             {
                 "units": "dbar",
                 "long_name": "Corrected pressure",
-                "standard_name": "sea_water_pressure_due_to_seawater",
+                "standard_name": "sea_water_pressure_due_to_sea_water",
             }
         )
     return ds
@@ -193,15 +190,15 @@ def sg_qaqc(ds):
 def atmos_correct(ds, atmpres):
     met = xr.load_dataset(atmpres)
     # need to save attrs before the subtraction, otherwise they are lost
-    attrs = ds["Pressure"].attrs
+    attrs = ds["P_1"].attrs
     # need to set a tolerance since we can be off by a couple seconds somewhere
     # TODO is this still needed?
-    ds["Pressure_ac"] = xr.DataArray(
-        ds["Pressure"]
-        - met["atmpres"].reindex_like(ds["Pressure"], method="nearest", tolerance="5s")
+    ds["P_1ac"] = xr.DataArray(
+        ds["P_1"]
+        - met["atmpres"].reindex_like(ds["P_1"], method="nearest", tolerance="5s")
         - met["atmpres"].attrs["offset"]
     )
-    ds["Pressure_ac"].attrs = attrs
+    ds["P_1ac"].attrs = attrs
 
     ds.attrs["atmospheric_pressure_correction_file"] = atmpres
     ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
@@ -213,7 +210,7 @@ def atmos_correct(ds, atmpres):
     ds = utils.insert_history(ds, histtext)
 
     # Also add it as a note
-    ds["Pressure_ac"].attrs["note"] = histtext
+    ds["P_1ac"].attrs["note"] = histtext
 
     return ds
 
