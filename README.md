@@ -22,6 +22,7 @@ Currently, this package has at least partial support for:
 - Moving-boat ADCP data processed using [QRev](https://hydroacoustics.usgs.gov/movingboat/QRev.shtml), for use in index-velocity computation
 - EofE ECHOLOGGER altimeters
 - SBE 37 Microcat
+- SBE 26plus Seagauge
 
 We have plans to support:
 

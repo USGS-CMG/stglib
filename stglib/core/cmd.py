@@ -401,3 +401,29 @@ def mccdf2nc_parser():
     cdfarg(parser)
 
     return parser
+
+
+def sgtid2cdf_parser():
+    description = "Convert SBE 26plus Seagauge .tid files to raw .cdf format. Run this script from the directory containing Seagauge files."
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def sgcdf2nc_parser():
+    description = "Convert raw SBE 26plus Seagauge .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+    parser = argparse.ArgumentParser(description=description)
+    cdfarg(parser)
+    atmarg(parser)
+
+    return parser
+
+
+def sgnc2waves_parser():
+    description = "Generate SBE 26plus Seagauge waves statistics file"
+    parser = argparse.ArgumentParser(description=description)
+    ncarg(parser)
+
+    return parser

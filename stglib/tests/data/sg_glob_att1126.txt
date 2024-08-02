@@ -1,0 +1,29 @@
+SciPi; "John Warner"
+PROJECT; "USGS Coastal and Marine Hazards and Resources Program"
+EXPERIMENT; CCB21
+DESCRIPTION; "Cape Cod Bay, Sandy Neck Beach, Barnstable, MA"
+title; "Time-series measurements of oceanographic and water quality data collected in Cape Cod Bay, Barnstable, MA, March 10 to April 7, 2021"
+DATA_SUBTYPE; MOORED
+DATA_ORIGIN; "USGS WHCMSC Coastal and Estuarine Dynamics"
+COORD_SYSTEM; GEOGRAPHIC
+Conventions; CF-1.8
+MOORING; 1126
+WATER_DEPTH; 8.7
+WATER_DEPTH_NOTE; "(meters), Mean water level from pressure data"
+height_above_geopotential_datum; -5
+geopotential_datum_name; NAVD88
+latitude; 41.742668
+longitude; -70.330457
+magnetic_variation; -14.47
+Deployment_date; "10-Mar-2021 15:58"
+Recovery_date; "07-Apr-2021 14:09"
+DATA_CMNT; "No magnetic variation recorded, used data from IGRF model via ngdc.noaa.gov."
+platform_type; Quadpod
+DRIFTER; 0
+POS_CONST; 0
+DEPTH_CONST; 0
+WATER_MASS; "Cape Cod Bay"
+VAR_FILL; NaN
+institution; "United States Geological Survey, Woods Hole Coastal and Marine Science Center"
+institution_url; https://woodshole.er.usgs.gov
+Field_Activity_Number; 2021-018-FA

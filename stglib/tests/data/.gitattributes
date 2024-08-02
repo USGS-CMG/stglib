@@ -111,3 +111,5 @@ V1482304.vhd filter=lfs diff=lfs merge=lfs -text
 config_1126vec14823.yaml filter=lfs diff=lfs merge=lfs -text
 glob_att1126_msl.txt filter=lfs diff=lfs merge=lfs -text
 mc3575.asc filter=lfs diff=lfs merge=lfs -text
+11264sg_raw2.tid filter=lfs diff=lfs merge=lfs -text
+11264sg_raw2.hex filter=lfs diff=lfs merge=lfs -text
