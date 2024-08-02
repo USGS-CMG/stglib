@@ -4,7 +4,7 @@ import xarray as xr
 from .core import qaqc, utils
 
 
-def read_asc(filnam, skiprows=50, encoding="utf-8"):
+def read_asc(filnam, skiprows=51, encoding="utf-8"):
     """Read data from an SBE 37 MicroCAT .asc file into an xarray
     Dataset.
 
@@ -13,7 +13,7 @@ def read_asc(filnam, skiprows=50, encoding="utf-8"):
     filnam : string
         The filename
     skiprows : int, optional
-        How many header rows to skip. Default 50
+        How many header rows to skip. Default 51
     encoding : string, optional
         File encoding. Default 'utf-8'
     Returns
@@ -31,7 +31,6 @@ def read_asc(filnam, skiprows=50, encoding="utf-8"):
         encoding=encoding,
         index_col=False,
     )
-    print(df)
     df.set_index("time", inplace=True)
     mc = df.to_xarray()
     return mc
