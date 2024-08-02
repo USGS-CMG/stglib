@@ -29,6 +29,7 @@ Currently, this package has at least partial support for:
 - RD Instruments ADCPs
 - Moving-boat ADCP data processed using QRev_, for use in index-velocity computation
 - EofE ECHOLOGGER altimeters
+- SBE 37 Microcat
 
 .. _QRev: https://hydroacoustics.usgs.gov/movingboat/QRev.shtml
 
@@ -53,6 +54,7 @@ We have plans to support:
    rsk
    exo
    iq
+   mc
    wet
    hobo
    wxt

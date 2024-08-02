@@ -1,5 +1,5 @@
 Seabird SBE 37 MicroCAT
-**************
+***********************
      
 Data will generally be processed using a series of run scripts. The first script for each instrument type
 depends on two :doc:`configuration files </config>`.
@@ -7,7 +7,7 @@ depends on two :doc:`configuration files </config>`.
 Instrument data to raw .cdf
 ===========================
 
-Convert from exported .csv file to a raw netCDF file with .cdf extension using ``runmcasc2cdf.py``.
+Convert from exported .asc file to a raw netCDF file with .cdf extension using ``runmcasc2cdf.py``.
 
 runmcasc2cdf.py
 ----------------
