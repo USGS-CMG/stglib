@@ -489,3 +489,30 @@ def mc_nc(nc_file):
 def test_mc():
     mc_raw("glob_att1126_mc.txt", "11263mc_config.yaml")
     mc_nc("11263mc-raw.cdf")
+
+
+def sg_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runsgtid2cdf.py", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def sg_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [scripts / "runsgcdf2nc.py", nc_file, "--atmpres", atmpres]
+    else:
+        runlist = [scripts / "runsgcdf2nc.py", nc_file]
+    result = subprocess.run(
+        runlist,
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_sg():
+    sg_raw("sg_glob_att1126.txt", "11264sg_config.yaml")
+    sg_nc("11264sg-raw.cdf")

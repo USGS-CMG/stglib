@@ -1,0 +1,5 @@
+basefile: 11264sg_raw2
+filename: 11264sg
+LatLonDatum: NAD83
+initial_instrument_height: 0.123
+initial_instrument_height_note: height above seabed
