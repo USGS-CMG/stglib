@@ -215,3 +215,7 @@ SBE 37 MicroCAT
 ---------------
 - All the _min, _max, _bad_ens, etc. options available to the EXO
 - ``skiprows``: number of lines to skip in the ASC before the real data begins
+
+SBE 26plus Seagauge
+-------------------
+- All the _min, _max, _bad_ens, etc. options available to the EXO.
