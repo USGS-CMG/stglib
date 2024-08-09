@@ -1549,7 +1549,7 @@ def average_burst(ds):
     dint = {}
     intlist = []
     for var in ds.data_vars:
-        if ds[var].dtype == int or ds[var].dtype == np.int64:
+        if ds[var].dtype in (int, np.int64):
             dtypestr = ds[var].dtype
             d = {var: dtypestr}
             dint.update(d)
