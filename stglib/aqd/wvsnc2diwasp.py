@@ -2,6 +2,7 @@ import numpy as np
 import xarray as xr
 
 from ..core import utils, waves
+from . import aqdutils
 
 
 def nc_to_diwasp(nc_filename):
@@ -108,7 +109,7 @@ def nc_to_diwasp(nc_filename):
     ds = utils.trim_wp_ratio(ds)
 
     # Add attrs
-    ds = utils.ds_add_attrs(ds)
+    ds = aqdutils.ds_add_attrs(ds, waves=True)
 
     ds = utils.ds_add_diwasp_history(ds)
 
