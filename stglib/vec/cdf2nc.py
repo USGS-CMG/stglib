@@ -50,7 +50,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Add EPIC and CMG attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
 
-    ds = associate_z_coord(ds)
+    # ds = associate_z_coord(ds)
+
+    ds = fill_snr(ds)
+
+    ds = fill_cor(ds)
 
     for var in ds.data_vars:
         # need to do this or else a "coordinates" attribute with value of "burst" hangs around
@@ -69,6 +73,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = qaqc.trim_bad_ens_indiv(ds, var)
         ds = qaqc.trim_fliers(ds, var)
         ds = qaqc.trim_warmup(ds, var)
+        ds = qaqc.trim_maxabs_diff(ds, var)
 
     # after check for masking vars by other vars
     for var in ds.data_vars:
@@ -421,6 +426,62 @@ def combine_vars(ds):
     return ds
 
 
+def fill_snr(ds):
+    """
+    Fill velocity data with corresponding beam snr value threshold
+    """
+    if "snr_threshold" in ds.attrs:
+        Ptxt = str(ds.attrs["snr_threshold"])
+
+        for v in [
+            "u_1205",
+            "v_1206",
+            "w_1204",
+        ]:
+            if v in ds:
+                for bm in ds["beam"].values:
+                    ds[v] = ds[v].where(ds.snr.sel(beam=bm) > ds.attrs["snr_threshold"])
+
+                histtext = "Filled velocity data using snr threshold of {} for corresponding beam(s).".format(
+                    Ptxt
+                )
+                ds = utils.insert_note(ds, v, histtext)
+
+            ds = utils.insert_history(ds, histtext)
+    else:
+        print("Did not fill velocity data using snr threshold")
+
+    return ds
+
+
+def fill_cor(ds):
+    """
+    Fill velocity data with corresponding beam correlation value threshold
+    """
+    if "cor_threshold" in ds.attrs:
+        Ptxt = str(ds.attrs["cor_threshold"])
+
+        for v in [
+            "u_1205",
+            "v_1206",
+            "w_1204",
+        ]:
+            if v in ds:
+                for bm in ds["beam"].values:
+                    ds[v] = ds[v].where(ds.cor.sel(beam=bm) > ds.attrs["cor_threshold"])
+
+                histtext = "Filled velocity data using cor threshold of {} for corresponding beam(s).".format(
+                    Ptxt
+                )
+                ds = utils.insert_note(ds, v, histtext)
+
+            ds = utils.insert_history(ds, histtext)
+    else:
+        print("Did not fill velocity data using cor threshold")
+
+    return ds
+
+
 def time_encoding(ds):
     """ensure we don't set dtypes uint for CF compliance"""
     if "units" in ds["time"].encoding:
@@ -444,9 +505,12 @@ def time_encoding(ds):
 
 
 def var_encoding(ds):
-    for v in ["burst", "orientation", "cor", "amp"]:
-        ds[v].encoding["dtype"] = "int32"
-        ds[v].encoding["_FillValue"] = -2147483648
+    for var in ds.data_vars:
+        if ds[var].dtype == "float64":
+            ds[var].encoding["dtype"] = "float32"
+    for var in ["burst", "orientation", "amp"]:
+        ds[var].encoding["dtype"] = "int32"
+        ds[var].encoding["_FillValue"] = -2147483648
 
     return ds
 
