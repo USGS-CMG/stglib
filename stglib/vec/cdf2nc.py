@@ -61,6 +61,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds[var].encoding["coordinates"] = None
         ds = qaqc.trim_min(ds, var)
         ds = qaqc.trim_max(ds, var)
+        ds = qaqc.trim_maxabs_diff(ds, var)
         ds = qaqc.trim_min_diff(ds, var)
         ds = qaqc.trim_min_diff_pct(ds, var)
         ds = qaqc.trim_max_diff(ds, var)
@@ -73,7 +74,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = qaqc.trim_bad_ens_indiv(ds, var)
         ds = qaqc.trim_fliers(ds, var)
         ds = qaqc.trim_warmup(ds, var)
-        ds = qaqc.trim_maxabs_diff(ds, var)
 
     # after check for masking vars by other vars
     for var in ds.data_vars:
