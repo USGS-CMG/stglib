@@ -328,3 +328,7 @@ def runsgnc2waves():
     args = stglib.cmd.sgnc2waves_parser().parse_args()
 
     stglib.sg.nc_to_waves(args.ncname)
+
+
+def runots():
+    args = stglib.cmd.runots_parser().parse_args()

@@ -27,6 +27,14 @@ def ncarg(parser):
     parser.add_argument("ncname", help="processed .nc filename")
 
 
+def runots_parser():
+    parser.add_argument(
+        "workflow", help="OTS instrument workflow name (e.g. runaqdcdf2nc)"
+    )
+
+    parser.add_argument()
+
+
 def aqdhdr2cdf_parser():
     description = "Convert Aquadopp text files to raw .cdf format. Run this script from the directory containing Aquadopp files."
     parser = argparse.ArgumentParser(description=description)
