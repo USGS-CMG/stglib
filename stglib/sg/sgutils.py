@@ -184,6 +184,13 @@ def ds_add_attrs(ds):
                 "standard_name": "sea_water_pressure_due_to_sea_water",
             }
         )
+    if "sample" in ds:
+        ds["sample"].attrs.update(
+            {
+                "units": "1",
+                "long_name": "sample number",
+            }
+        )
     return ds
 
 
