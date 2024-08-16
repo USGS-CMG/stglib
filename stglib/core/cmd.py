@@ -31,19 +31,71 @@ def runots_parser():
     description = "Run ocean time-series processing system."
     parser = argparse.ArgumentParser(description=description)
     subparsers = parser.add_subparsers(
-        title="commands",
+        title="instruments",
         required=True,
-        dest="command",
+        dest="instrument",
     )
 
-    subparsers.add_parser("aqdhdr2cdf", parents=[aqdhdr2cdf_parser()], add_help=False)
-    subparsers.add_parser("aqdcdf2nc", parents=[aqdcdf2nc_parser()], add_help=False)
+    # subparsers.add_parser("aqdhdr2cdf", parents=[aqdhdr2cdf_parser()], add_help=False)
+    # subparsers.add_parser("aqdcdf2nc", parents=[aqdcdf2nc_parser()], add_help=False)
+    inst = subparsers.add_parser("aqd", add_help=False)
+    instsp = inst.add_subparsers(
+        title="steps",
+        required=True,
+        dest="step",
+    )
+    instsp.add_parser("hdr2cdf", parents=[inst2cdf_parser()], add_help=False)
+    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
 
-    # print('*** in runots_parser, printing subparsers')
-    # print(subparsers)
-    #
-    # print('*** in runots_parser, printing parser')
-    # print(parser)
+    inst = subparsers.add_parser("vec", add_help=False)
+    instsp = inst.add_subparsers(
+        title="steps",
+        required=True,
+        dest="step",
+    )
+    instsp.add_parser("dat2cdf", parents=[inst2cdf_parser()], add_help=False)
+    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+    instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
+
+    inst = subparsers.add_parser("wvs", add_help=False)
+    instsp = inst.add_subparsers(
+        title="steps",
+        required=True,
+        dest="step",
+    )
+    instsp.add_parser("wad2cdf", parents=[inst2cdf_parser()], add_help=False)
+    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+    instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
+
+    return parser
+
+
+def inst2cdf_parser(description="Convert instrument files to raw .cdf format"):
+    """generic parser for instrument data to raw .cdf; requires gatts and yaml"""
+    # description = "Convert Aquadopp text files to raw .cdf format. Run this script from the directory containing Aquadopp files."
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def cdf2nc_parser():
+    """generic parser for raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure"""
+    description = "Convert raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+    parser = argparse.ArgumentParser(description=description)
+    cdfarg(parser)
+    atmarg(parser)
+
+    return parser
+
+
+def nc2waves_parser():
+    """generic parser for processed .nc to wave statistics"""
+    description = "Generate waves statistics file"
+    parser = argparse.ArgumentParser(description=description)
+    ncarg(parser)
+
     return parser
 
 

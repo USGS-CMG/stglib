@@ -56,112 +56,128 @@ def runaqdhdr2cdf(args=None):
     stglib.aqd.hdr2cdf.hdr_to_cdf(metadata)
 
 
-def runaqdhrcdf2nc():
-    args = stglib.cmd.aqdcdf2nc_parser().parse_args()
+def runaqdhrcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.aqdcdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.aqd.hrcdf2nc.cdf_to_nc, args)
 
 
-def runaqdhrhdr2cdf():
-    args = stglib.cmd.aqdhdr2cdf_parser().parse_args()
+def runaqdhrhdr2cdf(args=None):
+    if not args:
+        args = stglib.cmd.aqdhdr2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.aqd.hrhdr2cdf.hdr_to_cdf(metadata)
 
 
-def runecocdf2nc():
-    args = stglib.cmd.ecocdf2nc_parser().parse_args()
+def runecocdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.ecocdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.eco.cdf_to_nc, args)
 
 
-def runecocsv2cdf():
-    args = stglib.cmd.ecolog2cdf_parser().parse_args()
+def runecocsv2cdf(args=None):
+    if not args:
+        args = stglib.cmd.ecolog2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.eco.csv_to_cdf(metadata)
 
 
-def runeofecdf2nc():
-    args = stglib.cmd.eofecdf2nc_parser().parse_args()
+def runeofecdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.eofecdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.eofe.cdf_to_nc, args)
 
 
-def runeofelog2cdf():
-    args = stglib.cmd.eofelog2cdf_parser().parse_args()
+def runeofelog2cdf(args=None):
+    if not args:
+        args = stglib.cmd.eofelog2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.eofe.log_to_cdf(metadata)
 
 
-def runexocdf2nc():
-    args = stglib.cmd.exocdf2nc_parser().parse_args()
+def runexocdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.exocdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.exo.cdf_to_nc, args)
 
 
-def runexocsv2cdf():
-    args = stglib.cmd.exocsv2cdf_parser().parse_args()
+def runexocsv2cdf(args=None):
+    if not args:
+        args = stglib.cmd.exocsv2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.exo.csv_to_cdf(metadata)
 
 
-def runhobocdf2nc():
-    args = stglib.cmd.hobocdf2nc_parser().parse_args()
+def runhobocdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.hobocdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.hobo.cdf_to_nc, args)
 
 
-def runhobocsv2cdf():
-    args = stglib.cmd.hobocsv2cdf_parser().parse_args()
+def runhobocsv2cdf(args=None):
+    if not args:
+        args = stglib.cmd.hobocsv2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.hobo.csv_to_cdf(metadata)
 
 
-def runiqcdf2nc():
-    args = stglib.cmd.iqcdf2nc_parser().parse_args()
+def runiqcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.iqcdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.iq.cdf_to_nc, args)
 
 
-def runiqmat2cdf():
-    args = stglib.cmd.iqmat2cdf_parser().parse_args()
+def runiqmat2cdf(args=None):
+    if not args:
+        args = stglib.cmd.iqmat2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.iq.mat_to_cdf(metadata)
 
 
-def runlisstcdf2nc():
-    args = stglib.cmd.lisstcdf2nc_parser().parse_args()
+def runlisstcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.lisstcdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.lisst.cdf_to_nc, args)
 
 
-def runlisstcsv2cdf():
-    args = stglib.cmd.lisstcsv2cdf_parser().parse_args()
+def runlisstcsv2cdf(args=None):
+    if not args:
+        args = stglib.cmd.lisstcsv2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.lisst.csv_to_cdf(metadata)
 
 
-def runrdicdf2nc():
-    args = stglib.cmd.rdicdf2nc_parser().parse_args()
+def runrdicdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.rdicdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.rdi.cdf2nc.cdf_to_nc, args)
 
 
-def runrdiraw2cdf():
-    args = stglib.cmd.rdiraw2cdf_parser().parse_args()
+def runrdiraw2cdf(args=None):
+    if not args:
+        args = stglib.cmd.rdiraw2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
@@ -224,14 +240,16 @@ def runtrollcsv2cdf():
     stglib.troll.csv_to_cdf(metadata)
 
 
-def runveccdf2nc():
-    args = stglib.cmd.veccdf2nc_parser().parse_args()
+def runveccdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.veccdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.vec.cdf2nc.cdf_to_nc, args)
 
 
-def runvecdat2cdf():
-    args = stglib.cmd.vechdr2cdf_parser().parse_args()
+def runvecdat2cdf(args=None):
+    if not args:
+        args = stglib.cmd.vechdr2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
@@ -335,7 +353,22 @@ def runsgnc2waves():
 def runots():
     args = stglib.cmd.runots_parser().parse_args()
 
-    if args.command == "aqdhdr2cdf":
-        runaqdhdr2cdf(args)
-    elif args.command == "aqdcdf2nc":
-        runaqdcdf2nc(args)
+    if args.instrument == "aqd":
+        if args.step == "hdr2cdf":
+            runaqdhdr2cdf(args)
+        elif args.step == "cdf2nc":
+            runaqdcdf2nc(args)
+    elif args.instrument == "vec":
+        if args.step == "dat2cdf":
+            runvecdat2cdf(args)
+        elif args.step == "cdf2nc":
+            runveccdf2nc(args)
+        elif args.step == "nc2waves":
+            runvecnc2waves(args)
+    elif args.instrument == "wvs":
+        if args.step == "wad2cdf":
+            runwvsdat2cdf(args)
+        elif args.step == "cdf2nc":
+            runwvscdf2nc(args)
+        elif args.step == "nc2waves":
+            runwvsnc2waves(args)
