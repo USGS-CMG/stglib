@@ -28,11 +28,23 @@ def ncarg(parser):
 
 
 def runots_parser():
-    parser.add_argument(
-        "workflow", help="OTS instrument workflow name (e.g. runaqdcdf2nc)"
+    description = "Run ocean time-series processing system."
+    parser = argparse.ArgumentParser(description=description)
+    subparsers = parser.add_subparsers(
+        title="commands",
+        required=True,
+        dest="command",
     )
 
-    parser.add_argument()
+    subparsers.add_parser("aqdhdr2cdf", parents=[aqdhdr2cdf_parser()], add_help=False)
+    subparsers.add_parser("aqdcdf2nc", parents=[aqdcdf2nc_parser()], add_help=False)
+
+    # print('*** in runots_parser, printing subparsers')
+    # print(subparsers)
+    #
+    # print('*** in runots_parser, printing parser')
+    # print(parser)
+    return parser
 
 
 def aqdhdr2cdf_parser():

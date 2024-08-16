@@ -40,14 +40,16 @@ def run_cdf_to_nc(f, args):
     return ds
 
 
-def runaqdcdf2nc():
-    args = stglib.cmd.aqdcdf2nc_parser().parse_args()
+def runaqdcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.aqdcdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.aqd.cdf2nc.cdf_to_nc, args)
 
 
-def runaqdhdr2cdf():
-    args = stglib.cmd.aqdhdr2cdf_parser().parse_args()
+def runaqdhdr2cdf(args=None):
+    if not args:
+        args = stglib.cmd.aqdhdr2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
@@ -332,3 +334,8 @@ def runsgnc2waves():
 
 def runots():
     args = stglib.cmd.runots_parser().parse_args()
+
+    if args.command == "aqdhdr2cdf":
+        runaqdhdr2cdf(args)
+    elif args.command == "aqdcdf2nc":
+        runaqdcdf2nc(args)
