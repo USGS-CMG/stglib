@@ -1,3 +1,6 @@
 initial_instrument_height: 0.71
+pressure_sensor_height: 0.71
 basefile: '051001_CSF20SC201/051001_CSF20SC201'
 filename: CSF20SC201pt
+drop_vars: T_28
+diwasp: "true"
