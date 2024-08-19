@@ -181,8 +181,9 @@ def define_cutoff(f, Pxx, Kp, noise=0.9):
 
     fpeakcut = 1.1 * f[np.argmax(Pxx)]
     fpeakcutind = np.searchsorted(f, fpeakcut)  # cutoff based on 1.1*fp
-    Kpcutind = np.argmax(Kp <= 0.1)  # cutoff based on Kp<=0.1
+    Kpcutind = np.nonzero(Kp > 0.1)[0][-1]  # cutoff keeping only Kp > 0.1
 
+    # take the more conservative of either K_p or noise cutoff
     if (noisecutind > fpeakcutind) and (noisecutind <= Kpcutind):
         tailind = noisecutind
     elif (noisecutind > fpeakcutind) and (noisecutind > Kpcutind):
