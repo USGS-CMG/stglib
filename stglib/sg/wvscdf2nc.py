@@ -15,12 +15,12 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # remove units in case we change and we can use larger time steps
     ds.time.encoding.pop("units")
 
-    # Drop sample variable
-    ds = ds.drop_vars("burst_number")
-
     # Atmospheric pressure correction
     if atmpres is not None:
-        ds = sgutils.atmos_correct(ds, atmpres)
+        ds = sgutils.atmos_correct_burst(ds, atmpres)
+
+    # Drop sample variable
+    ds = ds.drop_vars("burst_number")
 
     # Add attributes
     ds = sgutils.ds_add_attrs(ds)

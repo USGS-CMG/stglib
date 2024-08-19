@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 
 from ..core import qaqc, utils
@@ -122,30 +123,42 @@ def read_hex(filnam):
     return hexmeta
 
 
-def atmos_correct(ds, atmpres):
+def atmos_correct_burst(ds, atmpres):
     met = xr.load_dataset(atmpres)
-    # need to save attrs before the subtraction, otherwise they are lost
-    attrs = ds["P_1"].attrs
-    # need to set a tolerance since we can be off by a couple seconds somewhere
-    # TODO is this still needed?
-    ds["P_1ac"] = xr.DataArray(
-        ds["P_1"]
-        - met["atmpres"].reindex_like(ds["P_1"], method="nearest", tolerance="5s")
-        - met["atmpres"].attrs["offset"]
-    )
-    ds["P_1ac"].attrs = attrs
+    pressure = []
 
+    # Apply the correction for each burst in turn
+    ds["P_1ac"] = xr.full_like(ds["P_1"], np.nan)
+    for burst in ds.burst_number:
+        burst_pres = (
+            ds["P_1"][burst].values
+            - met["atmpres"][burst].values
+            - met["atmpres"].offset
+        )
+        burst_pres = np.reshape(burst_pres, (1, -1))
+
+        # Convert back to list to append bursts
+        burst_pres = burst_pres.tolist()
+        pressure.append(burst_pres)
+
+    # Convert to xarray
+    pressure = xr.DataArray.squeeze(
+        xr.DataArray(pressure, dims=["time", "one", "sample"], name="P_1ac")
+    )
+    ds = xr.merge([ds, pressure])
+
+    ds = utils.insert_history(
+        ds,
+        f"Atmospherically correcting using time-series from {atmpres} and offset of {met['atmpres'].offset}",
+    )
     ds.attrs["atmospheric_pressure_correction_file"] = atmpres
     ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
         "offset"
     ]
-
-    histtext = f"Atmospherically corrected using time-series from {atmpres} and offset of {met['atmpres'].offset}"
-
-    ds = utils.insert_history(ds, histtext)
-
-    # Also add it as a note
-    ds["P_1ac"].attrs["note"] = histtext
+    if "comment" in met["atmpres"].attrs:
+        ds.attrs["atmospheric_pressure_correction_comment"] = met["atmpres"].attrs[
+            "comment"
+        ]
 
     return ds
 
