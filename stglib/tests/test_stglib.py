@@ -41,10 +41,8 @@ class TestTimes(unittest.TestCase):
     def setUp(self):
         try:
             self.bbvcf = xr.open_dataset(
-                (
-                    "https://geoport.whoi.edu/thredds/dodsC/silt/usgs/Projects/"
-                    "stellwagen/CF-1.6/CHINCOTEAGUE/10191Aaqd-a.nc"
-                )
+                "https://geoport.whoi.edu/thredds/dodsC/silt/usgs/Projects/"
+                "stellwagen/CF-1.6/CHINCOTEAGUE/10191Aaqd-a.nc"
             )
             self.bbvepic = xr.open_dataset(
                 (
@@ -53,7 +51,7 @@ class TestTimes(unittest.TestCase):
                 ),
                 decode_times=False,
             )
-        except OSError:  # OSError will raise if THREDDS not available
+        except (OSError, RuntimeError):  # these can raise if THREDDS not available
             self.skipTest("Could not access THREDDS servers")
 
     def test_epic_time_conversion(self):
@@ -326,7 +324,7 @@ class TestWaves(unittest.TestCase):
                 ),
                 decode_times=False,
             )
-        except OSError:  # OSError will raise if THREDDS not available
+        except (OSError, RuntimeError):  # these can raise if THREDDS not available
             self.skipTest("Could not access THREDDS server")
 
         self.frequency = self.bbv["frequency"].squeeze()
