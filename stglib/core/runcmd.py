@@ -184,56 +184,64 @@ def runrdiraw2cdf(args=None):
     stglib.rdi.raw2cdf.raw_to_cdf(metadata)
 
 
-def runrskcdf2nc():
-    args = stglib.cmd.rskcdf2nc_parser().parse_args()
+def runrskcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.rskcdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.rsk.cdf2nc.cdf_to_nc, args)
 
 
-def runrskcsv2cdf():
-    args = stglib.cmd.rskcsv2cdf_parser().parse_args()
+def runrskcsv2cdf(args=None):
+    if not args:
+        args = stglib.cmd.rskcsv2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.rsk.csv2cdf.csv_to_cdf(metadata)
 
 
-def runrsknc2waves():
-    args = stglib.cmd.rsknc2waves_parser().parse_args()
+def runrsknc2waves(args=None):
+    if not args:
+        args = stglib.cmd.rsknc2waves_parser().parse_args()
 
     stglib.rsk.nc2waves.nc_to_waves(args.ncname)
 
 
-def runrskrsk2cdf():
-    args = stglib.cmd.rskrsk2cdf_parser().parse_args()
+def runrskrsk2cdf(args=None):
+    if not args:
+        args = stglib.cmd.rskrsk2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.rsk.rsk2cdf.rsk_to_cdf(metadata)
 
 
-def runsigcdf2nc():
-    args = stglib.cmd.sigcdf2nc_parser().parse_args()
+def runsigcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.sigcdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.sig.cdf2nc.cdf_to_nc, args)
 
 
-def runsigmat2cdf():
-    args = stglib.cmd.sigmat2cdf_parser().parse_args()
+def runsigmat2cdf(args=None):
+    if not args:
+        args = stglib.cmd.sigmat2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.sig.mat2cdf.mat_to_cdf(metadata)
 
 
-def runtrollcdf2nc():
-    args = stglib.cmd.trollcdf2nc_parser().parse_args()
+def runtrollcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.trollcdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.troll.cdf_to_nc, args)
 
 
-def runtrollcsv2cdf():
-    args = stglib.cmd.trollcsv2cdf_parser().parse_args()
+def runtrollcsv2cdf(args=None):
+    if not args:
+        args = stglib.cmd.trollcsv2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
@@ -256,96 +264,110 @@ def runvecdat2cdf(args=None):
     stglib.vec.dat2cdf.dat_to_cdf(metadata)
 
 
-def runvecnc2waves():
-    args = stglib.cmd.vecnc2waves_parser().parse_args()
+def runvecnc2waves(args=None):
+    if not args:
+        args = stglib.cmd.vecnc2waves_parser().parse_args()
 
     stglib.vec.nc2waves.nc_to_waves(args.ncname)
 
 
-def runwvscdf2nc():
-    args = stglib.cmd.wvscdf2nc_parser().parse_args()
+def runwvscdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.wvscdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.aqd.wvscdf2nc.cdf_to_nc, args)
 
 
-def runwvsnc2diwasp():
-    args = stglib.cmd.wvsnc2diwasp_parser().parse_args()
+def runwvsnc2diwasp(args=None):
+    if not args:
+        args = stglib.cmd.wvsnc2diwasp_parser().parse_args()
 
     stglib.aqd.wvsnc2diwasp.nc_to_diwasp(args.ncname)
 
 
-def runwvsnc2waves():
-    args = stglib.cmd.wvsnc2waves_parser().parse_args()
+def runwvsnc2waves(args=None):
+    if not args:
+        args = stglib.cmd.wvsnc2waves_parser().parse_args()
 
     stglib.aqd.wvsnc2waves.nc_to_waves(args.ncname)
 
 
-def runwvswad2cdf():
-    args = stglib.cmd.wvswad2cdf_parser().parse_args()
+def runwvswad2cdf(args=None):
+    if not args:
+        args = stglib.cmd.wvswad2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.aqd.wvswad2cdf.wad_to_cdf(metadata)
 
 
-def runwxtcdf2nc():
-    args = stglib.cmd.wxtcdf2nc_parser().parse_args()
+def runwxtcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.wxtcdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.wxt.cdf_to_nc, args)
 
 
-def runwxtcsv2cdf():
-    args = stglib.cmd.wxtcsv2cdf_parser().parse_args()
+def runwxtcsv2cdf(args=None):
+    if not args:
+        args = stglib.cmd.wxtcsv2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.wxt.csv_to_cdf(metadata)
 
 
-def runtcmcdf2nc():
-    args = stglib.cmd.tcmcdf2nc_parser().parse_args()
+def runtcmcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.tcmcdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.tcm.cdf_to_nc, args)
 
 
-def runtcmcsv2cdf():
-    args = stglib.cmd.tcmcsv2cdf_parser().parse_args()
+def runtcmcsv2cdf(args=None):
+    if not args:
+        args = stglib.cmd.tcmcsv2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.tcm.csv_to_cdf(metadata)
 
 
-def runmccdf2nc():
-    args = stglib.cmd.mccdf2nc_parser().parse_args()
+def runmccdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.mccdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.mc.cdf_to_nc, args)
 
 
-def runmcasc2cdf():
-    args = stglib.cmd.mcasc2cdf_parser().parse_args()
+def runmcasc2cdf(args=None):
+    if not args:
+        args = stglib.cmd.mcasc2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.mc.asc_to_cdf(metadata)
 
 
-def runsgcdf2nc():
-    args = stglib.cmd.sgcdf2nc_parser().parse_args()
+def runsgcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.sgcdf2nc_parser().parse_args()
 
     run_cdf_to_nc(stglib.sg.cdf_to_nc, args)
 
 
-def runsgtid2cdf():
-    args = stglib.cmd.sgtid2cdf_parser().parse_args()
+def runsgtid2cdf(args=None):
+    if not args:
+        args = stglib.cmd.sgtid2cdf_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.sg.tid_to_cdf(metadata)
 
 
-def runsgnc2waves():
-    args = stglib.cmd.sgnc2waves_parser().parse_args()
+def runsgnc2waves(args=None):
+    if not args:
+        args = stglib.cmd.sgnc2waves_parser().parse_args()
 
     stglib.sg.nc_to_waves(args.ncname)
 
@@ -372,3 +394,20 @@ def runots():
             runwvscdf2nc(args)
         elif args.step == "nc2waves":
             runwvsnc2waves(args)
+    elif args.instrument in ["rbr", "rsk"]:
+        if args.step == "csv2cdf":
+            runrskcsv2cdf(args)
+        elif args.step == "cdf2nc":
+            runrskcdf2nc(args)
+        elif args.step == "nc2waves":
+            runrsknc2waves(args)
+    elif args.instrument == "hobo":
+        if args.step == "csv2cdf":
+            runhobocsv2cdf(args)
+        elif args.step == "cdf2nc":
+            runhobocdf2nc(args)
+    elif args.instrument == "iq":
+        if args.step == "mat2cdf":
+            runiqmat2cdf(args)
+        elif args.step == "cdf2nc":
+            runiqcdf2nc(args)

@@ -67,6 +67,34 @@ def runots_parser():
     instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
     instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
 
+    inst = subparsers.add_parser("rbr", add_help=False)
+    instsp = inst.add_subparsers(
+        title="steps",
+        required=True,
+        dest="step",
+    )
+    instsp.add_parser("csv2cdf", parents=[inst2cdf_parser()], add_help=False)
+    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+    instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
+
+    inst = subparsers.add_parser("hobo", add_help=False)
+    instsp = inst.add_subparsers(
+        title="steps",
+        required=True,
+        dest="step",
+    )
+    instsp.add_parser("csv2cdf", parents=[inst2cdf_parser()], add_help=False)
+    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+
+    inst = subparsers.add_parser("iq", add_help=False)
+    instsp = inst.add_subparsers(
+        title="steps",
+        required=True,
+        dest="step",
+    )
+    instsp.add_parser("mat2cdf", parents=[inst2cdf_parser()], add_help=False)
+    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+
     return parser
 
 
