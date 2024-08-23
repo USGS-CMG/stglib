@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from ..core import utils
@@ -73,9 +74,11 @@ def read_wb(filnam, encoding="utf-8"):
 def int_to_date(int_time):
     """Read integer time in seconds since January 1, 2000 and convert to datetime"""
 
-    t0 = np.datetime64("2000-01-01T00:00:00")
+    dt = pd.Timestamp("2000-01-01T00:00:00") + pd.to_timedelta(int_time, unit="s")
 
-    dt = t0 + int_time.astype("timedelta64[s]")
+    # This gave me a nanosecond precision error
+    # t0 = np.datetime64("2000-01-01T00:00:00")
+    # dt = t0 + int_time.astype("timedelta64[s]")
 
     return dt
 
