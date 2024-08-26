@@ -2,6 +2,7 @@ import numpy as np
 import xarray as xr
 
 from ..core import utils, waves
+from . import aqdutils
 
 
 def nc_to_diwasp(nc_filename):
@@ -9,11 +10,7 @@ def nc_to_diwasp(nc_filename):
     Process burst data to wave statistics by using DIWASP output from Matlab
     """
 
-    ds = utils.open_time_2d_dataset(nc_filename)
-
-    ds = utils.epic_to_cf_time(ds)
-
-    ds = utils.create_epic_times(ds)
+    ds = xr.load_dataset(nc_filename)
 
     mat = xr.load_dataset(ds.attrs["filename"] + "wvs-diwasp.nc")
 
@@ -28,7 +25,6 @@ def nc_to_diwasp(nc_filename):
     _, idx = np.unique(dirs, return_index=True)
 
     ds["direction"] = xr.DataArray(dirs[idx], dims=("direction"))
-    ds["direction"].encoding["_FillValue"] = None
 
     ds["dspec"] = xr.DataArray(
         mat["dspec"][:, idx, :], dims=("time", "direction", "frequency")
@@ -61,10 +57,6 @@ def nc_to_diwasp(nc_filename):
         ),
         dims="time",
     )
-
-    # ds = utils.create_water_depth(ds)
-
-    ds = utils.create_water_depth_var(ds)
 
     # Remove old variables as we just want to keep the wave statistics
     for v in [
@@ -108,26 +100,16 @@ def nc_to_diwasp(nc_filename):
     ds = utils.trim_wp_ratio(ds)
 
     # Add attrs
-    ds = utils.ds_add_attrs(ds)
+    ds = aqdutils.ds_add_attrs(ds, waves=True)
 
     ds = utils.ds_add_diwasp_history(ds)
-
-    # add lat/lon coordinates to each variable
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            # ds = utils.add_lat_lon(ds, var)
-            # cast as float32
-            ds = utils.set_var_dtype(ds, var)
-
-    # remove lat and lon from burst dimension: they are singleton so can
-    # remove them both with one call to squeeze()
-    ds["burst"] = ds["burst"].squeeze()
 
     nc_filename = ds.attrs["filename"] + "wvs_diwasp-cal.nc"
 
     print("Writing to netCDF")
 
-    ds.to_netcdf(nc_filename, format=format)
+    ds.to_netcdf(nc_filename)
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done creating", nc_filename)
 

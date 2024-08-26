@@ -1018,7 +1018,7 @@ def create_z(ds):
                 elif ds.attrs["orientation"].upper() == "UP":
                     depvar = np.nanmean(ds["D_3"]) - ds["bindist"].values
             else:
-                depvar = np.nanmean(ds["P_1ac"])
+                depvar = np.nanmean(ds["D_3"])
             name = "sea_floor_depth_below_mean_sea_level"
             longname = "depth below mean sea level from data"
         elif "P_1ac" in ds:
@@ -1338,7 +1338,7 @@ def read_globalatts(fname):
 
     metadata = {}
 
-    with open(fname, "r") as csvfile:
+    with open(fname) as csvfile:
         a = csv.reader(csvfile, delimiter=";")
 
         for row in a:
