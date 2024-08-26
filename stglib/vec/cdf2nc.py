@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from dask.diagnostics import ProgressBar
+from tqdm import tqdm
 
 from ..aqd import aqdutils
 from ..core import qaqc, transform, utils
@@ -363,9 +364,12 @@ def reshape(ds):
     # find times of first sample in each burst
     t = ds["time"][ds["sample"].values == 1]
     # get corresponding burst number
-    b_num = ds["burst"][ds["sample"].values == 1]
-
-    for i in np.arange(0, len(t)):
+    b_num = ds["burst"].sel(time=t)
+    # initialize arrays
+    s = np.zeros_like(ds.time, dtype=int)
+    t3 = np.zeros_like(ds.time)
+    sidx = 0
+    for i in tqdm(np.arange(0, len(t))):
         t2, samp = np.meshgrid(
             t[i],
             ds["sample"].sel(
@@ -376,12 +380,9 @@ def reshape(ds):
             ),
         )
 
-        if i == 0:
-            s = np.array(samp.transpose().flatten())
-            t3 = np.array(t2.transpose().flatten())
-        else:
-            s = np.append(s, samp.transpose().flatten())
-            t3 = np.append(t3, t2.transpose().flatten())
+        s[sidx : sidx + len(samp)] = samp.transpose().flatten()
+        t3[sidx : sidx + len(t2)] = t2.transpose().flatten()
+        sidx = sidx + len(samp)
 
     ind = pd.MultiIndex.from_arrays((t3, s), names=("new_time", "new_sample"))
 
