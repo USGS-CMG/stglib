@@ -1400,21 +1400,21 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
 
 
 def check_valid_config_metadata(metadata, inst_type="AQD"):
-    vars = [
+    varis = [
         "initial_instrument_height",
         "basefile",
         "filename",
         "Conventions",
     ]
 
-    if inst_type == "AQD" or inst_type == "VEC":
-        vars.append("orientation")
+    if inst_type in ("AQD", "VEC"):
+        varis.append("orientation")
 
     if inst_type == "VEC":
-        vars.append("pressure_sensor_height")
-        vars.append("velocity_sample_volume_height")
+        varis.append("pressure_sensor_height")
+        varis.append("velocity_sample_volume_height")
 
-    for k in vars:
+    for k in varis:
         if k not in metadata:
             raise KeyError(f"{k} must be defined, most likely in YAML config file")
 
@@ -1549,7 +1549,7 @@ def average_burst(ds):
     dint = {}
     intlist = []
     for var in ds.data_vars:
-        if ds[var].dtype == int or ds[var].dtype == np.int64:
+        if ds[var].dtype in (int, np.int64):
             dtypestr = ds[var].dtype
             d = {var: dtypestr}
             dint.update(d)

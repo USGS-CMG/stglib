@@ -191,7 +191,7 @@ def cdf_to_nc(cdf_filename):
 
 
 def read_ea_instmet(basefile):
-    with open(basefile, "r") as f:
+    with open(basefile) as f:
         instmeta = {}
         row = ""
         while "##DataStart" not in row:
@@ -237,7 +237,7 @@ def read_ea_instmet(basefile):
 
 
 def load_ea_point(basefile, metadata):
-    with open(basefile, "r") as f:
+    with open(basefile) as f:
         data = f.read().splitlines()
 
         point = {}
@@ -741,7 +741,7 @@ def average_burst(ds):
 
 
 def read_aa_instmet(basefile):
-    with open(basefile, "r") as f:
+    with open(basefile) as f:
         instmeta = {}
         row = ""
         while "   Date       Time" not in row:
@@ -777,7 +777,7 @@ def read_aa_instmet(basefile):
 
 
 def load_aa_point(basefile, metadata):
-    with open(basefile, "r") as f:
+    with open(basefile) as f:
         if "skiprows" in metadata:
             for k in np.arange(0, metadata["skiprows"]):
                 line = f.readline()
@@ -789,6 +789,7 @@ def load_aa_point(basefile, metadata):
             line = f.readline()
 
         data = f.read().splitlines()
+        data = data[0 : metadata["instmeta"]["NRecords"]]
 
         point = {}
 
