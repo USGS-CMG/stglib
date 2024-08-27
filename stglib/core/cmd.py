@@ -27,8 +27,26 @@ def ncarg(parser):
     parser.add_argument("ncname", help="processed .nc filename")
 
 
+def addcdf2nc(instsp):
+    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+
+
+def addnc2waves(instsp):
+    instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
+
+
+def addinst2cdf(instsp, action):
+    instsp.add_parser(action, parents=[inst2cdf_parser()], add_help=False)
+
+
+def add_instrument(subparsers, instrument):
+    inst = subparsers.add_parser(instrument, add_help=False)
+    instsp = inst.add_subparsers(title="steps", required=True, dest="step")
+    return instsp
+
+
 def runots_parser():
-    description = "Run ocean time-series processing system."
+    description = "Run USGS CMHRP ocean time-series data processing system."
     parser = argparse.ArgumentParser(description=description)
     subparsers = parser.add_subparsers(
         title="instruments",
@@ -36,64 +54,77 @@ def runots_parser():
         dest="instrument",
     )
 
-    # subparsers.add_parser("aqdhdr2cdf", parents=[aqdhdr2cdf_parser()], add_help=False)
-    # subparsers.add_parser("aqdcdf2nc", parents=[aqdcdf2nc_parser()], add_help=False)
-    inst = subparsers.add_parser("aqd", add_help=False)
-    instsp = inst.add_subparsers(
-        title="steps",
-        required=True,
-        dest="step",
-    )
-    instsp.add_parser("hdr2cdf", parents=[inst2cdf_parser()], add_help=False)
-    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+    instsp = add_instrument(subparsers, "aqd")
+    addinst2cdf(instsp, "hdr2cdf")
+    addcdf2nc(instsp)
 
-    inst = subparsers.add_parser("vec", add_help=False)
-    instsp = inst.add_subparsers(
-        title="steps",
-        required=True,
-        dest="step",
-    )
-    instsp.add_parser("dat2cdf", parents=[inst2cdf_parser()], add_help=False)
-    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
-    instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
+    instsp = add_instrument(subparsers, "aqdhr")
+    addinst2cdf(instsp, "hdr2cdf")
+    addcdf2nc(instsp)
 
-    inst = subparsers.add_parser("wvs", add_help=False)
-    instsp = inst.add_subparsers(
-        title="steps",
-        required=True,
-        dest="step",
-    )
-    instsp.add_parser("wad2cdf", parents=[inst2cdf_parser()], add_help=False)
-    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
-    instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
+    instsp = add_instrument(subparsers, "wvs")
+    addinst2cdf(instsp, "wad2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
 
-    inst = subparsers.add_parser("rbr", add_help=False)
-    instsp = inst.add_subparsers(
-        title="steps",
-        required=True,
-        dest="step",
-    )
-    instsp.add_parser("csv2cdf", parents=[inst2cdf_parser()], add_help=False)
-    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
-    instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
+    instsp = add_instrument(subparsers, "rbr")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
 
-    inst = subparsers.add_parser("hobo", add_help=False)
-    instsp = inst.add_subparsers(
-        title="steps",
-        required=True,
-        dest="step",
-    )
-    instsp.add_parser("csv2cdf", parents=[inst2cdf_parser()], add_help=False)
-    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+    instsp = add_instrument(subparsers, "sig")
+    addinst2cdf(instsp, "mat2cdf")
+    addcdf2nc(instsp)
 
-    inst = subparsers.add_parser("iq", add_help=False)
-    instsp = inst.add_subparsers(
-        title="steps",
-        required=True,
-        dest="step",
-    )
-    instsp.add_parser("mat2cdf", parents=[inst2cdf_parser()], add_help=False)
-    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+    instsp = add_instrument(subparsers, "vec")
+    addinst2cdf(instsp, "dat2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+
+    instsp = add_instrument(subparsers, "eco")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "eofe")
+    addinst2cdf(instsp, "log2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "exo")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "hobo")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "iq")
+    addinst2cdf(instsp, "mat2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "lisst")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "mc")
+    addinst2cdf(instsp, "asc2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "sg")
+    addinst2cdf(instsp, "tid2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+
+    instsp = add_instrument(subparsers, "tcm")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "troll")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "wxt")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
 
     return parser
 
