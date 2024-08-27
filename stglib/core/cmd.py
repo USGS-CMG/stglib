@@ -41,16 +41,12 @@ def addinst2cdf(instsp, action):
 
 def add_instrument(subparsers, instrument):
     inst = subparsers.add_parser(instrument, add_help=False)
-    instsp = inst.add_subparsers(
-        title="steps",
-        required=True,
-        dest="step",
-    )
+    instsp = inst.add_subparsers(title="steps", required=True, dest="step")
     return instsp
 
 
 def runots_parser():
-    description = "Run ocean time-series processing system."
+    description = "Run USGS CMHRP ocean time-series data processing system."
     parser = argparse.ArgumentParser(description=description)
     subparsers = parser.add_subparsers(
         title="instruments",
