@@ -27,102 +27,113 @@ def ncarg(parser):
     parser.add_argument("ncname", help="processed .nc filename")
 
 
-def addcdf2nc(instsp):
-    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+def addcdf2nc(instsp, description="Convert raw .cdf to clean .nc"):
+    instsp.add_parser(
+        "cdf2nc", parents=[cdf2nc_parser()], add_help=False, description=description
+    )
 
 
 def addnc2waves(instsp):
     instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
 
 
-def addinst2cdf(instsp, action):
-    instsp.add_parser(action, parents=[inst2cdf_parser()], add_help=False)
+def addinst2cdf(instsp, action, description="Convert instrument data to raw .cdf"):
+    instsp.add_parser(
+        action, parents=[inst2cdf_parser()], add_help=False, description=description
+    )
 
 
-def add_instrument(subparsers, instrument):
-    inst = subparsers.add_parser(instrument, add_help=False)
-    instsp = inst.add_subparsers(title="steps", required=True, dest="step")
+def add_instrument(subparsers, instrument, description=None):
+    inst = subparsers.add_parser(instrument, description=description)
+    instsp = inst.add_subparsers(
+        title="Steps",
+        required=True,
+        dest="step",
+        description="Specify one of the steps in the list below",
+    )
     return instsp
 
 
 def runots_parser():
-    description = "Run USGS CMHRP ocean time-series data processing system."
-    parser = argparse.ArgumentParser(description=description)
+    parser = argparse.ArgumentParser(
+        description="Run USGS CMHRP ocean time-series data processing system."
+    )
     subparsers = parser.add_subparsers(
-        title="instruments",
+        title="Instruments",
         required=True,
         dest="instrument",
+        description="Specify one of the instruments in the list below",
     )
 
-    instsp = add_instrument(subparsers, "aqd")
+    instsp = add_instrument(subparsers, "aqd", "Aquadopp (currents)")
     addinst2cdf(instsp, "hdr2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "aqdhr")
+    instsp = add_instrument(subparsers, "aqdhr", "Aquadopp HR")
     addinst2cdf(instsp, "hdr2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "wvs")
+    instsp = add_instrument(subparsers, "wvs", "Aquadopp Waves")
     addinst2cdf(instsp, "wad2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
 
-    instsp = add_instrument(subparsers, "rbr")
+    instsp = add_instrument(subparsers, "rbr", "RBR")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
 
-    instsp = add_instrument(subparsers, "sig")
+    instsp = add_instrument(subparsers, "sig", "Nortek Signature")
     addinst2cdf(instsp, "mat2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "vec")
+    instsp = add_instrument(subparsers, "vec", "Nortek Vector")
     addinst2cdf(instsp, "dat2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
 
-    instsp = add_instrument(subparsers, "eco")
+    instsp = add_instrument(subparsers, "eco", "WET Labs ECO")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "eofe")
+    instsp = add_instrument(subparsers, "eofe", "EofE ECHOLOGGER")
     addinst2cdf(instsp, "log2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "exo")
+    instsp = add_instrument(subparsers, "exo", "YSI EXO")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "hobo")
+    instsp = add_instrument(subparsers, "hobo", "Onset HOBO")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "iq")
+    instsp = add_instrument(subparsers, "iq", "SonTek IQ")
     addinst2cdf(instsp, "mat2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "lisst")
+    instsp = add_instrument(subparsers, "lisst", "Sequoia Scientific LISST")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "mc")
+    instsp = add_instrument(subparsers, "mc", "Seabird MicroCAT")
     addinst2cdf(instsp, "asc2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "sg")
+    instsp = add_instrument(subparsers, "sg", "Seabird Seagauge")
     addinst2cdf(instsp, "tid2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
 
-    instsp = add_instrument(subparsers, "tcm")
+    instsp = add_instrument(subparsers, "tcm", "Lowell Tilt Current Meter")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "troll")
+    instsp = add_instrument(subparsers, "troll", "AquaTROLL")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "wxt")
+    instsp = add_instrument(subparsers, "wxt", "Vaisala WXT")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
 
@@ -139,9 +150,10 @@ def inst2cdf_parser(description="Convert instrument files to raw .cdf format"):
     return parser
 
 
-def cdf2nc_parser():
+def cdf2nc_parser(
+    description="Convert raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure",
+):
     """generic parser for raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure"""
-    description = "Convert raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
     parser = argparse.ArgumentParser(description=description)
     cdfarg(parser)
     atmarg(parser)
@@ -149,9 +161,8 @@ def cdf2nc_parser():
     return parser
 
 
-def nc2waves_parser():
+def nc2waves_parser(description="Generate wave-statistics file"):
     """generic parser for processed .nc to wave statistics"""
-    description = "Generate waves statistics file"
     parser = argparse.ArgumentParser(description=description)
     ncarg(parser)
 
