@@ -83,6 +83,7 @@ setup(
             "runsgtid2cdf.py=stglib.core.runcmd:runsgtid2cdf",
             "runsgcdf2nc.py=stglib.core.runcmd:runsgcdf2nc",
             "runsgnc2waves.py=stglib.core.runcmd:runsgnc2waves",
+            "runots=stglib.core.runcmd:runots",
         ],
     },
     include_package_data=True,

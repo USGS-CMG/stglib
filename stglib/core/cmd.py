@@ -27,6 +27,137 @@ def ncarg(parser):
     parser.add_argument("ncname", help="processed .nc filename")
 
 
+def addcdf2nc(instsp):
+    instsp.add_parser("cdf2nc", parents=[cdf2nc_parser()], add_help=False)
+
+
+def addnc2waves(instsp):
+    instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
+
+
+def addinst2cdf(instsp, action):
+    instsp.add_parser(action, parents=[inst2cdf_parser()], add_help=False)
+
+
+def add_instrument(subparsers, instrument):
+    inst = subparsers.add_parser(instrument, add_help=False)
+    instsp = inst.add_subparsers(title="steps", required=True, dest="step")
+    return instsp
+
+
+def runots_parser():
+    description = "Run USGS CMHRP ocean time-series data processing system."
+    parser = argparse.ArgumentParser(description=description)
+    subparsers = parser.add_subparsers(
+        title="instruments",
+        required=True,
+        dest="instrument",
+    )
+
+    instsp = add_instrument(subparsers, "aqd")
+    addinst2cdf(instsp, "hdr2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "aqdhr")
+    addinst2cdf(instsp, "hdr2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "wvs")
+    addinst2cdf(instsp, "wad2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+
+    instsp = add_instrument(subparsers, "rbr")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+
+    instsp = add_instrument(subparsers, "sig")
+    addinst2cdf(instsp, "mat2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "vec")
+    addinst2cdf(instsp, "dat2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+
+    instsp = add_instrument(subparsers, "eco")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "eofe")
+    addinst2cdf(instsp, "log2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "exo")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "hobo")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "iq")
+    addinst2cdf(instsp, "mat2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "lisst")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "mc")
+    addinst2cdf(instsp, "asc2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "sg")
+    addinst2cdf(instsp, "tid2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+
+    instsp = add_instrument(subparsers, "tcm")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "troll")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "wxt")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
+    return parser
+
+
+def inst2cdf_parser(description="Convert instrument files to raw .cdf format"):
+    """generic parser for instrument data to raw .cdf; requires gatts and yaml"""
+    # description = "Convert Aquadopp text files to raw .cdf format. Run this script from the directory containing Aquadopp files."
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def cdf2nc_parser():
+    """generic parser for raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure"""
+    description = "Convert raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+    parser = argparse.ArgumentParser(description=description)
+    cdfarg(parser)
+    atmarg(parser)
+
+    return parser
+
+
+def nc2waves_parser():
+    """generic parser for processed .nc to wave statistics"""
+    description = "Generate waves statistics file"
+    parser = argparse.ArgumentParser(description=description)
+    ncarg(parser)
+
+    return parser
+
+
 def aqdhdr2cdf_parser():
     description = "Convert Aquadopp text files to raw .cdf format. Run this script from the directory containing Aquadopp files."
     parser = argparse.ArgumentParser(description=description)
