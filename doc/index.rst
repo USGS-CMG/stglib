@@ -47,6 +47,7 @@ We have plans to support:
    config
    atmos
    waves
+   Processing data with runouts (use this!) <runots>
    aqd
    aqdhr
    wvs

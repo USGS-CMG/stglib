@@ -16,7 +16,9 @@ The user will call ``runots`` from the command line, with arguments described be
 
 ``runots aqd hdr2cdf gatts_file.txt config_file.yaml``
 
-The above command will run step 1 (instrument data to raw CDF) for an Aquadopp collecting in currents mode.
+The above command specifies ``aqd`` (Aquadopp collecting in currents mode) and ``hdr2cdf`` (step 1 above, instrument data to raw CDF), using the specified :doc:`configuration files </config>`.
+
+To get to the final .nc file, the user would then run ``runots aqd cdf2nc raw_cdf_file_name.cdf``
 
 runots
 ------
