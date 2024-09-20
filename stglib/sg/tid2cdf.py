@@ -10,7 +10,7 @@ def read_tid(filnam, encoding="utf-8"):
         filnam,
         header=None,
         sep=r"\s+",
-        names=["Sample", "Date", "Time", "P_1", "Temp"],
+        names=["sample", "Date", "Time", "P_1", "Temp"],
         parse_dates={"time": ["Date", "Time"]},
         encoding=encoding,
         index_col=False,
@@ -22,9 +22,10 @@ def read_tid(filnam, encoding="utf-8"):
 
 def tid_to_cdf(metadata):
     """
-    Load a raw .tid and .hex file and generate a .cdf file
+    Load a raw .tid (or .wb with config.yaml arguments) and .hex file and generate a .cdf file
     """
     basefile = metadata["basefile"]
+    file_type = metadata["file_type"]
 
     # Get metadata from .hex file
     hexmeta = sgutils.read_hex(basefile + ".hex")
@@ -33,7 +34,10 @@ def tid_to_cdf(metadata):
     metadata.update(hexmeta)
 
     # Read in data
-    ds = read_tid(basefile + ".tid")
+    if file_type == ".tid":
+        ds = read_tid(basefile + file_type)
+    elif file_type == ".wb":
+        ds = sgutils.read_wb(basefile + file_type)
 
     # Convert pressure from psia to dbar
     ds["P_1"] = ds.P_1 / 14.503773800722 * 10
