@@ -12,9 +12,6 @@ def nc_to_waves(nc_filename):
 
     ds = xr.open_dataset(nc_filename)
 
-    # Convert Hertz to sample interval in seconds
-    ds.attrs["sample_interval"] = 1 / float(ds.attrs["WaveSampleRate"])
-
     # Check to see if need to make smaller wave bursts from really long wave bursts
     if "calculated_wave_interval" in ds.attrs:
         # Divide large burst into smaller bursts at specified calculated_wave_interval
@@ -31,7 +28,6 @@ def nc_to_waves(nc_filename):
     for k in ["P_1", "P_1ac", "sample", "T_28"]:
         if k in ds:
             ds = ds.drop_vars(k)
-    del ds.attrs["sample_interval"]  # Delete because info already in gatts
 
     ds = qaqc.drop_vars(ds)
 

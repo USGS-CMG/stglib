@@ -211,15 +211,15 @@ def read_hex(filnam):
             hexmeta["TideIntervalUnits"] = col[5][:-1]
             hexmeta["TideDuration"] = col[8]
             hexmeta["TideDurationUnits"] = col[9]
-        elif "measure waves every" in row:
-            col = row.split()
-            hexmeta["WaveInterval"] = col[3]
-            hexmeta["WaveIntervalUnits"] = col[4] + " " + col[5]
+        # elif "measure waves every" in row:
+        #     col = row.split()
+        #     hexmeta["WaveInterval"] = col[3]
+        #     hexmeta["WaveIntervalUnits"] = col[4] + " " + col[5]
         elif "wave samples/burst" in row:
             col = row.split()
             hexmeta["WaveSamples"] = col[0][1:]
-            hexmeta["WaveSampleRate"] = col[4]
-            hexmeta["WaveSampleRateUnits"] = col[5][:-1]
+            hexmeta["sample_rate"] = col[4]
+            hexmeta["sample_rate_units"] = col[5][:-1]
             hexmeta["BurstDuration"] = col[8]
             hexmeta["BurstDurationUnits"] = col[9]
         elif "tide samples/day" in row:

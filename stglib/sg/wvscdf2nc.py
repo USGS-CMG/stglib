@@ -19,8 +19,14 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     if atmpres is not None:
         ds = sgutils.atmos_correct_burst(ds, atmpres)
 
-    # Drop sample variable
-    ds = ds.drop_vars("burst_number")
+    # Drop variables
+    ds = ds.drop("burst_number")
+
+    # Edit metadata depending
+    ds = ds_drop_meta(ds)
+
+    # Add sample_interval to metadata (Convert Hertz to sample interval in seconds)
+    ds.attrs["sample_interval"] = 1 / float(ds.attrs["sample_rate"])
 
     # Add attributes
     ds = sgutils.ds_add_attrs(ds)
@@ -47,3 +53,27 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print(f"Done writing netCDF file {nc_filename}")
+
+
+def ds_drop_meta(ds):
+    """
+    Drop global attribute metadata not needed for .wb file
+    """
+    gatts = [
+        "calculated_tide_interval",
+        "calculated_tide_interval_units",
+        "calculated_tide_duration",
+        "calculated_tide_duration_units",
+        "TideInterval",
+        "TideIntervalUnits",
+        "TideDuration",
+        "TideDurationUnits",
+        "TideSamplesPerDay",
+        "NumberOfTideMeasurements",
+    ]
+
+    # Check to make sure they exist
+    for k in gatts:
+        if k in ds.attrs:
+            del ds.attrs[k]
+    return ds

@@ -16,13 +16,13 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # Load raw .cdf data
     ds = xr.open_dataset(cdf_filename)
 
+    # Atmospheric pressure correction
+    if atmpres is not None:
+        ds = sgutils.atmos_correct_burst(ds, atmpres)
+
     # If .wb file, split into tide bursts
     if ds.attrs["file_type"] == ".wb":
         ds = avg_tide_bursts(ds)
-
-    # Atmospheric pressure correction
-    if atmpres is not None:
-        ds = utils.atmos_correct(ds, atmpres)
 
     # Rename variables to CF compliant names
     ds = ds_rename_vars(ds)
@@ -72,19 +72,6 @@ def ds_rename_vars(ds):
         if k in ds:
             newvars[k] = varnames[k]
     return ds.rename(newvars)
-
-
-# def ds_drop_vars(ds):
-#     """
-#     Drop unneeded variables
-#     """
-#     varnames = ["sample", "burst_number","P_1"]
-
-#     # Check to make sure they exist
-#     for k in varnames:
-#         if k in ds:
-#             ds = ds.drop[k]
-#     return ds
 
 
 def ds_drop_tid(ds):
@@ -171,8 +158,9 @@ def avg_tide_bursts(ds):
     delta_t = int(ds.attrs["calculated_tide_interval"])
     delta_t = str(delta_t) + "s"
 
-    # Reshape pressure bursts and average
-    burst = []
+    # Reshape P_1 and P_1ac pressure bursts and average
+    P1_avg = []
+    P1ac_avg = []
     timestamp = []
     for t in range(0, ds["time"].size):
 
@@ -183,22 +171,19 @@ def avg_tide_bursts(ds):
         timestamp.append(new_time)
 
         # Trim incomplete bursts
-        indiv_burst = ds["P_1"].isel(time=t, sample=slice(0, no_values))
+        P1_trim_burst = ds["P_1"].isel(time=t, sample=slice(0, no_values))
+        P1ac_trim_burst = ds["P_1ac"].isel(time=t, sample=slice(0, no_values))
 
         # Reshape
-        new_burst = np.reshape(indiv_burst.values, (rows, cols))
+        new_P1_burst = np.reshape(P1_trim_burst.values, (rows, cols))
+        new_P1ac_burst = np.reshape(P1ac_trim_burst.values, (rows, cols))
 
         # Average burst for tide duration
-        # for j in range(0,new_burst.shape[0]):
-        #     avg_pres=np.mean(new_burst.isel(time=j, sample=slice(0,values_avg))))
-        #     #avg_pres=np.mean(np.array(ds["P_1"].isel(time=j, sample=slice(0,values_avg))))
-        #     # avg_pres = avg_pres.tolist()
-        #     burst.append(avg_pres)
-
-        # Average burst for tide duration
-        for j in range(0, new_burst.shape[0]):
-            avg_pres = np.mean(new_burst[j, slice(0, values_avg)])
-            burst.append(avg_pres)
+        for j in range(0, new_P1_burst.shape[0]):
+            avg_pres_P1 = np.mean(new_P1_burst[j, slice(0, values_avg)])
+            avg_pres_P1ac = np.mean(new_P1ac_burst[j, slice(0, values_avg)])
+            P1_avg.append(avg_pres_P1)
+            P1ac_avg.append(avg_pres_P1ac)
 
     # Append all timestamps to array
     date = np.concatenate(timestamp)
@@ -211,7 +196,7 @@ def avg_tide_bursts(ds):
 
     # Make new xarray with averaged data
     ds = xr.Dataset(
-        data_vars=dict(P_1=(["time"], burst)),
+        data_vars=dict(P_1=(["time"], P1_avg), P_1ac=(["time"], P1ac_avg)),
         coords=dict(time=date),
     )
 
