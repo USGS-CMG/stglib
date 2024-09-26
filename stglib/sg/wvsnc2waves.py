@@ -59,36 +59,30 @@ def make_wave_bursts(ds):
         ds.attrs["calculated_wave_interval"] / ds.attrs["sample_interval"]
     )
 
-    # Multiply dimensions of P_1 to get total number of samples
-    # no_of_samples = np.shape(ds.P_1)[0] * np.shape(ds.P_1)[1]
-
-    # Calculate remaining rows if number of samples is not a multiple of bursts
-    # rem = no_of_samples % ds.attrs["samples_per_burst"]
-    # if rem:
-    #     print(
-    #         "Number of rows is not a multiple of samples_per_burst; truncating to last full burst"
-    #     )
-    #     ds = ds.sel(time=ds.time[0:-rem])
-
-    ds.time.encoding.pop("dtype")
-
     # Calculate how many rows to subdivide each burst
     rows = float(ds.attrs["BurstDuration"]) / float(
         ds.attrs["calculated_wave_interval"]
     )
 
-    # Calculate time difference for each row
-    delta_t = int(float(ds.attrs["TideInterval"]) / rows)
+    # Define time interval
+    delta_t = int(ds.attrs["calculated_wave_interval"])
+    delta_t = str(delta_t) + "s"
 
-    last_time = ds.time[-1].values + np.timedelta64(
-        int(float(ds.attrs["TideInterval"]) - delta_t), "m"
-    )
+    timestamp = []
+    for t in range(0, ds["time"].size):
 
-    delta_t = str(delta_t) + "min"
+        # Make timestamp
+        new_time = np.array(
+            pd.date_range(start=ds.time[t].values, periods=rows, freq=delta_t)
+        )
+        timestamp.append(new_time)
 
-    new_date_rng = pd.date_range(start=ds.time[0].values, end=last_time, freq=delta_t)
+    # Append all timestamps to array
+    ds["date"] = np.concatenate(timestamp)
 
-    ds["new_time"] = xr.DataArray(new_date_rng, dims="new_time")
+    # new_date_rng = pd.date_range(start=ds.time[0].values, end=last_time, freq=delta_t)
+
+    # ds["new_time"] = xr.DataArray(new_date_rng, dims="new_time")
 
     ds["new_sample"] = xr.DataArray(
         range(ds.attrs["samples_per_burst"]), dims="new_sample"
@@ -99,7 +93,7 @@ def make_wave_bursts(ds):
             attrsbak = ds[v].attrs
             ds[v] = xr.DataArray(
                 np.reshape(ds[v].values, (-1, int(ds.attrs["samples_per_burst"]))),
-                dims=["new_time", "new_sample"],
+                dims=["date", "new_sample"],
             )
             ds[v].attrs = attrsbak
 
@@ -110,6 +104,6 @@ def make_wave_bursts(ds):
     ds = ds.drop("sampleold")
 
     ds = ds.rename({"new_sample": "sample"})
-    ds = ds.rename({"new_time": "time"})
+    ds = ds.rename({"date": "time"})
 
     return ds
