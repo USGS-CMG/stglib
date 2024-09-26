@@ -59,10 +59,10 @@ def ds_drop_meta(ds):
     Drop global attribute metadata not needed for .wb file
     """
     gatts = [
-        "calculated_tide_interval",
-        "calculated_tide_interval_units",
-        "calculated_tide_duration",
-        "calculated_tide_duration_units",
+        # "calculated_tide_interval",
+        # "calculated_tide_interval_units",
+        # "calculated_tide_duration",
+        # "calculated_tide_duration_units",
         "TideInterval",
         "TideIntervalUnits",
         "TideDuration",
