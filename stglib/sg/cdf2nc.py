@@ -82,14 +82,14 @@ def ds_drop_tid(ds):
         "WaveInterval",
         "WaveIntervalUnits",
         "WaveSamples",
-        "WaveSampleRate",
-        "WaveSampleRateUnits",
+        "sample_rate",
+        "sample_rate_units",
         "BurstDuration",
         "BurstDurationUnits",
         "WaveBurstsPerDay",
         "NumberOfWaveBursts",
-        "calculated_wave_interval",
-        "calculated_wave_interval_units",
+        # "calculated_wave_interval",
+        # "calculated_wave_interval_units",
     ]
 
     # Check to make sure they exist
@@ -107,14 +107,14 @@ def ds_drop_wb(ds):
         "WaveInterval",
         "WaveIntervalUnits",
         "WaveSamples",
-        "WaveSampleRate",
-        "WaveSampleRateUnits",
+        "sample_rate",
+        "sample_rate_units",
         "BurstDuration",
         "BurstDurationUnits",
         "WaveBurstsPerDay",
         "NumberOfWaveBursts",
-        "calculated_wave_interval",
-        "calculated_wave_interval_units",
+        # "calculated_wave_interval",
+        # "calculated_wave_interval_units",
         "TideInterval",
         "TideIntervalUnits",
         "TideDuration",
@@ -139,19 +139,19 @@ def avg_tide_bursts(ds):
 
     # Calculate how many columns to subdivide each wave burst
     cols = int(
-        float(ds.attrs["calculated_tide_interval"]) * float(ds.attrs["WaveSampleRate"])
+        float(ds.attrs["calculated_tide_interval"]) * float(ds.attrs["sample_rate"])
     )
 
     # Calculate number of values that can be used from each wave burst
     no_values = int(
         float(ds.attrs["calculated_tide_interval"])
-        * float(ds.attrs["WaveSampleRate"])
+        * float(ds.attrs["sample_rate"])
         * rows
     )
 
     # Calculate number of values to average based on tide duration
     values_avg = int(
-        float(ds.attrs["calculated_tide_duration"]) * float(ds.attrs["WaveSampleRate"])
+        float(ds.attrs["calculated_tide_duration"]) * float(ds.attrs["sample_rate"])
     )
 
     # Define time interval
