@@ -11,43 +11,13 @@ For more information, see "The Comprehensive Manual - Velocimeters" available fr
 
 The ``orientation`` variable (indicating the probe head orientation) in the config file is required and the user will be warned if it does not match what the instrument reports.
 
-Instrument data to raw .cdf
-===========================
+Processing data
+===============
 
 First, export data from the Vector software to text format.
 
-Convert from text to a raw netCDF file with ``.cdf`` extension using runvechdr2cdf.py. This script
-depends on two arguments, the global attribute file and extra configuration information :doc:`configuration files </config>`.
+Then use :doc:`runots </runots>` to process using the two :doc:`configuration files </config>`.
 
-runvecdat2cdf.py
-----------------
-
-.. argparse::
-   :ref: stglib.core.cmd.vechdr2cdf_parser
-   :prog: runvecdat2cdf.py
-
-Raw .cdf to CF-compliant .nc
-============================
-
-Convert the raw .cdf data into an CF-compliant netCDF file with .nc extension, optionally including :doc:`atmospheric correction </atmos>` of the pressure data.
-
-runveccdf2nc.py
----------------
-
-.. argparse::
-   :ref: stglib.core.cmd.veccdf2nc_parser
-   :prog: runveccdf2nc.py
-
-Compute wave statistics
-=======================
-
-Use stglib's built-in wave-statistics toolbox to compute a wave-statistics file.
+Use stglib's built-in wave-statistics toolbox to compute a wave-statistics file (``runots vec nc2waves``).
 
 **Experimental** PUV support is also present. Testing welcome!
-
-runvecnc2waves.py
------------------
-
-.. argparse::
-   :ref: stglib.core.cmd.vecnc2waves_parser
-   :prog: runvecnc2waves.py

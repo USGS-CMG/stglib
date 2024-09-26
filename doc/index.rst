@@ -47,23 +47,24 @@ We have plans to support:
    config
    atmos
    waves
+   Processing data with runouts (use this!) <runots>
    aqd
-   wvs
    aqdhr
-   vec
-   sig
+   wvs
    rsk
-   exo
-   iq
-   mc
+   sig
+   vec
    wet
-   hobo
-   wxt
-   sg
    eofe
-   lisst
-   tcm
+   exo
+   hobo
    indexvel
+   iq
+   lisst
+   mc
+   sg
+   tcm
+   wxt
    turnaround
    code
    contributing

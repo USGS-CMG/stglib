@@ -27,7 +27,7 @@ jobs:
       - run: git lfs checkout
       - uses: conda-incubator/setup-miniconda@v3
         with:
-          mamba-version: "*"
+          # mamba-version: "*"
           activate-environment: test-environment
           environment-file: requirements.yml
           python-version: ${{ matrix.python-version }}
