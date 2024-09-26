@@ -15,6 +15,9 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # remove units in case we change and we can use larger time steps
     ds.time.encoding.pop("units")
 
+    # Add sample_interval to metadata (Convert Hertz to sample interval in seconds)
+    ds.attrs["sample_interval"] = 1 / float(ds.attrs["sample_rate"])
+
     # Atmospheric pressure correction
     if atmpres is not None:
         ds = sgutils.atmos_correct_burst(ds, atmpres)
@@ -24,9 +27,6 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     # Edit metadata depending
     ds = ds_drop_meta(ds)
-
-    # Add sample_interval to metadata (Convert Hertz to sample interval in seconds)
-    ds.attrs["sample_interval"] = 1 / float(ds.attrs["sample_rate"])
 
     # Add attributes
     ds = sgutils.ds_add_attrs(ds)
@@ -41,7 +41,6 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     ds = utils.create_z(ds)
     ds = utils.add_start_stop_time(ds)
     ds = utils.add_min_max(ds)
-    ds = utils.add_delta_t(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
