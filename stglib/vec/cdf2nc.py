@@ -7,7 +7,7 @@ from dask.diagnostics import ProgressBar
 from tqdm import tqdm
 
 from ..aqd import aqdutils
-from ..core import qaqc, transform, utils
+from ..core import filter, qaqc, transform, utils
 
 
 def cdf_to_nc(cdf_filename, atmpres=False):
@@ -60,6 +60,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     for var in ds.data_vars:
         # need to do this or else a "coordinates" attribute with value of "burst" hangs around
         ds[var].encoding["coordinates"] = None
+
+        # check if any filtering before other qaqc
+        ds = filter.apply_butter_filt(ds, var)
+        ds = filter.apply_med_filt(ds, var)
+
         ds = qaqc.trim_min(ds, var)
         ds = qaqc.trim_max(ds, var)
         ds = qaqc.trim_maxabs_diff(ds, var)
