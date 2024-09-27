@@ -360,10 +360,26 @@ def trim_mask(ds, var):
 
 def trim_maxabs_diff(ds, var):
     if var + "_maxabs_diff" in ds.attrs:
-        val = ds.attrs[var + "_maxabs_diff"]
-        cond = np.abs(np.ediff1d(ds[var], to_begin=0)) > ds.attrs[var + "_maxabs_diff"]
-        affected = cond.sum()
-        ds[var][cond] = np.nan
+        if "sample" in ds[var].dims:
+            cond = (
+                np.abs(ds[var].diff(dim="sample", label="upper"))
+                >= ds.attrs[var + "_maxabs_diff"]
+            )
+            affected = cond.sum()
+            val = ds.attrs[var + "_maxabs_diff"]
+
+            # pad bads mask for first element along dim so not set to all NaNs
+            padding = xr.zeros_like(ds[var].isel({"sample": 0})).astype(bool)
+            cond = xr.concat([padding, cond], dim="sample")
+            ds[var] = ds[var].where(~cond)
+
+        else:
+            val = ds.attrs[var + "_maxabs_diff"]
+            cond = (
+                np.abs(np.ediff1d(ds[var], to_begin=0)) > ds.attrs[var + "_maxabs_diff"]
+            )
+            affected = cond.sum()
+            ds[var][cond] = np.nan
 
         notetxt = f"Values filled where data increases or decreases by more than {val} units in a single time step; {affected} values affected. "
 
