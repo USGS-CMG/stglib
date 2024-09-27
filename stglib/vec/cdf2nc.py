@@ -447,9 +447,7 @@ def fill_snr(ds):
                 )
                 ds = utils.insert_note(ds, v, histtext)
 
-            ds = utils.insert_history(ds, histtext)
-    else:
-        print("Did not fill velocity data using snr threshold")
+        ds = utils.insert_history(ds, histtext)
 
     return ds
 
@@ -476,8 +474,6 @@ def fill_cor(ds):
                 ds = utils.insert_note(ds, v, histtext)
 
             ds = utils.insert_history(ds, histtext)
-    else:
-        print("Did not fill velocity data using cor threshold")
 
     return ds
 
