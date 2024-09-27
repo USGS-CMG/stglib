@@ -88,8 +88,6 @@ def ds_drop_tid(ds):
         "BurstDurationUnits",
         "WaveBurstsPerDay",
         "NumberOfWaveBursts",
-        # "calculated_wave_interval",
-        # "calculated_wave_interval_units",
     ]
 
     # Check to make sure they exist
@@ -113,8 +111,6 @@ def ds_drop_wb(ds):
         "BurstDurationUnits",
         "WaveBurstsPerDay",
         "NumberOfWaveBursts",
-        # "calculated_wave_interval",
-        # "calculated_wave_interval_units",
         "TideInterval",
         "TideIntervalUnits",
         "TideDuration",
