@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal as spsig
 import xarray as xr
+from scipy.optimize import newton
+from tqdm import tqdm
+
+from ..lib import jonswap
 
 
 def make_waves_ds(ds):
@@ -71,6 +75,27 @@ def make_waves_ds(ds):
     spec["wp_4060"] = xr.DataArray(make_Tm(spec["m0"], spec["m2"]), dims="time")
     spec["wp_peak"] = xr.DataArray(make_Tp(spec["pspec"]), dims="time")
     spec["k"] = xr.DataArray(k, dims=("time", "frequency"))
+
+    do_jonswap = False
+    if "jonswap" in ds.attrs:
+        if ds.attrs["jonswap"].lower() == "true":
+            do_jonswap = True
+
+    if do_jonswap:
+        print("Running statistics with JONSWAP tail")
+        thejonswaptail = [
+            make_tail_jonswap(
+                spec["frequency"], spec["Pnn"][burst, :], spec["tailind"][burst].values
+            )
+            for burst in tqdm(range(len(spec["time"])))
+        ]
+        spec["jonswap_pspec"] = xr.DataArray(thejonswaptail, dims=("time", "frequency"))
+
+        m0 = xr.DataArray(make_moment(spec["frequency"], spec["pspec"], 0), dims="time")
+        m2 = xr.DataArray(make_moment(spec["frequency"], spec["pspec"], 2), dims="time")
+        spec["jonswap_wh_4061"] = xr.DataArray(make_Hs(m0), dims="time")
+        spec["jonswap_wp_4060"] = xr.DataArray(make_Tm(m0, m2), dims="time")
+        spec["jonswap_wp_peak"] = xr.DataArray(make_Tp(spec["pspec"]), dims="time")
 
     return spec
 
@@ -227,6 +252,29 @@ def make_tail(f, Pnn, tailind):
     else:
         tail[ti:] = Pnn[ti] * (f[ti:] / f[ti]) ** -4
         return np.hstack((Pnn[:ti], tail[ti:]))
+
+
+def make_tail_jonswap(f, Pnn, tailind):
+    """Make tail using JONSWAP spectrum"""
+    ti = tailind.astype(int)
+    tail = np.ones_like(f)
+    if np.isnan(tailind):
+        return np.ones_like(f) * np.nan
+    else:
+        Hs = 0
+        Tp = make_Tp(Pnn[:ti])
+        # Use Newton-Raphson iteration to get the best value of Hs for the fit
+        result = newton(
+            run_jonswap, 0, args=(Tp, 2 * np.pi * f, ti, Pnn), full_output=True
+        )
+        # we have the value of Hs, so run jonswap to get the spectrum
+        S = jonswap.jonswap(result[0], Tp, 2 * np.pi * f)
+        return np.hstack((Pnn[:ti], S[ti:]))
+
+
+def run_jonswap(Hs, Tp, w, ti, Pnn):
+    S = jonswap.jonswap(Hs, Tp, w)
+    return Pnn[ti] - S[ti]
 
 
 def make_mwd(freqs, dirs, dspec):
