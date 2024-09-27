@@ -818,19 +818,22 @@ def check_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds.attrs["frequency"] = ds.attrs["SIGHeadFrequency"]
         ds.attrs["instrument_type"] = ds.attrs["SIGInstrumentName"]
 
-        # find bin_size attribute
+        # find bin_size and sample_rate attributes
         if (
             ds.attrs["data_type"].upper() == "BURST"
             or ds.attrs["data_type"].upper() == "IBURST"
         ):
             ds.attrs["bin_size"] = ds.attrs["SIGBurst_CellSize"]
+            ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
         elif (
             ds.attrs["data_type"].upper() == "BURSTHR"
             or ds.attrs["data_type"].upper() == "IBURSTHR"
         ):
             ds.attrs["bin_size"] = ds.attrs["SIGBurstHR_CellSize"]
+            ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
         elif ds.attrs["data_type"].upper() == "ECHO1":
             ds.attrs["bin_size"] = ds.attrs["SIGEchoSounder_CellSize"]
+            ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
         elif ds.attrs["data_type"].upper() == "AVERAGE":
             ds.attrs["bin_size"] = ds.attrs["SIGAverage_CellSize"]
         elif ds.attrs["data_type"].upper() == "ALT_AVERAGE":
