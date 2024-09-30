@@ -6,21 +6,43 @@ from . import utils
 
 
 def butter_filt(sig, sr, cutfreq, ftype):
-    # Returns filtered signal using 2nd order butterworth filter
-    # Inputs:
-    # sig - signal to be filtered (array)
-    # sr = sample rate of signal (Hz)
-    # cutfreq = cutoff frequency for filter (Hz) length = 1 or 2 (for bandpass)
-    # ftype = type of filter, options = ['lowpass', 'highpass', 'bandpass']
+    """
+    2nd order butterworth filter using sosfiltfilt in scipy.signal
 
+    Parameters
+    ----------
+        sig - signal to be filtered (array)
+        sr = sample rate of signal (Hz)
+        cutfreq = cutoff frequency for filter (Hz) length = 1 or 2 (for bandpass)
+        ftype = type of filter, options = ['lowpass', 'highpass', 'bandpass']
+
+    Returns
+    -------
+        filtered signal using 2nd order butterworth filter
+
+    """
     sos = spsig.butter(2, cutfreq, btype=ftype, fs=sr, output="sos")
 
     return spsig.sosfiltfilt(sos, sig)
 
 
 def make_butter_filt(ds, var, sr, cutfreq, ftype):
+    """
+    Create smoothed data using specified butterworth filter type and cutoff for user specified varaibles
 
-    # create smoothed data using specified butterworth filter type and cutoff
+    Parameters
+    ----------
+        ds - xarray dataset that contains user specified varaible
+        var - user specified variable
+        sr - sample rate of data (hertz)
+        cutfreq - cutoff frequency(s) for filter (hertz)
+        ftype - user specified filter type (lowpass, highpass, or bandpass)
+
+    Returns
+    -------
+        ds - dataset with specified variable smoothed/filtered with the specified 2nd order butterworth filter type and cutoffs
+
+    """
     if ds[var].ndim == 1 and "time" in ds[var].dims:
         print(f"Applying {ftype} filter to {var}")
         filtered = butter_filt(ds[var].values, sr, cutfreq, ftype)
@@ -58,7 +80,19 @@ def make_butter_filt(ds, var, sr, cutfreq, ftype):
 
 
 def apply_butter_filt(ds, var):
+    """
+    Construct and call butterworth filter from user specified config.yaml file
 
+    Parameters
+    ----------
+        ds - xarray dataset with user specified variable
+        var - user specified variable
+
+    Returns
+    -------
+        ds - dataset with specified variable smoothed/filtered with the specified 2nd order butterworth filter type and cutoffs
+
+    """
     if (
         var + "_lowpass_filt" in ds.attrs
         or var + "_highpass_filt" in ds.attrs
@@ -100,7 +134,18 @@ def apply_butter_filt(ds, var):
 
 
 def apply_med_filt(ds, var):
-    # print(var)
+    """
+    Construct and apply N-point median filter to user specified variable and N
+
+    Parameters
+    ----------
+        ds - xarray dataset with user specified variable
+        var - user specified variable
+
+    Returns
+    -------
+        ds - dataset with user specified variable smoothed/filtered with the user specified N points (kernel size).
+    """
     if var + "_med_filt" in ds.attrs:
 
         kernel_size = ds.attrs[var + "_med_filt"]
@@ -123,15 +168,29 @@ def apply_med_filt(ds, var):
                 print(f"Applying {kernel_size} point median filter to {var} burst data")
 
                 for k in ds["time"]:
+
                     filtered = spsig.medfilt(ds[var].sel(time=k).values, kernel_size)
                     ds[var].loc[dict(time=k)] = filtered
 
                 notetxt = f"Values filtered using {kernel_size} point median filter. "
                 ds = utils.insert_note(ds, var, notetxt)
 
+            elif ds[var].ndim == 2 and "time" in ds[var].dims and "z" in ds[var].dims:
+                print(
+                    f"Applying {kernel_size} point median filter to {var} profile data"
+                )
+
+                for k in ds["z"]:
+
+                    filtered = spsig.medfilt(ds[var].sel(z=k).values, kernel_size)
+                    ds[var].loc[dict(z=k)] = filtered
+
+                notetxt = f"Values filtered using {kernel_size} point median filter. "
+                ds = utils.insert_note(ds, var, notetxt)
+
             else:
                 print(
-                    f"Not able to apply median filter because only 'time' or ('time','sample') dimensions are handled and {var} dims are {ds[var].dims}"
+                    f"Not able to apply median filter because only 'time', ('time','sample'), or ('time', 'z') dimensions are handled and {var} dims are {ds[var].dims}"
                 )
 
         else:

@@ -1,7 +1,7 @@
 import pandas as pd
 import xarray as xr
 
-from .core import qaqc, utils
+from .core import filter, qaqc, utils
 
 
 def read_tid(filnam, encoding="utf-8"):
@@ -161,6 +161,10 @@ def sg_qaqc(ds):
     [varlist.append(k) for k in ds.data_vars if k not in varlist]
 
     for var in varlist:
+        # check if any filtering before other qaqc
+        ds = filter.apply_butter_filt(ds, var)
+        ds = filter.apply_med_filt(ds, var)
+
         ds = qaqc.trim_min(ds, var)
 
         ds = qaqc.trim_max(ds, var)
