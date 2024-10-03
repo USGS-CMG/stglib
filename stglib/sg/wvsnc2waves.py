@@ -45,7 +45,7 @@ def nc_to_waves(nc_filename):
     # assign min/max (need to do this after trimming):
     ds = utils.add_min_max(ds)
 
-    nc_filename = ds.attrs["filename"] + "w-cal.nc"
+    nc_filename = ds.attrs["filename"] + "w-a.nc"
 
     ds.to_netcdf(nc_filename, unlimited_dims=["time"])
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])

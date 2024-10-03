@@ -44,7 +44,7 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
-    nc_filename = ds.attrs["filename"] + "r-a.nc"
+    nc_filename = ds.attrs["filename"] + "b-cal.nc"
 
     ds.to_netcdf(
         nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
