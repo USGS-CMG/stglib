@@ -18,7 +18,10 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     # Atmospheric pressure correction
     if atmpres is not None:
-        ds = sgutils.atmos_correct_burst(ds, atmpres)
+        if ds.attrs["file_type"] == ".tid":
+            ds = utils.atmos_correct(ds, atmpres)
+        elif ds.attrs["file_type"] == ".wb":
+            ds = sgutils.atmos_correct_burst(ds, atmpres)
 
     # If .wb file, split into tide bursts
     if ds.attrs["file_type"] == ".wb":
@@ -128,21 +131,14 @@ def ds_drop_wb(ds):
 
 def avg_tide_bursts(ds):
 
-    # Calculate how many rows to subdivide each wave burst (round down to trim burst)
-    rows = math.floor(
+    # Calculate how many rows to subdivide each wave burst (round up)
+    rows = math.ceil(
         float(ds.attrs["BurstDuration"]) / float(ds.attrs["calculated_tide_interval"])
     )
 
     # Calculate how many columns to subdivide each wave burst
     cols = int(
         float(ds.attrs["calculated_tide_interval"]) * float(ds.attrs["sample_rate"])
-    )
-
-    # Calculate number of values that can be used from each wave burst
-    no_values = int(
-        float(ds.attrs["calculated_tide_interval"])
-        * float(ds.attrs["sample_rate"])
-        * rows
     )
 
     # Calculate number of values to average based on tide duration
@@ -166,13 +162,14 @@ def avg_tide_bursts(ds):
         )
         timestamp.append(new_time)
 
-        # Trim incomplete bursts
-        P1_trim_burst = ds["P_1"].isel(time=t, sample=slice(0, no_values))
-        P1ac_trim_burst = ds["P_1ac"].isel(time=t, sample=slice(0, no_values))
-
-        # Reshape
-        new_P1_burst = np.reshape(P1_trim_burst.values, (rows, cols))
-        new_P1ac_burst = np.reshape(P1ac_trim_burst.values, (rows, cols))
+        # Reshape adding nans to end of array
+        no_pads = rows * cols - int(ds.attrs["WaveSamples"])
+        new_P1_burst = np.pad(
+            ds.P_1[t].values, (0, no_pads), mode="constant", constant_values=np.nan
+        ).reshape(rows, cols)
+        new_P1ac_burst = np.pad(
+            ds.P_1ac[t].values, (0, no_pads), mode="constant", constant_values=np.nan
+        ).reshape(rows, cols)
 
         # Average burst for tide duration
         for j in range(0, new_P1_burst.shape[0]):
