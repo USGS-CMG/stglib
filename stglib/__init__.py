@@ -23,5 +23,6 @@ from . import (
 from .aqd import aqdutils
 from .core import cmd, utils, waves
 from .core.utils import read_globalatts
+from .sg import sgutils
 
 __version__ = _version.get_versions()["version"]

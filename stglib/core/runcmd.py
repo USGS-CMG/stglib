@@ -372,6 +372,26 @@ def runsgnc2waves(args=None):
     stglib.sg.nc_to_waves(args.ncname)
 
 
+def runsgwvscdf2nc():
+    args = stglib.cmd.sgwvscdf2nc_parser().parse_args()
+
+    run_cdf_to_nc(stglib.sg.wvscdf2nc.cdf_to_nc, args)
+
+
+def runsgwvswb2cdf():
+    args = stglib.cmd.sgwvswb2cdf_parser().parse_args()
+
+    metadata = get_metadata(args)
+
+    stglib.sg.wvswb2cdf.wb_to_cdf(metadata)
+
+
+def runsgwvsnc2waves():
+    args = stglib.cmd.sgwvsnc2waves_parser().parse_args()
+
+    stglib.sg.wvsnc2waves.nc_to_waves(args.ncname)
+
+
 def runots():
     args = stglib.cmd.runots_parser().parse_args()
 
