@@ -561,11 +561,3 @@ def sgcdf2nc_parser():
     atmarg(parser)
 
     return parser
-
-
-def sgnc2waves_parser():
-    description = "Generate SBE 26plus Seagauge waves statistics file"
-    parser = argparse.ArgumentParser(description=description)
-    ncarg(parser)
-
-    return parser

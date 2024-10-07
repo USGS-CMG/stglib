@@ -218,4 +218,7 @@ SBE 37 MicroCAT
 
 SBE 26plus Seagauge
 -------------------
+For Seagauge tides:
 - All the _min, _max, _bad_ens, etc. options available to the EXO.
+
+For Seagauge waves:
