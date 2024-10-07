@@ -219,6 +219,16 @@ SBE 37 MicroCAT
 SBE 26plus Seagauge
 -------------------
 For Seagauge tides:
+- ``file_type``: set to ``.tid`` or ``.wb`` to specify raw data file type
+- ``calculated_tide_interval``: enter the desired tide interval when using the .wb file
+- ``calculated_tide_interval_units``: tide interval units
+- ``calculated_tide_duration``: enter the desired tide duration when using the .wb file
+- ``calculated_tide_duration_units``: tide duration units
 - All the _min, _max, _bad_ens, etc. options available to the EXO.
 
 For Seagauge waves:
+- ``calculated_wave_interval``: enter the desired wave interval
+- ``calculated_wave_interval_units``: wave interval units
+- ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
+- ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
+- ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``)
