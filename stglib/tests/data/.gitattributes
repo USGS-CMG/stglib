@@ -114,3 +114,4 @@ mc3575.asc filter=lfs diff=lfs merge=lfs -text
 11264sg_raw2.tid filter=lfs diff=lfs merge=lfs -text
 11264sg_raw2.hex filter=lfs diff=lfs merge=lfs -text
 11264sg_raw2.wb filter=lfs diff=lfs merge=lfs -text
+11264sg-atmpres.cdf filter=lfs diff=lfs merge=lfs -text
