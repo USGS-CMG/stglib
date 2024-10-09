@@ -13,15 +13,21 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     Load a raw .cdf file and generate a processed .nc file
     """
 
+    # Check for atmpres correction file
+    # Atmpres file is required for seagauge because pressure is measured as absolute pressure
+    if atmpres is None:
+        raise FileNotFoundError(
+            "The atmpres file does not exist. Atmpres file is required for Seagauge because pressure is measured as absolute pressure."
+        )
+
     # Load raw .cdf data
     ds = xr.open_dataset(cdf_filename)
 
     # Atmospheric pressure correction
-    if atmpres is not None:
-        if ds.attrs["file_type"] == ".tid":
-            ds = utils.atmos_correct(ds, atmpres)
-        elif ds.attrs["file_type"] == ".wb":
-            ds = sgutils.atmos_correct_burst(ds, atmpres)
+    if ds.attrs["file_type"] == ".tid":
+        ds = utils.atmos_correct(ds, atmpres)
+    elif ds.attrs["file_type"] == ".wb":
+        ds = sgutils.atmos_correct_burst(ds, atmpres)
 
     # If .wb file, split into tide bursts
     if ds.attrs["file_type"] == ".wb":
