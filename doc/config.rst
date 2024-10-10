@@ -84,10 +84,11 @@ Options applicable to many instrument types include:
 
 Options for signal filtering:
 
-- ``<VAR>_lowpass_filt``: apply 2nd order butterworth lowpass filter with specified cutoff period in seconds.
-- ``<VAR>_highpass_filt``: apply 2nd order butterworth highpass filter with specified cutoff period in seconds.
-- ``<VAR>_bandpass_filt``: apply 2nd order butterworth bandpass filter with specified cutoff period in seconds as two element list [cut_long, cut_short].
+- ``<VAR>_lowpass_filt``: apply butterworth lowpass filter with specified cutoff period in seconds.
+- ``<VAR>_highpass_filt``: apply butterworth highpass filter with specified cutoff period in seconds.
+- ``<VAR>_bandpass_filt``: apply butterworth bandpass filter with specified cutoff period in seconds as two element list [cut_long, cut_short].
 - ``<VAR>_med_filt``: apply n point median filter, where n is specified value (must be an odd number).
+- ``filter_order``: specify order of butterworth filter (default = 4 if not specified).
 
 Aquadopp
 --------

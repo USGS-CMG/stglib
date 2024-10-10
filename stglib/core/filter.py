@@ -5,7 +5,7 @@ import xarray as xr
 from . import utils
 
 
-def butter_filt(sig, sr, cutfreq, ftype):
+def butter_filt(sig, sr, cutfreq, ftype, ford=4):
     """
     2nd order butterworth filter using sosfiltfilt in scipy.signal
 
@@ -15,13 +15,14 @@ def butter_filt(sig, sr, cutfreq, ftype):
         sr = sample rate of signal (Hz)
         cutfreq = cutoff frequency for filter (Hz) length = 1 or 2 (for bandpass)
         ftype = type of filter, options = ['lowpass', 'highpass', 'bandpass']
+        ford = filter order (default = 4)
 
     Returns
     -------
-        filtered signal using 2nd order butterworth filter
+        filtered signal using specified order (default = 4) butterworth filter
 
     """
-    sos = spsig.butter(2, cutfreq, btype=ftype, fs=sr, output="sos")
+    sos = spsig.butter(ford, cutfreq, btype=ftype, fs=sr, output="sos")
 
     return spsig.sosfiltfilt(sos, sig)
 
@@ -43,32 +44,37 @@ def make_butter_filt(ds, var, sr, cutfreq, ftype):
         ds - dataset with specified variable smoothed/filtered with the specified 2nd order butterworth filter type and cutoffs
 
     """
+    if "filter_order" in ds.attrs:
+        ford = ds.attrs["filter_order"]
+    else:
+        ford = 4
+
     if ds[var].ndim == 1 and "time" in ds[var].dims:
         print(f"Applying {ftype} filter to {var}")
-        filtered = butter_filt(ds[var].values, sr, cutfreq, ftype)
+        filtered = butter_filt(ds[var].values, sr, cutfreq, ftype, ford)
         ds[var][:] = filtered
 
-        notetxt = f"Values filtered using 2nd order butterworth {ftype} filter with {cutfreq} cutoff frequency. "
+        notetxt = f"Values filtered using order = {ford} butterworth {ftype} filter with {cutfreq} cutoff frequency. "
         ds = utils.insert_note(ds, var, notetxt)
 
     elif ds[var].ndim == 2 and "time" in ds[var].dims and "sample" in ds[var].dims:
         print(f"Applying {ftype} filter to {var} burst data")
         for k in ds["time"]:
 
-            filtered = butter_filt(ds[var].sel(time=k).values, sr, cutfreq, ftype)
+            filtered = butter_filt(ds[var].sel(time=k).values, sr, cutfreq, ftype, ford)
             ds[var].loc[dict(time=k)] = filtered
 
-        notetxt = f"Values filtered using 2nd order butterworth {ftype} filter with {cutfreq} Hz cutoff frequency. "
+        notetxt = f"Values filtered using order = {ford} butterworth {ftype} filter with {cutfreq} Hz cutoff frequency. "
         ds = utils.insert_note(ds, var, notetxt)
 
     elif ds[var].ndim == 2 and "time" in ds[var].dims and "z" in ds[var].dims:
         print(f"Applying {ftype} filter to {var} profile data")
         for k in ds["z"]:
 
-            filtered = butter_filt(ds[var].sel(z=k).values, sr, cutfreq, ftype)
+            filtered = butter_filt(ds[var].sel(z=k).values, sr, cutfreq, ftype, ford)
             ds[var].loc[dict(z=k)] = filtered
 
-        notetxt = f"Values filtered using 2nd order butterworth {ftype} filter with {cutfreq} Hz cutoff frequency. "
+        notetxt = f"Values filtered using order = {ford} butterworth {ftype} filter with {cutfreq} Hz cutoff frequency. "
         ds = utils.insert_note(ds, var, notetxt)
 
     else:
