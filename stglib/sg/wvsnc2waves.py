@@ -22,6 +22,7 @@ def nc_to_waves(nc_filename):
     for k in ["wp_peak", "wh_4061", "wp_4060", "pspec"]:
         ds[k] = spec[k]
 
+    ds = utils.create_water_level_var(ds)
     ds = utils.create_water_depth_var(ds)
 
     # Drop unneeded variables/attributes

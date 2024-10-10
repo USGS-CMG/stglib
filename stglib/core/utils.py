@@ -1404,10 +1404,18 @@ def create_water_level_var(ds):
     """
     Create water level variable from NAVD88 sensor height
     """
-    ds["water_level"] = xr.DataArray(ds["P_1ac"] + ds["z"].values)
+
+    if "sample" in ds.dims:
+        ds["water_level"] = xr.DataArray(
+            ds["P_1ac"].squeeze().mean(dim="sample") + ds["z"].values
+        )
+    else:
+        ds["water_level"] = ds["P_1ac"] + ds["z"].values
+
     ds["water_level"].attrs["long_name"] = "Water level NAVD88"
     ds["water_level"].attrs["units"] = "m"
     ds["water_level"].attrs[
         "standard_name"
     ] = "sea_surface_height_above_geopotential_datum"
     ds["water_level"].attrs["geopotential_datum_name"] = "NAVD88"
+    return ds
