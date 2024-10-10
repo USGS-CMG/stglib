@@ -50,12 +50,14 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     # Run utilities
     ds = utils.clip_ds(ds)
-    ds = utils.ds_add_lat_lon(ds)
     ds = utils.create_nominal_instrument_depth(ds)
     ds = utils.create_z(ds)
+    ds = utils.create_water_level_var(ds)
+    ds = utils.create_water_depth_var(ds)
+    ds = utils.ds_add_lat_lon(ds)
     ds = utils.add_start_stop_time(ds)
-    ds = utils.add_min_max(ds)
     ds = utils.add_delta_t(ds)
+    ds = utils.add_min_max(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
