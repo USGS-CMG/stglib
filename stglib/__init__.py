@@ -21,7 +21,7 @@ from . import (
     wxt,
 )
 from .aqd import aqdutils
-from .core import cmd, utils, waves
+from .core import cmd, filter, qaqc, utils, waves
 from .core.utils import read_globalatts
 
 __version__ = _version.get_versions()["version"]

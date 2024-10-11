@@ -82,6 +82,14 @@ Options applicable to many instrument types include:
 - ``<VAR>_mask``: a single variable or list of variables which should be used to fill the given variable. For example ``u_1205_mask: ["cor1_1285", "cor2_1286", "cor3_1287"]`` will set ``u_1205`` to ``_FillValue`` wherever the correlation variables are ``_FillValue``
 - ``drop_vars``: a list of variables to be removed from the final file. For example, ``drop_vars: ['nLF_Cond_µS_per_cm', 'Wiper_Position_volt', 'Cable_Pwr_V']``.
 
+Options for signal filtering:
+
+- ``<VAR>_lowpass_filt``: apply butterworth lowpass filter with specified cutoff period in seconds.
+- ``<VAR>_highpass_filt``: apply butterworth highpass filter with specified cutoff period in seconds.
+- ``<VAR>_bandpass_filt``: apply butterworth bandpass filter with specified cutoff period in seconds as two element list [cut_long, cut_short].
+- ``<VAR>_med_filt``: apply n point median filter, where n is specified value (must be an odd number).
+- ``filter_order``: specify order of butterworth filter (default = 4 if not specified).
+
 Aquadopp
 --------
 

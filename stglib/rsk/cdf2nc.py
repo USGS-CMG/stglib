@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from ..core import qaqc, utils
+from ..core import filter, qaqc, utils
 
 
 def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
@@ -50,6 +50,10 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
 
     # trim by minimum pressure for instruments that go out of water_depth
     for v in ["P_1", "P_1ac"]:
+        # check if any filtering before other qaqc
+        ds = filter.apply_butter_filt(ds, v)
+        ds = filter.apply_med_filt(ds, v)
+
         ds = trim_min(ds, v)
         ds = qaqc.trim_bad_ens(ds, v)
 

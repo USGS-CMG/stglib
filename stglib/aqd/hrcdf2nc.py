@@ -1,6 +1,6 @@
 import xarray as xr
 
-from ..core import qaqc, utils
+from ..core import filter, qaqc, utils
 from . import aqdutils
 
 
@@ -92,6 +92,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # should function this
     for var in VEL.data_vars:
+        # check if any filtering before other qaqc
+        VEL = filter.apply_butter_filt(VEL, var)
+        VEL = filter.apply_med_filt(VEL, var)
+
         VEL = qaqc.trim_min(VEL, var)
         VEL = qaqc.trim_max(VEL, var)
         VEL = qaqc.trim_min_diff(VEL, var)
