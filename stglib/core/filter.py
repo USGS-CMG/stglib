@@ -7,7 +7,7 @@ from . import utils
 
 def butter_filt(sig, sr, cutfreq, ftype, ford=4):
     """
-    2nd order butterworth filter using sosfiltfilt in scipy.signal
+    butterworth filter using sosfiltfilt in scipy.signal
 
     Parameters
     ----------
@@ -29,7 +29,7 @@ def butter_filt(sig, sr, cutfreq, ftype, ford=4):
 
 def make_butter_filt(ds, var, sr, cutfreq, ftype):
     """
-    Create smoothed data using specified butterworth filter type and cutoff for user specified varaibles
+    Create smoothed data using specified butterworth filter type, order, and cutoff for user specified varaibles
 
     Parameters
     ----------
@@ -41,7 +41,7 @@ def make_butter_filt(ds, var, sr, cutfreq, ftype):
 
     Returns
     -------
-        ds - dataset with specified variable smoothed/filtered with the specified 2nd order butterworth filter type and cutoffs
+        ds - dataset with specified variable smoothed/filtered with the specified butterworth filter type, order, and cutoff
 
     """
     if "filter_order" in ds.attrs:
@@ -96,7 +96,7 @@ def apply_butter_filt(ds, var):
 
     Returns
     -------
-        ds - dataset with specified variable smoothed/filtered with the specified 2nd order butterworth filter type and cutoffs
+        ds - dataset with specified variable smoothed/filtered with the specified butterworth filter type, order, and cutoff
 
     """
     if (
