@@ -9,7 +9,7 @@ Instrument data to raw .cdf
 
 First, export data to text (.zip) format (File -> Export -> Text (\*.zip)) from the Ruskin software.
 
-Then use :doc:`runots </runots>` to process using the two :doc:`configuration files </config>`.
+Then use :doc:`runots.py </runots>` to process using the two :doc:`configuration files </config>`.
 
 Waves processing
 ================
@@ -17,7 +17,7 @@ Waves processing
 Option 1: internal waves code
 -----------------------------
 
-This option is recommended as it does not require MATLAB. Generate the waves statistics and incorporate them into an CF-compliant netCDF file with .nc extension using :doc:`runots </runots>`.
+This option is recommended as it does not require MATLAB. Generate the waves statistics and incorporate them into an CF-compliant netCDF file with .nc extension using :doc:`runots.py </runots>`.
 
 Option 2: DIWASP
 ----------------

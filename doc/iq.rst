@@ -9,4 +9,4 @@ depends on two :doc:`configuration files </config>`.
 IQ-exported Matlab file to raw .cdf
 ===================================
 
-First, export .mat files from the instrument software. Then, use :doc:`runots </runots>` to process using the two :doc:`configuration files </config>`.
+First, export .mat files from the instrument software. Then, use :doc:`runots.py </runots>` to process using the two :doc:`configuration files </config>`.
