@@ -5,4 +5,4 @@ Aquadopp HR
 
 First, in AquaPro HR, export data to text files using the default options.
 
-Then use :doc:`runots </runots>` to process using the two :doc:`configuration files </config>`.
+Then use :doc:`runots.py </runots>` to process using the two :doc:`configuration files </config>`.

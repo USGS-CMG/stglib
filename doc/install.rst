@@ -29,12 +29,12 @@ Now you can start processing data!
 The easy (local machine) way
 ============================
 
-We recommend managing your Python packages using Mambaforge. Alternatively, you can use Anaconda/Miniconda.
+We recommend managing your Python packages using Miniforge.
 
-Mambaforge
+Miniforge
 ----------
 
-Install `Mambaforge <https://mamba.readthedocs.io/en/latest/installation.html>`_ by `following this link <https://github.com/conda-forge/miniforge#mambaforge>`_.
+Install `Miniforge <https://conda-forge.org/download/>`_ by selecting the download appropriate for your platform.
 
 Install and activate an stglib environment:
 
@@ -49,27 +49,6 @@ To update stglib
 
    mamba activate stglib
    mamba update stglib
-
-Now you can start processing data!
-
-Anaconda or Miniconda
----------------------
-
-Ensure you have a working Anaconda or `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ installation.
-
-Set your channel priority to conda-forge:
-
-::
-
-  conda config --add channels conda-forge
-  conda config --set channel_priority strict
-
-Install and activate an stglib environment:
-
-::
-
-  conda create -n stglib stglib
-  conda activate stglib
 
 Now you can start processing data!
 

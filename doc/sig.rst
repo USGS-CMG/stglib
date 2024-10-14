@@ -7,4 +7,4 @@ It supports data types Burst, IBurst, Echo1, BurstHR, and IBurstHR. It also supp
 
 First, export data from the Signature Deployment software to Matlab format with coordinate transformations.
 
-Then use :doc:`runots </runots>` to process using the two :doc:`configuration files </config>`.
+Then use :doc:`runots.py </runots>` to process using the two :doc:`configuration files </config>`.
