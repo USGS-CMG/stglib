@@ -25,4 +25,4 @@ runots.py
 
 .. argparse::
    :ref: stglib.core.cmd.runots_parser
-   :prog: runots
+   :prog: runots.py
