@@ -52,7 +52,7 @@ def read_wb(filnam, encoding="utf-8"):
     pressure = pressure.squeeze()
 
     # Convert time
-    start_time = int_to_date(start_time)
+    start_time = int_to_date(np.array(start_time))
 
     # Create sample variable
     sample = list(range(1, sample_no + 1))
@@ -68,13 +68,6 @@ def read_wb(filnam, encoding="utf-8"):
     )
 
     return sg
-
-    # sg=xr.DataArray(pressure, coords=[start_time, sample], dims=['time','sample'])
-
-    # sg=xr.DataArray({"Pressure":pressure, "time":start_time, "sample": sample}, coords=[start_time, sample], dims=['time','sample'])
-
-    # pr["row_start"] = xr.DataArray(row_start, dims="profile")
-    # xr.merge
 
 
 def int_to_date(int_time):
