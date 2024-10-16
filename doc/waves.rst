@@ -16,7 +16,7 @@ In brief, stglib's wave-statistics code (:py:func:`stglib.core.waves.make_waves_
 #. Compute the zeroth and second moments of the surface-elevation spectra using :func:`stglib.core.waves.make_moment`.
 #. Compute significant wave height, mean period, and peak period using :func:`stglib.core.waves.make_Hs`, :func:`stglib.core.waves.make_Tm`, and :func:`stglib.core.waves.make_Tp`.
 
-The above list is for information only. The user does not need to apply these steps manually; they are all called by the various run scripts.
+The above list is for information only. The user does not need to apply these steps manually; they are all called by the run script.
 
 
 .. autosummary::

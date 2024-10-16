@@ -27,7 +27,7 @@ which sets the zero offset for the pressure sensor. In the example below, the of
 
 A second optional but highly recommended attribute for the ``atmpres`` variable is ``comment``. This can be used to store information about the station used for atmospheric compensation. For example, ``atmpres:comment = "Atmospherically corrected using NOAA station 9414523 Redwood City, CA"``.
 
-The time base of the atmospheric pressure file must be the same as that of the instrument pressure record. This file will be used by the run scripts to atmospherically compensate the pressure record.
+The time base of the atmospheric pressure file must be the same as that of the instrument pressure record. This file will be used by the run script to atmospherically compensate the pressure record.
 
 Steps to generate an atmospheric pressure file
 ----------------------------------------------

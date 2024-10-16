@@ -15,6 +15,6 @@ For each instrument
 ===================
 
 * Create an instrument-specific :doc:`configuration file </config>`.
-* Use the appropriate run script(s) to process the data.
-* Some instruments require the use of two or more run scripts, run in series, for full processing.
-* When external data is required (e.g., for atmospheric compensation), these are provided to the run scripts. In the case of atmospheric compensation, Jupyter notebooks are available to help create an appropriate atmospheric pressure record.
+* Use :doc:`runots.py </runots>` to process the data.
+* Most instruments require two or more steps, run in series, for full processing.
+* When external data is required (e.g., for atmospheric compensation), these are provided to :doc:`runots.py </runots>`. In the case of atmospheric compensation, Jupyter notebooks are available to help create an appropriate atmospheric pressure record.
