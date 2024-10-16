@@ -23,7 +23,7 @@ def cdf_to_nc(cdf_filename, atmpres=None):
 
     # Atmospheric pressure correction
     if atmpres is not None:
-        ds = sgutils.atmos_correct(ds, atmpres)
+        ds = utils.atmos_correct(ds, atmpres)
 
     # Add attributes
     ds = sgutils.ds_add_attrs(ds)
