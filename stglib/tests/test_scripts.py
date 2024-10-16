@@ -493,7 +493,7 @@ def test_mc():
 
 def sg_raw(glob_att, config_yaml):
     result = subprocess.run(
-        [scripts / "runsgtid2cdf.py", glob_att, config_yaml],
+        [scripts / "runots.py", "sgtid", "tid2cdf", glob_att, config_yaml],
         capture_output=True,
         cwd=cwd,
     )
@@ -501,7 +501,7 @@ def sg_raw(glob_att, config_yaml):
 
 
 def sg_nc(nc_file, atmpres):
-    runlist = [scripts / "runsgcdf2nc.py", nc_file, "--atmpres", atmpres]
+    runlist = [scripts / "runots.py", "sgtid", "cdf2nc", nc_file, "--atmpres", atmpres]
     result = subprocess.run(
         runlist,
         capture_output=True,
@@ -517,7 +517,7 @@ def test_sg():
 
 def sg_wv_raw(glob_att, config_yaml):
     result = subprocess.run(
-        [scripts / "runsgwvswb2cdf.py", glob_att, config_yaml],
+        [scripts / "runots.py", "sgwvs", "wb2cdf", glob_att, config_yaml],
         capture_output=True,
         cwd=cwd,
     )
@@ -525,7 +525,7 @@ def sg_wv_raw(glob_att, config_yaml):
 
 
 def sg_wv_nc(nc_file, atmpres):
-    runlist = [scripts / "runsgwvscdf2nc.py", nc_file, "--atmpres", atmpres]
+    runlist = [scripts / "runots.py", "sgwvs", "cdf2nc", nc_file, "--atmpres", atmpres]
     result = subprocess.run(
         runlist,
         capture_output=True,
@@ -536,7 +536,7 @@ def sg_wv_nc(nc_file, atmpres):
 
 def sg_wv_wvs(nc_file):
     result = subprocess.run(
-        [scripts / "runsgwvsnc2waves.py", nc_file],
+        [scripts / "runots.py", "sgwvs", "nc2waves", nc_file],
         capture_output=True,
         cwd=cwd,
     )

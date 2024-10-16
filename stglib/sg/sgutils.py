@@ -157,32 +157,32 @@ def sg_qaqc(ds):
     return ds
 
 
-def atmos_correct(ds, atmpres):
-    met = xr.load_dataset(atmpres)
-    # need to save attrs before the subtraction, otherwise they are lost
-    attrs = ds["P_1"].attrs
-    # need to set a tolerance since we can be off by a couple seconds somewhere
-    # TODO is this still needed?
-    ds["P_1ac"] = xr.DataArray(
-        ds["P_1"]
-        - met["atmpres"].reindex_like(ds["P_1"], method="nearest", tolerance="5s")
-        - met["atmpres"].attrs["offset"]
-    )
-    ds["P_1ac"].attrs = attrs
+# def atmos_correct(ds, atmpres):
+#     met = xr.load_dataset(atmpres)
+#     # need to save attrs before the subtraction, otherwise they are lost
+#     attrs = ds["P_1"].attrs
+#     # need to set a tolerance since we can be off by a couple seconds somewhere
+#     # TODO is this still needed?
+#     ds["P_1ac"] = xr.DataArray(
+#         ds["P_1"]
+#         - met["atmpres"].reindex_like(ds["P_1"], method="nearest", tolerance="5s")
+#         - met["atmpres"].attrs["offset"]
+#     )
+#     ds["P_1ac"].attrs = attrs
 
-    ds.attrs["atmospheric_pressure_correction_file"] = atmpres
-    ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
-        "offset"
-    ]
+#     ds.attrs["atmospheric_pressure_correction_file"] = atmpres
+#     ds.attrs["atmospheric_pressure_correction_offset_applied"] = met["atmpres"].attrs[
+#         "offset"
+#     ]
 
-    histtext = f"Atmospherically corrected using time-series from {atmpres} and offset of {met['atmpres'].offset}"
+#     histtext = f"Atmospherically corrected using time-series from {atmpres} and offset of {met['atmpres'].offset}"
 
-    ds = utils.insert_history(ds, histtext)
+#     ds = utils.insert_history(ds, histtext)
 
-    # Also add it as a note
-    ds["P_1ac"].attrs["note"] = histtext
+#     # Also add it as a note
+#     ds["P_1ac"].attrs["note"] = histtext
 
-    return ds
+#     return ds
 
 
 def read_hex(filnam):

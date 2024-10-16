@@ -120,8 +120,12 @@ def runots_parser():
     addinst2cdf(instsp, "asc2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "sg", "Seabird Seagauge")
+    instsp = add_instrument(subparsers, "sgtid", "Seabird Seagauge Tides")
     addinst2cdf(instsp, "tid2cdf")
+    addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "sgwvs", "Seabird Seagauge Waves")
+    addinst2cdf(instsp, "wb2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
 
@@ -541,49 +545,5 @@ def mccdf2nc_parser():
     description = "Convert raw SBE 37 MicroCAT .cdf format to processed .nc files"
     parser = argparse.ArgumentParser(description=description)
     cdfarg(parser)
-
-    return parser
-
-
-def sgtid2cdf_parser():
-    description = "Convert SBE 26plus Seagauge .tid file to raw .cdf format. Run this script from the directory containing Seagauge files."
-    parser = argparse.ArgumentParser(description=description)
-    gattsarg(parser)
-    yamlarg(parser)
-
-    return parser
-
-
-def sgcdf2nc_parser():
-    description = "Convert raw tide SBE 26plus Seagauge .cdf format to processed .nc file, optionally compensating for atmospheric pressure"
-    parser = argparse.ArgumentParser(description=description)
-    cdfarg(parser)
-    atmarg(parser)
-
-    return parser
-
-
-def sgwvswb2cdf_parser():
-    description = "Convert SBE 26plus Seagauge .wb file to raw .cdf format. Run this script from the directory containing Seagauge files."
-    parser = argparse.ArgumentParser(description=description)
-    gattsarg(parser)
-    yamlarg(parser)
-
-    return parser
-
-
-def sgwvscdf2nc_parser():
-    description = "Convert raw waves SBE 26plus Seagauge .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
-    parser = argparse.ArgumentParser(description=description)
-    cdfarg(parser)
-    atmarg(parser)
-
-    return parser
-
-
-def sgwvsnc2waves_parser():
-    description = "Generate SBE 26plus Seagauge waves statistics file"
-    parser = argparse.ArgumentParser(description=description)
-    ncarg(parser)
 
     return parser

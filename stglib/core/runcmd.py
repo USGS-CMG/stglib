@@ -351,14 +351,14 @@ def runmcasc2cdf(args=None):
 
 def runsgcdf2nc(args=None):
     if not args:
-        args = stglib.cmd.sgcdf2nc_parser().parse_args()
+        args = stglib.cmd.runots_parser().parse_args()
 
     run_cdf_to_nc(stglib.sg.cdf2nc.cdf_to_nc, args)
 
 
 def runsgtid2cdf(args=None):
     if not args:
-        args = stglib.cmd.sgtid2cdf_parser().parse_args()
+        args = stglib.cmd.runots_parser().parse_args()
 
     metadata = get_metadata(args)
 
@@ -367,27 +367,30 @@ def runsgtid2cdf(args=None):
 
 def runsgnc2waves(args=None):
     if not args:
-        args = stglib.cmd.sgnc2waves_parser().parse_args()
+        args = stglib.cmd.runots_parser().parse_args()
 
     stglib.sg.nc_to_waves(args.ncname)
 
 
-def runsgwvscdf2nc():
-    args = stglib.cmd.sgwvscdf2nc_parser().parse_args()
+def runsgwvscdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.runots_parser().parse_args()
 
     run_cdf_to_nc(stglib.sg.wvscdf2nc.cdf_to_nc, args)
 
 
-def runsgwvswb2cdf():
-    args = stglib.cmd.sgwvswb2cdf_parser().parse_args()
+def runsgwvswb2cdf(args=None):
+    if not args:
+        args = stglib.cmd.runots_parser().parse_args()
 
     metadata = get_metadata(args)
 
     stglib.sg.wvswb2cdf.wb_to_cdf(metadata)
 
 
-def runsgwvsnc2waves():
-    args = stglib.cmd.sgwvsnc2waves_parser().parse_args()
+def runsgwvsnc2waves(args=None):
+    if not args:
+        args = stglib.cmd.runots_parser().parse_args()
 
     stglib.sg.wvsnc2waves.nc_to_waves(args.ncname)
 
@@ -466,13 +469,18 @@ def runots():
             runmcasc2cdf(args)
         elif args.step == "cdf2nc":
             runmccdf2nc(args)
-    elif args.instrument == "sg":
+    elif args.instrument == "sgtid":
         if args.step == "tid2cdf":
             runsgtid2cdf(args)
         elif args.step == "cdf2nc":
             runsgcdf2nc(args)
+    elif args.instrument == "sgwvs":
+        if args.step == "wb2cdf":
+            runsgwvswb2cdf(args)
+        elif args.step == "cdf2nc":
+            runsgwvscdf2nc(args)
         elif args.step == "nc2waves":
-            runsgnc2waves(args)
+            runsgwvsnc2waves(args)
     elif args.instrument == "tcm":
         if args.step == "csv2cdf":
             runtcmcsv2cdf(args)
