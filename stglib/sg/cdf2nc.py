@@ -45,6 +45,9 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     elif ds.attrs["file_type"] == ".wb":
         ds = ds_drop_wb(ds)
 
+    # Drop sample variable
+    ds = ds.drop("sample")
+
     # Call QAQC
     ds = sgutils.sg_qaqc(ds)
 
