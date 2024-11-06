@@ -31,7 +31,7 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # Drop variables
     ds = ds.drop("burst_number")
 
-    # Edit metadata depending
+    # Edit metadata
     ds = ds_drop_meta(ds)
 
     # Add attributes

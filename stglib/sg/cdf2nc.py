@@ -157,7 +157,7 @@ def avg_tide_bursts(ds):
 
     # Define time interval
     delta_t = int(ds.attrs["calculated_tide_interval"])
-    delta_t = str(delta_t) + "s"
+    delta_t = f"{delta_t}s"
 
     # Reshape P_1 and P_1ac pressure bursts and average
     P1_avg = []
