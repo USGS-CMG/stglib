@@ -493,18 +493,15 @@ def test_mc():
 
 def sg_raw(glob_att, config_yaml):
     result = subprocess.run(
-        [scripts / "runsgtid2cdf.py", glob_att, config_yaml],
+        [scripts / "runots.py", "sgtid", "tid2cdf", glob_att, config_yaml],
         capture_output=True,
         cwd=cwd,
     )
     assert "Finished writing data" in result.stdout.decode("utf8")
 
 
-def sg_nc(nc_file, atmpres=None):
-    if atmpres is not None:
-        runlist = [scripts / "runsgcdf2nc.py", nc_file, "--atmpres", atmpres]
-    else:
-        runlist = [scripts / "runsgcdf2nc.py", nc_file]
+def sg_nc(nc_file, atmpres):
+    runlist = [scripts / "runots.py", "sgtid", "cdf2nc", nc_file, "--atmpres", atmpres]
     result = subprocess.run(
         runlist,
         capture_output=True,
@@ -515,4 +512,38 @@ def sg_nc(nc_file, atmpres=None):
 
 def test_sg():
     sg_raw("sg_glob_att1126.txt", "11264sg_config.yaml")
-    sg_nc("11264sg-raw.cdf")
+    sg_nc("11264sg-tide-raw.cdf", "11264sg-atmpres.cdf")
+
+
+def sg_wv_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runots.py", "sgwvs", "wb2cdf", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def sg_wv_nc(nc_file, atmpres):
+    runlist = [scripts / "runots.py", "sgwvs", "cdf2nc", nc_file, "--atmpres", atmpres]
+    result = subprocess.run(
+        runlist,
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def sg_wv_wvs(nc_file):
+    result = subprocess.run(
+        [scripts / "runots.py", "sgwvs", "nc2waves", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_sg_wvs():
+    sg_wv_raw("sg_glob_att1126.txt", "11264sg_config.yaml")
+    sg_wv_nc("11264sg-waves-raw.cdf", "11264sg-atmpres.cdf")
+    sg_wv_wvs("11264sgb-cal.nc")

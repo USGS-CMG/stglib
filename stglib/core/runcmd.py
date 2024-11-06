@@ -349,31 +349,11 @@ def runmcasc2cdf(args=None):
     stglib.mc.asc_to_cdf(metadata)
 
 
-def runsgcdf2nc(args=None):
-    if not args:
-        args = stglib.cmd.sgcdf2nc_parser().parse_args()
-
-    run_cdf_to_nc(stglib.sg.cdf_to_nc, args)
-
-
-def runsgtid2cdf(args=None):
-    if not args:
-        args = stglib.cmd.sgtid2cdf_parser().parse_args()
-
-    metadata = get_metadata(args)
-
-    stglib.sg.tid_to_cdf(metadata)
-
-
-def runsgnc2waves(args=None):
-    if not args:
-        args = stglib.cmd.sgnc2waves_parser().parse_args()
-
-    stglib.sg.nc_to_waves(args.ncname)
-
-
 def runots():
     args = stglib.cmd.runots_parser().parse_args()
+
+    if "2cdf" in args.step:
+        metadata = get_metadata(args)
 
     if args.instrument == "aqd":
         if args.step == "hdr2cdf":
@@ -446,13 +426,18 @@ def runots():
             runmcasc2cdf(args)
         elif args.step == "cdf2nc":
             runmccdf2nc(args)
-    elif args.instrument == "sg":
+    elif args.instrument == "sgtid":
         if args.step == "tid2cdf":
-            runsgtid2cdf(args)
+            stglib.sg.tid2cdf.tid_to_cdf(metadata)
         elif args.step == "cdf2nc":
-            runsgcdf2nc(args)
+            run_cdf_to_nc(stglib.sg.cdf2nc.cdf_to_nc, args)
+    elif args.instrument == "sgwvs":
+        if args.step == "wb2cdf":
+            stglib.sg.wvswb2cdf.wb_to_cdf(metadata)
+        elif args.step == "cdf2nc":
+            run_cdf_to_nc(stglib.sg.wvscdf2nc.cdf_to_nc, args)
         elif args.step == "nc2waves":
-            runsgnc2waves(args)
+            stglib.sg.wvsnc2waves.nc_to_waves(args.ncname)
     elif args.instrument == "tcm":
         if args.step == "csv2cdf":
             runtcmcsv2cdf(args)
