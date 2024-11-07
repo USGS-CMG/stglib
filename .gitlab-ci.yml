@@ -1,0 +1,19 @@
+image: continuumio/miniconda3:latest
+
+stages:          # List of stages for jobs, and their order of execution
+  - test
+
+build-job:
+  stage: test
+  script:
+    - conda install git-lfs -y
+    - git lfs install
+    - git lfs checkout
+    - conda env create -n stglib --file requirements.yml
+    - conda init
+    - source ~/.bashrc
+    - conda activate stglib
+    - conda info
+    - conda list
+    - pip install -e . --no-deps
+    - pytest
