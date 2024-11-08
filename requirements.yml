@@ -6,6 +6,7 @@ dependencies:
   - compliance-checker
   - dask
   - git-lfs
+  - gsw
   - joblib
   - matplotlib-base
   - netcdf4
@@ -16,7 +17,6 @@ dependencies:
   - pytest
   - pyyaml
   - scipy
-  - seawater
   - sqlite
   - tqdm
   - xarray

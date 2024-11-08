@@ -2,6 +2,7 @@ python
 compliance-checker
 dask
 git-lfs
+gsw
 joblib
 matplotlib-base
 netcdf4
@@ -12,7 +13,6 @@ pyarrow
 pytest
 pyyaml
 scipy
-seawater
 sqlite
 tqdm
 xarray

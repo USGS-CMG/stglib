@@ -1,6 +1,6 @@
+import gsw
 import numpy as np
 import pandas as pd
-import seawater as sw
 import xarray as xr
 
 from .aqd import aqdutils
@@ -553,10 +553,10 @@ def calc_cor_brange(ds):
         )
         math_sign = "+"
 
-    soundspd = sw.svel(ds.attrs["average_salinity"], ds.Temperature_C, p)
+    soundspd = gsw.sound_speed(ds.attrs["average_salinity"], ds.Temperature_C, p)
     ds["brange"] = xr.DataArray(time_sec * soundspd).round(3)  # round brange to mm
 
-    histtext = f"Adjusted sound velocity calculated using svel(s,t,p) from seawater toolbox (https://pythonhosted.org/seawater/eos80.html#seawater.eos80.svel). Svel inputs: Salinity (s) from average salinity of {ds.attrs['average_salinity']} PSU, temperature (t) from ea400 internal temperature measurements, pressure (p) from instrument depth {math_sign} median(altitude)/2. "
+    histtext = f"Adjusted sound velocity calculated using sound_speed(s,t,p) from gsw toolbox (https://teos-10.github.io/GSW-Python/). Inputs: Salinity (s) from average salinity of {ds.attrs['average_salinity']} PSU, temperature (t) from ea400 internal temperature measurements, pressure (p) from instrument depth {math_sign} median(altitude)/2. "
 
     ds = utils.insert_history(ds, histtext)
 
@@ -692,11 +692,11 @@ def calc_cor_bin_height(ds):
 
     # spd = sw.svel(ds.attrs["average_salinity"], ds.Temperature_C, p)
     # speed up finding sound speed by taking mean across sample dim then expand dims after
-    spd2 = sw.svel(
+    spd2 = gsw.sound_speed(
         ds.attrs["average_salinity"],
         ds["Temperature_C"].mean(dim="sample"),
         p.mean(dim="sample"),
-    )
+    ).T
     soundspd = (
         xr.DataArray(spd2, dims=["bins", "time"])
         .expand_dims({"sample": ds.sample})
