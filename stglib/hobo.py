@@ -424,7 +424,7 @@ def get_col_names(filnam, metadata):
     return names
 
 
-def cdf_to_nc(cdf_filename):
+def cdf_to_nc(cdf_filename, atmpres=False):
     """
     Load a raw .cdf file and generate a processed .nc file
     """
@@ -440,6 +440,9 @@ def cdf_to_nc(cdf_filename):
 
     # rename variables
     ds = ds_rename_vars(ds)
+
+    if atmpres:
+        ds = utils.atmos_correct(ds, atmpres)
 
     # should function this
     for var in ds.data_vars:
