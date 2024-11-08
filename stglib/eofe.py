@@ -694,9 +694,9 @@ def calc_cor_bin_height(ds):
     # speed up finding sound speed by taking mean across sample dim then expand dims after
     spd2 = gsw.sound_speed(
         ds.attrs["average_salinity"],
-        ds["Temperature_C"].mean(dim="sample"),
-        p.mean(dim="sample"),
-    ).T
+        ds["Temperature_C"].mean(dim="sample").values,
+        p.mean(dim="sample").values,
+    )
     soundspd = (
         xr.DataArray(spd2, dims=["bins", "time"])
         .expand_dims({"sample": ds.sample})
