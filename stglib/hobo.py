@@ -94,34 +94,32 @@ def drop_vars(ds):
 
 def ds_rename_vars(ds):
     # convert some units
-    if "Conductance_uSpercm" in ds:
-        ds["Conductance_uSpercm"].values = (
-            ds["Conductance_uSpercm"].values / 10000
-        )  # convert from µS/cm to S/m"""
 
-    if "SpecificConductance_uSpercm" in ds:
-        ds["SpecificConductance_uSpercm"].values = (
-            ds["SpecificConductance_uSpercm"].values / 10000
-        )  # convert from µS/cm to S/m
+    # convert from µS/cm to S/m
+    for v in [
+        "Conductance_uSpercm",
+        "HighRange_Spercm",
+        "LowRange_Spercm",
+        "SpecificConductance_uSpercm",
+    ]:
+        if v in ds:
+            ds[v].values = ds[v].values / 10000
 
+    # convert from kPa to millibars
     if "AbsPresBarom_kPa" in ds:
-        ds["AbsPresBarom_kPa"].values = (
-            ds["AbsPresBarom_kPa"].values * 10
-        )  # convert from kPa to millibars
+        ds["AbsPresBarom_kPa"].values = ds["AbsPresBarom_kPa"].values * 10
         ds = ds.rename({"AbsPresBarom_kPa": "AbsPresBarom_mbar"})
 
+    # convert from kPa to decibars
     if "AbsPres_kPa" in ds:
-        ds["AbsPres_kPa"].values = (
-            ds["AbsPres_kPa"].values / 10
-        )  # convert from kPa to decibars
+        ds["AbsPres_kPa"].values = ds["AbsPres_kPa"].values / 10
         ds = ds.rename({"AbsPres_kPa": "AbsPres_dbar"})
 
     # check to see if logger was deployed as barometer
     if ds.attrs["instrument_type"] == "hwlb":
+        # convert from dbar to millibars
         if "AbsPres_dbar" in ds:
-            ds["AbsPres_dbar"].values = (
-                ds["AbsPres_dbar"].values * 100
-            )  # convert from dbar to millibars
+            ds["AbsPres_dbar"].values = ds["AbsPres_dbar"].values * 100
             ds = ds.rename({"AbsPres_dbar": "AbsPresBarom_mbar"})
         if "Temp_C" in ds:
             ds = ds.rename({"Temp_C": "Atemp_C"})
@@ -139,6 +137,8 @@ def ds_rename_vars(ds):
         "DOconc_mgperL": "DO",
         "DOAdjConc_mgperL": "DO_Adj",
         "Atemp_C": "T_21",
+        "HighRange_Spercm": "C_51_hi",
+        "LowRange_Spercm": "C_51_lo",
     }
 
     # check to make sure they exist before trying to rename
@@ -222,15 +222,21 @@ def ds_add_attrs(ds):
             }
         )
 
-    if "C_51" in ds:
-        ds["C_51"].attrs.update(
-            {
-                "units": "S/m",
-                "long_name": "Conductivity",
-                "epic_code": 51,
-                "standard_name": "sea_water_electrical_conductivity",
-            }
-        )
+    for v in ["C_51", "C_51_hi", "C_51_lo"]:
+        if v in ds:
+            long_name = "Conductivity"
+            if v == "C_51_hi":
+                long_name = long_name + ", high range (0.5 to 5.5 S/m)"
+            elif v == "C_51_lo":
+                long_name = long_name + ", low range (0.01 to 1 S/m)"
+            ds[v].attrs.update(
+                {
+                    "units": "S/m",
+                    "long_name": long_name,
+                    "epic_code": 51,
+                    "standard_name": "sea_water_electrical_conductivity",
+                }
+            )
 
     if "SpC_48" in ds:
         ds["SpC_48"].attrs.update(
@@ -424,7 +430,7 @@ def get_col_names(filnam, metadata):
     return names
 
 
-def cdf_to_nc(cdf_filename):
+def cdf_to_nc(cdf_filename, atmpres=False):
     """
     Load a raw .cdf file and generate a processed .nc file
     """
@@ -440,6 +446,9 @@ def cdf_to_nc(cdf_filename):
 
     # rename variables
     ds = ds_rename_vars(ds)
+
+    if atmpres:
+        ds = utils.atmos_correct(ds, atmpres)
 
     # should function this
     for var in ds.data_vars:
