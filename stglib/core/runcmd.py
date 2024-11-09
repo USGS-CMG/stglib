@@ -367,7 +367,7 @@ def runots():
             runaqdhrcdf2nc(args)
     elif args.instrument in ["aqdwvs", "wvs"]:
         if args.step == "wad2cdf":
-            runwvsdat2cdf(args)
+            runwvswad2cdf(args)
         elif args.step == "cdf2nc":
             runwvscdf2nc(args)
         elif args.step == "nc2waves":
