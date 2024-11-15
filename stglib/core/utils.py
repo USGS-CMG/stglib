@@ -1405,7 +1405,13 @@ def create_water_level_var(ds):
     Create water level variable from NAVD88 sensor height
     """
 
-    if ds.z.attrs["geopotential_datum_name"] == "NAVD88":
+    if "P_1ac" not in list(ds.data_vars):
+        print("Cannot create water_level variable without P_1ac")
+    elif (
+        ds.z.attrs["geopotential_datum_name"]
+        == "NAVD88" & "P_1ac"
+        in list(ds.data_vars)
+    ):
 
         if "sample" in ds.dims:
             ds["water_level"] = xr.DataArray(
