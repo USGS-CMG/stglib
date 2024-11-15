@@ -1407,11 +1407,9 @@ def create_water_level_var(ds):
 
     if "P_1ac" not in list(ds.data_vars):
         print("Cannot create water_level variable without P_1ac")
-    elif (
-        ds.z.attrs["geopotential_datum_name"]
-        == "NAVD88" & "P_1ac"
-        in list(ds.data_vars)
-    ):
+        return ds
+        exit()
+    elif ds.z.attrs["geopotential_datum_name"] == "NAVD88":
 
         if "sample" in ds.dims:
             ds["water_level"] = xr.DataArray(
