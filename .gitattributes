@@ -1,3 +1,4 @@
 *.ipynb filter=nbstripout
 *.ipynb diff=ipynb
 stglib/_version.py export-subst
+example_TruBlue.csv filter=lfs diff=lfs merge=lfs -text
