@@ -411,6 +411,8 @@ def runots():
             runsigmat2cdf(args)
         elif args.step == "cdf2nc":
             runsigcdf2nc(args)
+        elif args.step == "nc2waves":
+            runsignc2waves(args)
     elif args.instrument == "vec":
         if args.step == "dat2cdf":
             runvecdat2cdf(args)
