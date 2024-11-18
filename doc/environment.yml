@@ -5,6 +5,7 @@ dependencies:
   - python=3.11
   - compliance-checker
   - dask
+  - gsw
   - joblib
   - matplotlib-base
   - netcdf4
@@ -15,7 +16,6 @@ dependencies:
   - pytest
   - pyyaml
   - scipy
-  - seawater
   - tqdm
   - xarray
   - xmltodict
