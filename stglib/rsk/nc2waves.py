@@ -24,6 +24,7 @@ def nc_to_waves(nc_filename):
     # ds = utils.create_water_depth(ds)
 
     ds = utils.create_water_depth_var(ds)
+    ds = utils.create_water_level_var(ds)
 
     for k in ["P_1", "P_1ac", "sample", "T_28"]:
         if k in ds:
