@@ -100,6 +100,7 @@ def runots_parser():
     instsp = add_instrument(subparsers, "sig", "Nortek Signature")
     addinst2cdf(instsp, "mat2cdf")
     addcdf2nc(instsp)
+    addnc2waves(instsp)
 
     instsp = add_instrument(subparsers, "vec", "Nortek Vector")
     addinst2cdf(instsp, "dat2cdf")
