@@ -198,7 +198,7 @@ def ds_add_attrs(ds):
             }
         )
         if "P_1ac_note" in ds.attrs:
-            ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac"]})
+            ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
     return ds
 
