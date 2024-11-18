@@ -232,6 +232,12 @@ def runrskrsk2cdf(args=None):
     stglib.rsk.rsk2cdf.rsk_to_cdf(metadata)
 
 
+def runsignc2waves():
+    args = stglib.cmd.signc2waves_parser().parse_args()
+
+    stglib.sig.nc2waves.nc_to_waves(args.ncname)
+
+
 def runsigcdf2nc(args=None):
     if not args:
         args = stglib.cmd.sigcdf2nc_parser().parse_args()

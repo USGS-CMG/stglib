@@ -8,6 +8,7 @@ import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import scipy.signal as spsig
 import xarray as xr
 from tqdm import tqdm
@@ -17,6 +18,152 @@ lib_dir = os.path.join(parent_dir, "lib")
 sys.path.append(lib_dir)
 
 import pyDIWASP
+
+
+def make_diwasp_inputs(
+    ds, data_type="puv", method="IMLM", dres=180, nsegs=16, iter=50, ibin=0
+):
+
+    ID = {}
+    ID["fs"] = 1 / float(ds.attrs["sample_interval"])
+    ID["depth"] = float(
+        ds["P_1ac"].mean(dim="sample").values + ds.attrs["initial_instrument_height"]
+    )
+    if data_type == "puv":
+        ID["datatypes"] = ["pres", "velx", "vely"]
+        pxyz = [0, 0, ds.attrs["initial_instrument_height"]]
+        if ds.attrs["orientation"].lower() == "up":
+            uxyz = [
+                0,
+                0,
+                ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
+            ]
+        elif ds.attrs["orientation"].lower() == "down":
+            uxyz = [
+                0,
+                0,
+                ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
+            ]
+
+        vxyz = uxyz
+
+        ID["layout"] = np.array([pxyz, uxyz, vxyz])
+
+    elif data_type == "suv":
+        ID["datatypes"] = ["elev", "velx", "vely"]
+        # ID['data'] = np.array([p, u, v]).transpose()
+        sxyz = [0, 0, ds.attrs["initial_instrument_height"]]
+        if ds.attrs["orientation"].lower() == "up":
+            uxyz = [
+                0,
+                0,
+                ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
+            ]
+        elif ds.attrs["orientation"].lower() == "down":
+            uxyz = [
+                0,
+                0,
+                ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
+            ]
+
+        vxyz = uxyz
+
+        ID["layout"] = np.array([sxyz, uxyz, vxyz])
+
+    def next_power_of_2(x):
+        return 1 if x == 0 else 2 ** (x - 1).bit_length()
+
+    nsamps = ds.attrs["wave_interval"] * ds.attrs["SIGBurst_SamplingRate"]
+    # nfft = 2^(next_power_of_2(int(nsamps/nsegs)));
+    # nfreqs=nfft/2;
+    nfft = 256
+    nfreqs = 128
+    dres = 180
+    # number of direction bins [deg]
+
+    SM = {}
+    SM["freqs"] = np.arange(0.01, 2, (2 - 0.01) / nfreqs)
+    SM["dirs"] = np.arange(0, 360, 360 / dres)
+    SM["xaxisdir"] = 90
+    SM["dunit"] = "naut"
+
+    EP = {}
+    EP["method"] = method
+    EP["iter"] = iter
+    EP["nfft"] = nfft
+    EP["dres"] = int(dres)
+
+    return ID, SM, EP
+
+
+def make_diwasp_puv_suv(ds):
+    """Calculate Directional Wave Statistic using PyDIWASP"""
+    if "diwasp" in ds.attrs:
+        if "suv" in ds.attrs["diwasp"]:
+            data_type = "suv"
+        elif "puv" in ds.attrs["diwasp"]:
+            data_type = "puv"
+
+    if "diwasp_bin" in ds.attrs:
+        ibin = ds.attrs["diwasp_bin"]
+    else:
+        ibin = 0
+
+    times = []
+    s = []
+    Hs = []
+    Tp = []
+    DTp = []
+    Dp = []
+
+    for burst in tqdm(range(len(ds.time))):
+        p = ds["P_1ac"].isel(time=burst).values
+        ast = ds["brangeAST"].isel(time=burst).values
+        u = ds["u_1205"].isel(time=burst, z=ibin).values
+        v = ds["v_1206"].isel(time=burst, z=ibin).values
+
+        ID, SM, EP = make_diwasp_inputs(
+            ds.isel(time=burst), ibin=ibin, data_type=data_type
+        )
+        if data_type == "suv":
+            ID["data"] = np.array([ast, u, v]).transpose()
+        elif data_type == "puv":
+            ID["data"] = np.array([p, u, v]).transpose()
+
+        opts = ["MESSAGE", 0, "PLOTTYPE", 0]
+        [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
+        WVout = pyDIWASP.infospec.infospec(SMout)
+        # append outputs to list
+
+        times.append(ds["time"][burst].values)
+        s.append(SMout["S"])
+        Hs.append(WVout[0])
+        Tp.append(WVout[1])
+        DTp.append(WVout[2])
+        Dp.append(WVout[3])
+
+    # times=np.array(times)
+    # S=np.stack(s,axis=0)
+    # Hs=np.array(Hs)
+    # Tp=np.array(Tp)
+    # DTp=np.array(DTp)
+    # Dp=np.array(Dp)
+
+    dwv = xr.Dataset()
+    dwv["time"] = xr.DataArray(np.array(times), dims="time")
+    dwv["time"] = pd.DatetimeIndex(dwv["time"])
+    dwv["frequency"] = xr.DataArray(SMout["freqs"], dims="frequency")
+    dwv["direction"] = xr.DataArray(SMout["dirs"], dims="direction")
+    dwv["dspec"] = xr.DataArray(
+        np.real(np.stack(s, axis=0)), dims=["time", "frequency", "direction"]
+    )
+    # dwv['dspec_imag']=xr.DataArray(np.imag(np.stack(s,axis=0)), dims=['time','frequency','direction'])
+    dwv["Hs"] = xr.DataArray(np.array(Hs), dims="time")
+    dwv["Tp"] = xr.DataArray(np.array(Tp), dims="time")
+    dwv["DTp"] = xr.DataArray(np.array(DTp), dims="time")
+    dwv["Dp"] = xr.DataArray(np.array(Dp), dims="time")
+
+    return dwv
 
 
 def diwasp_mp(ds, presvar, burst):

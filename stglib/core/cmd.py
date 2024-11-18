@@ -543,6 +543,14 @@ def sigcdf2nc_parser():
     return parser
 
 
+def signc2waves_parser():
+    description = "Generate waves statistics file"
+    parser = argparse.ArgumentParser(description=description)
+    ncarg(parser)
+
+    return parser
+
+
 def sigdlfncdf2nc_parser():
     description = "Convert raw Signature .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
     parser = argparse.ArgumentParser(description=description)

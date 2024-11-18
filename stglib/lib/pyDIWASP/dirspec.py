@@ -1,20 +1,23 @@
 import warnings
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.signal import detrend
-from .interpspec import interpspec
+
 from .infospec import infospec
-from .writespec import writespec
+from .interpspec import interpspec
 from .plotspec import plotspec
+from .private.check_data import check_data
+from .private.diwasp_csd import diwasp_csd
+from .private.elev import elev
+from .private.IMLM import IMLM
+from .private.pres import pres
+from .private.smoothspec import smoothspec
 from .private.velx import velx
 from .private.vely import vely
-from .private.pres import pres
-from .private.elev import elev
 from .private.wavenumber import wavenumber
-from .private.IMLM import IMLM
-from .private.smoothspec import smoothspec
-from .private.diwasp_csd import diwasp_csd
-from .private.check_data import check_data
+from .writespec import writespec
+
 
 def dirspec(ID, SM, EP, Options_=None):
     """
@@ -51,7 +54,7 @@ def dirspec(ID, SM, EP, Options_=None):
     Field Research Facility, US Army Corps of Engineers
     """
 
-    Options = {'MESSAGE':1, 'PLOTTYPE':1, 'FILEOUT':''}
+    Options = {"MESSAGE": 1, "PLOTTYPE": 1, "FILEOUT": ""}
 
     if Options_ is not None:
         nopts = len(Options_)
@@ -70,99 +73,108 @@ def dirspec(ID, SM, EP, Options_=None):
 
     if nopts != 0:
         if nopts % 2 != 0:
-            warnings.warn('Options must be in Name/Value pairs - setting to '
-                'defaults')
+            warnings.warn(
+                "Options must be in Name/Value pairs - setting to " "defaults"
+            )
         else:
             for i in range(int(nopts / 2)):
                 arg = Options_[2 * i + 1]
                 field = Options_[2 * i]
                 Options[field] = arg
 
-    ptype = Options['PLOTTYPE']
-    displ = Options['MESSAGE']
+    ptype = Options["PLOTTYPE"]
+    displ = Options["MESSAGE"]
 
+    print("\ncalculating.....\n\ncross power spectra")
 
-    print('\ncalculating.....\n\ncross power spectra')
+    data = detrend(ID["data"], axis=0)
+    ndat, szd = np.shape(ID["data"])
 
-    data = detrend(ID['data'], axis=0)
-    ndat, szd = np.shape(ID['data'])
-
-    #get resolution of FFT - if not specified, calculate a sensible value
-    if len(EP['nfft']) == 0:
-        nfft = int(2 ** (8 + np.round(np.log2(ID['fs']))))
-        EP['nfft'] = nfft
+    # get resolution of FFT - if not specified, calculate a sensible value
+    # if len(EP['nfft']) == 0:
+    if ~np.any(EP["nfft"]):
+        nfft = int(2 ** (8 + np.round(np.log2(ID["fs"]))))
+        EP["nfft"] = nfft
     else:
-        nfft = int(EP['nfft'])
+        nfft = int(EP["nfft"])
     if nfft > ndat:
-        raise Exception('Data length of {} too small'.format(ndat))
+        raise Exception("Data length of {} too small".format(ndat))
 
-    #calculate the cross-power spectra
-    xps = np.empty((szd, szd, int(nfft / 2)), 'complex128')
+    # calculate the cross-power spectra
+    xps = np.empty((szd, szd, int(nfft / 2)), "complex128")
     for m in range(szd):
         for n in range(szd):
-            xpstmp, Ftmp = diwasp_csd(data[:, m], data[:, n], nfft, ID['fs'])
-            xps[m, n, :] = xpstmp[1:int(nfft / 2) + 1]
-    F = Ftmp[1:int(nfft / 2) + 1]
+            xpstmp, Ftmp = diwasp_csd(data[:, m], data[:, n], nfft, ID["fs"])
+            xps[m, n, :] = xpstmp[1 : int(nfft / 2) + 1]
+    F = Ftmp[1 : int(nfft / 2) + 1]
     nf = int(nfft / 2)
 
-    print('wavenumbers')
-    wns = wavenumber(2  * np.pi * F, ID['depth'] * np.ones(np.shape(F)))
-    pidirs = np.linspace(-np.pi, np.pi - 2 * np.pi / EP['dres'],
-        num=EP['dres'])
+    print("wavenumbers")
+    wns = wavenumber(2 * np.pi * F, ID["depth"] * np.ones(np.shape(F)))
+    pidirs = np.linspace(-np.pi, np.pi - 2 * np.pi / EP["dres"], num=EP["dres"])
 
-    #calculate transfer parameters
-    print('transfer parameters\n')
+    # calculate transfer parameters
+    print("transfer parameters\n")
     trm = np.empty((szd, nf, len(pidirs)))
     kx = np.empty((szd, szd, nf, len(pidirs)))
     for m in range(szd):
-        trm[m, :, :] = eval(ID['datatypes'][m])(2 * np.pi * F, pidirs, wns,
-            ID['layout'][2, m], ID['depth'])
+        trm[m, :, :] = eval(ID["datatypes"][m])(
+            2 * np.pi * F, pidirs, wns, ID["layout"][2, m], ID["depth"]
+        )
         for n in range(szd):
-            kx[m, n, :, :] = wns[:, np.newaxis] * ((ID['layout'][0, n] -
-                ID['layout'][0, m]) * np.cos(pidirs) + (ID['layout'][1, n] -
-                ID['layout'][1, m]) * np.sin(pidirs))
+            kx[m, n, :, :] = wns[:, np.newaxis] * (
+                (ID["layout"][0, n] - ID["layout"][0, m]) * np.cos(pidirs)
+                + (ID["layout"][1, n] - ID["layout"][1, m]) * np.sin(pidirs)
+            )
 
-    Ss = np.empty((szd, nf), dtype='complex128')
+    Ss = np.empty((szd, nf), dtype="complex128")
     for m in range(szd):
         tfn = trm[m, :, :]
         Sxps = xps[m, m, :]
         Ss[m, :] = Sxps / (np.max(tfn, axis=1) * np.conj(np.max(tfn, axis=1)))
 
-    ffs = np.logical_and(F >= np.min(SM['freqs']), F <= np.max(SM['freqs']))
+    ffs = np.logical_and(F >= np.min(SM["freqs"]), F <= np.max(SM["freqs"]))
     SM1 = dict()
-    SM1['freqs'] = F[ffs]
-    SM1['funit'] = 'Hz'
-    SM1['dirs'] = pidirs
-    SM1['dunit'] = 'rad'
+    SM1["freqs"] = F[ffs]
+    SM1["funit"] = "Hz"
+    SM1["dirs"] = pidirs
+    SM1["dunit"] = "rad"
 
     # call appropriate estimation function
-    print('directional spectra using {} method'.format(EP['method']))
-    SM1['S'] = eval(EP['method'])(xps[:, :, ffs], trm[:, ffs, :],
-        kx[:, :, ffs, :], Ss[:, ffs], pidirs, EP['iter'], displ)
-    SM1['S'][np.logical_or(np.isnan(SM1['S']), SM1['S'] < 0)] = 0
+    print("directional spectra using {} method".format(EP["method"]))
+    SM1["S"] = eval(EP["method"])(
+        xps[:, :, ffs],
+        trm[:, ffs, :],
+        kx[:, :, ffs, :],
+        Ss[:, ffs],
+        pidirs,
+        EP["iter"],
+        displ,
+    )
+    SM1["S"][np.logical_or(np.isnan(SM1["S"]), SM1["S"] < 0)] = 0
 
-    #Interpolate onto user specified matrix
-    print('\ninterpolating onto specified matrix...\n')
+    # Interpolate onto user specified matrix
+    print("\ninterpolating onto specified matrix...\n")
     SMout = interpspec(SM1, SM)
 
-    #smooth spectrum
-    if EP['smooth'].upper() == 'ON':
-        print('\nsmoothing spectrum...\n')
+    # smooth spectrum
+    if EP["smooth"].upper() == "ON":
+        print("\nsmoothing spectrum...\n")
         SMout = smoothspec(SMout, [[1, 0.5, 0.25], [1, 0.5, 0.25]])
 
     infospec(SMout)
 
-    #write out spectrum matrix in DIWASP format
-    filename = Options['FILEOUT']
+    # write out spectrum matrix in DIWASP format
+    filename = Options["FILEOUT"]
     if len(filename) > 0:
-        print('writing out spectrum matrix to file')
-        writespec(SMout,filename)
+        print("writing out spectrum matrix to file")
+        writespec(SMout, filename)
 
-    #plot spectrum
+    # plot spectrum
     if ptype > 0:
-        print('finished...plotting spectrum')
+        print("finished...plotting spectrum")
         plotspec(SMout, ptype)
-        T = 'Directional spectrum estimate using {} method'.format(EP['method'])
+        T = "Directional spectrum estimate using {} method".format(EP["method"])
         plt.title(T)
         plt.show()
 
