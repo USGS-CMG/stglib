@@ -31,6 +31,7 @@ def nc_to_waves(nc_filename):
 
     for k in [
         "burst",
+        "brange",
         "sample",
         "u_1205",
         "v_1206",
@@ -38,15 +39,21 @@ def nc_to_waves(nc_filename):
         "vel1_1277",
         "vel2_1278",
         "vel3_1279",
+        "vel",
+        "vrange",
+        "amp",
+        "AGC_1202",
         "AGC1_1221",
         "AGC2_1222",
         "AGC3_1223",
         "SNR1",
         "SNR2",
         "SNR3",
+        "snr",
         "cor1_1285",
         "cor2_1286",
         "cor3_1287",
+        "cor",
         "AnalogInput1",
         "AnalogInput2",
         "Hdg_1215",
@@ -55,6 +62,8 @@ def nc_to_waves(nc_filename):
         "Bat_106",
         "Tx_1211",
         "SV_80",
+        "orientation",
+        "orientmat",
     ]:
         if k in ds:
             ds = ds.drop(k)
