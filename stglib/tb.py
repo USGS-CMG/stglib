@@ -11,40 +11,38 @@ def read_header(filnam):
 
     header = {}
 
-    f = open(filnam)
-    row = ""
+    with open(filnam) as f:
+        row = ""
+        while "ID,Name,Address" not in row:
+            row = f.readline().rstrip()
+            col = row.split()
+            if "Transducer Model" in row:
+                header["TransducerModel"] = col[3]
+            elif "Transducer Serial" in row:
+                header["serial_number"] = col[3]
+            elif "Measure Parameters" in row:
+                header["MeasureParameters"] = col[2]
+            elif "Test Code" in row:
+                header["TestCode"] = col[2]
+            elif "Scan Type" in row:
+                header["ScanType"] = col[2]
+            elif "Periods" in row:
+                header["Periods"] = col[1]
+            elif "Memory Wrap" in row:
+                header["MemoryWrap"] = col[2]
+            elif "Broadcast Normal" in row:
+                header["BroadcastNormalLog"] = col[3]
+            elif "Broadcast Alarm" in row:
+                header["BroadcastAlarmLog"] = col[3]
+            elif "Alarm Scan" in row:
+                header["AlarmScan"] = col[2]
+            elif "Scanned Upto" in row:
+                header["ScannedUpto"] = col[3]
+            elif "Firmware Version" in row:
+                header["FirmwareVersion"] = col[2]
+            elif "TruWare" in row:
+                header["TruWareVersion"] = col[1]
 
-    while "ID,Name,Address" not in row:
-        row = f.readline().rstrip()
-        col = row.split()
-        if "Transducer Model" in row:
-            header["TransducerModel"] = col[3]
-        elif "Transducer Serial" in row:
-            header["serial_number"] = col[3]
-        elif "Measure Parameters" in row:
-            header["MeasureParameters"] = col[2]
-        elif "Test Code" in row:
-            header["TestCode"] = col[2]
-        elif "Scan Type" in row:
-            header["ScanType"] = col[2]
-        elif "Periods" in row:
-            header["Periods"] = col[1]
-        elif "Memory Wrap" in row:
-            header["MemoryWrap"] = col[2]
-        elif "Broadcast Normal" in row:
-            header["BroadcastNormalLog"] = col[3]
-        elif "Broadcast Alarm" in row:
-            header["BroadcastAlarmLog"] = col[3]
-        elif "Alarm Scan" in row:
-            header["AlarmScan"] = col[2]
-        elif "Scanned Upto" in row:
-            header["ScannedUpto"] = col[3]
-        elif "Firmware Version" in row:
-            header["FirmwareVersion"] = col[2]
-        elif "TruWare" in row:
-            header["TruWareVersion"] = col[1]
-
-    f.close()
     return header
 
 
@@ -124,10 +122,8 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     ds.attrs["sample_interval"] = tdelta.total_seconds()
 
     # Drop unneeded variables
-    ds = ds.drop("ID")
-    ds = ds.drop("Name")
-    ds = ds.drop("Address")
-    ds = ds.drop("Elapsed")
+    droplist = ["ID", "Name", "Address", "Elapsed"]
+    ds = ds.drop_vars(droplist)
 
     if atmpres:
         ds = utils.atmos_correct(ds, atmpres)
