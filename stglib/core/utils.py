@@ -193,6 +193,7 @@ def add_min_max(ds, exclude_vars=None):
         "frequency",
         "bin_along",
         "bin_across",
+        "direction",
     ]
 
     for k in ds.variables:

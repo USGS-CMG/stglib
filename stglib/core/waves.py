@@ -21,7 +21,7 @@ import pyDIWASP
 
 
 def make_diwasp_inputs(
-    ds, data_type="puv", method="IMLM", dres=180, nsegs=16, iter=50, ibin=0
+    ds, data_type="puv", method="IMLM", dres=180, nsegs=16, iter=50, ibin=0, freqs=None
 ):
 
     ID = {}
@@ -80,9 +80,12 @@ def make_diwasp_inputs(
     nfreqs = 128
     dres = 180
     # number of direction bins [deg]
-
+    if freqs is not None:
+        freqs = freqs
+    else:
+        freqs = np.arange(0.01, 2, (2 - 0.01) / nfreqs)
     SM = {}
-    SM["freqs"] = np.arange(0.01, 2, (2 - 0.01) / nfreqs)
+    SM["freqs"] = freqs
     SM["dirs"] = np.arange(0, 360, 360 / dres)
     SM["xaxisdir"] = 90
     SM["dunit"] = "naut"
@@ -96,7 +99,7 @@ def make_diwasp_inputs(
     return ID, SM, EP
 
 
-def make_diwasp_puv_suv(ds):
+def make_diwasp_puv_suv(ds, freqs=None):
     """Calculate Directional Wave Statistic using PyDIWASP"""
     if "diwasp" in ds.attrs:
         if "suv" in ds.attrs["diwasp"]:
@@ -123,7 +126,7 @@ def make_diwasp_puv_suv(ds):
         v = ds["v_1206"].isel(time=burst, z=ibin).values
 
         ID, SM, EP = make_diwasp_inputs(
-            ds.isel(time=burst), ibin=ibin, data_type=data_type
+            ds.isel(time=burst), ibin=ibin, data_type=data_type, freqs=freqs
         )
         if data_type == "suv":
             ID["data"] = np.array([ast, u, v]).transpose()

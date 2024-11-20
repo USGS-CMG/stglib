@@ -843,6 +843,10 @@ def check_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             ds.attrs["beam_angle"] = 25
         elif ds.attrs["frequency"] == 250:
             ds.attrs["beam_angle"] = 20
+
+        if "sample_rate" in ds.attrs and "sample_interval" not in ds.attrs:
+            ds.attrs["sample_interval"] = 1 / ds.attrs["sample_rate"]
+
         freq = ds.attrs["frequency"]
         bang = ds.attrs["beam_angle"]
         print(

@@ -150,6 +150,15 @@ def load_mat_file(filnam):
             dsb["time"] = pd.DatetimeIndex(dsb["time"])
             dsb["bindist"] = xr.DataArray(bindist, dims="bindist")
             dsb.attrs["data_type"] = "Burst"
+            if (
+                mat["Config"]["Plan_BurstInterval"]
+                * mat["Config"]["Burst_SamplingRate"]
+                == mat["Config"]["Burst_NSample"]
+            ):
+                dsb.attrs["sample_mode"] = "CONTINUOUS"
+            else:
+                dsb.attrs["sample_mode"] = "BURST"
+
             ds_dict["dsb"] = dsb
 
     if (
@@ -477,6 +486,7 @@ def mat_to_cdf(metadata):
         # dsb = dsd["dsb"]
         fin = outdir + f"*-{dsd[k].attrs['data_type']}-*.cdf"
         print(k)
+        print(fin)
         try:
             ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
             ds = aqdutils.check_attrs(ds, inst_type="SIG")

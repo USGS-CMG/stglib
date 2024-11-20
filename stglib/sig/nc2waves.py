@@ -16,20 +16,25 @@ def nc_to_waves(nc_filename):
         # make wave burst ncfile from continuous data if wave_interval is specified
         ds = make_wave_bursts(ds)
 
-    # spec = waves.make_waves_ds(ds)
+    spec = waves.make_waves_ds(ds)
 
-    # for k in ["wp_peak", "wh_4061", "wp_4060", "pspec"]:
-    #    ds[k] = spec[k]
+    for k in ["wp_peak", "wh_4061", "wp_4060", "pspec"]:
+        ds[k] = spec[k]
 
     dodiwasp = False
     if "diwasp" in ds.attrs:
         print("Running DIWASP")
         dodiwasp = True
-        diwasp = waves.make_diwasp_puv_suv(ds)
-        print(diwasp)
+        diwasp = waves.make_diwasp_puv_suv(ds, freqs=spec["frequency"].values)
+        print(diwasp["dspec"][1].values)
+
+    for k in ["Hs", "Tp", "DTp", "Dp", "dspec"]:
+        ds[f"diwasp_{k}"] = diwasp[k]
+
+    print(ds["diwasp_dspec"][1].values)
 
     # ds = utils.create_water_depth(ds)
-    """
+
     ds = utils.create_water_depth_var(ds)
 
     for k in ["P_1", "P_1ac", "sample", "T_28"]:
@@ -56,11 +61,13 @@ def nc_to_waves(nc_filename):
 
     ds.to_netcdf(nc_filename, unlimited_dims=["time"])
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+
     """
     if dodiwasp:
         diwasp_filename = ds.attrs["filename"] + "_diwasp-cal.nc"
         diwasp.to_netcdf(diwasp_filename)
         utils.check_compliance(diwasp_filename, conventions=ds.attrs["Conventions"])
+    """
 
     print("Done writing netCDF file", nc_filename)
 
