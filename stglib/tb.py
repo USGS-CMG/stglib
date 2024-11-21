@@ -142,7 +142,6 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     ds = utils.create_water_depth_var(ds)
     ds = utils.ds_add_lat_lon(ds)
     ds = utils.add_start_stop_time(ds)
-    ds = utils.add_delta_t(ds)
     ds = utils.add_min_max(ds)
 
     # Write to .nc file
