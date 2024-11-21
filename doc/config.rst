@@ -242,7 +242,7 @@ For Seagauge waves:
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``)
 
 TruBlue
----------------
+-------
 - All the _min, _max, _bad_ens, etc. options available to the EXO
 - ``skiprows``: number of header lines to skip in the txt file before the real data begins
 - ``wave_interval``: interval in seconds for calculating wave bursts from continuous pressure data
