@@ -118,6 +118,7 @@ def make_diwasp_puv_suv(ds, freqs=None):
     Tp = []
     DTp = []
     Dp = []
+    Dm = []
 
     for burst in tqdm(range(len(ds.time))):
         p = ds["P_1ac"].isel(time=burst).values
@@ -137,6 +138,8 @@ def make_diwasp_puv_suv(ds, freqs=None):
         [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
         WVout = pyDIWASP.infospec.infospec(SMout)
         # append outputs to list
+        print(type(SMout["S"]))
+        mwd = make_mwd(SMout["freqs"], SMout["dirs"], np.real(SMout["S"]).T)
 
         times.append(ds["time"][burst].values)
         s.append(SMout["S"])
@@ -144,13 +147,7 @@ def make_diwasp_puv_suv(ds, freqs=None):
         Tp.append(WVout[1])
         DTp.append(WVout[2])
         Dp.append(WVout[3])
-
-    # times=np.array(times)
-    # S=np.stack(s,axis=0)
-    # Hs=np.array(Hs)
-    # Tp=np.array(Tp)
-    # DTp=np.array(DTp)
-    # Dp=np.array(Dp)
+        Dm.append(mwd)
 
     dwv = xr.Dataset()
     dwv["time"] = xr.DataArray(np.array(times), dims="time")
@@ -165,6 +162,16 @@ def make_diwasp_puv_suv(ds, freqs=None):
     dwv["Tp"] = xr.DataArray(np.array(Tp), dims="time")
     dwv["DTp"] = xr.DataArray(np.array(DTp), dims="time")
     dwv["Dp"] = xr.DataArray(np.array(Dp), dims="time")
+    dwv["Dm"] = xr.DataArray(np.round(np.array(Dm), 0), dims="time")
+
+    # make some diwasp attrs
+
+    if "diwasp_method" not in ds.attrs:
+        dwv.attrs["diwasp_method"] = EP["method"]
+    if "diwasp_bin" not in ds.attrs:
+        dwv.attrs["diwasp_bin"] = ibin
+    if "diwasp_nfft" not in ds.attrs:
+        dwv.attrs["diwasp_nfft"] = EP["nfft"]
 
     return dwv
 
@@ -506,9 +513,14 @@ def make_mwd(freqs, dirs, dspec):
 
     Dm = np.rad2deg(np.arctan(np.abs(Dnum / Ddnom)))
 
-    Dm[(Dnum > 0) & (Ddnom < 0)] = 180 - Dm[(Dnum > 0) & (Ddnom < 0)]
-    Dm[(Dnum < 0) & (Ddnom < 0)] = 180 + Dm[(Dnum < 0) & (Ddnom < 0)]
-    Dm[(Dnum < 0) & (Ddnom > 0)] = 360 - Dm[(Dnum < 0) & (Ddnom > 0)]
+    if np.sign(Dnum) == 1 and np.sign(Ddnom) == 1:
+        Dm = Dm
+    elif np.sign(Dnum) == 1 and np.sign(Ddnom) == -1:
+        Dm = 180 - Dm
+    elif np.sign(Dnum) == -1 and np.sign(Ddnom) == -1:
+        Dm = 180 + Dm
+    elif np.sign(Dnum) == -1 and np.sign(Ddnom) == 1:
+        Dm = 360 - Dm
 
     return Dm
 

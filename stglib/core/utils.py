@@ -257,6 +257,16 @@ def ds_add_diwasp_history(ds):
     return insert_history(ds, histtext)
 
 
+def ds_add_pydiwasp_history(ds):
+    """
+    Add history indicating DIWASP has been applied
+    """
+
+    histtext = f"Directional Wave statistics computed using pyDIWASP with {ds.attrs['diwasp']} input data"
+
+    return insert_history(ds, histtext)
+
+
 def ds_coord_no_fillvalue(ds):
     for var in [
         "latitude",
@@ -360,7 +370,7 @@ def ds_add_wave_attrs(ds):
     def add_attributes(var, dsattrs):
         var.attrs.update(
             {
-                "serial_number": dsattrs["serial_number"],
+                # "serial_number": dsattrs["serial_number"],
                 # "initial_instrument_height": dsattrs["initial_instrument_height"],
                 # "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
                 # "height_depth_units": "m",
@@ -473,6 +483,77 @@ def ds_add_wave_attrs(ds):
             }
         )
 
+    if "diwasp_Tp" in ds.data_vars:
+        ds["diwasp_Tp"].attrs.update(
+            {
+                "long_name": "Dominant (peak) wave period from pyDIWASP",
+                "units": "s",
+                "standard_name": "sea_surface_wave_period_at_variance_spectral_density_maximum",
+            }
+        )
+
+    if "diwasp_Hs" in ds.data_vars:
+        ds["diwasp_Hs"].attrs.update(
+            {
+                "long_name": "Significant wave height from pyDIWASP",
+                "units": "m",
+                "standard_name": "sea_surface_wave_significant_height",
+            }
+        )
+
+    if "diwasp_DTp" in ds.data_vars:
+        ds["diwasp_DTp"].attrs.update(
+            {
+                "long_name": (
+                    "Direction of peak period "
+                    "(from, relative to true north) from pyDIWASP"
+                ),
+                "units": "degrees",
+                "note": (
+                    "Compass direction from which waves are propagating as "
+                    "defined by the direction with the greatest energy at "
+                    "the peak period"
+                ),
+                "standard_name": "sea_surface_wave_from_direction_at_variance_spectral_density_maximum",
+            }
+        )
+
+    if "diwasp_Dp" in ds.data_vars:
+        ds["diwasp_Dp"].attrs.update(
+            {
+                "long_name": (
+                    "Dominant wave direction "
+                    "(from, relative to true north) from pyDIWASP"
+                ),
+                "units": "degrees",
+                "note": (
+                    "Compass direction from which waves are propagating as "
+                    "defined by the direction band with greatest total "
+                    "energy summed over all frequencies"
+                ),
+            }
+        )
+
+    if "diwasp_Dm" in ds.data_vars:
+        ds["diwasp_Dm"].attrs.update(
+            {
+                "long_name": "Mean wave direction from pyDIWASP",
+                "units": "degrees",
+                "note": "Compass direction from which waves are propagating",
+                "standard_name": "sea_surface_wave_from_direction",
+            }
+        )
+
+    if "diwasp_dspec" in ds.data_vars:
+        ds["diwasp_dspec"].attrs.update(
+            {
+                "long_name": "Directional wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz/degree",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_directional_variance_spectral_density",
+            }
+        )
+
     for var in [
         "wp_peak",
         "wh_4061",
@@ -483,6 +564,12 @@ def ds_add_wave_attrs(ds):
         "dspec",
         "wvdir",
         "dwvdir",
+        "diwasp_Hs",
+        "diwasp_Tp",
+        "diwasp_DTp",
+        "diwasp_Dp",
+        "diwasp_Dm",
+        "diwasp_dspec",
     ]:
         if var in ds.variables:
             add_attributes(ds[var], ds.attrs)
