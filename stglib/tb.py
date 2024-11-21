@@ -144,6 +144,9 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     ds = utils.add_start_stop_time(ds)
     ds = utils.add_min_max(ds)
 
+    if ds.attrs["sample_interval"] >= 1:
+        ds = utils.add_delta_t(ds)
+
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
     nc_filename = ds.attrs["filename"] + "-cont-cal.nc"
