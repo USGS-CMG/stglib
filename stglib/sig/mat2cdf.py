@@ -150,15 +150,6 @@ def load_mat_file(filnam):
             dsb["time"] = pd.DatetimeIndex(dsb["time"])
             dsb["bindist"] = xr.DataArray(bindist, dims="bindist")
             dsb.attrs["data_type"] = "Burst"
-            if (
-                mat["Config"]["Plan_BurstInterval"]
-                * mat["Config"]["Burst_SamplingRate"]
-                == mat["Config"]["Burst_NSample"]
-            ):
-                dsb.attrs["sample_mode"] = "CONTINUOUS"
-            else:
-                dsb.attrs["sample_mode"] = "BURST"
-
             ds_dict["dsb"] = dsb
 
     if (
@@ -371,6 +362,17 @@ def load_mat_file(filnam):
             print("missing variable:", k)
 
     for ds in ds_dict:
+        # if burst plan data find sample_mode ['BURST' or 'CONTINUOUS']
+        if ds == "dsi" or ds == "dsb" or ds == "dse1":
+            if (
+                mat["Config"]["Plan_BurstInterval"]
+                * mat["Config"]["Burst_SamplingRate"]
+                == mat["Config"]["Burst_NSample"]
+            ):
+                ds_dict[ds].attrs["sample_mode"] = "CONTINUOUS"
+            else:
+                ds_dict[ds].attrs["sample_mode"] = "BURST"
+
         read_config_mat(mat, ds_dict[ds])
 
     for ds in ds_dict:

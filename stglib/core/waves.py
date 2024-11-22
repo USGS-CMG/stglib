@@ -21,8 +21,41 @@ import pyDIWASP
 
 
 def make_diwasp_inputs(
-    ds, data_type="puv", method="IMLM", dres=180, nsegs=16, iter=50, ibin=0, freqs=None
+    ds,
+    data_type="puv",
+    method="IMLM",
+    dres=180,
+    nsegs=16,
+    iter=50,
+    ibin=0,
+    freqs=None,
+    nfft=256,
+    xdir=90,
+    dunit="naut",
+    inst_type="SIG",
 ):
+
+    # check for user options in ds.attrs
+    if "diwasp_method" in ds.attrs:
+        method = ds.attrs["diwasp_method"]
+
+    if "diwasp_nsegs" in ds.attrs:
+        nsegs = ds.attrs["diwasp_nsegs"]
+
+    if "diwasp_dres" in ds.attrs:
+        dres = ds.attrs["diwasp_dres"]
+
+    if "diwasp_iter" in ds.attrs:
+        iter = ds.attrs["diwasp_iter"]
+
+    if "diwasp_xdir" in ds.attrs:
+        xdir = ds.attrs["diwasp_xdir"]
+
+    if "diwasp_dunit" in ds.attrs:
+        dunit = ds.attrs["diwasp_dunit"]
+
+    if "diwasp_nfft" in ds.attrs:
+        nfft = ds.attrs["diwasp_nfft"]
 
     ID = {}
     ID["fs"] = 1 / float(ds.attrs["sample_interval"])
@@ -31,64 +64,70 @@ def make_diwasp_inputs(
     )
     if data_type == "puv":
         ID["datatypes"] = ["pres", "velx", "vely"]
-        pxyz = [0, 0, ds.attrs["initial_instrument_height"]]
-        if ds.attrs["orientation"].lower() == "up":
-            uxyz = [
-                0,
-                0,
-                ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
-            ]
-        elif ds.attrs["orientation"].lower() == "down":
-            uxyz = [
-                0,
-                0,
-                ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
-            ]
 
-        vxyz = uxyz
+        # get layout
+        if inst_type == "SIG":
+            pxyz = [0, 0, ds.attrs["initial_instrument_height"]]
 
-        ID["layout"] = np.array([pxyz, uxyz, vxyz])
+            if ds.attrs["orientation"].lower() == "up":
+                uxyz = [
+                    0,
+                    0,
+                    ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
+                ]
+            elif ds.attrs["orientation"].lower() == "down":
+                uxyz = [
+                    0,
+                    0,
+                    ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
+                ]
+
+            vxyz = uxyz
+
+            ID["layout"] = np.array([pxyz, uxyz, vxyz])
 
     elif data_type == "suv":
+
         ID["datatypes"] = ["elev", "velx", "vely"]
         # ID['data'] = np.array([p, u, v]).transpose()
-        sxyz = [0, 0, ds.attrs["initial_instrument_height"]]
-        if ds.attrs["orientation"].lower() == "up":
-            uxyz = [
-                0,
-                0,
-                ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
-            ]
-        elif ds.attrs["orientation"].lower() == "down":
-            uxyz = [
-                0,
-                0,
-                ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
-            ]
+        if inst_type == "SIG":
+            sxyz = [0, 0, ds.attrs["initial_instrument_height"]]
+            if ds.attrs["orientation"].lower() == "up":
+                uxyz = [
+                    0,
+                    0,
+                    ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
+                ]
+            elif ds.attrs["orientation"].lower() == "down":
+                uxyz = [
+                    0,
+                    0,
+                    ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
+                ]
 
-        vxyz = uxyz
+            vxyz = uxyz
 
-        ID["layout"] = np.array([sxyz, uxyz, vxyz])
+            ID["layout"] = np.array([sxyz, uxyz, vxyz])
 
-    def next_power_of_2(x):
-        return 1 if x == 0 else 2 ** (x - 1).bit_length()
+    # def next_power_of_2(x):
+    #    return 1 if x == 0 else 2 ** (x - 1).bit_length()
 
-    nsamps = ds.attrs["wave_interval"] * ds.attrs["SIGBurst_SamplingRate"]
-    # nfft = 2^(next_power_of_2(int(nsamps/nsegs)));
-    # nfreqs=nfft/2;
-    nfft = 256
-    nfreqs = 128
-    dres = 180
-    # number of direction bins [deg]
+    nsamps = ds.attrs["wave_interval"] * ds.attrs["sample_rate"]
+
+    # if nfft is None:
+    #    nfft = 2^(next_power_of_2(int(nsamps/nsegs)))
+
     if freqs is not None:
         freqs = freqs
     else:
+        nfreqs = nfft / 2
         freqs = np.arange(0.01, 2, (2 - 0.01) / nfreqs)
+
     SM = {}
     SM["freqs"] = freqs
     SM["dirs"] = np.arange(0, 360, 360 / dres)
-    SM["xaxisdir"] = 90
-    SM["dunit"] = "naut"
+    SM["xaxisdir"] = xdir
+    SM["dunit"] = dunit
 
     EP = {}
     EP["method"] = method
@@ -99,7 +138,7 @@ def make_diwasp_inputs(
     return ID, SM, EP
 
 
-def make_diwasp_puv_suv(ds, freqs=None):
+def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
     """Calculate Directional Wave Statistic using PyDIWASP"""
     if "diwasp" in ds.attrs:
         if "suv" in ds.attrs["diwasp"]:
@@ -122,15 +161,29 @@ def make_diwasp_puv_suv(ds, freqs=None):
 
     for burst in tqdm(range(len(ds.time))):
         p = ds["P_1ac"].isel(time=burst).values
-        ast = ds["brangeAST"].isel(time=burst).values
+        if "brangeAST" in ds:
+            ast = ds["brangeAST"].isel(time=burst).values
+        else:
+            ast = None
+
         u = ds["u_1205"].isel(time=burst, z=ibin).values
         v = ds["v_1206"].isel(time=burst, z=ibin).values
 
         ID, SM, EP = make_diwasp_inputs(
-            ds.isel(time=burst), ibin=ibin, data_type=data_type, freqs=freqs
+            ds.isel(time=burst),
+            ibin=ibin,
+            data_type=data_type,
+            freqs=freqs,
+            inst_type=inst_type,
         )
         if data_type == "suv":
-            ID["data"] = np.array([ast, u, v]).transpose()
+            if ast is not None:
+                ID["data"] = np.array([ast, u, v]).transpose()
+            else:
+                raise ValueError(
+                    f"Acoustic surface tracking (ast) variable not found cannot continue with {data_type} directional wave analysis"
+                )
+
         elif data_type == "puv":
             ID["data"] = np.array([p, u, v]).transpose()
 
@@ -152,26 +205,36 @@ def make_diwasp_puv_suv(ds, freqs=None):
     dwv = xr.Dataset()
     dwv["time"] = xr.DataArray(np.array(times), dims="time")
     dwv["time"] = pd.DatetimeIndex(dwv["time"])
-    dwv["frequency"] = xr.DataArray(SMout["freqs"], dims="frequency")
-    dwv["direction"] = xr.DataArray(SMout["dirs"], dims="direction")
-    dwv["dspec"] = xr.DataArray(
-        np.real(np.stack(s, axis=0)), dims=["time", "frequency", "direction"]
+    dwv["diwasp_frequency"] = xr.DataArray(SMout["freqs"], dims="diwasp_frequency")
+    dwv["diwasp_direction"] = xr.DataArray(SMout["dirs"], dims="diwasp_direction")
+    dwv["diwasp_dspec"] = xr.DataArray(
+        np.real(np.stack(s, axis=0)),
+        dims=["time", "diwasp_frequency", "diwasp_direction"],
     )
     # dwv['dspec_imag']=xr.DataArray(np.imag(np.stack(s,axis=0)), dims=['time','frequency','direction'])
-    dwv["Hs"] = xr.DataArray(np.array(Hs), dims="time")
-    dwv["Tp"] = xr.DataArray(np.array(Tp), dims="time")
-    dwv["DTp"] = xr.DataArray(np.array(DTp), dims="time")
-    dwv["Dp"] = xr.DataArray(np.array(Dp), dims="time")
-    dwv["Dm"] = xr.DataArray(np.round(np.array(Dm), 0), dims="time")
+    dwv["diwasp_Hs"] = xr.DataArray(np.array(Hs), dims="time")
+    dwv["diwasp_Tp"] = xr.DataArray(np.array(Tp), dims="time")
+    dwv["diwasp_DTp"] = xr.DataArray(np.array(DTp), dims="time")
+    dwv["diwasp_Dp"] = xr.DataArray(np.array(Dp), dims="time")
+    dwv["diwasp_Dm"] = xr.DataArray(np.round(np.array(Dm), 0), dims="time")
 
     # make some diwasp attrs
-
-    if "diwasp_method" not in ds.attrs:
-        dwv.attrs["diwasp_method"] = EP["method"]
     if "diwasp_bin" not in ds.attrs:
         dwv.attrs["diwasp_bin"] = ibin
+    if "diwasp_inputs" not in ds.attrs:
+        dwv.attrs["diwasp_inputs"] = ID["datatypes"]
+    if "diwasp_method" not in ds.attrs:
+        dwv.attrs["diwasp_method"] = EP["method"]
     if "diwasp_nfft" not in ds.attrs:
         dwv.attrs["diwasp_nfft"] = EP["nfft"]
+    if "diwasp_dres" not in ds.attrs:
+        dwv.attrs["diwasp_dres"] = EP["dres"]
+    if "diwasp_iter" not in ds.attrs:
+        dwv.attrs["diwasp_iter"] = EP["iter"]
+    if "diwasp_xdir" not in ds.attrs:
+        dwv.attrs["diwasp_xdir"] = SM["xaxisdir"]
+    if "diwasp_dunit" not in ds.attrs:
+        dwv.attrs["diwasp_dunit"] = SM["dunit"]
 
     return dwv
 

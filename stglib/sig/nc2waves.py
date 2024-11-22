@@ -10,11 +10,18 @@ def nc_to_waves(nc_filename):
     """
     Process burst data to wave statistics
     """
-
     ds = xr.open_dataset(nc_filename)
 
     # check to see if need to make wave burst from continuous data
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
+        # check for wave_start_time attrs
+        if "wave_start_time" in ds.attrs:
+            print(
+                f"trimming continuous data to start at users specified wave start time {ds.attrs['wave_start_time']}"
+            )
+            ds = ds.sel(
+                time=slice(np.datetime64(ds.attrs["wave_start_time"]), ds["time"][-1])
+            )
         # make wave burst ncfile from continuous data if wave_interval is specified
         ds = make_wave_bursts(ds)
 
@@ -28,11 +35,21 @@ def nc_to_waves(nc_filename):
     if "diwasp" in ds.attrs:
         print("Running DIWASP")
         dodiwasp = True
-        diwasp = waves.make_diwasp_puv_suv(ds, freqs=spec["frequency"].values)
+        diwasp = waves.make_diwasp_puv_suv(ds, inst_type="SIG")
         ds = utils.ds_add_pydiwasp_history(ds)
 
-    for k in ["Hs", "Tp", "DTp", "Dp", "Dm", "dspec"]:
-        ds[f"diwasp_{k}"] = diwasp[k]
+    for k in [
+        "diwasp_frequency",
+        "diwasp_direction",
+        "diwasp_Hs",
+        "diwasp_Tp",
+        "diwasp_DTp",
+        "diwasp_Dp",
+        "diwasp_Dm",
+        "diwasp_dspec",
+    ]:
+
+        ds[k] = diwasp[k]
 
     # add diwasp attrs
     for k in diwasp.attrs:
@@ -154,26 +171,31 @@ def make_wave_bursts(ds):
                 ds[v].attrs = attrsbak
             else:
                 raise ValueError(
-                    f"Not able to apply median filter because kernel size specified {kernel_size} is not an odd whole number"
+                    f"{v} dimensions {ds[v].dims} are not as required ('time','z') to shape into wave burst"
                 )
 
     for v in ["vel", "cor", "amp"]:
         if v in ds:
             attrsbak = ds[v].attrs
-            ds[v] = xr.DataArray(
-                np.reshape(
-                    ds[v].values,
-                    (
-                        len(ds["beam"]),
-                        -1,
-                        int(ds.attrs["wave_samples_per_burst"]),
-                        len(ds["z"]),
-                    ),
-                ).transpose(0, 1, 3, 2),
-                dims=["beam", "timenew", "z", "samplenew"],
-            )
-            # u=np.reshape(ds['u_1205'].values, (-1,int(ds.attrs["samples_per_burst"]), len(ds['z']))).transpose(0,2,1)
-            ds[v].attrs = attrsbak
+            if ds[v].dims == ("beam", "time", "z"):
+                ds[v] = xr.DataArray(
+                    np.reshape(
+                        ds[v].values,
+                        (
+                            len(ds["beam"]),
+                            -1,
+                            int(ds.attrs["wave_samples_per_burst"]),
+                            len(ds["z"]),
+                        ),
+                    ).transpose(0, 1, 3, 2),
+                    dims=["beam", "timenew", "z", "samplenew"],
+                )
+                # u=np.reshape(ds['u_1205'].values, (-1,int(ds.attrs["samples_per_burst"]), len(ds['z']))).transpose(0,2,1)
+                ds[v].attrs = attrsbak
+            else:
+                raise ValueError(
+                    f"{v} dimensions {ds[v].dims} are not as required ('beam','time','z') to shape into wave burst"
+                )
 
     ds = ds.rename({"time": "timeold"})
     ds = ds.rename({"timenew": "time"})
