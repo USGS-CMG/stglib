@@ -3,6 +3,49 @@
     "name": "stglib",
     "organization": "U.S. Geological Survey",
     "description": "Routines used by the USGS Coastal/Marine Hazards & Resources Program to process oceanographic time-series data",
+    "version": "master",
+    "status": "Release Candidate",
+
+    "permissions": {
+      "usageType": "openSource",
+      "licenses": [
+        {
+          "name": "Public Domain, CC0-1.0",
+          "URL": "https://code.usgs.gov/cmgp/stglib/-/raw/master/LICENSE.md"
+        }
+      ]
+    },
+
+    "homepageURL": "https://code.usgs.gov/cmgp/stglib",
+    "downloadURL": "https://code.usgs.gov/cmgp/stglib/-/archive/master/stglib-master.zip",
+    "disclaimerURL": "https://code.usgs.gov/cmgp/stglib/-/raw/master/DISCLAIMER.md",
+    "repositoryURL": "https://code.usgs.gov/cmgp/stglib.git",
+    "vcs": "git",
+
+    "laborHours": 0,
+
+    "tags": [
+      "time-series",
+      "oceanography"
+    ],
+
+    "languages": [
+      "Python"
+    ],
+
+    "contact": {
+      "name": "Daniel Nowacki",
+      "email": "dnowacki@usgs.gov"
+    },
+
+    "date": {
+      "metadataLastUpdated": "2024-11-22"
+    }
+  },
+  {
+    "name": "stglib",
+    "organization": "U.S. Geological Survey",
+    "description": "Routines used by the USGS Coastal/Marine Hazards & Resources Program to process oceanographic time-series data",
     "version": "v1.0.0",
     "status": "Production",
 
@@ -39,7 +82,7 @@
     },
 
     "date": {
-      "metadataLastUpdated": "2024-11-21"
+      "metadataLastUpdated": "2024-11-22"
     }
   }
 ]
