@@ -1,6 +1,6 @@
 # stglib - Process data from a variety of oceanographic instrumentation
 
-[doi:10.5066/P13IQYFW](https://doi.org/10.5066/P13IQYFW)
+Version 1.0.0 of this software was approved for release at [doi:10.5066/P13IQYFW](https://doi.org/10.5066/P13IQYFW). Development continues at https://code.usgs.gov/cmgp/stglib.
 
 This package contains code to process data from a variety of oceanographic instrumentation, consistent with the procedures of the USGS [Coastal/Marine Hazards and Resources Program](https://marine.usgs.gov) (formerly Coastal and Marine Geology Program).
 
@@ -30,3 +30,7 @@ We have plans to support:
 This package makes heavy use of [NumPy](http://www.numpy.org), [xarray](http://xarray.pydata.org/en/stable/), and [netCDF4](http://unidata.github.io/netcdf4-python/). It works on Python 3.9+.
 
 [Read the documentation](http://stglib.readthedocs.io/).
+
+# Suggested Citation
+
+Nowacki, D.J., Suttles, S.E., Bales, R.D., De Meo, O.A., 2024, stglib: Oceanographic Time Series Data Processing Library, U.S. Geological Survey software release, [doi:10.5066/P13IQYFW](https://doi.org/10.5066/P13IQYFW).
