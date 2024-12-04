@@ -547,3 +547,40 @@ def test_sg_wvs():
     sg_wv_raw("sg_glob_att1126.txt", "11264sg_config.yaml")
     sg_wv_nc("11264sg-waves-raw.cdf", "11264sg-atmpres.cdf")
     sg_wv_wvs("11264sgb-cal.nc")
+
+
+def tb_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runots.py", "tb", "csv2cdf", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def tb_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [scripts / "runots.py", "tb", "cdf2nc", nc_file, "--atmpres", atmpres]
+    else:
+        runlist = [scripts / "runots.py", "tb", "cdf2nc", nc_file]
+    result = subprocess.run(
+        runlist,
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def tb_wvs(nc_file):
+    result = subprocess.run(
+        [scripts / "runots.py", "tb", "nc2waves", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_tb():
+    tb_raw("TB_glob_att.txt", "TB_config.yaml")
+    tb_nc("example_TruBlue-raw.cdf")
+    tb_wvs("example_TruBlue-cont-cal.nc")

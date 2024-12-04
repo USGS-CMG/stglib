@@ -438,6 +438,14 @@ def runots():
             run_cdf_to_nc(stglib.sg.wvscdf2nc.cdf_to_nc, args)
         elif args.step == "nc2waves":
             stglib.sg.wvsnc2waves.nc_to_waves(args.ncname)
+    elif args.instrument == "tb":
+        if args.step == "csv2cdf":
+            stglib.tb.txt_to_cdf(metadata)
+        elif args.step == "cdf2nc":
+            run_cdf_to_nc(stglib.tb.cdf_to_nc, args)
+        elif args.step == "nc2waves":
+            # Using RSK nc2waves for TruBlue
+            stglib.rsk.nc2waves.nc_to_waves(args.ncname)
     elif args.instrument == "tcm":
         if args.step == "csv2cdf":
             runtcmcsv2cdf(args)

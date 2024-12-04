@@ -21,6 +21,7 @@ Currently, this package has at least partial support for:
 - EofE ECHOLOGGER altimeters
 - SBE 37 Microcat
 - SBE 26plus Seagauge
+- TruBlue pressure sensors
 
 We have plans to support:
 
