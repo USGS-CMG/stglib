@@ -196,6 +196,8 @@ def add_min_max(ds, exclude_vars=None):
         "direction",
         "diwasp_frequency",
         "diwasp_direction",
+        "puv_frequency",
+        "puv_frequency_clipped",
     ]
 
     for k in ds.variables:

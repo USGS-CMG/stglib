@@ -33,6 +33,7 @@ def make_diwasp_inputs(
     xdir=90,
     dunit="naut",
     inst_type="SIG",
+    nsamps=None,
 ):
 
     # check for user options in ds.attrs
@@ -56,6 +57,9 @@ def make_diwasp_inputs(
 
     if "diwasp_nfft" in ds.attrs:
         nfft = ds.attrs["diwasp_nfft"]
+
+    if "diwasp_ibin" in ds.attrs:
+        ibin = ds.attrs["diwasp_ibin"]
 
     ID = {}
     ID["fs"] = 1 / float(ds.attrs["sample_interval"])
@@ -109,19 +113,19 @@ def make_diwasp_inputs(
 
             ID["layout"] = np.array([sxyz, uxyz, vxyz])
 
-    # def next_power_of_2(x):
-    #    return 1 if x == 0 else 2 ** (x - 1).bit_length()
+    nyfreq = float(ds.attrs["sample_rate"]) / 2
 
-    nsamps = ds.attrs["wave_interval"] * ds.attrs["sample_rate"]
+    if nsamps is None:
+        nsamps = ds.attrs["wave_interval"] * ds.attrs["sample_rate"]
 
-    # if nfft is None:
-    #    nfft = 2^(next_power_of_2(int(nsamps/nsegs)))
+    if nfft is None:
+        nfft = 2 ^ (next_power_of_2(int(nsamps / nsegs)))
 
     if freqs is not None:
         freqs = freqs
     else:
         nfreqs = nfft / 2
-        freqs = np.arange(0.01, 2, (2 - 0.01) / nfreqs)
+        freqs = np.arange(0.01, nyfreq, (nyfreq - 0.01) / nfreqs)
 
     SM = {}
     SM["freqs"] = freqs
@@ -151,6 +155,14 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
     else:
         ibin = 0
 
+    # use power of 2 samples unless user specifies otherwise
+    if "diwasp_nsamps" in ds.attrs:
+        nsamps = ds.attrs["diwasp_nsamps"]
+    else:  # make diwasp use power of 2 nsamps
+        nsamps = floor_power_of_2(
+            int(ds.attrs["wave_interval"] * ds.attrs["sample_rate"])
+        )
+
     times = []
     s = []
     Hs = []
@@ -158,16 +170,17 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
     DTp = []
     Dp = []
     Dm = []
+    Tm = []
 
     for burst in tqdm(range(len(ds.time))):
-        p = ds["P_1ac"].isel(time=burst).values
+        p = ds["P_1ac"].isel(time=burst, sample=range(nsamps)).values
         if "brangeAST" in ds:
-            ast = ds["brangeAST"].isel(time=burst).values
+            ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps)).values
         else:
             ast = None
 
-        u = ds["u_1205"].isel(time=burst, z=ibin).values
-        v = ds["v_1206"].isel(time=burst, z=ibin).values
+        u = ds["u_1205"].isel(time=burst, z=ibin, sample=range(nsamps)).values
+        v = ds["v_1206"].isel(time=burst, z=ibin, sample=range(nsamps)).values
 
         ID, SM, EP = make_diwasp_inputs(
             ds.isel(time=burst),
@@ -175,6 +188,7 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
             data_type=data_type,
             freqs=freqs,
             inst_type=inst_type,
+            nsamps=nsamps,
         )
         if data_type == "suv":
             if ast is not None:
@@ -193,6 +207,10 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
         # append outputs to list
         print(type(SMout["S"]))
         mwd = make_mwd(SMout["freqs"], SMout["dirs"], np.real(SMout["S"]).T)
+        Snn = np.sum(np.real(SMout["S"]), axis=1) * 360 / float(EP["dres"])
+        m0 = make_moment(SMout["freqs"], Snn, 0)
+        m2 = make_moment(SMout["freqs"], Snn, 2)
+        mwp = make_Tm(m0, m2)
 
         times.append(ds["time"][burst].values)
         s.append(SMout["S"])
@@ -201,6 +219,7 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
         DTp.append(WVout[2])
         Dp.append(WVout[3])
         Dm.append(mwd)
+        Tm.append(mwp)
 
     dwv = xr.Dataset()
     dwv["time"] = xr.DataArray(np.array(times), dims="time")
@@ -211,10 +230,11 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
         np.real(np.stack(s, axis=0)),
         dims=["time", "diwasp_frequency", "diwasp_direction"],
     )
-    # dwv['dspec_imag']=xr.DataArray(np.imag(np.stack(s,axis=0)), dims=['time','frequency','direction'])
+
     dwv["diwasp_Hs"] = xr.DataArray(np.array(Hs), dims="time")
     dwv["diwasp_Tp"] = xr.DataArray(np.array(Tp), dims="time")
     dwv["diwasp_DTp"] = xr.DataArray(np.array(DTp), dims="time")
+    dwv["diwasp_Tm"] = xr.DataArray(np.array(Tm), dims="time")
     dwv["diwasp_Dp"] = xr.DataArray(np.array(Dp), dims="time")
     dwv["diwasp_Dm"] = xr.DataArray(np.round(np.array(Dm), 0), dims="time")
 
@@ -225,6 +245,8 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
         dwv.attrs["diwasp_inputs"] = ID["datatypes"]
     if "diwasp_method" not in ds.attrs:
         dwv.attrs["diwasp_method"] = EP["method"]
+    if "diwasp_nsamps" not in ds.attrs:
+        dwv.attrs["diwasp_nsamps"] = nsamps
     if "diwasp_nfft" not in ds.attrs:
         dwv.attrs["diwasp_nfft"] = EP["nfft"]
     if "diwasp_dres" not in ds.attrs:
@@ -1485,3 +1507,11 @@ def puv_qaqc(ds):
         ds[k][bads] = np.nan
 
     return ds
+
+
+def next_power_of_2(x):
+    return 1 if x == 0 else 2 ** (x - 1).bit_length()
+
+
+def floor_power_of_2(x):
+    return 1 if x == 0 else 2 ** ((x).bit_length() - 1)
