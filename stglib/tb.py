@@ -139,6 +139,7 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     ds = utils.create_nominal_instrument_depth(ds)
     ds = utils.create_z(ds)
     ds = utils.create_water_level_var(ds)
+    ds = utils.create_filtered_water_level_var(ds)
     ds = utils.create_water_depth_var(ds)
     ds = utils.ds_add_lat_lon(ds)
     ds = utils.add_start_stop_time(ds)

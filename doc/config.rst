@@ -126,6 +126,7 @@ RBR instruments
 Options specific to RBR instruments exported from the Ruskin software include:
 
 - ``basefile``: the input filename without extension or data type. For example, if your exported text files are named ``055170_20190219_1547_burst.txt``, ``055170_20190219_1547_data.txt``, etc., ``basefile`` will be ``055170_20190219_1547``.
+- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
@@ -199,6 +200,7 @@ Onset Hobo
 ----------
 
 - All the _min, _max, _bad_ens, etc. options available to the EXO.
+- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
 - ``instrument_type``: can be ``hwl`` (water level), ``hwlb`` (water level as barometer), ``hdo`` (dissolved oxygen) or ``hcnd`` (conductivity) use these based on parameter measured by hobo logger
 - ``skipfooter``: number of lines to skip in the CSV file at the end of the file
 - ``ncols``: number of columns of data to read, starting at first
@@ -245,6 +247,7 @@ TruBlue
 -------
 - All the _min, _max, _bad_ens, etc. options available to the EXO
 - ``skiprows``: number of header lines to skip in the txt file before the real data begins
+- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
 - ``wave_interval``: interval in seconds for calculating wave bursts from continuous pressure data
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters

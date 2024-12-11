@@ -471,17 +471,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = qaqc.drop_vars(ds)
 
     ds = utils.create_z(ds)  # added 7/31/2023
-
+    ds = utils.create_water_level_var(ds)
+    ds = utils.create_filtered_water_level_var(ds)
     ds = ds_add_attrs(ds)
-
-    # assign min/max:
     ds = utils.add_min_max(ds)
-
     ds = utils.add_start_stop_time(ds)
-
     ds = utils.add_delta_t(ds)
-
-    # add lat/lon coordinates
     ds = utils.ds_add_lat_lon(ds)
 
     if "vert_dim" in ds.attrs:

@@ -133,7 +133,7 @@ def apply_butter_filt(ds, var):
 
         else:
             raise ValueError(
-                f"sample_rate or sample _interval do not exits in global attributes, can not apply lowpass filter to {var}. "
+                f"sample_rate or sample _interval do not exist in global attributes, cannot apply lowpass filter to {var}. "
             )
 
     return ds
