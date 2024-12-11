@@ -15,6 +15,8 @@ import xarray as xr
 
 import stglib
 
+from . import filter
+
 
 def is_cf(ds):
     if ("Conventions" in ds.attrs) and ("CF" in ds.attrs["Conventions"]):
@@ -1409,7 +1411,6 @@ def create_water_level_var(ds):
         "P_1ac" in list(ds.data_vars)
         and ds.z.attrs["geopotential_datum_name"] == "NAVD88"
     ):
-
         if "sample" in ds.dims:
             ds["water_level"] = xr.DataArray(
                 ds["P_1ac"].squeeze().mean(dim="sample") + ds["z"].values
@@ -1427,4 +1428,42 @@ def create_water_level_var(ds):
         print(
             "Cannot create water_level variable without P_1ac and height_above_geopotential_datum relative to NAVD88 in global attributes file."
         )
+    return ds
+
+
+def create_filtered_water_level_var(ds):
+    """
+    Create 4th order lowpass butterworth filtered water level with 6 min cutoff
+    """
+
+    if "filtered_wl" in ds.attrs and ds.attrs["filtered_wl"].lower() == "true":
+
+        var = "water_level"
+        cutfreq = 1 / 360  # 6 min cutoff
+        ftype = "lowpass"
+        ford = 4
+
+        if "sample_rate" in ds.attrs:
+            sr = ds.attrs["sample_rate"]
+        elif "sample_interval" in ds.attrs:
+            sr = 1 / ds.attrs["sample_interval"]
+        else:
+            raise ValueError(
+                "Cannot create filtered_water_level without sample_rate or sample _interval in global attributes"
+            )
+
+        filtered_wl = filter.butter_filt(ds[var].values, sr, cutfreq, ftype, ford)
+
+        ds["water_level_filt"] = xr.DataArray(filtered_wl, dims="time")
+
+        ds["water_level_filt"].attrs["long_name"] = "Filtered water level NAVD88"
+        ds["water_level_filt"].attrs["units"] = "m"
+        ds["water_level_filt"].attrs[
+            "standard_name"
+        ] = "sea_surface_height_above_geopotential_datum"
+        ds["water_level_filt"].attrs["geopotential_datum_name"] = "NAVD88"
+        ds["water_level_filt"].attrs[
+            "note"
+        ] = "4th order lowpass butterworth filter with 6 min cutoff"
+
     return ds

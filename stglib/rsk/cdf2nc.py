@@ -70,18 +70,15 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     if not is_profile:
         # add z coordinate dim
         ds = utils.create_z(ds)
-
+        ds = utils.create_water_level_var(ds)
+        ds = utils.create_water_depth_var(ds)
+        ds = utils.create_filtered_water_level_var(ds)
         ds = utils.add_min_max(ds)
-
-    ds = utils.add_start_stop_time(ds)
-
-    if not is_profile:
         ds = utils.ds_add_lat_lon(ds)
 
+    ds = utils.add_start_stop_time(ds)
     ds = utils.ds_coord_no_fillvalue(ds)
-
     ds = utils.add_history(ds)
-
     ds = dw_add_delta_t(ds)
 
     if is_profile:
