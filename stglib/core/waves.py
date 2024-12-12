@@ -23,7 +23,7 @@ import pyDIWASP
 def make_diwasp_inputs(
     ds,
     data_type="puv",
-    method="IMLM",
+    method="DFTM",
     dres=180,
     nsegs=16,
     iter=50,
@@ -34,6 +34,7 @@ def make_diwasp_inputs(
     dunit="naut",
     inst_type="SIG",
     nsamps=None,
+    smooth="ON",
 ):
 
     # check for user options in ds.attrs
@@ -41,13 +42,13 @@ def make_diwasp_inputs(
         method = ds.attrs["diwasp_method"]
 
     if "diwasp_nsegs" in ds.attrs:
-        nsegs = ds.attrs["diwasp_nsegs"]
+        nsegs = int(ds.attrs["diwasp_nsegs"])
 
     if "diwasp_dres" in ds.attrs:
-        dres = ds.attrs["diwasp_dres"]
+        dres = int(ds.attrs["diwasp_dres"])
 
     if "diwasp_iter" in ds.attrs:
-        iter = ds.attrs["diwasp_iter"]
+        iter = int(ds.attrs["diwasp_iter"])
 
     if "diwasp_xdir" in ds.attrs:
         xdir = ds.attrs["diwasp_xdir"]
@@ -56,10 +57,13 @@ def make_diwasp_inputs(
         dunit = ds.attrs["diwasp_dunit"]
 
     if "diwasp_nfft" in ds.attrs:
-        nfft = ds.attrs["diwasp_nfft"]
+        nfft = int(ds.attrs["diwasp_nfft"])
 
     if "diwasp_ibin" in ds.attrs:
-        ibin = ds.attrs["diwasp_ibin"]
+        ibin = int(ds.attrs["diwasp_ibin"])
+
+    if "diwasp_smooth" in ds.attrs:
+        smooth = ds.attrs["diwasp_smooth"]
 
     ID = {}
     ID["fs"] = 1 / float(ds.attrs["sample_interval"])
@@ -125,7 +129,14 @@ def make_diwasp_inputs(
         freqs = freqs
     else:
         nfreqs = nfft / 2
-        freqs = np.arange(0.01, nyfreq, (nyfreq - 0.01) / nfreqs)
+        flo = np.round(
+            1 / (nsamps / ID["fs"] / 32.0), 3
+        )  # set minimum frequency to length of wave burst samples use divided by 32
+        if nyfreq > 1:
+            fhi = 1
+        else:
+            fhi = nyfreq
+        freqs = np.arange(flo, fhi, (fhi - flo) / nfreqs)
 
     SM = {}
     SM["freqs"] = freqs
@@ -138,6 +149,7 @@ def make_diwasp_inputs(
     EP["iter"] = iter
     EP["nfft"] = nfft
     EP["dres"] = int(dres)
+    EP["smooth"] = smooth
 
     return ID, SM, EP
 
@@ -158,10 +170,12 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
     # use power of 2 samples unless user specifies otherwise
     if "diwasp_nsamps" in ds.attrs:
         nsamps = ds.attrs["diwasp_nsamps"]
-    else:  # make diwasp use power of 2 nsamps
+    elif "diwasp_pow2" in ds.attrs:  # make diwasp use power of 2 nsamps
         nsamps = floor_power_of_2(
             int(ds.attrs["wave_interval"] * ds.attrs["sample_rate"])
         )
+    else:
+        nsamps = int(ds.attrs["wave_interval"] * ds.attrs["sample_rate"])
 
     times = []
     s = []
@@ -202,10 +216,10 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
             ID["data"] = np.array([p, u, v]).transpose()
 
         opts = ["MESSAGE", 0, "PLOTTYPE", 0]
+
         [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
         WVout = pyDIWASP.infospec.infospec(SMout)
         # append outputs to list
-        print(type(SMout["S"]))
         mwd = make_mwd(SMout["freqs"], SMout["dirs"], np.real(SMout["S"]).T)
         Snn = np.sum(np.real(SMout["S"]), axis=1) * 360 / float(EP["dres"])
         m0 = make_moment(SMout["freqs"], Snn, 0)

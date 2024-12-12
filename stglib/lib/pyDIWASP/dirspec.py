@@ -8,6 +8,7 @@ from .infospec import infospec
 from .interpspec import interpspec
 from .plotspec import plotspec
 from .private.check_data import check_data
+from .private.DFTM import DFTM
 from .private.diwasp_csd import diwasp_csd
 from .private.elev import elev
 from .private.IMLM import IMLM
