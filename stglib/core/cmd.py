@@ -65,6 +65,10 @@ def runots_parser():
         description="Specify one of the instruments in the list below",
     )
 
+    instsp = add_instrument(subparsers, "abss", "AQUAscat1000R")
+    addinst2cdf(instsp, "mat2cdf")
+    addcdf2nc(instsp)
+
     instsp = add_instrument(subparsers, "aqd", "Aquadopp (currents)")
     addinst2cdf(instsp, "hdr2cdf")
     addcdf2nc(instsp)
@@ -174,6 +178,24 @@ def nc2waves_parser(description="Generate wave-statistics file"):
     """generic parser for processed .nc to wave statistics"""
     parser = argparse.ArgumentParser(description=description)
     ncarg(parser)
+
+    return parser
+
+
+def abssmat2cdf_parser():
+    description = "Convert ABS .mat files to raw .cdf format. Run this script from the directory containing ABS glob_att and config files."
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def absscdf2nc_parser():
+    description = "Convert raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+    parser = argparse.ArgumentParser(description=description)
+    cdfarg(parser)
+    atmarg(parser)
 
     return parser
 

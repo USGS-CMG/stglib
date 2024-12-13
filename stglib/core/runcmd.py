@@ -40,6 +40,22 @@ def run_cdf_to_nc(f, args):
     return ds
 
 
+def runabssmat2cdf(args=None):
+    if not args:
+        args = stglib.cmd.abssmat2cdf_parser().parse_args()
+
+    metadata = get_metadata(args)
+
+    stglib.abss.mat2cdf(metadata)
+
+
+def runabsscdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.absscdf2nc_parser().parse_args()
+
+    run_cdf_to_nc(stglib.abss.cdf2nc, args)
+
+
 def runaqdcdf2nc(args=None):
     if not args:
         args = stglib.cmd.aqdcdf2nc_parser().parse_args()
@@ -355,6 +371,11 @@ def runots():
     if "2cdf" in args.step:
         metadata = get_metadata(args)
 
+    if args.instrument == "abss":
+        if args.step == "mat2cdf":
+            runabssmat2cdf(args)
+        elif args.step == "cdf2nc":
+            runabsscdf2nc(args)
     if args.instrument == "aqd":
         if args.step == "hdr2cdf":
             runaqdhdr2cdf(args)

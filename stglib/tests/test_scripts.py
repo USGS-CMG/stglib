@@ -13,6 +13,41 @@ scripts = Path(sysconfig.get_path("scripts"))
 cwd = "stglib/tests/data"
 
 
+def abss_raw(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runots.py", "abss", "mat2cdf", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def abss_nc(nc_file, atmpres=None):
+    if atmpres is not None:
+        runlist = [
+            scripts / "runots.py",
+            "abss",
+            "cdf2nc",
+            nc_file,
+            "--atmpres",
+            atmpres,
+        ]
+    else:
+        runlist = [scripts / "runots.py", "abss", "cdf2nc", nc_file]
+    result = subprocess.run(
+        runlist,
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+@pytest.mark.skip(reason="works locally but not on gitlab built-in checks")
+def test_abss():
+    abss_raw("glob_att1126_abs_test_msl.txt", "config_1126abs910_abs_test.yaml")
+    abss_nc("1123abs910_test-raw.cdf")
+
+
 def exo_raw(glob_att, config_yaml):
     result = subprocess.run(
         [scripts / "runexocsv2cdf.py", glob_att, config_yaml],

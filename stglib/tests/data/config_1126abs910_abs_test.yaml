@@ -1,0 +1,19 @@
+basefile: '11263abssABS_Test_Meta'
+filename: '1123abs910_test'   # name of output file, -raw.cdf or .nc will be appended to this
+outdir: 'abs_test_data/'
+matdir: 'abs_test_data/'
+SN: '910'
+LatLonDatum: 'NAD83'
+ClockError: 507 # sec, negative is slow
+initial_instrument_height: 1.38  #height of acoustic transducer
+initial_instrument_height_note: 'From seabed to transducers'
+pressure_sensor_height: 1.67 #height of canister, pressure port
+orientation: 'down'
+zeroed_pressure: 'No' # was pressure zeroed before deployment
+P_1ac_note: 'Corrected for variations in atmospheric pressure using station FW7612 Dennis'
+P_1_offset: -41.226 #offset between abs and vec pressure
+P_1_scale: 2
+Tx_offset: 23.7349
+#Tx_scale:
+#bat_offset:
+bat_scale: 2

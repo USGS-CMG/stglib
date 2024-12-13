@@ -252,3 +252,17 @@ TruBlue
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
+
+AQUAscat1000R
+-------------
+- ``outdir``: path to desired folder for burst .cdf files (converted from burst .mat files in mat2cdf)
+- ``matdir``: path to folder containing burst .mat files generated from Aquatec's ReadAquascat1000.m
+- ``P_1_offset``: offset between 0 and abs pressure before deploying
+- ``P_1_scale``: scale factor to apply to raw pressure data, likely 2. Plot raw data to asses appropriate scale factor. 
+- ``Tx_offset``: offset between ABSS temperature and actual temperature. Plot raw data to asses appropriate scale factor. Check with another instrument. 
+- ``Tx_scale``: scale factor to apply to raw temperature data. Likely none needed. Plot raw data to asses appropriate scale factor. 
+- ``Bat_offset``: offset between ABSS raw battery voltage and actual battery voltage. Likely none needed. 
+- ``Bat_scale``: scale factor to apply to raw battery voltage data, likely 2. Plot raw data to asses appropriate scale factor. 
+- ``orientation``: orientation of transducer(s)
+- ``initial_instrument_height``: height of acoustic transducer
+- ``pressure_sensor_height``: height of pressure port on canister, likely different that transducer height
