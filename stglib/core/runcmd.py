@@ -424,7 +424,7 @@ def runots():
             runeofecdf2nc(args)
     elif args.instrument == "exo":
         if args.step == "csv2cdf":
-            runexomat2cdf(args)
+            runexocsv2cdf(args)
         elif args.step == "cdf2nc":
             runexocdf2nc(args)
     elif args.instrument == "hobo":
