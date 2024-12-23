@@ -59,8 +59,8 @@ def make_diwasp_inputs(
     if "diwasp_nfft" in ds.attrs:
         nfft = int(ds.attrs["diwasp_nfft"])
 
-    if "diwasp_ibin" in ds.attrs:
-        ibin = int(ds.attrs["diwasp_ibin"])
+    # if "diwasp_ibin" in ds.attrs:
+    #    ibin = int(ds.attrs["diwasp_ibin"])
 
     if "diwasp_smooth" in ds.attrs:
         smooth = ds.attrs["diwasp_smooth"]
@@ -132,8 +132,8 @@ def make_diwasp_inputs(
         flo = np.round(
             1 / (nsamps / ID["fs"] / 32.0), 3
         )  # set minimum frequency to length of wave burst samples use divided by 32
-        if nyfreq > 1:
-            fhi = 1
+        if nyfreq > 2:
+            fhi = 2
         else:
             fhi = nyfreq
         freqs = np.arange(flo, fhi, (fhi - flo) / nfreqs)
@@ -251,6 +251,110 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
     dwv["diwasp_Tm"] = xr.DataArray(np.array(Tm), dims="time")
     dwv["diwasp_Dp"] = xr.DataArray(np.array(Dp), dims="time")
     dwv["diwasp_Dm"] = xr.DataArray(np.round(np.array(Dm), 0), dims="time")
+
+    # make some diwasp attrs
+    if "diwasp_bin" not in ds.attrs:
+        dwv.attrs["diwasp_bin"] = ibin
+    if "diwasp_inputs" not in ds.attrs:
+        dwv.attrs["diwasp_inputs"] = ID["datatypes"]
+    if "diwasp_method" not in ds.attrs:
+        dwv.attrs["diwasp_method"] = EP["method"]
+    if "diwasp_nsamps" not in ds.attrs:
+        dwv.attrs["diwasp_nsamps"] = nsamps
+    if "diwasp_nfft" not in ds.attrs:
+        dwv.attrs["diwasp_nfft"] = EP["nfft"]
+    if "diwasp_dres" not in ds.attrs:
+        dwv.attrs["diwasp_dres"] = EP["dres"]
+    if "diwasp_iter" not in ds.attrs:
+        dwv.attrs["diwasp_iter"] = EP["iter"]
+    if "diwasp_xdir" not in ds.attrs:
+        dwv.attrs["diwasp_xdir"] = SM["xaxisdir"]
+    if "diwasp_dunit" not in ds.attrs:
+        dwv.attrs["diwasp_dunit"] = SM["dunit"]
+
+    return dwv
+
+
+def make_diwasp_elev_pres(ds, freqs=None, inst_type="SIG"):
+    """Calculate Directional Wave Statistic using PyDIWASP"""
+    if "diwasp" in ds.attrs:
+        if "elev" in ds.attrs["diwasp"]:
+            data_type = "elev"
+        elif "pres" in ds.attrs["diwasp"]:
+            data_type = "pres"
+
+    # use power of 2 samples unless user specifies otherwise
+    if "diwasp_nsamps" in ds.attrs:
+        nsamps = ds.attrs["diwasp_nsamps"]
+    elif "diwasp_pow2" in ds.attrs:  # make diwasp use power of 2 nsamps
+        nsamps = floor_power_of_2(
+            int(ds.attrs["wave_interval"] * ds.attrs["sample_rate"])
+        )
+    else:
+        nsamps = int(ds.attrs["wave_interval"] * ds.attrs["sample_rate"])
+
+    times = []
+    s = []
+    Hs = []
+    Tp = []
+    Tm = []
+
+    for burst in tqdm(range(len(ds.time))):
+        p = ds["P_1ac"].isel(time=burst, sample=range(nsamps)).values
+        if "brangeAST" in ds:
+            ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps)).values
+        else:
+            ast = None
+
+        ID, SM, EP = make_diwasp_inputs(
+            ds.isel(time=burst),
+            ibin=0,
+            data_type=data_type,
+            freqs=freqs,
+            inst_type=inst_type,
+            nsamps=nsamps,
+        )
+        if data_type == "elev":
+            if ast is not None:
+                ID["data"] = np.atleast_2d(ast).transpose()
+            else:
+                raise ValueError(
+                    f"Acoustic surface tracking (ast) variable not found cannot continue with {data_type} directional wave analysis"
+                )
+
+        elif data_type == "pres":
+            ID["data"] = np.atleas_2d(p).transpose()
+
+        opts = ["MESSAGE", 0, "PLOTTYPE", 0]
+
+        [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
+        WVout = pyDIWASP.infospec.infospec(SMout)
+        # append outputs to list
+        # Snn = np.sum(np.real(SMout["S"]), axis=1) * 360 / float(EP["dres"])
+        Snn = np.trapz(np.real(SMout["S"]), axis=1, x=SMout["dirs"])
+        m0 = make_moment(SMout["freqs"], Snn, 0)
+        m2 = make_moment(SMout["freqs"], Snn, 2)
+        mwp = make_Tm(m0, m2)
+
+        times.append(ds["time"][burst].values)
+        s.append(SMout["S"])
+        Hs.append(WVout[0])
+        Tp.append(WVout[1])
+        Tm.append(mwp)
+
+    dspec = np.real(np.stack(s, axis=0))
+    dwv = xr.Dataset()
+    dwv["time"] = xr.DataArray(np.array(times), dims="time")
+    dwv["time"] = pd.DatetimeIndex(dwv["time"])
+    dwv["diwasp_frequency"] = xr.DataArray(SMout["freqs"], dims="diwasp_frequency")
+    dwv["diwasp_spec1d"] = xr.DataArray(
+        np.trapz(dspec, axis=2, x=SMout["dirs"]),
+        dims=["time", "diwasp_frequency"],
+    )
+
+    dwv["diwasp_Hs"] = xr.DataArray(np.array(Hs), dims="time")
+    dwv["diwasp_Tp"] = xr.DataArray(np.array(Tp), dims="time")
+    dwv["diwasp_Tm"] = xr.DataArray(np.array(Tm), dims="time")
 
     # make some diwasp attrs
     if "diwasp_bin" not in ds.attrs:

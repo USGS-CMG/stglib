@@ -102,7 +102,7 @@ def dirspec(ID, SM, EP, Options_=None):
         raise Exception("Data length of {} too small".format(ndat))
 
     # calculate the cross-power spectra
-    xps = np.empty((szd, szd, int(nfft / 2)), "complex128")
+    xps = np.zeros((szd, szd, int(nfft / 2)), "complex128")
     for m in range(szd):
         for n in range(szd):
             xpstmp, Ftmp = diwasp_csd(data[:, m], data[:, n], nfft, ID["fs"])
@@ -116,8 +116,8 @@ def dirspec(ID, SM, EP, Options_=None):
 
     # calculate transfer parameters
     print("transfer parameters\n")
-    trm = np.empty((szd, nf, len(pidirs)))
-    kx = np.empty((szd, szd, nf, len(pidirs)))
+    trm = np.zeros((szd, nf, len(pidirs)))
+    kx = np.zeros((szd, szd, nf, len(pidirs)))
     for m in range(szd):
         trm[m, :, :] = eval(ID["datatypes"][m])(
             2 * np.pi * F, pidirs, wns, ID["layout"][2, m], ID["depth"]
@@ -128,11 +128,13 @@ def dirspec(ID, SM, EP, Options_=None):
                 + (ID["layout"][1, n] - ID["layout"][1, m]) * np.sin(pidirs)
             )
 
-    Ss = np.empty((szd, nf), dtype="complex128")
+    Ss = np.zeros((szd, nf), dtype="complex128")
     for m in range(szd):
         tfn = trm[m, :, :]
         Sxps = xps[m, m, :]
-        Ss[m, :] = Sxps / (np.max(tfn, axis=1) * np.conj(np.max(tfn, axis=1)))
+        Ss[m, :] = Sxps / (
+            np.max(tfn.conj().T, axis=0) * np.conj(np.max(tfn.conj().T, axis=0))
+        )
 
     ffs = np.logical_and(F >= np.min(SM["freqs"]), F <= np.max(SM["freqs"]))
     SM1 = dict()
@@ -179,4 +181,4 @@ def dirspec(ID, SM, EP, Options_=None):
         plt.title(T)
         plt.show()
 
-    return SMout, EP
+    return SMout, EP, trm, kx

@@ -37,6 +37,10 @@ def addnc2waves(instsp):
     instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
 
 
+def addnc2diwasp(instsp):
+    instsp.add_parser("nc2diwasp", parents=[nc2diwasp_parser()], add_help=False)
+
+
 def addinst2cdf(instsp, action, description="Convert instrument data to raw .cdf"):
     instsp.add_parser(
         action, parents=[inst2cdf_parser()], add_help=False, description=description
@@ -101,6 +105,7 @@ def runots_parser():
     addinst2cdf(instsp, "mat2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
+    addnc2diwasp(instsp)
 
     instsp = add_instrument(subparsers, "vec", "Nortek Vector")
     addinst2cdf(instsp, "dat2cdf")
@@ -191,6 +196,11 @@ def nc2waves_parser(description="Generate wave-statistics file"):
     ncarg(parser)
 
     return parser
+
+def nc2diwasp_parser(description="Generate DIWASP wave-statistics file"):
+    """generic parser for processed .nc to wave statistics"""
+    parser = argparse.ArgumentParser(description=description)
+    ncarg(parser)
 
 
 def abssmat2cdf_parser():
@@ -546,6 +556,14 @@ def sigcdf2nc_parser():
 
 def signc2waves_parser():
     description = "Generate waves statistics file"
+    parser = argparse.ArgumentParser(description=description)
+    ncarg(parser)
+
+    return parser
+
+
+def signc2diwasp_parser():
+    description = "Generate DIWASP waves statistics file"
     parser = argparse.ArgumentParser(description=description)
     ncarg(parser)
 

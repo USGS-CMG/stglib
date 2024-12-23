@@ -30,9 +30,9 @@ def DFTM(xps, trm, kx, Ss, W, miter, displ):
                 Hs = np.conj(trm[m, ff, :])
                 expx = np.exp(1j * kx[m, n, ff, :])
                 xtemp = nxps[m, n] * H * Hs * expx
-                Sftmp += xtemp
+                Sftmp += xtemp.conj().T
 
-        E = Sftmp.T
+        E = Sftmp.conj().T
         E = E / (ddir * np.sum(E))
         S[ff, :] = Ss[0, ff] * E
 

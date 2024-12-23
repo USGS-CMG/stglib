@@ -1,9 +1,11 @@
 import warnings
+
 import numpy as np
 from numpy.linalg import inv
 
+
 def IMLM(xps, trm, kx, Ss, pidirs, miter, displ):
-    
+
     gamma = 0.1
     alpha = 0.1
 
@@ -14,17 +16,17 @@ def IMLM(xps, trm, kx, Ss, pidirs, miter, displ):
     ddir = 8 * np.arctan(1) / ddirs
 
     if displ < 2:
-        warnings.simplefilter('ignore')
-    
-    Htemp = np.empty((ddirs, szd, szd), dtype='complex128')
-    iHtemp = np.empty((ddirs, szd, szd), dtype='complex128')
-    ixps = np.empty((szd, szd), dtype='complex128')
-    S = np.empty((ffreqs, ddirs), dtype='complex128')
+        warnings.simplefilter("ignore")
+
+    Htemp = np.zeros((ddirs, szd, szd), dtype="complex128")
+    iHtemp = np.zeros((ddirs, szd, szd), dtype="complex128")
+    ixps = np.zeros((szd, szd), dtype="complex128")
+    S = np.zeros((ffreqs, ddirs), dtype="complex128")
 
     for ff in range(ffreqs):
         if displ >= 1:
-            print('calculating for frequency {} of {}'.format(ff + 1, ffreqs))
-        
+            print("calculating for frequency {} of {}".format(ff + 1, ffreqs))
+
         for m in range(szd):
             for n in range(szd):
                 H = trm[n, ff, :]
@@ -35,7 +37,7 @@ def IMLM(xps, trm, kx, Ss, pidirs, miter, displ):
                 iHtemp[:, m, n] = H * Hs * iexpx
 
         invcps = inv(xps[:, :, ff])
-        Sftmp = np.zeros(ddirs, dtype='complex128')
+        Sftmp = np.zeros(ddirs, dtype="complex128")
         for m in range(szd):
             for n in range(szd):
                 xtemp = invcps[m, n] * Htemp[:, m, n]
@@ -52,28 +54,24 @@ def IMLM(xps, trm, kx, Ss, pidirs, miter, displ):
                     expG = iHtemp[:, m, n] * E
                     ixps[m, n] = np.sum(expG) * ddir
             invcps = inv(ixps)
-            Sftmp = np.zeros(ddirs, dtype='complex128')
+            Sftmp = np.zeros(ddirs, dtype="complex128")
             for m in range(szd):
                 for n in range(szd):
                     xtemp = invcps[m, n] * Htemp[:, m, n]
                     Sftmp = Sftmp + xtemp
             Told = T
             T = 1 / Sftmp
-            
+
             kappa = 1 / (ddir * np.sum(T))
             T = T * kappa
-            
+
             ei = gamma * ((Eo - T) + alpha * (T - Told))
             E = E + ei
             kappa = 1 / (ddir * np.sum(E))
             E = E * kappa
 
-            
-        
-        S[ff, :] = Ss[0, ff] * E
+        S[ff, :] = Ss[0, ff] * E.conj().T
 
-        
-    
-    warnings.simplefilter('default')
+    warnings.simplefilter("default")
 
     return S

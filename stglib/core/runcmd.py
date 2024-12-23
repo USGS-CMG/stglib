@@ -232,6 +232,13 @@ def runrskrsk2cdf(args=None):
     stglib.rsk.rsk2cdf.rsk_to_cdf(metadata)
 
 
+def runsignc2diwasp(args=None):
+    if not args:
+        args = stglib.cmd.signc2diwasp_parser().parse_args()
+
+    stglib.sig.nc2diwasp.nc_to_diwasp(args.ncname)
+
+
 def runsignc2waves(args=None):
     if not args:
         args = stglib.cmd.signc2waves_parser().parse_args()
@@ -414,6 +421,8 @@ def runots():
             runsigcdf2nc(args)
         elif args.step == "nc2waves":
             runsignc2waves(args)
+        elif args.step == "nc2diwasp":
+            runsignc2diwasp(args)
     elif args.instrument == "vec":
         if args.step == "dat2cdf":
             runvecdat2cdf(args)

@@ -39,6 +39,7 @@ def nc_to_waves(nc_filename):
     if dopuv:
         ds = do_puv(ds)
 
+    """
     dodiwasp = False
     if "diwasp" in ds.attrs:
         print("Running DIWASP")
@@ -65,7 +66,7 @@ def nc_to_waves(nc_filename):
             ds.attrs[k] = diwasp.attrs[k]
 
     # ds = utils.create_water_depth(ds)
-
+    """
     ds = utils.create_water_depth_var(ds)
 
     for k in [
@@ -114,12 +115,8 @@ def nc_to_waves(nc_filename):
     # round time to minutes to make sure fits in dtype i4. will be fine for wave burst start times
     ds["time"] = ds["time"].dt.round("min")
 
-    if dopuv and not dodiwasp:
+    if dopuv:
         nc_filename = ds.attrs["filename"] + "s_puvq-a.nc"
-    elif dodiwasp and not dopuv:
-        nc_filename = ds.attrs["filename"] + "s_diwasp-a.nc"
-    elif dopuv and dodiwasp:
-        nc_filename = ds.attrs["filename"] + "s_puvq_diwasp-a.nc"
     else:
         nc_filename = ds.attrs["filename"] + "s-a.nc"
 
