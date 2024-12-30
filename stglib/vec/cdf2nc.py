@@ -188,8 +188,24 @@ def set_orientation(VEL):
         scname = "DOWN"
     headtype = VEL.attrs["VECHeadSerialNumber"][0:3]
 
+    body_orientation = "NA"
+    probe_orientation = "NA"
+    if headtype == "VEC":
+        body_orientation = "vertical"
+        if sc == "0":
+            probe_orientation = "DOWN"
+        elif sc == "1":
+            probe_orientation = "UP"
+    elif headtype == "VCH":
+        body_orientation = "horizontal"
+        if sc == "0":
+            probe_orientation = "UP"
+        elif sc == "1":
+            probe_orientation = "DOWN"
+
     print(
-        f"Instrument reported {headtype} case with orientation status code {sc} -> z-axis positive {scname} at middle of deployment"
+        f"Instrument reported {headtype} case with orientation status code {sc} -> z-axis positive {scname} at middle of deployment \n
+        If configured correctly, this {body_orientation}ly orientated case therefore has the instrument probe head pointing {probe_orientation}"
     )
 
     if userorient == "UP":
