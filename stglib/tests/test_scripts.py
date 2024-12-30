@@ -225,12 +225,18 @@ def vec_wvs(nc_file):
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
-# def test_vec():
-#     vec_raw("gatts_NBM22CSB.txt", "config_NBM22CSB.yaml")
-#     vec_nc("NBMCSBvec01-raw.cdf")
-#     vec_wvs("NBMCSBvec01b-cal.nc")
-#     vec_raw("glob_att1126_msl.txt", "config_1126vec14823.yaml")
-#     vec_nc("1126vec14823-raw.cdf")
+@pytest.mark.skip(reason="works locally but not on GitLab CI")
+def test_vec_burst():
+    # burst mode vector, fails on gitlab CI
+    vec_raw("gatts_NBM22CSB.txt", "config_NBM22CSB.yaml")
+    vec_nc("NBMCSBvec01-raw.cdf")
+    vec_wvs("NBMCSBvec01b-cal.nc")
+
+
+def test_vec_continuous():
+    # continuous mode Vector
+    vec_raw("glob_att1126_msl.txt", "config_1126vec14823.yaml")
+    vec_nc("1126vec14823-raw.cdf")
 
 
 def wxt_raw(glob_att, config_yaml):
