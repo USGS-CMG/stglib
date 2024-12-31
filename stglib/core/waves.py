@@ -22,17 +22,16 @@ import pyDIWASP
 
 def make_diwasp_inputs(
     ds,
-    data_type="puv",
-    method="DFTM",
+    data_type=None,
+    layout=None,
+    method="IMLM",
     dres=180,
     nsegs=16,
     iter=50,
-    ibin=0,
     freqs=None,
     nfft=256,
     xdir=90,
     dunit="naut",
-    inst_type="SIG",
     nsamps=None,
     smooth="ON",
 ):
@@ -59,9 +58,6 @@ def make_diwasp_inputs(
     if "diwasp_nfft" in ds.attrs:
         nfft = int(ds.attrs["diwasp_nfft"])
 
-    # if "diwasp_ibin" in ds.attrs:
-    #    ibin = int(ds.attrs["diwasp_ibin"])
-
     if "diwasp_smooth" in ds.attrs:
         smooth = ds.attrs["diwasp_smooth"]
 
@@ -73,49 +69,21 @@ def make_diwasp_inputs(
     if data_type == "puv":
         ID["datatypes"] = ["pres", "velx", "vely"]
 
-        # get layout
-        if inst_type == "SIG":
-            pxyz = [0, 0, ds.attrs["initial_instrument_height"]]
-
-            if ds.attrs["orientation"].lower() == "up":
-                uxyz = [
-                    0,
-                    0,
-                    ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
-                ]
-            elif ds.attrs["orientation"].lower() == "down":
-                uxyz = [
-                    0,
-                    0,
-                    ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
-                ]
-
-            vxyz = uxyz
-
-            ID["layout"] = np.array([pxyz, uxyz, vxyz])
-
     elif data_type == "suv":
-
         ID["datatypes"] = ["elev", "velx", "vely"]
-        # ID['data'] = np.array([p, u, v]).transpose()
-        if inst_type == "SIG":
-            sxyz = [0, 0, ds.attrs["initial_instrument_height"]]
-            if ds.attrs["orientation"].lower() == "up":
-                uxyz = [
-                    0,
-                    0,
-                    ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
-                ]
-            elif ds.attrs["orientation"].lower() == "down":
-                uxyz = [
-                    0,
-                    0,
-                    ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
-                ]
 
-            vxyz = uxyz
+    elif data_type == "elev":
+        ID["datatypes"] = ["elev"]
 
-            ID["layout"] = np.array([sxyz, uxyz, vxyz])
+    elif data_type == "pres":
+        ID["datatypes"] = ["pres"]
+
+    if np.any(layout):
+        ID["layout"] = layout
+    else:
+        raise KeyError(
+            "Required DIWASP input parameter <layout> has not been explicitly passed to make_diwasp_inputs def"
+        )
 
     nyfreq = float(ds.attrs["sample_rate"]) / 2
 
@@ -154,18 +122,8 @@ def make_diwasp_inputs(
     return ID, SM, EP
 
 
-def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
+def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=None):
     """Calculate Directional Wave Statistic using PyDIWASP"""
-    if "diwasp" in ds.attrs:
-        if "suv" in ds.attrs["diwasp"]:
-            data_type = "suv"
-        elif "puv" in ds.attrs["diwasp"]:
-            data_type = "puv"
-
-    if "diwasp_bin" in ds.attrs:
-        ibin = ds.attrs["diwasp_bin"]
-    else:
-        ibin = 0
 
     # use power of 2 samples unless user specifies otherwise
     if "diwasp_nsamps" in ds.attrs:
@@ -198,10 +156,9 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
 
         ID, SM, EP = make_diwasp_inputs(
             ds.isel(time=burst),
-            ibin=ibin,
+            layout=layout,
             data_type=data_type,
             freqs=freqs,
-            inst_type=inst_type,
             nsamps=nsamps,
         )
         if data_type == "suv":
@@ -221,7 +178,8 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
         WVout = pyDIWASP.infospec.infospec(SMout)
         # append outputs to list
         mwd = make_mwd(SMout["freqs"], SMout["dirs"], np.real(SMout["S"]).T)
-        Snn = np.sum(np.real(SMout["S"]), axis=1) * 360 / float(EP["dres"])
+        # Snn = np.sum(np.real(SMout["S"]), axis=1) * 360 / float(EP["dres"])
+        Snn = np.trapz(np.real(SMout["S"]), axis=1, x=SMout["dirs"])
         m0 = make_moment(SMout["freqs"], Snn, 0)
         m2 = make_moment(SMout["freqs"], Snn, 2)
         mwp = make_Tm(m0, m2)
@@ -235,22 +193,27 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
         Dm.append(mwd)
         Tm.append(mwp)
 
+    dspec = np.real(np.stack(s, axis=0))
     dwv = xr.Dataset()
     dwv["time"] = xr.DataArray(np.array(times), dims="time")
     dwv["time"] = pd.DatetimeIndex(dwv["time"])
-    dwv["diwasp_frequency"] = xr.DataArray(SMout["freqs"], dims="diwasp_frequency")
-    dwv["diwasp_direction"] = xr.DataArray(SMout["dirs"], dims="diwasp_direction")
-    dwv["diwasp_dspec"] = xr.DataArray(
-        np.real(np.stack(s, axis=0)),
-        dims=["time", "diwasp_frequency", "diwasp_direction"],
+    dwv["diwaspFrequency"] = xr.DataArray(SMout["freqs"], dims="diwaspFrequency")
+    dwv["diwaspDirection"] = xr.DataArray(SMout["dirs"], dims="diwaspDirection")
+    dwv["diwaspDspec"] = xr.DataArray(
+        dspec, dims=["time", "diwaspFrequency", "diwaspDirection"]
     )
 
-    dwv["diwasp_Hs"] = xr.DataArray(np.array(Hs), dims="time")
-    dwv["diwasp_Tp"] = xr.DataArray(np.array(Tp), dims="time")
-    dwv["diwasp_DTp"] = xr.DataArray(np.array(DTp), dims="time")
-    dwv["diwasp_Tm"] = xr.DataArray(np.array(Tm), dims="time")
-    dwv["diwasp_Dp"] = xr.DataArray(np.array(Dp), dims="time")
-    dwv["diwasp_Dm"] = xr.DataArray(np.round(np.array(Dm), 0), dims="time")
+    dwv["diwaspFspec"] = xr.DataArray(
+        np.trapz(dspec, axis=2, x=SMout["dirs"]),
+        dims=["time", "diwaspFrequency"],
+    )
+
+    dwv["diwaspHs"] = xr.DataArray(np.array(Hs), dims="time")
+    dwv["diwaspTp"] = xr.DataArray(np.array(Tp), dims="time")
+    dwv["diwaspDTp"] = xr.DataArray(np.array(DTp), dims="time")
+    dwv["diwaspTm"] = xr.DataArray(np.array(Tm), dims="time")
+    dwv["diwaspDp"] = xr.DataArray(np.array(Dp), dims="time")
+    dwv["diwaspDm"] = xr.DataArray(np.round(np.array(Dm), 0), dims="time")
 
     # make some diwasp attrs
     if "diwasp_bin" not in ds.attrs:
@@ -275,13 +238,8 @@ def make_diwasp_puv_suv(ds, freqs=None, inst_type="SIG"):
     return dwv
 
 
-def make_diwasp_elev_pres(ds, freqs=None, inst_type="SIG"):
+def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
     """Calculate Directional Wave Statistic using PyDIWASP"""
-    if "diwasp" in ds.attrs:
-        if "elev" in ds.attrs["diwasp"]:
-            data_type = "elev"
-        elif "pres" in ds.attrs["diwasp"]:
-            data_type = "pres"
 
     # use power of 2 samples unless user specifies otherwise
     if "diwasp_nsamps" in ds.attrs:
@@ -308,10 +266,9 @@ def make_diwasp_elev_pres(ds, freqs=None, inst_type="SIG"):
 
         ID, SM, EP = make_diwasp_inputs(
             ds.isel(time=burst),
-            ibin=0,
             data_type=data_type,
+            layout=layout,
             freqs=freqs,
-            inst_type=inst_type,
             nsamps=nsamps,
         )
         if data_type == "elev":
@@ -323,7 +280,7 @@ def make_diwasp_elev_pres(ds, freqs=None, inst_type="SIG"):
                 )
 
         elif data_type == "pres":
-            ID["data"] = np.atleas_2d(p).transpose()
+            ID["data"] = np.atleast_2d(p).transpose()
 
         opts = ["MESSAGE", 0, "PLOTTYPE", 0]
 
@@ -346,19 +303,18 @@ def make_diwasp_elev_pres(ds, freqs=None, inst_type="SIG"):
     dwv = xr.Dataset()
     dwv["time"] = xr.DataArray(np.array(times), dims="time")
     dwv["time"] = pd.DatetimeIndex(dwv["time"])
-    dwv["diwasp_frequency"] = xr.DataArray(SMout["freqs"], dims="diwasp_frequency")
-    dwv["diwasp_spec1d"] = xr.DataArray(
+    dwv["diwaspFrequency"] = xr.DataArray(SMout["freqs"], dims="diwaspFrequency")
+    dwv["diwaspFspec"] = xr.DataArray(
         np.trapz(dspec, axis=2, x=SMout["dirs"]),
-        dims=["time", "diwasp_frequency"],
+        dims=["time", "diwaspFrequency"],
     )
 
-    dwv["diwasp_Hs"] = xr.DataArray(np.array(Hs), dims="time")
-    dwv["diwasp_Tp"] = xr.DataArray(np.array(Tp), dims="time")
-    dwv["diwasp_Tm"] = xr.DataArray(np.array(Tm), dims="time")
+    dwv["diwaspHs"] = xr.DataArray(np.array(Hs), dims="time")
+    dwv["diwaspTp"] = xr.DataArray(np.array(Tp), dims="time")
+    dwv["diwaspTm"] = xr.DataArray(np.array(Tm), dims="time")
 
     # make some diwasp attrs
-    if "diwasp_bin" not in ds.attrs:
-        dwv.attrs["diwasp_bin"] = ibin
+
     if "diwasp_inputs" not in ds.attrs:
         dwv.attrs["diwasp_inputs"] = ID["datatypes"]
     if "diwasp_method" not in ds.attrs:

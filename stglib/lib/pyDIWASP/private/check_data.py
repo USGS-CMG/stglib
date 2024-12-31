@@ -164,7 +164,12 @@ def check_data(DDS, type_):
             DDS["smooth"] = "ON"
 
         if "method" in DDS:
-            if DDS["method"].upper() not in ("DFTM", "EMLM", "IMLM", "EMEP", "BDM"):
+            # if DDS["method"].upper() not in ("DFTM", "EMLM", "IMLM", "EMEP", "BDM"):
+            if DDS["method"].upper() not in (
+                "DFTM",
+                "IMLM",
+                "EMEP",
+            ):  # only include methods that are currently available. Update as new ones are added
                 error = "method"
         else:
             DDS["method"] = EP["method"]

@@ -194,8 +194,8 @@ def add_min_max(ds, exclude_vars=None):
         "bin_along",
         "bin_across",
         "direction",
-        "diwasp_frequency",
-        "diwasp_direction",
+        "diwaspFrequency",
+        "diwaspDirection",
         "puv_frequency",
         "puv_frequency_clipped",
     ]
@@ -423,6 +423,26 @@ def ds_add_wave_attrs(ds):
             }
         )
 
+    if "sspec" in ds.data_vars:
+        ds["sspec"].attrs.update(
+            {
+                "long_name": "Surface track derived non-directional wave energy spectrum",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
+    if "vspec" in ds.data_vars:
+        ds["vspec"].attrs.update(
+            {
+                "long_name": "Velocity-derived non-directional wave energy spectrum",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
     if "frequency" in ds.coords:
         ds["frequency"].attrs.update(
             {
@@ -492,8 +512,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwasp_frequency" in ds.coords:
-        ds["diwasp_frequency"].attrs.update(
+    if "diwaspFrequency" in ds.coords:
+        ds["diwaspFrequency"].attrs.update(
             {
                 "standard_name": "sea_surface_wave_frequency",
                 "long_name": "Frequency",
@@ -501,16 +521,16 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwasp_direction" in ds.coords:
-        ds["diwasp_direction"].attrs.update(
+    if "diwaspDirection" in ds.coords:
+        ds["diwaspDirection"].attrs.update(
             {
                 "long_name": "Direction (from, relative to true north)",
                 "units": "degrees",
             }
         )
 
-    if "diwasp_Tp" in ds.data_vars:
-        ds["diwasp_Tp"].attrs.update(
+    if "diwaspTp" in ds.data_vars:
+        ds["diwaspTp"].attrs.update(
             {
                 "long_name": "Dominant (peak) wave period from pyDIWASP",
                 "units": "s",
@@ -518,8 +538,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwasp_Tm" in ds.data_vars:
-        ds["diwasp_Tm"].attrs.update(
+    if "diwaspTm" in ds.data_vars:
+        ds["diwaspTm"].attrs.update(
             {
                 "long_name": "Average wave period",
                 "units": "s",
@@ -528,8 +548,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwasp_Hs" in ds.data_vars:
-        ds["diwasp_Hs"].attrs.update(
+    if "diwaspHs" in ds.data_vars:
+        ds["diwaspHs"].attrs.update(
             {
                 "long_name": "Significant wave height from pyDIWASP",
                 "units": "m",
@@ -537,8 +557,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwasp_DTp" in ds.data_vars:
-        ds["diwasp_DTp"].attrs.update(
+    if "diwaspDTp" in ds.data_vars:
+        ds["diwaspDTp"].attrs.update(
             {
                 "long_name": (
                     "Direction of peak period "
@@ -554,8 +574,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwasp_Dp" in ds.data_vars:
-        ds["diwasp_Dp"].attrs.update(
+    if "diwaspDp" in ds.data_vars:
+        ds["diwaspDp"].attrs.update(
             {
                 "long_name": (
                     "Dominant wave direction "
@@ -570,8 +590,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwasp_Dm" in ds.data_vars:
-        ds["diwasp_Dm"].attrs.update(
+    if "diwaspDm" in ds.data_vars:
+        ds["diwaspDm"].attrs.update(
             {
                 "long_name": "Mean wave direction from pyDIWASP",
                 "units": "degrees",
@@ -580,13 +600,53 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwasp_dspec" in ds.data_vars:
-        ds["diwasp_dspec"].attrs.update(
+    if "diwaspDspec" in ds.data_vars:
+        ds["diwaspDspec"].attrs.update(
             {
                 "long_name": "Directional wave energy spectrum from pyDIWASP",
                 "units": "m^2/Hz/degree",
                 "note": "Use caution: all spectra are provisional",
                 "standard_name": "sea_surface_wave_directional_variance_spectral_density",
+            }
+        )
+
+    if "diwaspFspec" in ds.data_vars:
+        ds["diwaspFspec"].attrs.update(
+            {
+                "long_name": "Frequency (non-directional) wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
+    if "diwaspASTspec" in ds.data_vars:
+        ds["diwaspASTspec"].attrs.update(
+            {
+                "long_name": "Acoustic Surface Tracking derived frequency (non-directional) wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
+    if "diwaspPspec" in ds.data_vars:
+        ds["diwaspPspec"].attrs.update(
+            {
+                "long_name": "Pressure derived frequency (non-directional) wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
+    if "diwaspVspec" in ds.data_vars:
+        ds["diwaspPVpec"].attrs.update(
+            {
+                "long_name": "Velocity derived frequency (non-directional) wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
             }
         )
 
@@ -600,12 +660,16 @@ def ds_add_wave_attrs(ds):
         "dspec",
         "wvdir",
         "dwvdir",
-        "diwasp_Hs",
-        "diwasp_Tp",
-        "diwasp_DTp",
-        "diwasp_Dp",
-        "diwasp_Dm",
-        "diwasp_dspec",
+        "diwaspHs",
+        "diwaspTp",
+        "diwaspDTp",
+        "diwaspDp",
+        "diwaspDm",
+        "diwaspDspec",
+        "diwaspFspec",
+        "diwaspASTspec",
+        "diwaspPspec",
+        "diwaspVspec",
     ]:
         if var in ds.variables:
             add_attributes(ds[var], ds.attrs)

@@ -110,12 +110,10 @@ def dirspec(ID, SM, EP, Options_=None):
     F = Ftmp[1 : int(nfft / 2) + 1]
     nf = int(nfft / 2)
 
-    print("wavenumbers")
     wns = wavenumber(2 * np.pi * F, ID["depth"] * np.ones(np.shape(F)))
     pidirs = np.linspace(-np.pi, np.pi - 2 * np.pi / EP["dres"], num=EP["dres"])
 
     # calculate transfer parameters
-    print("transfer parameters\n")
     trm = np.zeros((szd, nf, len(pidirs)))
     kx = np.zeros((szd, szd, nf, len(pidirs)))
     for m in range(szd):
@@ -181,4 +179,4 @@ def dirspec(ID, SM, EP, Options_=None):
         plt.title(T)
         plt.show()
 
-    return SMout, EP, trm, kx
+    return SMout, EP
