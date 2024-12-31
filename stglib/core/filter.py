@@ -104,6 +104,11 @@ def apply_butter_filt(ds, var):
         or var + "_highpass_filt" in ds.attrs
         or var + "_bandpass_filt" in ds.attrs
     ):
+        ds[var + "_unfiltered"] = ds[var].copy()
+        if "long_name" in ds[var + "_unfiltered"].attrs:
+            ds[var + "_unfiltered"].attrs["long_name"] = (
+                ds[var + "_unfiltered"].attrs["long_name"] + " (unfiltered)"
+            )
 
         if (
             "sample_rate" in ds.attrs or "sample_interval" in ds.attrs
@@ -153,6 +158,13 @@ def apply_med_filt(ds, var):
         ds - dataset with user specified variable smoothed/filtered with the user specified N points (kernel size).
     """
     if var + "_med_filt" in ds.attrs:
+
+        if var + "_unfiltered" not in ds.data_vars:
+            ds[var + "_unfiltered"] = ds[var].copy()
+            if "long_name" in ds[var + "_unfiltered"].attrs:
+                ds[var + "_unfiltered"].attrs["long_name"] = (
+                    ds[var + "_unfiltered"].attrs["long_name"] + " (unfiltered)"
+                )
 
         kernel_size = ds.attrs[var + "_med_filt"]
         # make sure kernel_size is odd number
