@@ -405,7 +405,25 @@ def sig_nc(nc_file):
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
-@pytest.mark.skip(reason="works locally but not on github built-in checks")
+def sig_wvs(nc_file):
+    result = subprocess.run(
+        [scripts / "runsignc2waves.py", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def sig_diwasp(nc_file):
+    result = subprocess.run(
+        [scripts / "runsignc2diwasp.py", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+# @pytest.mark.skip(reason="works locally but not on github built-in checks")
 def test_sig():
     sig_mat("glob_att1126_sig1.txt", "sig1126_config.yaml")
     sig_nc("11261sig_burst-raw.cdf")
@@ -415,6 +433,8 @@ def test_sig():
     sig_mat("gatts_MIA23SH2_cf_rev.txt", "sig_avg_config.yaml")
     sig_nc("MIAsig_avgd-raw.cdf")
     sig_nc("MIAsig_altavgd-raw.cdf")
+    sig_wvs("11261sigb-cal.nc")
+    sig_diwasp("11261sigb-cal.nc")
 
 
 def hobo_raw(glob_att, config_yaml):

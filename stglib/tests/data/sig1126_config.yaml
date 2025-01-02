@@ -2,29 +2,23 @@ basefile: 'mat/S102410A006_11261sig'
 outdir: 'mat/' #directory to write out raw cdf files
 filename: '11261sig'   # name of output file, -raw.cdf or .nc will be appended to this
 LatLonDatum: 'NAD83'
-ClockError: 0 #sec
+ClockError: 0 #sec 
 #ClockDrift: 15 #sec < 60 s no need to apply correction
 orientation: 'UP'          # use this to identify orientation of profiler
+head_rotation: 'horizontal' #will probably be 'horizontal'
 initial_instrument_height: 2.12  # meters
 initial_instrument_height_note: 'From seabed'
-zeroed_pressure: 'Yes' # was pressure zeroed before deployment
+zeroed_pressure: 'No' # was pressure zeroed before deployment
+cutoff_ampl: 0   # set to 0, otherwise it automatically specifies cutoff based on amplitude which is a weird thing to do
 trim_method: 'water level sl'  # Water Level SL trims bin if any part of bin or side lobe is out of water - works best when pressure is corrected for atmospheric
-chunks: ['time', 25000, 'bindist', 4]
-u_1205_highpass_filt: 50 #cutoff in seconds
-v_1206_lowpass_filt: 2 #cutoff in seconds
-w_1204_bandpass_filt: [50, 2] #cutoffs in seconds [long_period (low_freq), short_period(hi_freq)]
-P_1_med_filt: 9 #kernel_size/points
-#P_1ac_note: 'Corrected for variations in atmospheric pressure using MesoWest Station FW0901 Wellfleet.'
-#u_1205_bad_ens: [2019-01-22 09:01, 2019-01-22 13:16, 2019-01-22 21:45, 2019-01-23 02:16,2019-01-23 09:16, 2019-01-23 13:31,2019-02-01 09:01, 2019-02-01 18:16, 2019-02-02 21:31, 2019-02-02 22:16, 2019-02-03 08:01, 2019-02-03 10:46, 2019-02-03 20:01, 2019-02-04 00:31]
-#v_1206_bad_ens: [2019-01-22 09:01, 2019-01-22 13:16, 2019-01-22 21:45, 2019-01-23 02:16,2019-01-23 09:16, 2019-01-23 13:31,2019-02-01 09:01, 2019-02-01 18:16, 2019-02-02 21:31, 2019-02-02 22:16, 2019-02-03 08:01, 2019-02-03 10:46, 2019-02-03 20:01, 2019-02-04 00:31]
-#w_1204_bad_ens: [2019-01-22 09:01, 2019-01-22 13:16, 2019-01-22 21:45, 2019-01-23 02:16,2019-01-23 09:16, 2019-01-23 13:31,2019-02-01 09:01, 2019-02-01 18:16, 2019-02-02 21:31, 2019-02-02 22:16, 2019-02-03 08:01, 2019-02-03 10:46, 2019-02-03 20:01, 2019-02-04 00:31]
-#u_1205_maxabs_diff_2d: [time,0.3,z,0.3] #use to remove bad bin(s) near surface
-#v_1206_maxabs_diff_2d: [time,0.3,z,0.3]
-#w_1204_maxabs_diff_2d: [time,0.1,z,0.1]
-#u_1205_fliers: 1
-#v_1206_fliers: 1
-#w_1204_fliers: 1
-#u_1205_mask: ["v_1206", "w_1204"]
-#v_1206_mask: ["u_1205","w_1204"]
-#w_1204_mask: ["u_1205","v_1206"]
-#good_dates: [2018-11-12 16:31, 2019-02-15 14:12]
+chunks: ['time', 256000, 'bindist', 64]
+wave_interval: 3600 #seconds 
+wave_start_time: "2021-03-10 16:00:00"
+diwasp: 'suv'
+diwasp_names: 'diwasp'
+diwasp_method: 'IMLM'
+diwasp_iter: 100
+diwasp_smooth: 'ON'
+diwasp_ibin: 0
+diwasp_pow2: 'true'
+puv: 'true'

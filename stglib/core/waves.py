@@ -63,9 +63,22 @@ def make_diwasp_inputs(
 
     ID = {}
     ID["fs"] = 1 / float(ds.attrs["sample_interval"])
-    ID["depth"] = float(
-        ds["P_1ac"].mean(dim="sample").values + ds.attrs["initial_instrument_height"]
-    )
+
+    if "P_1ac" in ds:
+        ID["depth"] = float(
+            ds["P_1ac"].mean(dim="sample").values
+            + ds.attrs["initial_instrument_height"]
+        )
+
+    elif "brangeAST" in ds and ds.attrs["orientation"].lower() == "up":
+        ID["depth"] = float(
+            ds["brangeAST"].mean(dim="sample").values
+            + ds.attrs["initial_instrument_height"]
+        )
+
+    else:
+        ID["depth"] = float(ds.attrs["WATER_DEPTH"])
+
     if data_type == "puv":
         ID["datatypes"] = ["pres", "velx", "vely"]
 
@@ -145,7 +158,8 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=None):
     Tm = []
 
     for burst in tqdm(range(len(ds.time))):
-        p = ds["P_1ac"].isel(time=burst, sample=range(nsamps)).values
+        if "P_1ac" in ds:
+            p = ds["P_1ac"].isel(time=burst, sample=range(nsamps)).values
         if "brangeAST" in ds:
             ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps)).values
         else:
@@ -170,7 +184,12 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=None):
                 )
 
         elif data_type == "puv":
-            ID["data"] = np.array([p, u, v]).transpose()
+            if p is not None:
+                ID["data"] = np.array([p, u, v]).transpose()
+            else:
+                raise ValueError(
+                    f"Corrected pressure (P_1ac) variable not found cannot continue with {data_type} directional wave analysis"
+                )
 
         opts = ["MESSAGE", 0, "PLOTTYPE", 0]
 
@@ -258,7 +277,12 @@ def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
     Tm = []
 
     for burst in tqdm(range(len(ds.time))):
-        p = ds["P_1ac"].isel(time=burst, sample=range(nsamps)).values
+
+        if "P_1ac" in ds:
+            p = ds["P_1ac"].isel(time=burst, sample=range(nsamps)).values
+        else:
+            p = None
+
         if "brangeAST" in ds:
             ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps)).values
         else:
@@ -276,11 +300,16 @@ def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
                 ID["data"] = np.atleast_2d(ast).transpose()
             else:
                 raise ValueError(
-                    f"Acoustic surface tracking (ast) variable not found cannot continue with {data_type} directional wave analysis"
+                    f"Acoustic surface tracking (ast) variable not found cannot continue with {data_type} wave analysis"
                 )
 
         elif data_type == "pres":
-            ID["data"] = np.atleast_2d(p).transpose()
+            if p is not None:
+                ID["data"] = np.atleast_2d(p).transpose()
+            else:
+                raise ValueError(
+                    f"Correct pressure (P_1ac) variable not found cannot continue with {data_type} wave analysis"
+                )
 
         opts = ["MESSAGE", 0, "PLOTTYPE", 0]
 
