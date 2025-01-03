@@ -337,7 +337,7 @@ def test_rbr():
     with zipfile.ZipFile("stglib/tests/data/051001_CSF20SC201.zip", "r") as zip_ref:
         zip_ref.extractall("stglib/tests/data/")
     rbr_raw("gatts_CSF20SC2.txt", "csf20sc201_config.yaml")
-    rbr_nc("CSF20SC201pt-raw.cdf")
+    rbr_nc("CSF20SC201pt-raw.cdf", "atmpres_CSF20SC201.cdf")
     rbr_wvs("CSF20SC201ptb-cal.nc")
     with zipfile.ZipFile("stglib/tests/data/055109_20220808_1605.zip", "r") as zip_ref:
         zip_ref.extractall("stglib/tests/data/")
