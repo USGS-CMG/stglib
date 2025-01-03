@@ -121,18 +121,15 @@ def nc_to_diwasp(nc_filename):
         ds = make_wave_bursts(ds)
 
     if "diwasp" not in ds.attrs:
-        # if noyt specified choose 'suv' method for signature
+        # if not specified choose 'suv' method for signature
         ds.attrs["diwasp"] = "suv"
 
     if "diwasp" in ds.attrs:
-        if "suv" in ds.attrs["diwasp"]:
-            data_type = "suv"
-        elif "puv" in ds.attrs["diwasp"]:
-            data_type = "puv"
-        elif "elev" in ds.attrs["diwasp"]:
-            data_type = "elev"
-        elif "pres" in ds.attrs["diwasp"]:
-            data_type = "pres"
+        data_type = ds.attrs["diwasp"]
+        if data_type not in ["suv", "puv", "elev", "pres"]:
+            raise ValueError(
+                f"data type {data_type} is not recognized current options are ['suv', 'puv', 'elev', 'pres']"
+            )
 
     if "diwasp_bin" in ds.attrs:
         ibin = ds.attrs["diwasp_bin"]
@@ -147,7 +144,7 @@ def nc_to_diwasp(nc_filename):
         )
         ds = utils.ds_add_pydiwasp_history(ds)
 
-    elif ds.attrs["diwasp"] == "elev" or ds.attrs["diwasp"].lower() == "pres":
+    elif data_type == "elev" or data_type == "pres":
         print(f"Running DIWASP using {ds.attrs['diwasp']} input data")
         layout = make_diwasp_layout(ds, data_type=data_type)
         diwasp = waves.make_diwasp_elev_pres(ds, data_type=data_type, layout=layout)
@@ -242,60 +239,33 @@ def make_diwasp_layout(ds, data_type=None, ibin=None):
     """
     Make layout for DIWASP wave processing input
     """
-    if data_type:
 
-        # get layout
-        if data_type == "puv":
-            # datatypes = ["pres", "velx", "vely"]
-            pxyz = [0, 0, ds.attrs["initial_instrument_height"]]
-            if ds.attrs["orientation"].lower() == "up":
-                uxyz = [
-                    0,
-                    0,
-                    ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
-                ]
-            elif ds.attrs["orientation"].lower() == "down":
-                uxyz = [
-                    0,
-                    0,
-                    ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
-                ]
+    if data_type == "suv" or data_type == "puv":
+        # datatypes = ["pres", "velx", "vely"]
+        sxyz = [0, 0, ds.attrs["initial_instrument_height"]]
+        if ds.attrs["orientation"].lower() == "up":
+            uxyz = [
+                0,
+                0,
+                ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
+            ]
+        elif ds.attrs["orientation"].lower() == "down":
+            uxyz = [
+                0,
+                0,
+                ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
+            ]
 
-            vxyz = uxyz
+        vxyz = uxyz
 
-            layout = np.array([pxyz, uxyz, vxyz])
+        layout = np.array([sxyz, uxyz, vxyz])
 
-        elif data_type == "suv":
-            # datatypes = ["elev", "velx", "vely"]
-            sxyz = [0, 0, ds.attrs["initial_instrument_height"]]
-            if ds.attrs["orientation"].lower() == "up":
-                uxyz = [
-                    0,
-                    0,
-                    ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
-                ]
-            elif ds.attrs["orientation"].lower() == "down":
-                uxyz = [
-                    0,
-                    0,
-                    ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
-                ]
+    elif data_type == "elev" or data_type == "pres":
+        # datatypes=['elev']
+        sxyz = np.atleast_2d([0, 0, ds.attrs["initial_instrument_height"]]).T
+        layout = sxyz
 
-            vxyz = uxyz
-
-            layout = np.array([sxyz, uxyz, vxyz])
-
-        elif data_type == "elev":
-            # datatypes=['elev']
-            sxyz = np.atleast_2d([0, 0, ds.attrs["initial_instrument_height"]]).T
-            layout = sxyz
-
-        elif data_type == "pres":
-            # datatypes =['pres']
-            pxyz = np.atleast_2d([0, 0, ds.attrs["initial_instrument_height"]]).T
-            layout = pxyz
-
-        return layout
+    return layout
 
 
 def make_wave_bursts(ds):

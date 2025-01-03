@@ -135,7 +135,7 @@ def make_diwasp_inputs(
     return ID, SM, EP
 
 
-def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=None):
+def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
     """Calculate Directional Wave Statistic using PyDIWASP"""
 
     # use power of 2 samples unless user specifies otherwise

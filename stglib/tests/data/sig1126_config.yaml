@@ -12,6 +12,10 @@ zeroed_pressure: 'No' # was pressure zeroed before deployment
 cutoff_ampl: 0   # set to 0, otherwise it automatically specifies cutoff based on amplitude which is a weird thing to do
 trim_method: 'water level sl'  # Water Level SL trims bin if any part of bin or side lobe is out of water - works best when pressure is corrected for atmospheric
 chunks: ['time', 256000, 'bindist', 64]
+u_1205_highpass_filt: 50 #cutoff in seconds
+v_1206_lowpass_filt: 2 #cutoff in seconds
+w_1204_bandpass_filt: [50, 2] #cutoffs in seconds [long_period (low_freq), short_period(hi_freq)]
+P_1_med_filt: 9 #kernel_size/points
 wave_interval: 3600 #seconds 
 wave_start_time: "2021-03-10 16:00:00"
 diwasp: 'suv'
