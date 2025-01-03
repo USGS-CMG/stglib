@@ -1655,3 +1655,62 @@ def create_filtered_water_level_var(ds):
         ] = "4th order lowpass butterworth filter with 6 min cutoff"
 
     return ds
+
+
+def rename_diwasp_wave_vars(ds):
+    # rename wave vars to user specified convention
+    if ds.attrs["diwasp_names"].lower() == "epic":
+        varnames = {
+            "diwaspFrequency": "frequency",
+            "diwaspDirection": "direction",
+            "diwaspHs": "wh_4061",
+            "diwaspTp": "wp_peak",
+            "diwaspTm": "wp_4060",
+            "diwaspDTp": "wvdir",
+            "diwaspDp": "dwvdir",
+            "diwaspDm": "wd_4062",
+            "diwaspPspec": "pspec",
+            "diwaspASTspec": "sspec",
+            "diwaspVspec": "vspec",
+            "diwaspDspec": "dspec",
+        }
+
+        # check to make sure they exist before trying to rename
+        newvars = {}
+        for k in varnames:
+            if k in ds:
+                newvars[k] = varnames[k]
+    else:
+        return ds
+
+    return ds.rename(newvars)
+
+
+def rename_diwasp_Fspec(diwasp):
+    # if it exists rename diwaspFspec to first input datatype
+    if (
+        "diwaspFspec" not in diwasp.data_vars
+    ):  # check to make sure Fspec is in data_vars
+        return
+    else:
+        if "diwasp_inputs" in diwasp.attrs:
+
+            inputs = diwasp.attrs["diwasp_inputs"]
+            newname = {}
+            if inputs[0] == "elev":
+                newname = {"diwaspFspec": "diwaspASTspec"}
+            elif inputs[0] == "pres":
+                newname = {"diwaspFspec": "diwaspPspec"}
+            elif (
+                inputs[0] == "velx"
+                or diwasp.attrs["diwasp_inputs"][0] == "vely"
+                or diwasp.attrs["diwasp_inputs"][0] == "velz"
+                or diwasp.attrs["diwasp_inputs"][0] == "radial"
+            ):
+                newname = {"diwaspFspec": "diwaspVspec"}
+            else:
+                return diwasp
+        else:
+            return diwasp
+
+    return diwasp.rename(newname)

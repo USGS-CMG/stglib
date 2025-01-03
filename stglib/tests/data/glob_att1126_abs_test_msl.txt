@@ -25,7 +25,6 @@
     DEPTH_CONST; 0
     WATER_MASS; Cape Cod Bay
     VAR_FILL; nan
-    Field_Activity_Number; 
     institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
     institution_url; https://woodshole.er.usgs.gov
-	
+	FAN; 2021-018-FA, 2021-020-FA

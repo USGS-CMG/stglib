@@ -236,7 +236,7 @@ def runsignc2diwasp(args=None):
     if not args:
         args = stglib.cmd.signc2diwasp_parser().parse_args()
 
-    stglib.sig.nc2diwasp.nc_to_diwasp(args.ncname)
+    stglib.sig.nc2waves.nc_to_diwasp(args.ncname)
 
 
 def runsignc2waves(args=None):

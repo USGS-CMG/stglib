@@ -21,12 +21,15 @@ def nc_to_waves(nc_filename):
     for k in ["wp_peak", "wh_4061", "wp_4060", "pspec"]:
         ds[k] = spec[k]
 
+    """ 
+    --In future update will add pyDIWASP processing for RBR pressure sensors--
     dodiwasp = False
     if "diwasp" in ds.attrs and ds.attrs["diwasp"].lower() == "true":
         print("Running DIWASP")
         dodiwasp = True
         diwasp = waves.make_diwasp_pres(ds)
         print(diwasp)
+    """
 
     # ds = utils.create_water_depth(ds)
 
@@ -58,11 +61,12 @@ def nc_to_waves(nc_filename):
     ds.to_netcdf(nc_filename, unlimited_dims=["time"])
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
+    """
     if dodiwasp:
         diwasp_filename = ds.attrs["filename"] + "_diwasp-cal.nc"
         diwasp.to_netcdf(diwasp_filename)
         utils.check_compliance(diwasp_filename, conventions=ds.attrs["Conventions"])
-
+    """
     print("Done writing netCDF file", nc_filename)
 
     return ds

@@ -197,10 +197,13 @@ def nc2waves_parser(description="Generate wave-statistics file"):
 
     return parser
 
+
 def nc2diwasp_parser(description="Generate DIWASP wave-statistics file"):
     """generic parser for processed .nc to wave statistics"""
     parser = argparse.ArgumentParser(description=description)
     ncarg(parser)
+
+    return parser
 
 
 def abssmat2cdf_parser():

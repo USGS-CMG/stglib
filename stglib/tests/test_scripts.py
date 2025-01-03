@@ -343,7 +343,7 @@ def test_rbr():
     with zipfile.ZipFile("stglib/tests/data/051001_CSF20SC201.zip", "r") as zip_ref:
         zip_ref.extractall("stglib/tests/data/")
     rbr_raw("gatts_CSF20SC2.txt", "csf20sc201_config.yaml")
-    rbr_nc("CSF20SC201pt-raw.cdf", "atmpres_CSF20SC201.cdf")
+    rbr_nc("CSF20SC201pt-raw.cdf")
     rbr_wvs("CSF20SC201ptb-cal.nc")
     with zipfile.ZipFile("stglib/tests/data/055109_20220808_1605.zip", "r") as zip_ref:
         zip_ref.extractall("stglib/tests/data/")
@@ -407,7 +407,7 @@ def sig_nc(nc_file):
 
 def sig_wvs(nc_file):
     result = subprocess.run(
-        [scripts / "runsignc2waves.py", nc_file],
+        [scripts / "runots.py", "sig", "nc2waves", nc_file],
         capture_output=True,
         cwd=cwd,
     )
@@ -416,14 +416,14 @@ def sig_wvs(nc_file):
 
 def sig_diwasp(nc_file):
     result = subprocess.run(
-        [scripts / "runsignc2diwasp.py", nc_file],
+        [scripts / "runots.py", "sig", "nc2diwasp", nc_file],
         capture_output=True,
         cwd=cwd,
     )
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
-# @pytest.mark.skip(reason="works locally but not on github built-in checks")
+@pytest.mark.skip(reason="works locally but not on github built-in checks")
 def test_sig():
     sig_mat("glob_att1126_sig1.txt", "sig1126_config.yaml")
     sig_nc("11261sig_burst-raw.cdf")
@@ -433,6 +433,9 @@ def test_sig():
     sig_mat("gatts_MIA23SH2_cf_rev.txt", "sig_avg_config.yaml")
     sig_nc("MIAsig_avgd-raw.cdf")
     sig_nc("MIAsig_altavgd-raw.cdf")
+
+
+def test_sig_wvs():
     sig_wvs("11261sigb-cal.nc")
     sig_diwasp("11261sigb-cal.nc")
 
