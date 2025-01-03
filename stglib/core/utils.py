@@ -194,8 +194,8 @@ def add_min_max(ds, exclude_vars=None):
         "bin_along",
         "bin_across",
         "direction",
-        "diwaspFrequency",
-        "diwaspDirection",
+        "diwasp_frequency",
+        "diwasp_direction",
         "puv_frequency",
         "puv_frequency_clipped",
     ]
@@ -512,8 +512,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspFrequency" in ds.coords:
-        ds["diwaspFrequency"].attrs.update(
+    if "diwasp_frequency" in ds.coords:
+        ds["diwasp_frequency"].attrs.update(
             {
                 "standard_name": "sea_surface_wave_frequency",
                 "long_name": "Frequency",
@@ -521,16 +521,16 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspDirection" in ds.coords:
-        ds["diwaspDirection"].attrs.update(
+    if "diwasp_direction" in ds.coords:
+        ds["diwasp_direction"].attrs.update(
             {
                 "long_name": "Direction (from, relative to true north)",
                 "units": "degrees",
             }
         )
 
-    if "diwaspTp" in ds.data_vars:
-        ds["diwaspTp"].attrs.update(
+    if "diwasp_tp" in ds.data_vars:
+        ds["diwasp_tp"].attrs.update(
             {
                 "long_name": "Dominant (peak) wave period from pyDIWASP",
                 "units": "s",
@@ -538,8 +538,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspTm" in ds.data_vars:
-        ds["diwaspTm"].attrs.update(
+    if "diwasp_tm" in ds.data_vars:
+        ds["diwasp_tm"].attrs.update(
             {
                 "long_name": "Average wave period",
                 "units": "s",
@@ -548,8 +548,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspHs" in ds.data_vars:
-        ds["diwaspHs"].attrs.update(
+    if "diwasp_hs" in ds.data_vars:
+        ds["diwasp_hs"].attrs.update(
             {
                 "long_name": "Significant wave height from pyDIWASP",
                 "units": "m",
@@ -557,8 +557,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspDTp" in ds.data_vars:
-        ds["diwaspDTp"].attrs.update(
+    if "diwasp_dtp" in ds.data_vars:
+        ds["diwasp_dtp"].attrs.update(
             {
                 "long_name": (
                     "Direction of peak period "
@@ -574,8 +574,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspDp" in ds.data_vars:
-        ds["diwaspDp"].attrs.update(
+    if "diwasp_dp" in ds.data_vars:
+        ds["diwasp_dp"].attrs.update(
             {
                 "long_name": (
                     "Dominant wave direction "
@@ -590,8 +590,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspDm" in ds.data_vars:
-        ds["diwaspDm"].attrs.update(
+    if "diwasp_dm" in ds.data_vars:
+        ds["diwasp_dm"].attrs.update(
             {
                 "long_name": "Mean wave direction from pyDIWASP",
                 "units": "degrees",
@@ -600,8 +600,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspDspec" in ds.data_vars:
-        ds["diwaspDspec"].attrs.update(
+    if "diwasp_dspec" in ds.data_vars:
+        ds["diwasp_dspec"].attrs.update(
             {
                 "long_name": "Directional wave energy spectrum from pyDIWASP",
                 "units": "m^2/Hz/degree",
@@ -610,8 +610,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspFspec" in ds.data_vars:
-        ds["diwaspFspec"].attrs.update(
+    if "diwasp_fspec" in ds.data_vars:
+        ds["diwasp_fspec"].attrs.update(
             {
                 "long_name": "Frequency (non-directional) wave energy spectrum from pyDIWASP",
                 "units": "m^2/Hz",
@@ -620,8 +620,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspASTspec" in ds.data_vars:
-        ds["diwaspASTspec"].attrs.update(
+    if "diwasp_astspec" in ds.data_vars:
+        ds["diwasp_astspec"].attrs.update(
             {
                 "long_name": "Acoustic Surface Tracking derived frequency (non-directional) wave energy spectrum from pyDIWASP",
                 "units": "m^2/Hz",
@@ -630,8 +630,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspPspec" in ds.data_vars:
-        ds["diwaspPspec"].attrs.update(
+    if "diwasp_pspec" in ds.data_vars:
+        ds["diwasp_pspec"].attrs.update(
             {
                 "long_name": "Pressure derived frequency (non-directional) wave energy spectrum from pyDIWASP",
                 "units": "m^2/Hz",
@@ -640,8 +640,8 @@ def ds_add_wave_attrs(ds):
             }
         )
 
-    if "diwaspVspec" in ds.data_vars:
-        ds["diwaspPVpec"].attrs.update(
+    if "diwasp_vspec" in ds.data_vars:
+        ds["diwasp_vspec"].attrs.update(
             {
                 "long_name": "Velocity derived frequency (non-directional) wave energy spectrum from pyDIWASP",
                 "units": "m^2/Hz",
@@ -660,16 +660,16 @@ def ds_add_wave_attrs(ds):
         "dspec",
         "wvdir",
         "dwvdir",
-        "diwaspHs",
-        "diwaspTp",
-        "diwaspDTp",
-        "diwaspDp",
-        "diwaspDm",
-        "diwaspDspec",
-        "diwaspFspec",
-        "diwaspASTspec",
-        "diwaspPspec",
-        "diwaspVspec",
+        "diwasp_hs",
+        "diwasp_tp",
+        "diwasp_dtp",
+        "diwasp_dp",
+        "diwasp_dm",
+        "diwasp_dspec",
+        "diwasp_fspec",
+        "diwasp_astspec",
+        "diwasp_pspec",
+        "diwasp_vspec",
     ]:
         if var in ds.variables:
             add_attributes(ds[var], ds.attrs)
@@ -1661,18 +1661,18 @@ def rename_diwasp_wave_vars(ds):
     # rename wave vars to user specified convention
     if ds.attrs["diwasp_names"].lower() == "epic":
         varnames = {
-            "diwaspFrequency": "frequency",
-            "diwaspDirection": "direction",
-            "diwaspHs": "wh_4061",
-            "diwaspTp": "wp_peak",
-            "diwaspTm": "wp_4060",
-            "diwaspDTp": "wvdir",
-            "diwaspDp": "dwvdir",
-            "diwaspDm": "wd_4062",
-            "diwaspPspec": "pspec",
-            "diwaspASTspec": "sspec",
-            "diwaspVspec": "vspec",
-            "diwaspDspec": "dspec",
+            "diwasp_frequency": "frequency",
+            "diwasp_direction": "direction",
+            "diwasp_hs": "wh_4061",
+            "diwasp_tp": "wp_peak",
+            "diwasp_tm": "wp_4060",
+            "diwasp_dtp": "wvdir",
+            "diwasp_dp": "dwvdir",
+            "diwasp_dm": "wd_4062",
+            "diwasp_pspec": "pspec",
+            "diwasp_astspec": "sspec",
+            "diwasp_vspec": "vspec",
+            "diwasp_dspec": "dspec",
         }
 
         # check to make sure they exist before trying to rename
@@ -1687,30 +1687,20 @@ def rename_diwasp_wave_vars(ds):
 
 
 def rename_diwasp_Fspec(diwasp):
-    # if it exists rename diwaspFspec to first input datatype
-    if (
-        "diwaspFspec" not in diwasp.data_vars
-    ):  # check to make sure Fspec is in data_vars
-        return
-    else:
-        if "diwasp_inputs" in diwasp.attrs:
+    """Rename diwasp_fspec using first input datatype"""
 
-            inputs = diwasp.attrs["diwasp_inputs"]
-            newname = {}
-            if inputs[0] == "elev":
-                newname = {"diwaspFspec": "diwaspASTspec"}
-            elif inputs[0] == "pres":
-                newname = {"diwaspFspec": "diwaspPspec"}
-            elif (
-                inputs[0] == "velx"
-                or diwasp.attrs["diwasp_inputs"][0] == "vely"
-                or diwasp.attrs["diwasp_inputs"][0] == "velz"
-                or diwasp.attrs["diwasp_inputs"][0] == "radial"
-            ):
-                newname = {"diwaspFspec": "diwaspVspec"}
-            else:
-                return diwasp
+    if "diwasp_inputs" in diwasp.attrs:
+        inputs = diwasp.attrs["diwasp_inputs"]
+        newname = {}
+        if inputs[0] == "elev":
+            newname = {"diwasp_fspec": "diwasp_astspec"}
+        elif inputs[0] == "pres":
+            newname = {"diwasp_fspec": "diwasp_pspec"}
+        elif inputs[0] in ["velx", "vely", "velz", "radial"]:
+            newname = {"diwasp_fspec": "diwasp_vspec"}
         else:
             return diwasp
+    else:
+        return diwasp
 
     return diwasp.rename(newname)

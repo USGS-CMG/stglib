@@ -15,7 +15,7 @@ chunks: ['time', 256000, 'bindist', 64]
 wave_interval: 3600 #seconds 
 wave_start_time: "2021-03-10 16:00:00"
 diwasp: 'suv'
-diwasp_names: 'diwasp'
+diwasp_names: 'epic'
 diwasp_method: 'IMLM'
 diwasp_iter: 100
 diwasp_smooth: 'ON'

@@ -158,16 +158,16 @@ def nc_to_diwasp(nc_filename):
         )
 
     for k in [
-        "diwaspFrequency",
-        "diwaspDirection",
-        "diwaspHs",
-        "diwaspTp",
-        "diwaspTm",
-        "diwaspDTp",
-        "diwaspDp",
-        "diwaspDm",
-        "diwaspDspec",
-        "diwaspFspec",
+        "diwasp_frequency",
+        "diwasp_direction",
+        "diwasp_hs",
+        "diwasp_tp",
+        "diwasp_tm",
+        "diwasp_dtp",
+        "diwasp_dp",
+        "diwasp_dm",
+        "diwasp_dspec",
+        "diwasp_fspec",
     ]:
 
         if k in diwasp:

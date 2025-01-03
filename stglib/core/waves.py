@@ -216,29 +216,31 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=None):
     dwv = xr.Dataset()
     dwv["time"] = xr.DataArray(np.array(times), dims="time")
     dwv["time"] = pd.DatetimeIndex(dwv["time"])
-    dwv["diwaspFrequency"] = xr.DataArray(SMout["freqs"], dims="diwaspFrequency")
-    dwv["diwaspDirection"] = xr.DataArray(SMout["dirs"], dims="diwaspDirection")
-    dwv["diwaspDspec"] = xr.DataArray(
-        dspec, dims=["time", "diwaspFrequency", "diwaspDirection"]
+    dwv["diwasp_frequency"] = xr.DataArray(SMout["freqs"], dims="diwasp_frequency")
+    dwv["diwasp_direction"] = xr.DataArray(SMout["dirs"], dims="diwasp_direction")
+    dwv["diwasp_dspec"] = xr.DataArray(
+        dspec, dims=["time", "diwasp_frequency", "diwasp_direction"]
     )
 
-    dwv["diwaspFspec"] = xr.DataArray(
+    dwv["diwasp_fspec"] = xr.DataArray(
         np.trapz(dspec, axis=2, x=SMout["dirs"]),
-        dims=["time", "diwaspFrequency"],
+        dims=["time", "diwasp_frequency"],
     )
 
-    dwv["diwaspHs"] = xr.DataArray(np.array(Hs), dims="time")
-    dwv["diwaspTp"] = xr.DataArray(np.array(Tp), dims="time")
-    dwv["diwaspDTp"] = xr.DataArray(np.array(DTp), dims="time")
-    dwv["diwaspTm"] = xr.DataArray(np.array(Tm), dims="time")
-    dwv["diwaspDp"] = xr.DataArray(np.array(Dp), dims="time")
-    dwv["diwaspDm"] = xr.DataArray(np.round(np.array(Dm), 0), dims="time")
+    dwv["diwasp_hs"] = xr.DataArray(np.array(Hs), dims="time")
+    dwv["diwasp_tp"] = xr.DataArray(np.array(Tp), dims="time")
+    dwv["diwasp_dtp"] = xr.DataArray(np.array(DTp), dims="time")
+    dwv["diwasp_tm"] = xr.DataArray(np.array(Tm), dims="time")
+    dwv["diwasp_dp"] = xr.DataArray(np.array(Dp), dims="time")
+    dwv["diwasp_dm"] = xr.DataArray(np.round(np.array(Dm), 0), dims="time")
 
     # make some diwasp attrs
     if "diwasp_bin" not in ds.attrs:
         dwv.attrs["diwasp_bin"] = ibin
-    if "diwasp_inputs" not in ds.attrs:
-        dwv.attrs["diwasp_inputs"] = ID["datatypes"]
+
+    # if "diwasp_inputs" not in ds.attrs:
+    dwv.attrs["diwasp_inputs"] = ID["datatypes"]
+
     if "diwasp_method" not in ds.attrs:
         dwv.attrs["diwasp_method"] = EP["method"]
     if "diwasp_nsamps" not in ds.attrs:
@@ -332,20 +334,20 @@ def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
     dwv = xr.Dataset()
     dwv["time"] = xr.DataArray(np.array(times), dims="time")
     dwv["time"] = pd.DatetimeIndex(dwv["time"])
-    dwv["diwaspFrequency"] = xr.DataArray(SMout["freqs"], dims="diwaspFrequency")
-    dwv["diwaspFspec"] = xr.DataArray(
+    dwv["diwasp_frequency"] = xr.DataArray(SMout["freqs"], dims="diwasp_frequency")
+    dwv["diwasp_fspec"] = xr.DataArray(
         np.trapz(dspec, axis=2, x=SMout["dirs"]),
-        dims=["time", "diwaspFrequency"],
+        dims=["time", "diwasp_frequency"],
     )
 
-    dwv["diwaspHs"] = xr.DataArray(np.array(Hs), dims="time")
-    dwv["diwaspTp"] = xr.DataArray(np.array(Tp), dims="time")
-    dwv["diwaspTm"] = xr.DataArray(np.array(Tm), dims="time")
+    dwv["diwasp_hs"] = xr.DataArray(np.array(Hs), dims="time")
+    dwv["diwasp_tp"] = xr.DataArray(np.array(Tp), dims="time")
+    dwv["diwasp_tm"] = xr.DataArray(np.array(Tm), dims="time")
 
     # make some diwasp attrs
 
-    if "diwasp_inputs" not in ds.attrs:
-        dwv.attrs["diwasp_inputs"] = ID["datatypes"]
+    # if "diwasp_inputs" not in ds.attrs:
+    dwv.attrs["diwasp_inputs"] = ID["datatypes"]
     if "diwasp_method" not in ds.attrs:
         dwv.attrs["diwasp_method"] = EP["method"]
     if "diwasp_nsamps" not in ds.attrs:
