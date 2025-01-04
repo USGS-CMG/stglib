@@ -104,7 +104,7 @@ def make_diwasp_inputs(
         nsamps = ds.attrs["wave_interval"] * ds.attrs["sample_rate"]
 
     if nfft is None:
-        nfft = 2 ^ (next_power_of_2(int(nsamps / nsegs)))
+        nfft = next_power_of_2(int(nsamps / nsegs))
 
     if freqs is not None:
         freqs = freqs
