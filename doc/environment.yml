@@ -2,9 +2,10 @@ name: stglib-docs
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
+  - python<3.13
   - compliance-checker
   - dask
+  - git-lfs
   - gsw
   - joblib
   - matplotlib-base
@@ -16,6 +17,7 @@ dependencies:
   - pytest
   - pyyaml
   - scipy
+  - sqlite
   - tqdm
   - xarray
   - xmltodict
