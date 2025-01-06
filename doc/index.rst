@@ -65,7 +65,8 @@ We have plans to support:
    iq
    lisst
    mc
-   sg
+   sgtid
+   sgwvs
    tb
    tcm
    wxt

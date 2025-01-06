@@ -28,7 +28,7 @@ We need your help.  All contributions, bug reports, bug fixes, documentation imp
 enhancements, and ideas are welcome.
 
 If you are brand new to open-source development, we recommend going
-through `stglib's GitHub "issues" tab <https://github.com/USGS-CMG/stglib/issues>`_
+through `stglib's GitLab "issues" tab <https://code.usgs.gov/cmgp/stglib/-/issues>`_
 to find issues that interest you, discuss issues, to report new issues or propose new features.
 
 
@@ -44,8 +44,8 @@ To indicate desire to work on an issue, post your intent and ideas in the issues
 Follow the guidance here to set up your environment in python.
 
 We do not yet have a public mailing list.  USGS folks can ask questions and follow discussions in the
-GS-CMHRP-CCH-TimeSeriesData team, however we encourage all to publicly post and discuss issues here
-on github in `stglib's GitHub "issues" tab <https://github.com/USGS-CMG/stglib/issues>`_,
+GS-CMHRP-CCH-TimeSeriesData team, however we encourage all to publicly post and discuss issues
+on GitLab in `stglib's GitLab "issues" tab <https://code.usgs.gov/cmgp/stglib/-/issues>`_,
 so that we can advance this package as a user community.
 
 Bug reports are an important part of improving our package. Having a complete bug
@@ -73,11 +73,11 @@ Working with the code
 =====================
 
 Now that you have an issue you want to fix, enhancement to add, or documentation
-to improve, you need to learn how to work with GitHub and the *stglib* code base.
+to improve, you need to learn how to work with GitLab and the *stglib* code base.
 
 .. _contributing.version_control:
 
-Version control, Git, and GitHub
+Version control, Git, and GitLab
 --------------------------------
 
 To contribute, you will need to know git.
@@ -86,9 +86,8 @@ to *stglib*.  It can very quickly become overwhelming, but sticking to the guide
 below will help keep the process straightforward and mostly trouble free.  As always,
 if you are having difficulties please feel free to ask for help.
 
-The code is hosted on `GitHub <https://github.com/USGS-CMG/stglib>`_. To
-contribute you will need to sign up for a `free GitHub account
-<https://github.com/signup/free>`_. We use `Git <http://git-scm.com/>`_ for
+The code is hosted on `GitLab <https://code.usgs.gov/cmgp/stglib>`_. To
+contribute you will need to sign up for an account on USGS GitLab. We use `Git <http://git-scm.com/>`_ for
 version control to allow many people to work together on the project.
 
 Some great resources for learning Git:
@@ -102,25 +101,18 @@ Some great resources for learning Git:
   very grateful for the time you’re donating!)."
 * Matthew Brett's `Curious Coder\'s Guide To Git <https://matthew-brett.github.io/curious-git/>`_.
 
-Getting started with Git
-------------------------
-
-`GitHub has instructions <http://help.github.com/set-up-git-redirect>`__ for installing git,
-setting up your SSH key, and configuring git.  All these steps need to be completed before
-you can work seamlessly between your local repository and GitHub.
-
 .. _contributing.forking:
 
 Forking
 -------
 
 You will need your own fork to work on the code. Go to the `stglib project
-page <https://github.com/USGS-CMG/stglib>`_ and hit the ``Fork`` button. You will
+page <https://code.usgs.gov/cmgp/stglib>`_ and hit the ``Fork`` button. You will
 want to clone your fork to your machine::
 
-    git clone https://github.com/your-github-user-name/stglib.git
+    git clone https://code.usgs.gov/your-user-name/stglib.git
     cd stglib
-    git remote add upstream https://github.com/USGS-CMG/stglib.git
+    git remote add upstream https://code.usgs.gov/cmgp/stglib.git
 
 This creates the directory `stglib` and connects your repository to
 the upstream (main project) *stglib* repository.
@@ -195,9 +187,9 @@ To update your shiny-new-feature branch, you need to retrieve the changes from t
     git rebase upstream/master
 
 Keep in mind, `upstream` refers to the original version of *stglib* at
-`<https://github.com/USGS-CMG/stglib>`,
+`<https://code.usgs.gov/cmgp/stglib>`,
 not to be confused with the term `origin`, which is your fork of *stglib* at
-`<https://github.com/your-github-user-name/stglib.git>`.
+`<https://code.usgs.gov/your-user-name/stglib.git>`.
 The fetch and rebase commands will replay your commits (changes) on top of the latest *stglib* git master.
 If this leads to merge conflicts, you must resolve these before submitting your pull
 request.  If you have uncommitted changes that you are not ready to commit yet,
@@ -314,7 +306,7 @@ as possible to avoid mass breakages.
 Code Formatting
 ~~~~~~~~~~~~~~~
 
-We highly recommend that you setup `pre-commit hooks <https://pre-commit.com/>`_
+You must set up `pre-commit hooks <https://pre-commit.com/>`_
 to automatically format the code every time you make a git commit. This
 can be done by running::
 
@@ -344,13 +336,13 @@ Testing With Continuous Integration
 -----------------------------------
 
 We use continuous integration testing, which evaluates the code each time
-code is ``pushed`` to github.
+code is ``pushed`` to GitLab.
 
 The *stglib* test suite consists of the files in ``stglib/tests/``, and are run automatically by
-`GitHub Actions <https://github.com/USGS-CMG/stglib/actions>`__,
+`GitLab Pipelines <https://code.usgs.gov/cmgp/stglib/-/pipelines>`__,
 a continuous integration service, once your pull request is submitted.
 
-You may wish to run tests on your local branch before pushing to github or submitting the pull request.
+You may wish to run tests on your local branch before pushing to GitLab or submitting the pull request.
 
 There are several types of testing:
 
@@ -375,7 +367,7 @@ This development process "relies on the repetition of a very short development c
 first the developer writes an (initially failing) automated test case that defines a desired
 improvement or new function, then produces the minimum amount of code to pass that test."
 So, before actually writing any code, you should write your tests.  Often the test can be
-taken from the original GitHub issue.  However, it is always worth considering additional
+taken from the original GitLab issue.  However, it is always worth considering additional
 use cases and writing corresponding tests.
 
 *stglib* maintainers will ask that your code include tests when receiving a pull request.  Therefore,
@@ -415,8 +407,8 @@ The following defines how a commit message should be structured:
     * One blank line.
     * Optionally, a commit message body.
 
-Please reference the relevant GitHub issues in your commit message using ``GH1234`` or
-``#1234``.  Either style is fine, but the former is generally preferred.
+Please reference the relevant GitLab issues in your commit message using
+``#1234``.
 
 Now you can commit your changes in your local repository::
 
@@ -425,12 +417,12 @@ Now you can commit your changes in your local repository::
 Pushing your changes
 --------------------
 
-When you want your changes to appear publicly on your GitHub page, push your
+When you want your changes to appear publicly on your GitLab page, push your
 forked feature branch's commits::
 
     git push origin shiny-new-feature
 
-Here ``origin`` is the default name given to your remote repository on GitHub (your fork of stglib).
+Here ``origin`` is the default name given to your remote repository on GitLab (your fork of stglib).
 You can see the remote repositories::
 
     git remote -v
@@ -438,13 +430,13 @@ You can see the remote repositories::
 If you added the upstream repository as described above you will see something
 like::
 
-    origin  git@github.com:yourname/stglib.git (fetch)
-    origin  git@github.com:yourname/stglib.git (push)
-    upstream        git://github.com/USGS-CMG/stglib.git (fetch)
-    upstream        git://github.com/USGS-CMG/stglib.git (push)
+    origin  https://code.usgs.gov/yourname/stglib.git (fetch)
+    origin  https://code.usgs.gov/yourname/stglib.git (push)
+    upstream        https://code.usgs.gov/cmgp/stglib.git (fetch)
+    upstream        https://code.usgs.gov/cmgp/stglib.git (push)
 
-Now your code is on GitHub, but it is not yet a part of the *stglib* project.  For that to
-happen, a pull request needs to be submitted on GitHub.
+Now your code is on GitLab, but it is not yet a part of the *stglib* project.  For that to
+happen, a pull request needs to be submitted on GitLab.
 
 Review your code
 ----------------
@@ -454,7 +446,7 @@ again make sure that you have followed all the guidelines outlined in this docum
 regarding code style, tests, performance tests, and documentation. You should also
 double check your branch changes against the branch it was based on:
 
-#. Navigate to your repository on GitHub -- https://github.com/your-user-name/stglib
+#. Navigate to your repository on GitLab -- https://code.usgs.gov/yourname/stglib
 #. Click on ``Branches``
 #. Click on the ``Compare`` button for your feature branch
 #. Select the ``base`` and ``compare`` branches, if necessary. This will be ``master`` and
@@ -464,13 +456,13 @@ Finally, make the pull request
 ------------------------------
 
 If everything looks good, you are ready to make a pull request.  A pull request is how
-code from a local repository becomes available to the GitHub community and can be looked
+code from a local repository becomes available to the GitLab community and can be looked
 at and eventually merged into the master version.  This pull request and its associated
 changes will eventually be committed to the master branch and available in the next
 release.  To submit a pull request:
 
-#. Navigate to your repository on GitHub
-#. Click on the ``Pull Request`` button
+#. Navigate to your repository on GitLab
+#. Click on the ``Merge Request`` button
 #. You can then click on ``Commits`` and ``Files Changed`` to make sure everything looks
    okay one last time
 #. Write a description of your changes in the ``Preview Discussion`` tab
@@ -478,8 +470,8 @@ release.  To submit a pull request:
 
 This request then goes to the repository maintainers, and they will review
 the code. If you need to make more changes, you can make them in
-your branch, add them to a new commit, push them to GitHub, and the pull request
-will be automatically updated.  Pushing them to GitHub again is done by::
+your branch, add them to a new commit, push them to GitLab, and the pull request
+will be automatically updated.  Pushing them to GitLab again is done by::
 
     git push origin shiny-new-feature
 
@@ -505,12 +497,12 @@ Then you can do::
 Make sure you use a lower-case ``-d``, or else git won't warn you if your feature
 branch has not actually been merged.
 
-The branch will still exist on GitHub, so to delete it there do::
+The branch will still exist on GitLab, so to delete it there do::
 
     git push origin --delete shiny-new-feature
 
 
-PR checklist
+MR checklist
 ------------
 
 - **Properly comment and document your code.**
@@ -522,7 +514,7 @@ PR checklist
     - Test the code.
 
 - **Properly format your code**
-- **Push your code and** `create a PR on GitHub <https://help.github.com/en/articles/creating-a-pull-request>`_.
-- **Use a helpful title for your pull request** by summarizing the main contributions rather
-  than using the latest commit message. If this addresses an `issue <https://github.com/USGS-CMG/stglib/issues>`_,
+- **Push your code and** `create a MR on GitLab <https://code.usgs.gov/cmgp/stglib/-/merge_requests>`_.
+- **Use a helpful title for your merge request** by summarizing the main contributions rather
+  than using the latest commit message. If this addresses an `issue <https://code.usgs.gov/cmgp/stglib/-/issues>`_,
   please `reference it <https://help.github.com/en/articles/autolinked-references-and-urls>`_.
