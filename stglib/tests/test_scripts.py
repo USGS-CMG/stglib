@@ -339,6 +339,15 @@ def rbr_wvs(nc_file):
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
+def rbr_diwasp(nc_file):
+    result = subprocess.run(
+        [scripts / "runots.py", "rbr", "nc2diwasp", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
 def test_rbr():
     with zipfile.ZipFile("stglib/tests/data/051001_CSF20SC201.zip", "r") as zip_ref:
         zip_ref.extractall("stglib/tests/data/")
@@ -350,6 +359,7 @@ def test_rbr():
     rbr_raw("gatts_055109_20220808_1605.txt", "055109_20220808_1605_config.yaml")
     rbr_nc("11512Cdw-raw.cdf")
     rbr_wvs("11512Cdwcont-cal.nc")
+    # rbr_diwasp("11512Cdwcont-cal.nc") #need P_1c variable for this test to work
 
 
 def test_rbr_profile():

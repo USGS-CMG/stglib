@@ -35,6 +35,7 @@ def make_diwasp_inputs(
     nsamps=None,
     smooth="ON",
 ):
+    """Create inputs need to run pyDIWASP processing"""
 
     # check for user options in ds.attrs
     if "diwasp_method" in ds.attrs:
@@ -106,9 +107,7 @@ def make_diwasp_inputs(
     if nfft is None:
         nfft = next_power_of_2(int(nsamps / nsegs))
 
-    if freqs is not None:
-        freqs = freqs
-    else:
+    if freqs is None:
         nfreqs = nfft / 2
         flo = np.round(
             1 / (nsamps / ID["fs"] / 32.0), 3
@@ -138,15 +137,17 @@ def make_diwasp_inputs(
 def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
     """Calculate Directional Wave Statistic using PyDIWASP"""
 
-    # use power of 2 samples unless user specifies otherwise
+    # check number of samples to use in each burst for wave stats (default = all, i.e. samples_per_burst)
+    samples_per_burst = len(ds["sample"])  # samples_per_burst
     if "diwasp_nsamps" in ds.attrs:
         nsamps = ds.attrs["diwasp_nsamps"]
     elif "diwasp_pow2" in ds.attrs:  # make diwasp use power of 2 nsamps
-        nsamps = floor_power_of_2(
-            int(ds.attrs["wave_interval"] * ds.attrs["sample_rate"])
-        )
+        if ds.attrs["diwasp_pow2"].lower() == "true":
+            nsamps = floor_power_of_2(samples_per_burst)
+        else:
+            nsamps = samples_per_burst
     else:
-        nsamps = int(ds.attrs["wave_interval"] * ds.attrs["sample_rate"])
+        nsamps = samples_per_burst
 
     times = []
     s = []
@@ -154,7 +155,7 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
     Tp = []
     DTp = []
     Dp = []
-    Dm = []
+    # Dm = []
     Tm = []
 
     for burst in tqdm(range(len(ds.time))):
@@ -195,24 +196,24 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
 
         [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
         WVout = pyDIWASP.infospec.infospec(SMout)
-        # append outputs to list
-        mwd = make_mwd(SMout["freqs"], SMout["dirs"], np.real(SMout["S"]).T)
-        # Snn = np.sum(np.real(SMout["S"]), axis=1) * 360 / float(EP["dres"])
+
+        # calculate mean period
         Snn = np.trapz(np.real(SMout["S"]), axis=1, x=SMout["dirs"])
         m0 = make_moment(SMout["freqs"], Snn, 0)
         m2 = make_moment(SMout["freqs"], Snn, 2)
         mwp = make_Tm(m0, m2)
 
+        # append outputs to list
         times.append(ds["time"][burst].values)
         s.append(SMout["S"])
         Hs.append(WVout[0])
         Tp.append(WVout[1])
         DTp.append(WVout[2])
         Dp.append(WVout[3])
-        Dm.append(mwd)
         Tm.append(mwp)
 
     dspec = np.real(np.stack(s, axis=0))
+
     dwv = xr.Dataset()
     dwv["time"] = xr.DataArray(np.array(times), dims="time")
     dwv["time"] = pd.DatetimeIndex(dwv["time"])
@@ -227,12 +228,20 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
         dims=["time", "diwasp_frequency"],
     )
 
+    # find mean wave direction
+    Dm = make_mwd(
+        dwv["diwasp_frequency"],
+        dwv["diwasp_direction"],
+        dwv["diwasp_dspec"],
+        diwasp=True,
+    )
+
     dwv["diwasp_hs"] = xr.DataArray(np.array(Hs), dims="time")
     dwv["diwasp_tp"] = xr.DataArray(np.array(Tp), dims="time")
     dwv["diwasp_dtp"] = xr.DataArray(np.array(DTp), dims="time")
     dwv["diwasp_tm"] = xr.DataArray(np.array(Tm), dims="time")
     dwv["diwasp_dp"] = xr.DataArray(np.array(Dp), dims="time")
-    dwv["diwasp_dm"] = xr.DataArray(np.round(np.array(Dm), 0), dims="time")
+    dwv["diwasp_dm"] = xr.DataArray(np.round(Dm.values, 0), dims="time")
 
     # make some diwasp attrs
     if "diwasp_bin" not in ds.attrs:
@@ -262,15 +271,17 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
 def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
     """Calculate Directional Wave Statistic using PyDIWASP"""
 
-    # use power of 2 samples unless user specifies otherwise
+    # check number of samples to use in each burst for wave stats (default = all, i.e. samples_per_burst)
+    samples_per_burst = len(ds["sample"])  # samples_per_burst
     if "diwasp_nsamps" in ds.attrs:
         nsamps = ds.attrs["diwasp_nsamps"]
     elif "diwasp_pow2" in ds.attrs:  # make diwasp use power of 2 nsamps
-        nsamps = floor_power_of_2(
-            int(ds.attrs["wave_interval"] * ds.attrs["sample_rate"])
-        )
+        if ds.attrs["diwasp_pow2"].lower() == "true":
+            nsamps = floor_power_of_2(samples_per_burst)
+        else:
+            nsamps = samples_per_burst
     else:
-        nsamps = int(ds.attrs["wave_interval"] * ds.attrs["sample_rate"])
+        nsamps = samples_per_burst
 
     times = []
     s = []
@@ -317,13 +328,14 @@ def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
 
         [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
         WVout = pyDIWASP.infospec.infospec(SMout)
-        # append outputs to list
-        # Snn = np.sum(np.real(SMout["S"]), axis=1) * 360 / float(EP["dres"])
+
+        # calculate mean period
         Snn = np.trapz(np.real(SMout["S"]), axis=1, x=SMout["dirs"])
         m0 = make_moment(SMout["freqs"], Snn, 0)
         m2 = make_moment(SMout["freqs"], Snn, 2)
         mwp = make_Tm(m0, m2)
 
+        # append outputs to list
         times.append(ds["time"][burst].values)
         s.append(SMout["S"])
         Hs.append(WVout[0])
@@ -364,109 +376,6 @@ def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
         dwv.attrs["diwasp_dunit"] = SM["dunit"]
 
     return dwv
-
-
-def diwasp_mp(ds, presvar, burst):
-    fs = int(1 / ds.attrs["sample_interval"])
-    freqspace = fs / 64
-    dirspace = 360 / 64
-    datatypes = ["pres"]
-    SM = {
-        "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
-        "dirs": np.arange(dirspace / 2, 360, dirspace),
-    }
-    layout = np.atleast_2d([0, 0, ds.attrs["pressure_sensor_height"]]).T
-    SM = {
-        "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
-        "dirs": np.arange(dirspace / 2, 360, dirspace),
-    }
-    EP = {"method": "IMLM"}
-    data = np.atleast_2d(ds[presvar].isel(time=burst).values).T
-    depth = float(data.mean() + ds.attrs["pressure_sensor_height"])
-
-    ID = {
-        "data": data,
-        "layout": layout,
-        "datatypes": datatypes,
-        "depth": depth,
-        "fs": fs,
-    }
-
-    SMout, EPout = pyDIWASP.dirspec.dirspec(ID, SM, EP, ["MESSAGE", 0, "PLOTTYPE", 0])
-    # print(f"{EPout=}")
-    # S[burst, :, :] = SMout["S"]
-
-    mpH, mpTp, mpDTp, mpDp = pyDIWASP.infospec.infospec(SMout)
-    return (burst, mpH, mpTp)
-
-
-def make_diwasp_pres(ds):
-    if "P_1ac" in ds:
-        presvar = "P_1ac"
-    else:
-        warnings.warn(
-            "atmospherically corrected pressure not available; using raw pressure to compute wave statistics"
-        )
-        presvar = "P_1"
-
-    fs = int(1 / ds.attrs["sample_interval"])
-    freqspace = fs / 100
-    dirspace = 360 / 100
-    datatypes = ["pres"]
-    SM = {
-        "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
-        "dirs": np.arange(dirspace / 2, 360, dirspace),
-    }
-    layout = np.atleast_2d([0, 0, ds.attrs["pressure_sensor_height"]]).T
-
-    dsSM = xr.Dataset()
-    dsSM["freqs"] = xr.DataArray(SM["freqs"], dims="freqs")
-    dsSM["dirs"] = xr.DataArray(SM["dirs"], dims="dirs")
-    dsSM["time"] = xr.DataArray(ds.time, dims="time")
-    # dsSM['S'] = xr.DataArray(), dims=['freqs', 'dirs'])
-    S = np.full((len(ds.time), len(dsSM["freqs"]), len(dsSM["dirs"])), np.nan)
-    H = np.full(len(ds.time), np.nan)
-    Tp = np.full(len(ds.time), np.nan)
-
-    # pool = multiprocessing.Pool()
-    # bursts = []
-    # for x in range(10):
-    #     bursts.append((ds,presvar,x))
-    # with pool as p:
-    #     for burst, mpH, mpTp in p.starmap(diwasp_mp,tqdm(bursts, total=len(bursts))):
-    #         H[burst] = mpH
-    #         Tp[burst] = mpTp
-
-    # trying to use multiprocessing.Pool takes much longer than just the serial loop below
-    # 1:49 vs 0:49 in a test of 10 bursts
-    for burst in tqdm(range(len(ds.time))):  # 150):
-        SM = {
-            "freqs": np.arange(freqspace / 2, fs / 2, freqspace),
-            "dirs": np.arange(dirspace / 2, 360, dirspace),
-        }
-        EP = {"method": "IMLM"}
-        data = np.atleast_2d(ds[presvar].isel(time=burst).values).T
-        depth = float(data.mean() + ds.attrs["pressure_sensor_height"])
-
-        ID = {
-            "data": data,
-            "layout": layout,
-            "datatypes": datatypes,
-            "depth": depth,
-            "fs": fs,
-        }
-
-        SMout, EPout = pyDIWASP.dirspec.dirspec(
-            ID, SM, EP, ["MESSAGE", 0, "PLOTTYPE", 0]
-        )
-
-        H[burst], Tp[burst], _, _ = pyDIWASP.infospec.infospec(SMout)
-
-    # dsSM['S'] = xr.DataArray(S, dims=('time', 'freqs', 'dirs'))
-    dsSM["H"] = xr.DataArray(H, dims="time")
-    dsSM["Tp"] = xr.DataArray(Tp, dims="time")
-
-    return dsSM
 
 
 def make_waves_ds(ds):
@@ -692,25 +601,26 @@ def make_tail(f, Pnn, tailind):
         return np.hstack((Pnn[:ti], tail[ti:]))
 
 
-def make_mwd(freqs, dirs, dspec):
+def make_mwd(freqs, dirs, dspec, diwasp=False):
     """Create mean wave direction (EPIC 4062) variable"""
 
-    Sxsin = dspec * np.expand_dims(np.sin(np.deg2rad(dirs)), axis=1)
-    Sxcos = dspec * np.expand_dims(np.cos(np.deg2rad(dirs)), axis=1)
+    Sxsin = dspec * np.sin(np.deg2rad(dirs))
+    Sxcos = dspec * np.cos(np.deg2rad(dirs))
 
-    Dnum = np.trapz(np.trapz(Sxsin, x=freqs), x=dirs)
-    Ddnom = np.trapz(np.trapz(Sxcos, x=freqs), x=dirs)
+    if diwasp:
+        Dnum = Sxsin.integrate("diwasp_frequency").integrate("diwasp_direction")
+        Ddnom = Sxcos.integrate("diwasp_frequency").integrate("diwasp_direction")
+    else:
+        Dnum = Sxsin.integrate("frequency").integrate("direction")
+        Ddnom = Sxcos.integrate("frequency").integrate("direction")
 
     Dm = np.rad2deg(np.arctan(np.abs(Dnum / Ddnom)))
 
-    if np.sign(Dnum) == 1 and np.sign(Ddnom) == 1:
-        Dm = Dm
-    elif np.sign(Dnum) == 1 and np.sign(Ddnom) == -1:
-        Dm = 180 - Dm
-    elif np.sign(Dnum) == -1 and np.sign(Ddnom) == -1:
-        Dm = 180 + Dm
-    elif np.sign(Dnum) == -1 and np.sign(Ddnom) == 1:
-        Dm = 360 - Dm
+    Dm[(Dnum > 0) & (Ddnom < 0)] = 180 - Dm[(Dnum > 0) & (Ddnom < 0)]
+
+    Dm[(Dnum < 0) & (Ddnom < 0)] = 180 + Dm[(Dnum < 0) & (Ddnom < 0)]
+
+    Dm[(Dnum < 0) & (Ddnom > 0)] = 360 - Dm[(Dnum < 0) & (Ddnom > 0)]
 
     return Dm
 

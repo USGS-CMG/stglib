@@ -175,7 +175,7 @@ def nc_to_diwasp(nc_filename):
         ds.attrs[k] = diwasp.attrs[k]
 
     # rename Fspec based on input datatype
-    ds = utils.rename_diwasp_Fspec(ds)
+    ds = utils.rename_diwasp_fspec(ds)
 
     ds = utils.create_water_depth_var(ds)
 
@@ -200,6 +200,10 @@ def nc_to_diwasp(nc_filename):
 
     # ds = qaqc.drop_vars(ds)
 
+    # use "epic" names
+    ds.attrs["diwasp_names"] = "epic"
+    ds = utils.rename_diwasp_wave_vars(ds)
+
     ds = drop_unused_dims(ds)
 
     ds = utils.trim_max_wp(ds)
@@ -209,9 +213,6 @@ def nc_to_diwasp(nc_filename):
     ds = utils.trim_max_wh(ds)
 
     ds = utils.trim_wp_ratio(ds)
-
-    if "diwasp_names" in ds.attrs:
-        ds = utils.rename_diwasp_wave_vars(ds)
 
     # Add attrs
     ds = utils.ds_add_wave_attrs(ds)
@@ -244,19 +245,12 @@ def make_diwasp_layout(ds, data_type=None, ibin=None):
         # datatypes = ["pres", "velx", "vely"]
         sxyz = [0, 0, ds.attrs["initial_instrument_height"]]
         if ds.attrs["orientation"].lower() == "up":
-            uxyz = [
-                0,
-                0,
-                ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values,
-            ]
-        elif ds.attrs["orientation"].lower() == "down":
-            uxyz = [
-                0,
-                0,
-                ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values,
-            ]
+            velz = ds.attrs["initial_instrument_height"] + ds["bindist"][ibin].values
 
-        vxyz = uxyz
+        elif ds.attrs["orientation"].lower() == "down":
+            velz = ds.attrs["initial_instrument_height"] - ds["bindist"][ibin].values
+
+        uxyz = vxyz = [0, 0, velz]
 
         layout = np.array([sxyz, uxyz, vxyz])
 
@@ -273,10 +267,7 @@ def make_wave_bursts(ds):
     ds.attrs["wave_samples_per_burst"] = int(
         ds.attrs["wave_interval"] / ds.attrs["sample_interval"]
     )
-    # burst_interval is equivalent to wave_interval [sec]
-    # ds.attrs["wave_burst_interval"] = ds.attrs["wave_interval"]
-    # burst_length is the number of data points in the burst
-    # ds.attrs["wave_burst_length"] = ds.attrs["wave_samples_per_burst"]
+
     r = np.shape(ds.P_1)[0]
     mod = r % ds.attrs["wave_samples_per_burst"]
     if mod:

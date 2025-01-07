@@ -1686,7 +1686,7 @@ def rename_diwasp_wave_vars(ds):
     return ds.rename(newvars)
 
 
-def rename_diwasp_Fspec(diwasp):
+def rename_diwasp_fspec(diwasp):
     """Rename diwasp_fspec using first input datatype"""
 
     if "diwasp_inputs" in diwasp.attrs:

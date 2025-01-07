@@ -95,11 +95,13 @@ def runots_parser():
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
+    addnc2diwasp(instsp)
 
     instsp = add_instrument(subparsers, "rsk", "RBR")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
+    addnc2diwasp(instsp)
 
     instsp = add_instrument(subparsers, "sig", "Nortek Signature")
     addinst2cdf(instsp, "mat2cdf")
@@ -313,6 +315,14 @@ def rsknc2diwasp_parser():
 
 def rsknc2waves_parser():
     description = "Generate waves statistics file"
+    parser = argparse.ArgumentParser(description=description)
+    ncarg(parser)
+
+    return parser
+
+
+def rsknc2diwasp_parser():
+    description = "Generate DIWASP waves statistics file"
     parser = argparse.ArgumentParser(description=description)
     ncarg(parser)
 
