@@ -193,6 +193,11 @@ def add_min_max(ds, exclude_vars=None):
         "frequency",
         "bin_along",
         "bin_across",
+        "direction",
+        "diwasp_frequency",
+        "diwasp_direction",
+        "puv_frequency",
+        "puv_frequency_clipped",
     ]
 
     for k in ds.variables:
@@ -252,6 +257,16 @@ def ds_add_diwasp_history(ds):
     """
 
     histtext = "Wave statistics computed using DIWASP 1.1GD."
+
+    return insert_history(ds, histtext)
+
+
+def ds_add_pydiwasp_history(ds):
+    """
+    Add history indicating DIWASP has been applied
+    """
+
+    histtext = f"Directional Wave statistics computed using pyDIWASP with {ds.attrs['diwasp']} input data"
 
     return insert_history(ds, histtext)
 
@@ -359,7 +374,7 @@ def ds_add_wave_attrs(ds):
     def add_attributes(var, dsattrs):
         var.attrs.update(
             {
-                "serial_number": dsattrs["serial_number"],
+                # "serial_number": dsattrs["serial_number"],
                 # "initial_instrument_height": dsattrs["initial_instrument_height"],
                 # "nominal_instrument_depth": dsattrs["nominal_instrument_depth"],
                 # "height_depth_units": "m",
@@ -368,49 +383,74 @@ def ds_add_wave_attrs(ds):
         # if "INST_TYPE" in dsattrs:
         #    var.attrs["sensor_type"] = dsattrs["INST_TYPE"]
 
-    ds["wp_peak"].attrs.update(
-        {
-            "long_name": "Dominant (peak) wave period",
-            "units": "s",
-            "epic_code": 4063,
-            "standard_name": "sea_surface_wave_period_at_variance_spectral_density_maximum",
-        }
-    )
+    if "wp_peak" in ds.data_vars:
+        ds["wp_peak"].attrs.update(
+            {
+                "long_name": "Dominant (peak) wave period",
+                "units": "s",
+                "epic_code": 4063,
+                "standard_name": "sea_surface_wave_period_at_variance_spectral_density_maximum",
+            }
+        )
 
-    ds["wp_4060"].attrs.update(
-        {
-            "long_name": "Average wave period",
-            "units": "s",
-            "epic_code": 4060,
-            "standard_name": "sea_surface_wave_mean_period_from_variance_spectral_density_second_frequency_moment",
-        }
-    )
+    if "wp_4060" in ds.data_vars:
+        ds["wp_4060"].attrs.update(
+            {
+                "long_name": "Average wave period",
+                "units": "s",
+                "epic_code": 4060,
+                "standard_name": "sea_surface_wave_mean_period_from_variance_spectral_density_second_frequency_moment",
+            }
+        )
 
-    ds["wh_4061"].attrs.update(
-        {
-            "long_name": "Significant wave height",
-            "units": "m",
-            "epic_code": 4061,
-            "standard_name": "sea_surface_wave_significant_height",
-        }
-    )
+    if "wh_4061" in ds.data_vars:
+        ds["wh_4061"].attrs.update(
+            {
+                "long_name": "Significant wave height",
+                "units": "m",
+                "epic_code": 4061,
+                "standard_name": "sea_surface_wave_significant_height",
+            }
+        )
 
-    ds["pspec"].attrs.update(
-        {
-            "long_name": "Pressure-derived non-directional wave energy spectrum",
-            "units": "m^2/Hz",
-            "note": "Use caution: all spectra are provisional",
-            "standard_name": "sea_surface_wave_variance_spectral_density",
-        }
-    )
+    if "pspec" in ds.data_vars:
+        ds["pspec"].attrs.update(
+            {
+                "long_name": "Pressure-derived non-directional wave energy spectrum",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
 
-    ds["frequency"].attrs.update(
-        {
-            "standard_name": "sea_surface_wave_frequency",
-            "long_name": "Frequency",
-            "units": "Hz",
-        }
-    )
+    if "sspec" in ds.data_vars:
+        ds["sspec"].attrs.update(
+            {
+                "long_name": "Surface track derived non-directional wave energy spectrum",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
+    if "vspec" in ds.data_vars:
+        ds["vspec"].attrs.update(
+            {
+                "long_name": "Velocity-derived non-directional wave energy spectrum",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
+    if "frequency" in ds.coords:
+        ds["frequency"].attrs.update(
+            {
+                "standard_name": "sea_surface_wave_frequency",
+                "long_name": "Frequency",
+                "units": "Hz",
+            }
+        )
 
     if "direction" in ds.coords:
         ds["direction"].attrs.update(
@@ -472,6 +512,144 @@ def ds_add_wave_attrs(ds):
             }
         )
 
+    if "diwasp_frequency" in ds.coords:
+        ds["diwasp_frequency"].attrs.update(
+            {
+                "standard_name": "sea_surface_wave_frequency",
+                "long_name": "Frequency",
+                "units": "Hz",
+            }
+        )
+
+    if "diwasp_direction" in ds.coords:
+        ds["diwasp_direction"].attrs.update(
+            {
+                "long_name": "Direction (from, relative to true north)",
+                "units": "degrees",
+            }
+        )
+
+    if "diwasp_tp" in ds.data_vars:
+        ds["diwasp_tp"].attrs.update(
+            {
+                "long_name": "Dominant (peak) wave period from pyDIWASP",
+                "units": "s",
+                "standard_name": "sea_surface_wave_period_at_variance_spectral_density_maximum",
+            }
+        )
+
+    if "diwasp_tm" in ds.data_vars:
+        ds["diwasp_tm"].attrs.update(
+            {
+                "long_name": "Average wave period",
+                "units": "s",
+                "epic_code": 4060,
+                "standard_name": "sea_surface_wave_mean_period_from_variance_spectral_density_second_frequency_moment",
+            }
+        )
+
+    if "diwasp_hs" in ds.data_vars:
+        ds["diwasp_hs"].attrs.update(
+            {
+                "long_name": "Significant wave height from pyDIWASP",
+                "units": "m",
+                "standard_name": "sea_surface_wave_significant_height",
+            }
+        )
+
+    if "diwasp_dtp" in ds.data_vars:
+        ds["diwasp_dtp"].attrs.update(
+            {
+                "long_name": (
+                    "Direction of peak period "
+                    "(from, relative to true north) from pyDIWASP"
+                ),
+                "units": "degrees",
+                "note": (
+                    "Compass direction from which waves are propagating as "
+                    "defined by the direction with the greatest energy at "
+                    "the peak period"
+                ),
+                "standard_name": "sea_surface_wave_from_direction_at_variance_spectral_density_maximum",
+            }
+        )
+
+    if "diwasp_dp" in ds.data_vars:
+        ds["diwasp_dp"].attrs.update(
+            {
+                "long_name": (
+                    "Dominant wave direction "
+                    "(from, relative to true north) from pyDIWASP"
+                ),
+                "units": "degrees",
+                "note": (
+                    "Compass direction from which waves are propagating as "
+                    "defined by the direction band with greatest total "
+                    "energy summed over all frequencies"
+                ),
+            }
+        )
+
+    if "diwasp_dm" in ds.data_vars:
+        ds["diwasp_dm"].attrs.update(
+            {
+                "long_name": "Mean wave direction from pyDIWASP",
+                "units": "degrees",
+                "note": "Compass direction from which waves are propagating",
+                "standard_name": "sea_surface_wave_from_direction",
+            }
+        )
+
+    if "diwasp_dspec" in ds.data_vars:
+        ds["diwasp_dspec"].attrs.update(
+            {
+                "long_name": "Directional wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz/degree",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_directional_variance_spectral_density",
+            }
+        )
+
+    if "diwasp_fspec" in ds.data_vars:
+        ds["diwasp_fspec"].attrs.update(
+            {
+                "long_name": "Frequency (non-directional) wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
+    if "diwasp_astspec" in ds.data_vars:
+        ds["diwasp_astspec"].attrs.update(
+            {
+                "long_name": "Acoustic Surface Tracking derived frequency (non-directional) wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
+    if "diwasp_pspec" in ds.data_vars:
+        ds["diwasp_pspec"].attrs.update(
+            {
+                "long_name": "Pressure derived frequency (non-directional) wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
+    if "diwasp_vspec" in ds.data_vars:
+        ds["diwasp_vspec"].attrs.update(
+            {
+                "long_name": "Velocity derived frequency (non-directional) wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
     for var in [
         "wp_peak",
         "wh_4061",
@@ -482,6 +660,16 @@ def ds_add_wave_attrs(ds):
         "dspec",
         "wvdir",
         "dwvdir",
+        "diwasp_hs",
+        "diwasp_tp",
+        "diwasp_dtp",
+        "diwasp_dp",
+        "diwasp_dm",
+        "diwasp_dspec",
+        "diwasp_fspec",
+        "diwasp_astspec",
+        "diwasp_pspec",
+        "diwasp_vspec",
     ]:
         if var in ds.variables:
             add_attributes(ds[var], ds.attrs)
@@ -1467,3 +1655,52 @@ def create_filtered_water_level_var(ds):
         ] = "4th order lowpass butterworth filter with 6 min cutoff"
 
     return ds
+
+
+def rename_diwasp_wave_vars(ds):
+    # rename wave vars to user specified convention
+    if ds.attrs["diwasp_names"].lower() == "epic":
+        varnames = {
+            "diwasp_frequency": "frequency",
+            "diwasp_direction": "direction",
+            "diwasp_hs": "wh_4061",
+            "diwasp_tp": "wp_peak",
+            "diwasp_tm": "wp_4060",
+            "diwasp_dtp": "wvdir",
+            "diwasp_dp": "dwvdir",
+            "diwasp_dm": "wd_4062",
+            "diwasp_pspec": "pspec",
+            "diwasp_astspec": "sspec",
+            "diwasp_vspec": "vspec",
+            "diwasp_dspec": "dspec",
+        }
+
+        # check to make sure they exist before trying to rename
+        newvars = {}
+        for k in varnames:
+            if k in ds:
+                newvars[k] = varnames[k]
+    else:
+        return ds
+
+    return ds.rename(newvars)
+
+
+def rename_diwasp_fspec(diwasp):
+    """Rename diwasp_fspec using first input datatype"""
+
+    if "diwasp_inputs" in diwasp.attrs:
+        inputs = diwasp.attrs["diwasp_inputs"]
+        newname = {}
+        if inputs[0] == "elev":
+            newname = {"diwasp_fspec": "diwasp_astspec"}
+        elif inputs[0] == "pres":
+            newname = {"diwasp_fspec": "diwasp_pspec"}
+        elif inputs[0] in ["velx", "vely", "velz", "radial"]:
+            newname = {"diwasp_fspec": "diwasp_vspec"}
+        else:
+            return diwasp
+    else:
+        return diwasp
+
+    return diwasp.rename(newname)

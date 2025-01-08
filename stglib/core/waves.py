@@ -1,9 +1,381 @@
+# from ..lib import pyDIWASP
+# from ..lib import pyDIWASP.dirspec
+# from ..lib.pyDWASP import dirspec
+import multiprocessing
+import os
+import sys
 import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import scipy.signal as spsig
 import xarray as xr
+from tqdm import tqdm
+
+parent_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+lib_dir = os.path.join(parent_dir, "lib")
+sys.path.append(lib_dir)
+
+import pyDIWASP
+
+
+def make_diwasp_inputs(
+    ds,
+    data_type=None,
+    layout=None,
+    method="IMLM",
+    dres=180,
+    nsegs=16,
+    iter=50,
+    freqs=None,
+    nfft=256,
+    xdir=90,
+    dunit="naut",
+    nsamps=None,
+    smooth="ON",
+):
+    """Create inputs need to run pyDIWASP processing"""
+
+    # check for user options in ds.attrs
+    if "diwasp_method" in ds.attrs:
+        method = ds.attrs["diwasp_method"]
+
+    if "diwasp_nsegs" in ds.attrs:
+        nsegs = int(ds.attrs["diwasp_nsegs"])
+
+    if "diwasp_dres" in ds.attrs:
+        dres = int(ds.attrs["diwasp_dres"])
+
+    if "diwasp_iter" in ds.attrs:
+        iter = int(ds.attrs["diwasp_iter"])
+
+    if "diwasp_xdir" in ds.attrs:
+        xdir = ds.attrs["diwasp_xdir"]
+
+    if "diwasp_dunit" in ds.attrs:
+        dunit = ds.attrs["diwasp_dunit"]
+
+    if "diwasp_nfft" in ds.attrs:
+        nfft = int(ds.attrs["diwasp_nfft"])
+
+    if "diwasp_smooth" in ds.attrs:
+        smooth = ds.attrs["diwasp_smooth"]
+
+    ID = {}
+    ID["fs"] = 1 / float(ds.attrs["sample_interval"])
+
+    if "P_1ac" in ds:
+        ID["depth"] = float(
+            ds["P_1ac"].mean(dim="sample").values
+            + ds.attrs["initial_instrument_height"]
+        )
+
+    elif "brangeAST" in ds and ds.attrs["orientation"].lower() == "up":
+        ID["depth"] = float(
+            ds["brangeAST"].mean(dim="sample").values
+            + ds.attrs["initial_instrument_height"]
+        )
+
+    else:
+        ID["depth"] = float(ds.attrs["WATER_DEPTH"])
+
+    if data_type == "puv":
+        ID["datatypes"] = ["pres", "velx", "vely"]
+
+    elif data_type == "suv":
+        ID["datatypes"] = ["elev", "velx", "vely"]
+
+    elif data_type == "elev":
+        ID["datatypes"] = ["elev"]
+
+    elif data_type == "pres":
+        ID["datatypes"] = ["pres"]
+
+    if np.any(layout):
+        ID["layout"] = layout
+    else:
+        raise KeyError(
+            "Required DIWASP input parameter <layout> has not been explicitly passed to make_diwasp_inputs def"
+        )
+
+    nyfreq = float(ds.attrs["sample_rate"]) / 2
+
+    if nsamps is None:
+        nsamps = ds.attrs["wave_interval"] * ds.attrs["sample_rate"]
+
+    if nfft is None:
+        nfft = next_power_of_2(int(nsamps / nsegs))
+
+    if freqs is None:
+        nfreqs = nfft / 2
+        flo = np.round(
+            1 / (nsamps / ID["fs"] / 32.0), 3
+        )  # set minimum frequency to length of wave burst samples use divided by 32
+        if nyfreq > 2:
+            fhi = 2
+        else:
+            fhi = nyfreq
+        freqs = np.arange(flo, fhi, (fhi - flo) / nfreqs)
+
+    SM = {}
+    SM["freqs"] = freqs
+    SM["dirs"] = np.arange(0, 360, 360 / dres)
+    SM["xaxisdir"] = xdir
+    SM["dunit"] = dunit
+
+    EP = {}
+    EP["method"] = method
+    EP["iter"] = iter
+    EP["nfft"] = nfft
+    EP["dres"] = int(dres)
+    EP["smooth"] = smooth
+
+    return ID, SM, EP
+
+
+def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
+    """Calculate Directional Wave Statistic using PyDIWASP"""
+
+    # check number of samples to use in each burst for wave stats (default = all, i.e. samples_per_burst)
+    samples_per_burst = len(ds["sample"])  # samples_per_burst
+    if "diwasp_nsamps" in ds.attrs:
+        nsamps = ds.attrs["diwasp_nsamps"]
+    elif "diwasp_pow2" in ds.attrs:  # make diwasp use power of 2 nsamps
+        if ds.attrs["diwasp_pow2"].lower() == "true":
+            nsamps = floor_power_of_2(samples_per_burst)
+        else:
+            nsamps = samples_per_burst
+    else:
+        nsamps = samples_per_burst
+
+    times = []
+    s = []
+    Hs = []
+    Tp = []
+    DTp = []
+    Dp = []
+    # Dm = []
+    Tm = []
+
+    for burst in tqdm(range(len(ds.time))):
+        if "P_1ac" in ds:
+            p = ds["P_1ac"].isel(time=burst, sample=range(nsamps)).values
+        if "brangeAST" in ds:
+            ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps)).values
+        else:
+            ast = None
+
+        u = ds["u_1205"].isel(time=burst, z=ibin, sample=range(nsamps)).values
+        v = ds["v_1206"].isel(time=burst, z=ibin, sample=range(nsamps)).values
+
+        ID, SM, EP = make_diwasp_inputs(
+            ds.isel(time=burst),
+            layout=layout,
+            data_type=data_type,
+            freqs=freqs,
+            nsamps=nsamps,
+        )
+        if data_type == "suv":
+            if ast is not None:
+                ID["data"] = np.array([ast, u, v]).transpose()
+            else:
+                raise ValueError(
+                    f"Acoustic surface tracking (ast) variable not found cannot continue with {data_type} directional wave analysis"
+                )
+
+        elif data_type == "puv":
+            if p is not None:
+                ID["data"] = np.array([p, u, v]).transpose()
+            else:
+                raise ValueError(
+                    f"Corrected pressure (P_1ac) variable not found cannot continue with {data_type} directional wave analysis"
+                )
+
+        opts = ["MESSAGE", 0, "PLOTTYPE", 0]
+
+        [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
+        WVout = pyDIWASP.infospec.infospec(SMout)
+
+        # calculate mean period
+        Snn = np.trapz(np.real(SMout["S"]), axis=1, x=SMout["dirs"])
+        m0 = make_moment(SMout["freqs"], Snn, 0)
+        m2 = make_moment(SMout["freqs"], Snn, 2)
+        mwp = make_Tm(m0, m2)
+
+        # append outputs to list
+        times.append(ds["time"][burst].values)
+        s.append(SMout["S"])
+        Hs.append(WVout[0])
+        Tp.append(WVout[1])
+        DTp.append(WVout[2])
+        Dp.append(WVout[3])
+        Tm.append(mwp)
+
+    dspec = np.real(np.stack(s, axis=0))
+
+    dwv = xr.Dataset()
+    dwv["time"] = xr.DataArray(np.array(times), dims="time")
+    dwv["time"] = pd.DatetimeIndex(dwv["time"])
+    dwv["diwasp_frequency"] = xr.DataArray(SMout["freqs"], dims="diwasp_frequency")
+    dwv["diwasp_direction"] = xr.DataArray(SMout["dirs"], dims="diwasp_direction")
+    dwv["diwasp_dspec"] = xr.DataArray(
+        dspec, dims=["time", "diwasp_frequency", "diwasp_direction"]
+    )
+
+    dwv["diwasp_fspec"] = xr.DataArray(
+        np.trapz(dspec, axis=2, x=SMout["dirs"]),
+        dims=["time", "diwasp_frequency"],
+    )
+
+    # find mean wave direction
+    Dm = make_mwd(
+        dwv["diwasp_frequency"],
+        dwv["diwasp_direction"],
+        dwv["diwasp_dspec"],
+        diwasp=True,
+    )
+
+    dwv["diwasp_hs"] = xr.DataArray(np.array(Hs), dims="time")
+    dwv["diwasp_tp"] = xr.DataArray(np.array(Tp), dims="time")
+    dwv["diwasp_dtp"] = xr.DataArray(np.array(DTp), dims="time")
+    dwv["diwasp_tm"] = xr.DataArray(np.array(Tm), dims="time")
+    dwv["diwasp_dp"] = xr.DataArray(np.array(Dp), dims="time")
+    dwv["diwasp_dm"] = xr.DataArray(np.round(Dm.values, 0), dims="time")
+
+    # make some diwasp attrs
+    if "diwasp_bin" not in ds.attrs:
+        dwv.attrs["diwasp_bin"] = ibin
+
+    # if "diwasp_inputs" not in ds.attrs:
+    dwv.attrs["diwasp_inputs"] = ID["datatypes"]
+
+    if "diwasp_method" not in ds.attrs:
+        dwv.attrs["diwasp_method"] = EP["method"]
+    if "diwasp_nsamps" not in ds.attrs:
+        dwv.attrs["diwasp_nsamps"] = nsamps
+    if "diwasp_nfft" not in ds.attrs:
+        dwv.attrs["diwasp_nfft"] = EP["nfft"]
+    if "diwasp_dres" not in ds.attrs:
+        dwv.attrs["diwasp_dres"] = EP["dres"]
+    if "diwasp_iter" not in ds.attrs:
+        dwv.attrs["diwasp_iter"] = EP["iter"]
+    if "diwasp_xdir" not in ds.attrs:
+        dwv.attrs["diwasp_xdir"] = SM["xaxisdir"]
+    if "diwasp_dunit" not in ds.attrs:
+        dwv.attrs["diwasp_dunit"] = SM["dunit"]
+
+    return dwv
+
+
+def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
+    """Calculate Directional Wave Statistic using PyDIWASP"""
+
+    # check number of samples to use in each burst for wave stats (default = all, i.e. samples_per_burst)
+    samples_per_burst = len(ds["sample"])  # samples_per_burst
+    if "diwasp_nsamps" in ds.attrs:
+        nsamps = ds.attrs["diwasp_nsamps"]
+    elif "diwasp_pow2" in ds.attrs:  # make diwasp use power of 2 nsamps
+        if ds.attrs["diwasp_pow2"].lower() == "true":
+            nsamps = floor_power_of_2(samples_per_burst)
+        else:
+            nsamps = samples_per_burst
+    else:
+        nsamps = samples_per_burst
+
+    times = []
+    s = []
+    Hs = []
+    Tp = []
+    Tm = []
+
+    for burst in tqdm(range(len(ds.time))):
+
+        if "P_1ac" in ds:
+            p = ds["P_1ac"].isel(time=burst, sample=range(nsamps)).values
+        else:
+            p = None
+
+        if "brangeAST" in ds:
+            ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps)).values
+        else:
+            ast = None
+
+        ID, SM, EP = make_diwasp_inputs(
+            ds.isel(time=burst),
+            data_type=data_type,
+            layout=layout,
+            freqs=freqs,
+            nsamps=nsamps,
+        )
+        if data_type == "elev":
+            if ast is not None:
+                ID["data"] = np.atleast_2d(ast).transpose()
+            else:
+                raise ValueError(
+                    f"Acoustic surface tracking (ast) variable not found cannot continue with {data_type} wave analysis"
+                )
+
+        elif data_type == "pres":
+            if p is not None:
+                ID["data"] = np.atleast_2d(p).transpose()
+            else:
+                raise ValueError(
+                    f"Correct pressure (P_1ac) variable not found cannot continue with {data_type} wave analysis"
+                )
+
+        opts = ["MESSAGE", 0, "PLOTTYPE", 0]
+
+        [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
+        WVout = pyDIWASP.infospec.infospec(SMout)
+
+        # calculate mean period
+        Snn = np.trapz(np.real(SMout["S"]), axis=1, x=SMout["dirs"])
+        m0 = make_moment(SMout["freqs"], Snn, 0)
+        m2 = make_moment(SMout["freqs"], Snn, 2)
+        mwp = make_Tm(m0, m2)
+
+        # append outputs to list
+        times.append(ds["time"][burst].values)
+        s.append(SMout["S"])
+        Hs.append(WVout[0])
+        Tp.append(WVout[1])
+        Tm.append(mwp)
+
+    dspec = np.real(np.stack(s, axis=0))
+    dwv = xr.Dataset()
+    dwv["time"] = xr.DataArray(np.array(times), dims="time")
+    dwv["time"] = pd.DatetimeIndex(dwv["time"])
+    dwv["diwasp_frequency"] = xr.DataArray(SMout["freqs"], dims="diwasp_frequency")
+    dwv["diwasp_fspec"] = xr.DataArray(
+        np.trapz(dspec, axis=2, x=SMout["dirs"]),
+        dims=["time", "diwasp_frequency"],
+    )
+
+    dwv["diwasp_hs"] = xr.DataArray(np.array(Hs), dims="time")
+    dwv["diwasp_tp"] = xr.DataArray(np.array(Tp), dims="time")
+    dwv["diwasp_tm"] = xr.DataArray(np.array(Tm), dims="time")
+
+    # make some diwasp attrs
+
+    # if "diwasp_inputs" not in ds.attrs:
+    dwv.attrs["diwasp_inputs"] = ID["datatypes"]
+    if "diwasp_method" not in ds.attrs:
+        dwv.attrs["diwasp_method"] = EP["method"]
+    if "diwasp_nsamps" not in ds.attrs:
+        dwv.attrs["diwasp_nsamps"] = nsamps
+    if "diwasp_nfft" not in ds.attrs:
+        dwv.attrs["diwasp_nfft"] = EP["nfft"]
+    if "diwasp_dres" not in ds.attrs:
+        dwv.attrs["diwasp_dres"] = EP["dres"]
+    if "diwasp_iter" not in ds.attrs:
+        dwv.attrs["diwasp_iter"] = EP["iter"]
+    if "diwasp_xdir" not in ds.attrs:
+        dwv.attrs["diwasp_xdir"] = SM["xaxisdir"]
+    if "diwasp_dunit" not in ds.attrs:
+        dwv.attrs["diwasp_dunit"] = SM["dunit"]
+
+    return dwv
 
 
 def make_waves_ds(ds):
@@ -229,19 +601,25 @@ def make_tail(f, Pnn, tailind):
         return np.hstack((Pnn[:ti], tail[ti:]))
 
 
-def make_mwd(freqs, dirs, dspec):
+def make_mwd(freqs, dirs, dspec, diwasp=False):
     """Create mean wave direction (EPIC 4062) variable"""
 
-    Sxsin = dspec * np.expand_dims(np.sin(np.deg2rad(dirs)), axis=1)
-    Sxcos = dspec * np.expand_dims(np.cos(np.deg2rad(dirs)), axis=1)
+    Sxsin = dspec * np.sin(np.deg2rad(dirs))
+    Sxcos = dspec * np.cos(np.deg2rad(dirs))
 
-    Dnum = np.trapz(np.trapz(Sxsin, x=freqs), x=dirs)
-    Ddnom = np.trapz(np.trapz(Sxcos, x=freqs), x=dirs)
+    if diwasp:
+        Dnum = Sxsin.integrate("diwasp_frequency").integrate("diwasp_direction")
+        Ddnom = Sxcos.integrate("diwasp_frequency").integrate("diwasp_direction")
+    else:
+        Dnum = Sxsin.integrate("frequency").integrate("direction")
+        Ddnom = Sxcos.integrate("frequency").integrate("direction")
 
     Dm = np.rad2deg(np.arctan(np.abs(Dnum / Ddnom)))
 
     Dm[(Dnum > 0) & (Ddnom < 0)] = 180 - Dm[(Dnum > 0) & (Ddnom < 0)]
+
     Dm[(Dnum < 0) & (Ddnom < 0)] = 180 + Dm[(Dnum < 0) & (Ddnom < 0)]
+
     Dm[(Dnum < 0) & (Ddnom > 0)] = 360 - Dm[(Dnum < 0) & (Ddnom > 0)]
 
     return Dm
@@ -1144,3 +1522,11 @@ def puv_qaqc(ds):
         ds[k][bads] = np.nan
 
     return ds
+
+
+def next_power_of_2(x):
+    return 1 if x == 0 else 2 ** (x - 1).bit_length()
+
+
+def floor_power_of_2(x):
+    return 1 if x == 0 else 2 ** ((x).bit_length() - 1)

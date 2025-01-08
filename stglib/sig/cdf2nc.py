@@ -224,7 +224,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
 def drop_unused_dims(ds):
     """only keep dims that will be in the final files"""
-    thedims = []
+    thedims = ["bindist"]  # keep bindist needed for wave processing
     for v in ds.data_vars:
         for x in ds[v].dims:
             thedims.append(x)
