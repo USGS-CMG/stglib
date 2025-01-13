@@ -348,12 +348,22 @@ def rbr_diwasp(nc_file):
     assert "Done writing netCDF file" in result.stdout.decode("utf8")
 
 
-def test_rbr():
+def test_rbr_tu():
+    with zipfile.ZipFile("stglib/tests/data/054215_DMP23X3E01tu.zip", "r") as zip_ref:
+        zip_ref.extractall("stglib/tests/data/")
+    rbr_raw("gatts_DMP23X3E.txt", "DMP23X3E01tu_config.yaml")
+    rbr_nc("DMP23X3E01tu-raw.cdf")
+
+
+def test_rbr_wvs():
     with zipfile.ZipFile("stglib/tests/data/051001_CSF20SC201.zip", "r") as zip_ref:
         zip_ref.extractall("stglib/tests/data/")
     rbr_raw("gatts_CSF20SC2.txt", "csf20sc201_config.yaml")
     rbr_nc("CSF20SC201pt-raw.cdf")
     rbr_wvs("CSF20SC201ptb-cal.nc")
+
+
+def test_rbr():
     with zipfile.ZipFile("stglib/tests/data/055109_20220808_1605.zip", "r") as zip_ref:
         zip_ref.extractall("stglib/tests/data/")
     rbr_raw("gatts_055109_20220808_1605.txt", "055109_20220808_1605_config.yaml")

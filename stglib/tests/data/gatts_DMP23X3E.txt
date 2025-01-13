@@ -1,0 +1,32 @@
+MOORING;	DMP23X3E
+PROGRAM;	Sediment transport in coastal environments 
+PROJECT;	Strategic Placement 2023
+EXPERIMENT;	DMP23
+Region;	South San Francisco Bay 
+CruiseID;	2023-655-FA
+SciPi;	Jessica Lacy, Andrew Stevens
+Year;	2024
+Site;	X3E
+platform_type;	Tripod
+latitude;	37.59047
+longitude;  -122.16087
+WATER_DEPTH;	1.8
+WATER_DEPTH_source; Water depth calculated from first in-water measurement of pressure from RBR 41324	
+WATER_DEPTH_note; water depth at time of deployment
+geopotential_datum_name; NAVD88
+geopotential_datum_elevation_source; High-resolution (1 m) digital elevation model (DEM) of San Francisco Bay, California, created using bathymetry data collected between 1999 and 2020 (ver. 2.0, July 2021): U.S. Geological Survey data release, https://doi.org/10.5066/P9TJTS8M
+height_above_geopotential_datum;	-0.59
+height_above_geopotential_datum_note; elevation in meters of the seabed with respect to the geopotential datum
+Deployment_date;	18-JUN-2024 16:48
+Recovery_date;	13-AUG-2024 15:20
+OFAFunding;	  US Army Corps of Engineers
+CollaboratingAgency;	USGS WERC
+DESCRIPTION;	Weightstand
+magnetic_variation;	13.0
+DATA_TYPE;	TIME
+DATA_SUBTYPE;	MOORED
+DATA_ORIGIN;	USGS/PCMSC
+COORD_SYSTEM;	GEOGRAPHIC
+Conventions;	CF-1.8
+history;	''
+DATA_CMNT;	 ''
