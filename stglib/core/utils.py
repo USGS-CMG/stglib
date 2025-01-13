@@ -1003,21 +1003,22 @@ def create_water_depth_var(ds):
     elif "P_1" in ds:
         press = "P_1"
 
-    if "sample" in ds.dims:
-        ds["water_depth"] = xr.DataArray(
-            ds[press].squeeze().mean(dim="sample")
-            + ds.attrs["initial_instrument_height"]
-        )
+    if press is not None:
+        if "sample" in ds.dims:
+            ds["water_depth"] = xr.DataArray(
+                ds[press].squeeze().mean(dim="sample")
+                + ds.attrs["initial_instrument_height"]
+            )
 
-    else:
-        ds["water_depth"] = xr.DataArray(
-            ds[press].squeeze() + ds.attrs["initial_instrument_height"]
-        )
+        else:
+            ds["water_depth"] = xr.DataArray(
+                ds[press].squeeze() + ds.attrs["initial_instrument_height"]
+            )
 
-    ds["water_depth"].attrs["long_name"] = "Total water depth"
-    ds["water_depth"].attrs["units"] = "m"
-    ds["water_depth"].attrs["standard_name"] = "sea_floor_depth_below_sea_surface"
-    ds["water_depth"].attrs["epic_code"] = 3
+        ds["water_depth"].attrs["long_name"] = "Total water depth"
+        ds["water_depth"].attrs["units"] = "m"
+        ds["water_depth"].attrs["standard_name"] = "sea_floor_depth_below_sea_surface"
+        ds["water_depth"].attrs["epic_code"] = 3
 
     return ds
 
