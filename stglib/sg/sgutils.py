@@ -4,7 +4,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from ..core import filter, qaqc, utils
+from ..core import utils
+
+# from ..core import filter, qaqc
 
 
 def read_hex(filnam):
@@ -174,7 +176,7 @@ def read_wb(filnam, encoding="utf-8"):
     start_time = int_to_date(np.array(start_time))
 
     # Create sample variable
-    sample = list(range(1, sample_no + 1))
+    sample = np.arange(1, sample_no + 1, dtype=np.int32)
 
     # Make xarray
     sg = xr.Dataset(
@@ -282,45 +284,4 @@ def ds_add_attrs(ds):
                 "long_name": "sample number",
             }
         )
-    return ds
-
-
-def sg_qaqc(ds):
-    """
-    QA/QC
-    Trim Seagauge data based on metadata
-    """
-
-    varlist = ["T_28", "P_1", "P_1ac"]
-
-    [varlist.append(k) for k in ds.data_vars if k not in varlist]
-
-    for var in varlist:
-        # check if any filtering before other qaqc
-        ds = filter.apply_butter_filt(ds, var)
-        ds = filter.apply_med_filt(ds, var)
-
-        ds = qaqc.trim_min(ds, var)
-
-        ds = qaqc.trim_max(ds, var)
-
-        ds = qaqc.trim_min_diff(ds, var)
-
-        ds = qaqc.trim_min_diff_pct(ds, var)
-
-        ds = qaqc.trim_max_diff(ds, var)
-
-        ds = qaqc.trim_max_diff_pct(ds, var)
-
-        ds = qaqc.trim_med_diff(ds, var)
-
-        ds = qaqc.trim_med_diff_pct(ds, var)
-
-        ds = qaqc.trim_bad_ens(ds, var)
-
-    for var in varlist:
-        ds = qaqc.trim_by_any(
-            ds, var
-        )  # re-run and trim by other variables as necessary
-
     return ds

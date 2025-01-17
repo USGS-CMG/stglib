@@ -64,7 +64,7 @@ def csv_to_cdf(metadata):
 
     try:
         ds = read_tcm(basefile + "_CR.txt", **kwargs)
-    except IOError:
+    except OSError:
         print(f"Could not read file {basefile}_CR.txt, check file encoding, use utf-8")
 
     metadata.pop("skiprows")
@@ -329,25 +329,8 @@ def cdf_to_nc(cdf_filename):
 
     ds = magvar_correct(ds)
 
-    # should function this
-    for var in ds.data_vars:
-        ds = qaqc.trim_min(ds, var)
-        ds = qaqc.trim_max(ds, var)
-        ds = qaqc.trim_min_diff(ds, var)
-        ds = qaqc.trim_max_diff(ds, var)
-        ds = qaqc.trim_med_diff(ds, var)
-        ds = qaqc.trim_med_diff_pct(ds, var)
-        ds = qaqc.trim_bad_ens(ds, var)
-        ds = qaqc.trim_maxabs_diff_2d(ds, var)
-        ds = qaqc.trim_fliers(ds, var)
-
-    # after check for masking vars by other vars
-    for var in ds.data_vars:
-        ds = qaqc.trim_mask(ds, var)
-
-    # check for drop_vars is config yaml
-    if "drop_vars" in ds.attrs:
-        ds = qaqc.drop_vars(ds)
+    # QAQC
+    ds = qaqc.call_qaqc(ds)
 
     ds = utils.create_z(ds)  # added 7/31/2023
 

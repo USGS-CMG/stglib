@@ -1,6 +1,6 @@
 import xarray as xr
 
-from ..core import utils
+from ..core import qaqc, utils
 from . import sgutils
 
 
@@ -37,8 +37,8 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # Add attributes
     ds = sgutils.ds_add_attrs(ds)
 
-    # Call QAQC
-    ds = sgutils.sg_qaqc(ds)
+    # Call all QAQC
+    ds = qaqc.call_qaqc(ds)
 
     # Run utilities
     ds = utils.clip_ds(ds)

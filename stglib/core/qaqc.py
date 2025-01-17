@@ -4,7 +4,55 @@ import numpy as np
 import scipy.signal
 import xarray as xr
 
-from . import utils
+from . import filter, utils
+
+
+def call_qaqc(ds):
+    """Run all QAQC functions. Only those called in the yaml file will be implemented.  If you add a new QAQC function, be sure to add it here too."""
+
+    var_list = list(ds.data_vars)
+
+    for var in var_list:
+
+        ds = filter.apply_butter_filt(ds, var)
+        ds = filter.apply_med_filt(ds, var)
+
+        ds = trim_min_diff(ds, var)
+        ds = trim_min_diff_pct(ds, var)
+
+        ds = trim_max_diff(ds, var)
+        ds = trim_max_diff_pct(ds, var)
+
+        ds = trim_med_diff(ds, var)
+        ds = trim_med_diff_pct(ds, var)
+
+        ds = trim_maxabs_diff(ds, var)
+        ds = trim_maxabs_diff_2d(ds, var)
+
+        ds = trim_max_blip(ds, var)
+        ds = trim_max_blip_pct(ds, var)
+
+        ds = trim_std_ratio(ds, var)
+        ds = trim_max_std(ds, var)
+
+        ds = trim_fliers(ds, var)
+        ds = trim_warmup(ds, var)
+
+        ds = trim_min(ds, var)
+        ds = trim_max(ds, var)
+
+        ds = trim_bad_ens(ds, var)
+        ds = trim_bad_ens_indiv(ds, var)
+
+    for var in var_list:
+        ds = trim_mask(ds, var)  # re-run and check for masking
+
+    for var in var_list:
+        ds = trim_by_any(ds, var)  # re-run and trim by other variables as necessary
+
+    ds = drop_vars(ds)
+
+    return ds
 
 
 def trim_min(ds, var):

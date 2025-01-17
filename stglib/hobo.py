@@ -450,25 +450,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     if atmpres:
         ds = utils.atmos_correct(ds, atmpres)
 
-    # should function this
-    for var in ds.data_vars:
-        ds = qaqc.trim_min(ds, var)
-        ds = qaqc.trim_max(ds, var)
-        ds = qaqc.trim_min_diff(ds, var)
-        ds = qaqc.trim_max_diff(ds, var)
-        ds = qaqc.trim_med_diff(ds, var)
-        ds = qaqc.trim_med_diff_pct(ds, var)
-        ds = qaqc.trim_bad_ens(ds, var)
-        ds = qaqc.trim_maxabs_diff_2d(ds, var)
-        ds = qaqc.trim_fliers(ds, var)
-
-    # after check for masking vars by other vars
-    for var in ds.data_vars:
-        ds = qaqc.trim_mask(ds, var)
-
-    # check for drop_vars is config yaml
-    if "drop_vars" in ds.attrs:
-        ds = qaqc.drop_vars(ds)
+    # QAQC
+    ds = qaqc.call_qaqc(ds)
 
     ds = utils.create_z(ds)  # added 7/31/2023
     ds = utils.create_water_level_var(ds)

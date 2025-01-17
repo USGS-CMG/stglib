@@ -30,15 +30,15 @@ def nc_to_waves(nc_filename):
         if k in ds:
             ds = ds.drop_vars(k)
 
-    ds = qaqc.drop_vars(ds)
-
+    # Call all QAQC
+    ds = qaqc.call_qaqc(ds)
     ds = utils.trim_max_wp(ds)
-
     ds = utils.trim_min_wh(ds)
-
     ds = utils.trim_max_wh(ds)
-
     ds = utils.trim_wp_ratio(ds)
+
+    # Clip
+    ds = utils.clip_ds(ds, wvs=True)
 
     # Add attrs
     ds = utils.ds_add_wave_attrs(ds)
@@ -86,7 +86,8 @@ def make_wave_bursts(ds):
     # ds["new_time"] = xr.DataArray(new_date_rng, dims="new_time")
 
     ds["new_sample"] = xr.DataArray(
-        range(ds.attrs["samples_per_burst"]), dims="new_sample"
+        np.arange(ds.attrs["samples_per_burst"], dtype=np.int32),
+        dims="new_sample",
     )
 
     for v in ["P_1", "P_1ac"]:

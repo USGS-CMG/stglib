@@ -77,8 +77,8 @@ def cdf_to_nc(cdf_filename):
     # Add attributes
     ds = ds_add_attrs(ds)
 
-    # Call QAQC
-    ds = mc_qaqc(ds)
+    # QAQC
+    ds = qaqc.call_qaqc(ds)
 
     # Run utilities
     ds = utils.create_z(ds)
@@ -152,42 +152,5 @@ def ds_add_attrs(ds):
                 "standard_name": "sea_water_practical_salinity",
             }
         )
-
-    return ds
-
-
-def mc_qaqc(ds):
-    """
-    QA/QC
-    Trim MicroCAT data based on metadata
-    """
-
-    varlist = ["T_28", "C_51", "S_41"]
-
-    [varlist.append(k) for k in ds.data_vars if k not in varlist]
-
-    for var in varlist:
-        ds = qaqc.trim_min(ds, var)
-
-        ds = qaqc.trim_max(ds, var)
-
-        ds = qaqc.trim_min_diff(ds, var)
-
-        ds = qaqc.trim_min_diff_pct(ds, var)
-
-        ds = qaqc.trim_max_diff(ds, var)
-
-        ds = qaqc.trim_max_diff_pct(ds, var)
-
-        ds = qaqc.trim_med_diff(ds, var)
-
-        ds = qaqc.trim_med_diff_pct(ds, var)
-
-        ds = qaqc.trim_bad_ens(ds, var)
-
-    for var in varlist:
-        ds = qaqc.trim_by_any(
-            ds, var
-        )  # re-run and trim by other variables as necessary
 
     return ds
