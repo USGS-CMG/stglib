@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from ..core import utils
+from ..core import qaqc, utils
 from . import sgutils
 
 
@@ -46,8 +46,8 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     elif ds.attrs["file_type"] == ".wb":
         ds = ds_drop_wb(ds)
 
-    # Call QAQC
-    ds = sgutils.sg_qaqc(ds)
+    # Call all QAQC
+    ds = qaqc.call_qaqc(ds)
 
     # Run utilities
     ds = utils.clip_ds(ds)

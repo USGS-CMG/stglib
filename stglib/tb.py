@@ -131,8 +131,8 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # Add attributes
     ds = ds_add_attrs(ds)
 
-    # Call QAQC
-    ds = tb_qaqc(ds)
+    # QAQC
+    ds = qaqc.call_qaqc(ds)
 
     # Run utilities
     ds = utils.clip_ds(ds)
@@ -198,51 +198,5 @@ def ds_add_attrs(ds):
         )
         if "P_1ac_note" in ds.attrs:
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
-
-    return ds
-
-
-def tb_qaqc(ds):
-    """
-    QA/QC
-    Trim data based on metadata
-    """
-
-    varlist = ["T_28", "P_1", "P_1ac"]
-
-    for var in varlist:
-        if var in ds:
-            ds = filter.apply_butter_filt(ds, var)
-            ds = filter.apply_med_filt(ds, var)
-
-            ds = qaqc.trim_bad_ens(ds, var)
-            ds = qaqc.trim_bad_ens_indiv(ds, var)
-
-            ds = qaqc.trim_min(ds, var)
-            ds = qaqc.trim_max(ds, var)
-
-            ds = qaqc.trim_min_diff(ds, var)
-            ds = qaqc.trim_min_diff_pct(ds, var)
-
-            ds = qaqc.trim_max_diff(ds, var)
-            ds = qaqc.trim_max_diff_pct(ds, var)
-
-            ds = qaqc.trim_med_diff(ds, var)
-            ds = qaqc.trim_med_diff_pct(ds, var)
-
-            ds = qaqc.trim_max_blip(ds, var)
-            ds = qaqc.trim_max_blip_pct(ds, var)
-
-            ds = qaqc.trim_fliers(ds, var)
-            ds = qaqc.trim_mask(ds, var)
-
-            ds = qaqc.trim_maxabs_diff(ds, var)
-            ds = qaqc.drop_vars(ds)
-
-    for var in varlist:
-        if var in ds:
-            ds = qaqc.trim_by_any(
-                ds, var
-            )  # re-run and trim by other variables as necessary
 
     return ds

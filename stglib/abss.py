@@ -419,30 +419,6 @@ def add_amp(ds):
     return ds
 
 
-def ds_qaqc(ds):
-    """apply stglib qaqc tools to dataset"""
-
-    for var in ds.data_vars:
-
-        ds = qaqc.trim_min(ds, var)
-        ds = qaqc.trim_max(ds, var)
-        ds = qaqc.trim_min_diff(ds, var)
-        ds = qaqc.trim_min_diff_pct(ds, var)
-        ds = qaqc.trim_max_diff(ds, var)
-        ds = qaqc.trim_maxabs_diff_2d(ds, var)
-        ds = qaqc.trim_max_diff_pct(ds, var)
-        ds = qaqc.trim_med_diff(ds, var)
-        ds = qaqc.trim_med_diff_pct(ds, var)
-        ds = qaqc.trim_max_blip(ds, var)
-        ds = qaqc.trim_max_blip_pct(ds, var)
-        ds = qaqc.trim_bad_ens(ds, var)
-        ds = qaqc.trim_bad_ens_indiv(ds, var)
-        ds = qaqc.trim_fliers(ds, var)
-        ds = qaqc.trim_warmup(ds, var)
-
-    return ds
-
-
 def var_encoding(ds):
 
     for v in ["sample"]:
@@ -560,7 +536,7 @@ def cdf2nc(cdf_filename, atmpres=False):
     ds = add_brange(ds)
     ds = add_amp(ds)
 
-    ds = ds_qaqc(ds)
+    ds = qaqc.call_qaqc(ds)
 
     ds = abs_drop_vars(ds)
     ds = utils.add_min_max(ds)

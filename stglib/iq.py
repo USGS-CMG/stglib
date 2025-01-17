@@ -301,21 +301,8 @@ def cdf_to_nc(cdf_filename):
     # add lat/lon coordinates
     ds = utils.ds_add_lat_lon(ds)
 
-    # should function this
-    for var in ds.data_vars:
-        ds = qaqc.trim_min(ds, var)
-        ds = qaqc.trim_max(ds, var)
-        ds = qaqc.trim_min_diff(ds, var)
-        ds = qaqc.trim_max_diff(ds, var)
-        ds = qaqc.trim_med_diff(ds, var)
-        ds = qaqc.trim_med_diff_pct(ds, var)
-        ds = qaqc.trim_bad_ens(ds, var)
-        ds = qaqc.trim_maxabs_diff_2d(ds, var)
-        ds = qaqc.trim_fliers(ds, var)
-
-    # after check for masking vars by other vars
-    for var in ds.data_vars:
-        ds = qaqc.trim_mask(ds, var)
+    # QAQC
+    ds = qaqc.call_qaqc(ds)
 
     ds = fill_velmean(ds)
 

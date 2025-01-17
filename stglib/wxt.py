@@ -1,7 +1,7 @@
 import pandas as pd
 import xarray as xr
 
-from .core import utils
+from .core import qaqc, utils
 
 
 def read_wxt(filnam, skiprows=7, encoding="utf-8"):
@@ -133,6 +133,9 @@ def cdf_to_nc(cdf_filename):
             ds["WD_gust"][ds["WD_gust"] >= 360.0] - 360.0
         )
         ds["WD_gust"][ds["WD_gust"] == 0.0] = 0.0  # convert any -0. to 0.
+
+    # QAQC
+    ds = qaqc.call_qaqc(ds)
 
     # Run utilities
     ds = utils.clip_ds(ds)
