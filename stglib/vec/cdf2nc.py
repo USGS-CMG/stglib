@@ -374,11 +374,10 @@ def reshape(ds):
     # find times of first sample in each burst
     t = ds["time"][ds["sample"].values == 1]
     # get corresponding burst number
-    b_num = ds["burst"].sel(time=t)
-    # initialize arrays
-    s = np.zeros_like(ds.time, dtype=int)
-    t3 = np.zeros_like(ds.time)
-    sidx = 0
+    b_num = ds["burst"][ds["sample"].values == 1]
+
+    s = []
+    t3 = []
     for i in tqdm(np.arange(0, len(t))):
         t2, samp = np.meshgrid(
             t[i],
@@ -390,9 +389,11 @@ def reshape(ds):
             ),
         )
 
-        s[sidx : sidx + len(samp)] = samp.transpose().flatten()
-        t3[sidx : sidx + len(t2)] = t2.transpose().flatten()
-        sidx = sidx + len(samp)
+        s.append(np.array(samp.transpose().flatten()))
+        t3.append(np.array(t2.transpose().flatten()))
+
+    s = np.hstack(s)
+    t3 = np.hstack(t3)
 
     ind = pd.MultiIndex.from_arrays((t3, s), names=("new_time", "new_sample"))
 
