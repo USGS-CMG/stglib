@@ -46,8 +46,6 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     #     if 'time' not in var:
     #         ds = utils.add_lat_lon(ds, var)
 
-    ds = qaqc.drop_vars(ds)
-
     # trim by minimum pressure for instruments that go out of water_depth
     for v in ["P_1", "P_1ac"]:
         # check if any filtering before other qaqc
@@ -76,6 +74,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         ds = utils.add_min_max(ds)
         ds = utils.ds_add_lat_lon(ds)
 
+    ds = qaqc.drop_vars(ds)  # Needs to happen after create_water_level
     ds = utils.add_start_stop_time(ds)
     ds = utils.ds_coord_no_fillvalue(ds)
     ds = utils.add_history(ds)
