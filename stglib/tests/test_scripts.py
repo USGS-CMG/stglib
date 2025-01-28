@@ -42,10 +42,9 @@ def abss_nc(nc_file, atmpres=None):
     assert "Finished writing data" in result.stdout.decode("utf8")
 
 
-@pytest.mark.skip(reason="works locally but not on gitlab built-in checks")
 def test_abss():
     abss_raw("glob_att1126_abs_test_msl.txt", "config_1126abs910_abs_test.yaml")
-    abss_nc("1123abs910_test-raw.cdf")
+    abss_nc("11266abs910-131_test-raw.cdf")
 
 
 def exo_raw(glob_att, config_yaml):

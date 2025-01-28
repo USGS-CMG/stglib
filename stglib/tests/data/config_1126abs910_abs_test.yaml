@@ -1,8 +1,7 @@
-basefile: '11263abssABS_Test_Meta'
-filename: '1123abs910_test'   # name of output file, -raw.cdf or .nc will be appended to this
+filename: '11266abs910-131_test'   # name of output file, -raw.cdf or .nc will be appended to this
 outdir: 'abs_test_data/'
 matdir: 'abs_test_data/'
-SN: '910'
+SN: '910-131'
 LatLonDatum: 'NAD83'
 ClockError: 507 # sec, negative is slow
 initial_instrument_height: 1.38  #height of acoustic transducer
