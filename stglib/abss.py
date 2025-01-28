@@ -2,6 +2,7 @@ import datetime
 import glob
 import re
 import time
+from pathlib import Path
 
 import dask.array as da
 import numpy as np
@@ -117,9 +118,13 @@ def load_mat_files(f, outdir, metadata):
     for k in names:
         ds.attrs[k] = mat[k]
 
-    fname = re.split(r"[\\|!|.]", f)
+    # remove .aqa and .mat
+    f = f.with_suffix("").with_suffix("")
 
-    cdf_filename = outdir + fname[1] + "_" + str(metadata["MOORING"]) + "-raw.cdf"
+    # add -raw.cdf to original .mat file name
+    filename = f"{f.name}_{metadata['MOORING']}-raw.cdf"
+
+    cdf_filename = f.with_name(filename)
 
     ds.to_netcdf(cdf_filename)
 
@@ -468,9 +473,10 @@ def mat2cdf(metadata):
 
     outdir = metadata["outdir"]
 
-    mat_dir = metadata["matdir"] + f"*mat"
+    mat_dir = metadata["matdir"]
 
-    matfiles = glob.glob(mat_dir)  # finding all files that end with .mat
+    # finding all files that end with .mat
+    matfiles = list(Path(mat_dir).glob("*.mat"))
 
     if len(matfiles) > 1:
         Parallel(n_jobs=-1, verbose=10)(
@@ -479,9 +485,10 @@ def mat2cdf(metadata):
 
     print(f"Loading -raw.CDF files")
 
-    cdffiles = outdir + f"*" + metadata["MOORING"] + f"-raw.cdf"
+    cdf_suffix = f"*_{metadata['MOORING']}-raw.cdf"
 
-    cdffiles = glob.glob(cdffiles)
+    # finding all files that end with .mat
+    cdffiles = list(Path(outdir).glob(cdf_suffix))
 
     ds = xr.open_mfdataset(cdffiles, parallel=True)
 

@@ -27,4 +27,4 @@
     VAR_FILL; nan
     institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
     institution_url; https://woodshole.er.usgs.gov
-	FAN; 2021-018-FA, 2021-020-FA
+    FAN; 2021-018-FA, 2021-020-FA
