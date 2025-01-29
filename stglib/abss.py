@@ -15,7 +15,7 @@ from stglib.aqd import aqdutils
 from stglib.core import qaqc, utils
 
 
-def load_mat_files(f, outdir, metadata):
+def load_mat_files(f, dslist):
     """Read data from burst .mat files into burst netcdf files.
     Parameters
     ----------
@@ -118,15 +118,9 @@ def load_mat_files(f, outdir, metadata):
     for k in names:
         ds.attrs[k] = mat[k]
 
-    # remove .aqa and .mat
-    f = f.with_suffix("").with_suffix("")
+    dslist.append(ds)
 
-    # add -raw.cdf to original .mat file name
-    filename = f"{f.name}_{metadata['MOORING']}-raw.cdf"
-
-    cdf_filename = f.with_name(filename)
-
-    ds.to_netcdf(cdf_filename)
+    return dslist
 
 
 def abs_rename(ds):
@@ -267,7 +261,7 @@ def remove_aux_snum(ds):
     return ds
 
 
-def ds_add_attrs(ds):
+def ds_add_var_attrs(ds):
     """add necessary attributes to variables"""
 
     print(f"Adding necessary attributes")
@@ -341,6 +335,34 @@ def ds_add_attrs(ds):
     return ds
 
 
+def organize_attributes(ds):
+    """better describe and re-organize instrument provided attributes"""
+    ds.attrs["ping_rate"] = ds.attrs["PingRate"]
+    ds.attrs["ping_rate_note"] = "The base profile rate (Hz) before averaging"
+    ds.attrs["num_pings"] = ds.attrs["NumPings"]
+    ds.attrs["num_pings_note"] = "The number of pings/profiles before averaging"
+    ds.attrs["enabled_channels"] = ds.attrs["NumAbsTimeSlots"]
+    ds.attrs["enabled_channels_note"] = "The number of enabled ABS channels"
+    ds.attrs["aux_channel_rate"] = ds.attrs["AuxSampleRate"]
+    ds.attrs["aux_channel_rate_note"] = "The auxiliary channel sampling rate (Hz)"
+    ds.attrs["abs_average"] = ds.attrs["AbsAverage"]
+    ds.attrs["abs_average_note"] = "The number of abs profiles to average"
+    ds.attrs["abs_transducer_radius"] = ds.attrs["AbsTransducerRadius"]
+    ds.attrs["abs_transducer_radius_note"] = "The radius of transducer (m)"
+    ds.attrs["abs_transducer_beam_width"] = ds.attrs["AbsTransducerBeamWidth"]
+    ds.attrs["abs_transducer_beam_width_note"] = "The beam width (deg)"
+    ds.attrs["abs_transducer_kt"] = ds.attrs["AbsTransducerBeamWidth"]
+    ds.attrs["abs_transducer_kt_note"] = "The system constant for each channel"
+    ds.attrs["abs_channel_frequency"] = ds.attrs["AbsTxFrequency"]
+    ds.attrs["abs_channel_frequency_note"] = "The frequency for each channel (Hz)"
+    ds.attrs["abs_profile_rate"] = ds.attrs["AbsProfileRate"]
+    ds.attrs["abs_profile_rate_note"] = (
+        "The stored profile rate (ping_rate / abs_average)"
+    )
+
+    return ds
+
+
 def remove_attributes(ds):
     """remove unnecessary global attributes from raw instrument file"""
 
@@ -359,6 +381,20 @@ def remove_attributes(ds):
         "AbsTxChan",
         "AbsNumProfiles",
         "AbsBinLengthMM",
+        "NumAuxChans",
+        "AbsBinLength",
+        "AbsTransducerRadius",
+        "AbsAverage",
+        "AuxSampleRate",
+        "NumAbsTimeSlots",
+        "NumPings",
+        "PingRate",
+        "AbsTransducerBeamWidth",
+        "AbsTxFrequency",
+        "AbsTxPulseLength",
+        "AbsProfileRate",
+        "SessionTitle",
+        "AbsTransducerKt",
     ]
 
     for att in names:
@@ -473,24 +509,19 @@ def mat2cdf(metadata):
 
     outdir = metadata["outdir"]
 
-    mat_dir = metadata["matdir"]
+    raw_dir = metadata["basefile"]
 
     # finding all files that end with .mat
-    matfiles = list(Path(mat_dir).glob("*.mat"))
+    matfiles = list(Path(raw_dir).glob("*.mat"))
 
-    if len(matfiles) > 1:
-        Parallel(n_jobs=-1, verbose=10)(
-            delayed(load_mat_files)(f, outdir, metadata) for f in matfiles
-        )
+    # create empty list to append xr datasets to
+    dslist = []
 
-    print(f"Loading -raw.CDF files")
+    for f in matfiles:
+        dslist = load_mat_files(f, dslist)
 
-    cdf_suffix = f"*_{metadata['MOORING']}-raw.cdf"
-
-    # finding all files that end with .mat
-    cdffiles = list(Path(outdir).glob(cdf_suffix))
-
-    ds = xr.open_mfdataset(cdffiles, parallel=True)
+    ds = xr.concat(dslist, dim="time")
+    ds = ds.sortby("time")
 
     ds = utils.write_metadata(ds, metadata)
 
@@ -547,7 +578,8 @@ def cdf2nc(cdf_filename, atmpres=False):
 
     ds = abs_drop_vars(ds)
     ds = utils.add_min_max(ds)
-    ds = ds_add_attrs(ds)
+    ds = ds_add_var_attrs(ds)
+    ds = organize_attributes(ds)
     ds = remove_attributes(ds)
     ds = var_encoding(ds)
     ds = time_encoding(ds)

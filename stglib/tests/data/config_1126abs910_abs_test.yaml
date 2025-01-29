@@ -1,6 +1,6 @@
 filename: '11266abs910-131_test'   # name of output file, -raw.cdf or .nc will be appended to this
 outdir: 'abs_test_data/'
-matdir: 'abs_test_data/'
+basefile: 'abs_test_data/'
 SN: '910-131'
 LatLonDatum: 'NAD83'
 ClockError: 507 # sec, negative is slow
