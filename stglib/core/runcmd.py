@@ -136,6 +136,29 @@ def runexocsv2cdf(args=None):
     stglib.exo.csv_to_cdf(metadata)
 
 
+def runglxcdf2nc(args=None):
+    if not args:
+        args = stglib.cmd.glxcdf2nc_parser().parse_args()
+
+    run_cdf_to_nc(stglib.glx.cdf_to_nc, args)
+
+
+def runglxdat2cdf(args=None):
+    if not args:
+        args = stglib.cmd.glxdat2cdf_parser().parse_args()
+
+    metadata = get_metadata(args)
+
+    stglib.glx.dat_to_cdf(metadata)
+
+
+def runglxnc2waves(args=None):
+    if not args:
+        args = stglib.cmd.glxnc2waves_parser().parse_args()
+
+    stglib.glx.nc_to_waves(args.ncname)
+
+
 def runhobocdf2nc(args=None):
     if not args:
         args = stglib.cmd.hobocdf2nc_parser().parse_args()
@@ -454,6 +477,13 @@ def runots():
             runexocsv2cdf(args)
         elif args.step == "cdf2nc":
             runexocdf2nc(args)
+    elif args.instrument == "glx":
+        if args.step == "dat2cdf":
+            runglxdat2cdf(args)
+        elif args.step == "cdf2nc":
+            runglxcdf2nc(args)
+        elif args.step == "nc2waves":
+            runglxnc2waves(args)
     elif args.instrument == "hobo":
         if args.step == "csv2cdf":
             runhobocsv2cdf(args)

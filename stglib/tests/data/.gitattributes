@@ -118,3 +118,4 @@ mc3575.asc filter=lfs diff=lfs merge=lfs -text
 example_TruBlue.csv filter=lfs diff=lfs merge=lfs -text
 abs_test_data/** filter=lfs diff=lfs merge=lfs -text
 054215_DMP23X3E01tu.zip filter=lfs diff=lfs merge=lfs -text
+NOPP_FRF_361101075444401_FastHzData_20240327_190006.dat filter=lfs diff=lfs merge=lfs -text

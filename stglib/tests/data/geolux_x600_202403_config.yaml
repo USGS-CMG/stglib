@@ -1,0 +1,18 @@
+basefile: 'NOPP_FRF_361101075444401_FastHzData_20240327'
+filename: 'FRFx600_202403glx'
+LatLonDatum: NAD83
+filtered_wl: 'true' 
+initial_instrument_height: 16.80
+initial_instrument_height_note: Elevation in meters relative to seabed.
+fill_value: 7999.
+instrument_type: 'Geolux LX-80-15 10Hz'
+sample_mode: 'continuous'
+sample_rate: 5 #Hz
+wave_interval: 3600 #seconds
+wave_duration: 2048 #seconds
+wh_min: 0.02 #meters
+#wp_ratio: 2
+water_level_med_diff: 1
+water_level_min: -5
+brange_med_diff: 1
+brange_max: 14 

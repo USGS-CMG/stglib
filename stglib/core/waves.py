@@ -447,6 +447,77 @@ def make_waves_ds(ds):
     return spec
 
 
+def make_waves_ds_elev(ds):
+    """Calculate wave statistics using sea-surface elevation"""
+    print("Computing wave statistics")
+    if "elev" in ds:
+        var = "elev"
+    elif "brange" in ds:
+        var = "brange"
+
+    nsamps = len(ds["sample"].values)
+    nsegs = 16  # hard code for now
+    nperseg = next_power_of_2(int(nsamps / nsegs))
+
+    f, Pxx = pressure_spectra(
+        ds[var].squeeze(), fs=1 / ds.attrs["sample_interval"], nperseg=nperseg
+    )
+
+    # trim frequecies
+    nyfreq = float(ds.attrs["sample_rate"]) / 2
+
+    # set minimum frequency so that 32 complete intervals are contained in the wave burst
+    # set maximum frequency to lesser of Nyquist (sample_rate/2) or 2Hz
+    # These frequency settings maximize efficiency of frequency space over the resolvable range of the measurements.
+    flo = np.round(1 / (nsamps / ds.attrs["sample_rate"] / 32.0), 3)
+    if nyfreq > 2:
+        fhi = 2
+    else:
+        fhi = nyfreq
+
+    ind = (f >= flo) & (f <= fhi)
+    f = f[ind]
+    Pxx = Pxx[:, ind]
+
+    z = ds.attrs["initial_instrument_height"]
+
+    if "elev" in var:
+        h = ds[var].squeeze().mean(dim="sample")
+
+    elif "brange" in var:
+        if "orientation" in ds.attrs:
+            if ds.attrs["orientation"].lower() == "down":
+                h = ds[var].squeeze().mean(dim="sample") - z
+            else:
+                h = ds[var].squeeze().mean(dim="sample") + z
+        else:
+            h = ds[var].squeeze().mean(dim="sample") + z
+
+    k = np.asarray([qkfs(2 * np.pi * f, x) for x in h.values])
+
+    Kp = 1  # measurement are of the sea-surface directly
+    Pnn = Pxx
+
+    spec = xr.Dataset()
+
+    spec["Pnn"] = xr.DataArray(Pnn, dims=("time", "frequency"), coords=(ds["time"], f))
+
+    # Use Pnn directly, no cutoff and no tail
+    spec["sspec"] = xr.DataArray(Pnn, dims=("time", "frequency"))
+    spec["m0"] = xr.DataArray(
+        make_moment(spec["frequency"], spec["sspec"], 0), dims="time"
+    )
+    spec["m2"] = xr.DataArray(
+        make_moment(spec["frequency"], spec["sspec"], 2), dims="time"
+    )
+    spec["wh_4061"] = xr.DataArray(make_Hs(spec["m0"]), dims="time")
+    spec["wp_4060"] = xr.DataArray(make_Tm(spec["m0"], spec["m2"]), dims="time")
+    spec["wp_peak"] = xr.DataArray(make_Tp(spec["sspec"]), dims="time")
+    spec["k"] = xr.DataArray(k, dims=("time", "frequency"))
+
+    return spec
+
+
 def pressure_spectra(x, fs=1.0, window="hann", nperseg=256, **kwargs):
     """Compute pressure spectral density using Welch's method
 

@@ -266,3 +266,15 @@ AQUAscat1000R
 - ``orientation``: orientation of transducer(s)
 - ``initial_instrument_height``: height of acoustic transducer
 - ``pressure_sensor_height``: height of pressure port on canister, likely different that transducer height
+
+Geolux Wave Radar
+-----------------
+- All the _min, _max, _bad_ens, etc. options available to the EXO
+- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
+- ``wave_interval``: interval in seconds for calculating wave bursts from continuous pressure data
+- ``wave_duration``: duration in seconds for calculating wave statistics
+- ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
+- ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
+- ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
+- ``wavedat_tolerance``: tolerance in seconds to fill gaps in wave data to be used for calculating wave statistics (default = '20 s').
+- ``wlfilt_tolerance``: tolerance in seconds to fill gaps in water level data to be used calculating fileterd water level ``water_level_filt`` (default = '60 s').
