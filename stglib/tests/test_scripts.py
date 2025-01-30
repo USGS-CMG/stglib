@@ -668,3 +668,37 @@ def test_tb():
     tb_raw("TB_glob_att.txt", "TB_config.yaml")
     tb_nc("example_TruBlue-raw.cdf")
     tb_wvs("example_TruBlue-cont-cal.nc")
+
+
+def glx_dat(glob_att, config_yaml):
+    result = subprocess.run(
+        [scripts / "runots.py", "glx", "dat2cdf", glob_att, config_yaml],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Finished writing data" in result.stdout.decode("utf8")
+
+
+def glx_nc(nc_file, atmpres=None):
+
+    result = subprocess.run(
+        [scripts / "runots.py", "glx", "cdf2nc", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def glx_wvs(nc_file):
+    result = subprocess.run(
+        [scripts / "runots.py", "glx", "nc2waves", nc_file],
+        capture_output=True,
+        cwd=cwd,
+    )
+    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+
+
+def test_glx():
+    glx_dat("glob_att_geolux_x600_202403.txt", "geolux_x600_202403_config.yaml")
+    glx_nc("FRFx600_202403glx-raw.cdf")
+    glx_wvs("FRFx600_202403glxcont-cal.nc")

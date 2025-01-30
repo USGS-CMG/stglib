@@ -7,6 +7,7 @@ from . import (
     eco,
     eofe,
     exo,
+    glx,
     hobo,
     indexvel,
     iq,

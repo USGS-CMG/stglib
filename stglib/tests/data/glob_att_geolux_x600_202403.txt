@@ -1,0 +1,31 @@
+    SciPi; J. Brown
+    PROJECT; USGS Coastal and Marine Hazards and Resources Program
+    EXPERIMENT; Field Validation of Geolux Oceanographic Radar at USACE Field Research Facility
+    DESCRIPTION; A Geolux oceanographic radar package was deployed at the USACE Field Research Facility on the research pier to compare measurements of water levels and waves with nearby long-term monitoring observations.
+    title; Field Validation of Geolux Oceanographic Radar at USACE Field Research Facility
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.8
+    MOORING; FRFx600_202403
+    sea_floor_depth_below_mean_sea_level; 8.03
+    WATER_DEPTH; 8.03
+    WATER_DEPTH_NOTE; Estimated from USACE surveys in meters relative to NAVD88, positive down convention.
+    height_above_geopotential_datum; -8.16
+    geopotential_datum_name; NAVD88
+	geopotential_datum_note; elevation of seabed from FRF bathy surveys on 12-Mar-2024
+    latitude;  36.183688
+    longitude; -75.745215
+    magnetic_variation; -10.96
+    Deployment_date; 2024-03-01 00:00
+    Recovery_date; 2024-04-01 00:00
+    DATA_CMNT; No magnetic variation recorded, used data from IGRF model via ngdc.noaa.gov. 
+    platform_type; pier railing
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; North Atlantic Ocean
+    VAR_FILL; NaN
+    institution; United States Geological Survey, St. Petersburg Coastal and Marine Science Center
+    institution_url; https://www.usgs.gov/st-petersburg-coastal-and-marine-science-center
+    FAN; 2022-352-FA

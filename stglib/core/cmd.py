@@ -126,6 +126,11 @@ def runots_parser():
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
 
+    instsp = add_instrument(subparsers, "glx", "Geolux Wave Radar")
+    addinst2cdf(instsp, "dat2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+
     instsp = add_instrument(subparsers, "hobo", "Onset HOBO")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
@@ -622,5 +627,30 @@ def mccdf2nc_parser():
     description = "Convert raw SBE 37 MicroCAT .cdf format to processed .nc files"
     parser = argparse.ArgumentParser(description=description)
     cdfarg(parser)
+
+    return parser
+
+
+def glxdat2cdf_parser():
+    description = "Convert exported Geolux wave radar files to raw .cdf format. Run this script from the directory containing the files."
+    parser = argparse.ArgumentParser(description=description)
+    gattsarg(parser)
+    yamlarg(parser)
+
+    return parser
+
+
+def glxcdf2nc_parser():
+    description = "Convert raw Geolux wave radar .cdf format to processed .nc files"
+    parser = argparse.ArgumentParser(description=description)
+    cdfarg(parser)
+
+    return parser
+
+
+def glxnc2waves_parser():
+    description = "Generate waves statistics file"
+    parser = argparse.ArgumentParser(description=description)
+    ncarg(parser)
 
     return parser
