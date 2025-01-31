@@ -42,7 +42,9 @@ def run_cdf_to_nc(f, args):
 
 def runabssmat2cdf(args=None):
     if not args:
-        args = stglib.cmd.abssmat2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert ABS .mat files to raw .cdf format. Run this script from the directory containing ABS glob_att and config files."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -51,21 +53,27 @@ def runabssmat2cdf(args=None):
 
 def runabsscdf2nc(args=None):
     if not args:
-        args = stglib.cmd.absscdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+        ).parse_args()
 
     run_cdf_to_nc(stglib.abss.cdf2nc, args)
 
 
 def runaqdcdf2nc(args=None):
     if not args:
-        args = stglib.cmd.aqdcdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw Aquadopp .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+        ).parse_args()
 
     run_cdf_to_nc(stglib.aqd.cdf2nc.cdf_to_nc, args)
 
 
 def runaqdhdr2cdf(args=None):
     if not args:
-        args = stglib.cmd.aqdhdr2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert Aquadopp text files to raw .cdf format. Run this script from the directory containing Aquadopp files."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -74,14 +82,18 @@ def runaqdhdr2cdf(args=None):
 
 def runaqdhrcdf2nc(args=None):
     if not args:
-        args = stglib.cmd.aqdcdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw Aquadopp HR .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+        ).parse_args()
 
     run_cdf_to_nc(stglib.aqd.hrcdf2nc.cdf_to_nc, args)
 
 
 def runaqdhrhdr2cdf(args=None):
     if not args:
-        args = stglib.cmd.aqdhdr2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert Aquadopp HR text files to raw .cdf format. Run this script from the directory containing Aquadopp files."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -90,14 +102,18 @@ def runaqdhrhdr2cdf(args=None):
 
 def runecocdf2nc(args=None):
     if not args:
-        args = stglib.cmd.ecocdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw ECO .cdf format to processed .nc files", atmpres=False
+        ).parse_args()
 
     run_cdf_to_nc(stglib.eco.cdf_to_nc, args)
 
 
 def runecocsv2cdf(args=None):
     if not args:
-        args = stglib.cmd.ecolog2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert WET Labs ECO file to raw .cdf format. Run this script from the directory containing ECO file."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -106,14 +122,18 @@ def runecocsv2cdf(args=None):
 
 def runeofecdf2nc(args=None):
     if not args:
-        args = stglib.cmd.eofecdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw echologger .cdf format to processed .nc files", atmpres=False
+        ).parse_args()
 
     run_cdf_to_nc(stglib.eofe.cdf_to_nc, args)
 
 
 def runeofelog2cdf(args=None):
     if not args:
-        args = stglib.cmd.eofelog2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert EofE echologger .log file to raw .cdf format. Run this script from the directory containing ea400 echologger .log file."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -122,14 +142,18 @@ def runeofelog2cdf(args=None):
 
 def runexocdf2nc(args=None):
     if not args:
-        args = stglib.cmd.exocdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw EXO .cdf format to processed .nc files"
+        ).parse_args()
 
     run_cdf_to_nc(stglib.exo.cdf_to_nc, args)
 
 
 def runexocsv2cdf(args=None):
     if not args:
-        args = stglib.cmd.exocsv2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert EXO .csv file to raw .cdf format. Run this script from the directory containing EXO file."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -138,14 +162,19 @@ def runexocsv2cdf(args=None):
 
 def runglxcdf2nc(args=None):
     if not args:
-        args = stglib.cmd.glxcdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw Geolux wave radar .cdf format to processed .nc files",
+            atmpres=False,
+        ).parse_args()
 
     run_cdf_to_nc(stglib.glx.cdf_to_nc, args)
 
 
 def runglxdat2cdf(args=None):
     if not args:
-        args = stglib.cmd.glxdat2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert exported Geolux wave radar files to raw .cdf format. Run this script from the directory containing the files."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -154,21 +183,25 @@ def runglxdat2cdf(args=None):
 
 def runglxnc2waves(args=None):
     if not args:
-        args = stglib.cmd.glxnc2waves_parser().parse_args()
+        args = stglib.cmd.nc2waves_parser("Generate waves statistics file").parse_args()
 
     stglib.glx.nc_to_waves(args.ncname)
 
 
 def runhobocdf2nc(args=None):
     if not args:
-        args = stglib.cmd.hobocdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw HOBO .cdf format to processed .nc files", atmpres=False
+        ).parse_args()
 
     run_cdf_to_nc(stglib.hobo.cdf_to_nc, args)
 
 
 def runhobocsv2cdf(args=None):
     if not args:
-        args = stglib.cmd.hobocsv2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert HOBO pressure sensor .csv file to raw .cdf format. Run this script from the directory containing HOBO file."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -177,14 +210,18 @@ def runhobocsv2cdf(args=None):
 
 def runiqcdf2nc(args=None):
     if not args:
-        args = stglib.cmd.iqcdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw SonTek IQ .cdf format to processed .nc files", atmpres=False
+        ).parse_args()
 
     run_cdf_to_nc(stglib.iq.cdf_to_nc, args)
 
 
 def runiqmat2cdf(args=None):
     if not args:
-        args = stglib.cmd.iqmat2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert SonTek IQ .mat file to raw .cdf format. Run this script from the directory containing IQ file."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -193,14 +230,18 @@ def runiqmat2cdf(args=None):
 
 def runlisstcdf2nc(args=None):
     if not args:
-        args = stglib.cmd.lisstcdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw LISST .cdf format to processed .nc files"
+        ).parse_args()
 
     run_cdf_to_nc(stglib.lisst.cdf_to_nc, args)
 
 
 def runlisstcsv2cdf(args=None):
     if not args:
-        args = stglib.cmd.lisstcsv2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert LISST .csv file to raw .cdf format. Run this script from the directory containing LISST file."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -209,14 +250,18 @@ def runlisstcsv2cdf(args=None):
 
 def runrdicdf2nc(args=None):
     if not args:
-        args = stglib.cmd.rdicdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw RDI .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+        ).parse_args()
 
     run_cdf_to_nc(stglib.rdi.cdf2nc.cdf_to_nc, args)
 
 
 def runrdiraw2cdf(args=None):
     if not args:
-        args = stglib.cmd.rdiraw2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert RDI raw binary files to raw .cdf format. Run this script from the directory containing RDI files."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -225,14 +270,18 @@ def runrdiraw2cdf(args=None):
 
 def runrskcdf2nc(args=None):
     if not args:
-        args = stglib.cmd.rskcdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw RBR d|wave .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+        ).parse_args()
 
     run_cdf_to_nc(stglib.rsk.cdf2nc.cdf_to_nc, args)
 
 
 def runrskcsv2cdf(args=None):
     if not args:
-        args = stglib.cmd.rskcsv2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert exported RBR csv files to raw .cdf format. Run this script from the directory containing the files."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -241,21 +290,25 @@ def runrskcsv2cdf(args=None):
 
 def runrsknc2waves(args=None):
     if not args:
-        args = stglib.cmd.rsknc2waves_parser().parse_args()
+        args = stglib.cmd.nc2waves_parser("Generate waves statistics file").parse_args()
 
     stglib.rsk.nc2waves.nc_to_waves(args.ncname)
 
 
 def runrsknc2diwasp(args=None):
     if not args:
-        args = stglib.cmd.rsknc2diwasp_parser().parse_args()
+        args = stglib.cmd.nc2diwasp_parser(
+            "Generate DIWASP waves statistics file"
+        ).parse_args()
 
     stglib.rsk.nc2waves.nc_to_diwasp(args.ncname)
 
 
 def runrskrsk2cdf(args=None):
     if not args:
-        args = stglib.cmd.rskrsk2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert raw RBR files (.rsk) to raw .cdf format. Run this script from the directory containing the files."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -264,14 +317,16 @@ def runrskrsk2cdf(args=None):
 
 def runsignc2diwasp(args=None):
     if not args:
-        args = stglib.cmd.signc2diwasp_parser().parse_args()
+        args = stglib.cmd.nc2diwasp_parser(
+            "Generate DIWASP waves statistics file"
+        ).parse_args()
 
     stglib.sig.nc2waves.nc_to_diwasp(args.ncname)
 
 
 def runsignc2waves(args=None):
     if not args:
-        args = stglib.cmd.signc2waves_parser().parse_args()
+        args = stglib.cmd.nc2waves_parser("Generate waves statistics file").parse_args()
 
     stglib.sig.nc2waves.nc_to_waves(args.ncname)
 
@@ -285,7 +340,9 @@ def runsigcdf2nc(args=None):
 
 def runsigmat2cdf(args=None):
     if not args:
-        args = stglib.cmd.sigmat2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert Signature files exported in Matlab format to raw .cdf format. Run this script from the directory containing Signature files."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -294,14 +351,18 @@ def runsigmat2cdf(args=None):
 
 def runtrollcdf2nc(args=None):
     if not args:
-        args = stglib.cmd.trollcdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw Aqua TROLL .cdf format to processed .nc files", atmpres=False
+        ).parse_args()
 
     run_cdf_to_nc(stglib.troll.cdf_to_nc, args)
 
 
 def runtrollcsv2cdf(args=None):
     if not args:
-        args = stglib.cmd.trollcsv2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert Aqua TROLL .csv file to raw .cdf format. Run this script from the directory containing .csv file."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -310,14 +371,18 @@ def runtrollcsv2cdf(args=None):
 
 def runveccdf2nc(args=None):
     if not args:
-        args = stglib.cmd.veccdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw Vector .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
+        ).parse_args()
 
     run_cdf_to_nc(stglib.vec.cdf2nc.cdf_to_nc, args)
 
 
 def runvecdat2cdf(args=None):
     if not args:
-        args = stglib.cmd.vechdr2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert Vector text files to raw .cdf format. Run this script from the directory containing Vector files."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -326,35 +391,43 @@ def runvecdat2cdf(args=None):
 
 def runvecnc2waves(args=None):
     if not args:
-        args = stglib.cmd.vecnc2waves_parser().parse_args()
+        args = stglib.cmd.nc2waves_parser(
+            "Generate Vector waves statistics file"
+        ).parse_args()
 
     stglib.vec.nc2waves.nc_to_waves(args.ncname)
 
 
 def runwvscdf2nc(args=None):
     if not args:
-        args = stglib.cmd.wvscdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw Aquadopp .cdf wave files to processed .nc files"
+        ).parse_args()
 
     run_cdf_to_nc(stglib.aqd.wvscdf2nc.cdf_to_nc, args)
 
 
 def runwvsnc2diwasp(args=None):
     if not args:
-        args = stglib.cmd.wvsnc2diwasp_parser().parse_args()
+        args = stglib.cmd.nc2diwasp_parser(
+            "Convert processed Aquadopp waves .nc files using DIWASP"
+        ).parse_args()
 
     stglib.aqd.wvsnc2diwasp.nc_to_diwasp(args.ncname)
 
 
 def runwvsnc2waves(args=None):
     if not args:
-        args = stglib.cmd.wvsnc2waves_parser().parse_args()
+        args = stglib.cmd.nc2waves_parser("Generate waves statistics file").parse_args()
 
     stglib.aqd.wvsnc2waves.nc_to_waves(args.ncname)
 
 
 def runwvswad2cdf(args=None):
     if not args:
-        args = stglib.cmd.wvswad2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert Aquadopp .wad wave files to raw .cdf format. Run this script from the directory containing Aquadopp files."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -363,14 +436,18 @@ def runwvswad2cdf(args=None):
 
 def runwxtcdf2nc(args=None):
     if not args:
-        args = stglib.cmd.wxtcdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw Vaisala WXT .cdf format to processed .nc files", atmpres=False
+        ).parse_args()
 
     run_cdf_to_nc(stglib.wxt.cdf_to_nc, args)
 
 
 def runwxtcsv2cdf(args=None):
     if not args:
-        args = stglib.cmd.wxtcsv2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert Vaisala WXT met .csv file to raw .cdf format. Run this script from the directory containing Vaisala .csv file."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -379,14 +456,18 @@ def runwxtcsv2cdf(args=None):
 
 def runtcmcdf2nc(args=None):
     if not args:
-        args = stglib.cmd.tcmcdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw TCM .cdf format to processed .nc files", atmpres=False
+        ).parse_args()
 
     run_cdf_to_nc(stglib.tcm.cdf_to_nc, args)
 
 
 def runtcmcsv2cdf(args=None):
     if not args:
-        args = stglib.cmd.tcmcsv2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert Lowell Tilt Current Meter .txt file to raw .cdf format. Run this script from the directory containing TCM file."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
@@ -395,14 +476,19 @@ def runtcmcsv2cdf(args=None):
 
 def runmccdf2nc(args=None):
     if not args:
-        args = stglib.cmd.mccdf2nc_parser().parse_args()
+        args = stglib.cmd.cdf2nc_parser(
+            "Convert raw SBE 37 MicroCAT .cdf format to processed .nc files",
+            atmpres=False,
+        ).parse_args()
 
     run_cdf_to_nc(stglib.mc.cdf_to_nc, args)
 
 
 def runmcasc2cdf(args=None):
     if not args:
-        args = stglib.cmd.mcasc2cdf_parser().parse_args()
+        args = stglib.cmd.inst2cdf_parser(
+            "Convert SBE 37 MicroCAT .asc file to raw .cdf format. Run this script from the directory containing MicroCAT .asc file."
+        ).parse_args()
 
     metadata = get_metadata(args)
 
