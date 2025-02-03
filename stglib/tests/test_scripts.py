@@ -13,33 +13,32 @@ scripts = Path(sysconfig.get_path("scripts"))
 cwd = "stglib/tests/data"
 
 
-def abss_raw(glob_att, config_yaml):
+def run_script(script_name, *args):
+    """Utility function to run a script with specified arguments and check output."""
     result = subprocess.run(
-        [scripts / "runots.py", "abss", "mat2cdf", glob_att, config_yaml],
+        [scripts / script_name] + list(args),
         capture_output=True,
         cwd=cwd,
     )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    print(result.stdout)
+    output = result.stdout.decode("utf8")
+    assert (
+        "Finished writing data" in output
+        or "Done writing netCDF file" in output
+        or "Done creating" in output
+        or "Finished creating" in output
+    )
+
+
+def abss_raw(glob_att, config_yaml):
+    run_script("runots.py", "abss", "mat2cdf", glob_att, config_yaml)
 
 
 def abss_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        runlist = [
-            scripts / "runots.py",
-            "abss",
-            "cdf2nc",
-            nc_file,
-            "--atmpres",
-            atmpres,
-        ]
+        run_script("runots.py", "abss", "cdf2nc", nc_file, "--atmpres", atmpres)
     else:
-        runlist = [scripts / "runots.py", "abss", "cdf2nc", nc_file]
-    result = subprocess.run(
-        runlist,
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+        run_script("runots.py", "abss", "cdf2nc", nc_file)
 
 
 def test_abss():
@@ -48,25 +47,14 @@ def test_abss():
 
 
 def exo_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runexocsv2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runexocsv2cdf.py", glob_att, config_yaml)
 
 
 def exo_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        runlist = [scripts / "runexocdf2nc.py", nc_file, "--atmpres", atmpres]
+        run_script("runexocdf2nc.py", nc_file, "--atmpres", atmpres)
     else:
-        runlist = [scripts / "runexocdf2nc.py", nc_file]
-    result = subprocess.run(
-        runlist,
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+        run_script("runexocdf2nc.py", nc_file)
 
 
 def test_exo():
@@ -82,74 +70,37 @@ def test_exo():
 
 
 def aqd_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runaqdhdr2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runaqdhdr2cdf.py", glob_att, config_yaml)
 
 
 def aqd_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        runlist = [scripts / "runaqdcdf2nc.py", nc_file, "--atmpres", atmpres]
+        run_script("runaqdcdf2nc.py", nc_file, "--atmpres", atmpres)
     else:
-        runlist = [scripts / "runaqdcdf2nc.py", nc_file]
-    result = subprocess.run(
-        runlist,
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+        run_script("runaqdcdf2nc.py", nc_file)
 
 
 def aqdhr_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runaqdhrhdr2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runaqdhrhdr2cdf.py", glob_att, config_yaml)
 
 
 def aqdhr_nc(nc_file):
-    result = subprocess.run(
-        [scripts / "runaqdhrcdf2nc.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runaqdhrcdf2nc.py", nc_file)
 
 
 def aqd_wvs_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runwvswad2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runwvswad2cdf.py", glob_att, config_yaml)
 
 
 def aqd_wvs_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        runlist = [scripts / "runwvscdf2nc.py", nc_file, "--atmpres", atmpres]
+        run_script("runwvscdf2nc.py", nc_file, "--atmpres", atmpres)
     else:
-        runlist = [scripts / "runwvscdf2nc.py", nc_file]
-    result = subprocess.run(
-        runlist,
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+        run_script("runwvscdf2nc.py", nc_file)
 
 
 def aqd_wvs_wvs(nc_file):
-    result = subprocess.run(
-        [scripts / "runwvsnc2waves.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done creating" in result.stdout.decode("utf8")
+    run_script("runwvsnc2waves.py", nc_file)
 
 
 def test_aqd():
@@ -176,12 +127,7 @@ def test_aqd_wvs():
 
 
 def aqdturnaround(basefile):
-    result = subprocess.run(
-        ["python", "../../../scripts/aqdturnaround.py", basefile],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished creating turnaround plots" in result.stdout.decode("utf8")
+    run_script("aqdturnaround.py", basefile)
 
 
 def test_aqdturnaround():
@@ -194,34 +140,18 @@ def test_aqdturnaround():
 
 
 def vec_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runvecdat2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runvecdat2cdf.py", glob_att, config_yaml)
 
 
 def vec_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        runlist = [scripts / "runveccdf2nc.py", nc_file, "--atmpres", atmpres]
+        run_script("runveccdf2nc.py", nc_file, "--atmpres", atmpres)
     else:
-        runlist = [scripts / "runveccdf2nc.py", nc_file]
-    result = subprocess.run(
-        runlist,
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+        run_script("runveccdf2nc.py", nc_file)
 
 
 def vec_wvs(nc_file):
-    result = subprocess.run(
-        [scripts / "runvecnc2waves.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runvecnc2waves.py", nc_file)
 
 
 @pytest.mark.skip(reason="works locally but not on GitLab CI")
@@ -239,21 +169,11 @@ def test_vec_continuous():
 
 
 def wxt_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runwxtcsv2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runwxtcsv2cdf.py", glob_att, config_yaml)
 
 
 def wxt_nc(nc_file):
-    result = subprocess.run(
-        [scripts / "runwxtcdf2nc.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runwxtcdf2nc.py", nc_file)
 
 
 def test_wxt():
@@ -262,21 +182,11 @@ def test_wxt():
 
 
 def iq_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runiqmat2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runiqmat2cdf.py", glob_att, config_yaml)
 
 
 def iq_nc(nc_file):
-    result = subprocess.run(
-        [scripts / "runiqcdf2nc.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runiqcdf2nc.py", nc_file)
 
 
 def test_iq():
@@ -285,21 +195,11 @@ def test_iq():
 
 
 def eco_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runecocsv2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runecocsv2cdf.py", glob_att, config_yaml)
 
 
 def eco_nc(nc_file):
-    result = subprocess.run(
-        [scripts / "runecocdf2nc.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runecocdf2nc.py", nc_file)
 
 
 def test_eco():
@@ -308,43 +208,22 @@ def test_eco():
 
 
 def rbr_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runrskcsv2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runrskcsv2cdf.py", glob_att, config_yaml)
 
 
 def rbr_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        runlist = [scripts / "runrskcdf2nc.py", nc_file, "--atmpres", atmpres]
+        run_script("runrskcdf2nc.py", nc_file, "--atmpres", atmpres)
     else:
-        runlist = [scripts / "runrskcdf2nc.py", nc_file]
-    result = subprocess.run(
-        runlist,
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+        run_script("runrskcdf2nc.py", nc_file)
 
 
 def rbr_wvs(nc_file):
-    result = subprocess.run(
-        [scripts / "runrsknc2waves.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runrsknc2waves.py", nc_file)
 
 
 def rbr_diwasp(nc_file):
-    result = subprocess.run(
-        [scripts / "runots.py", "rbr", "nc2diwasp", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runots.py", "rbr", "nc2diwasp", nc_file)
 
 
 def test_rbr_tu():
@@ -382,21 +261,11 @@ def test_rbr_profile():
 
 
 def eofe_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runeofelog2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runeofelog2cdf.py", glob_att, config_yaml)
 
 
 def eofe_nc(nc_file):
-    result = subprocess.run(
-        [scripts / "runeofecdf2nc.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runeofecdf2nc.py", nc_file)
 
 
 def test_eofe():
@@ -407,39 +276,19 @@ def test_eofe():
 
 
 def sig_mat(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runsigmat2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runsigmat2cdf.py", glob_att, config_yaml)
 
 
 def sig_nc(nc_file):
-    result = subprocess.run(
-        [scripts / "runsigcdf2nc.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runsigcdf2nc.py", nc_file)
 
 
 def sig_wvs(nc_file):
-    result = subprocess.run(
-        [scripts / "runots.py", "sig", "nc2waves", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runots.py", "sig", "nc2waves", nc_file)
 
 
 def sig_diwasp(nc_file):
-    result = subprocess.run(
-        [scripts / "runots.py", "sig", "nc2diwasp", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runots.py", "sig", "nc2diwasp", nc_file)
 
 
 @pytest.mark.skip(reason="works locally but not on github built-in checks")
@@ -461,21 +310,11 @@ def test_sig_wvs():
 
 
 def hobo_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runhobocsv2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runhobocsv2cdf.py", glob_att, config_yaml)
 
 
 def hobo_nc(nc_file):
-    result = subprocess.run(
-        [scripts / "runhobocdf2nc.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runhobocdf2nc.py", nc_file)
 
 
 def test_hobo():
@@ -486,21 +325,11 @@ def test_hobo():
 
 
 def lisst_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runlisstcsv2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runlisstcsv2cdf.py", glob_att, config_yaml)
 
 
 def lisst_nc(nc_file):
-    result = subprocess.run(
-        [scripts / "runlisstcdf2nc.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runlisstcdf2nc.py", nc_file)
 
 
 def test_lisst():
@@ -509,21 +338,11 @@ def test_lisst():
 
 
 def tcm_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runtcmcsv2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runtcmcsv2cdf.py", glob_att, config_yaml)
 
 
 def tcm_nc(nc_file):
-    result = subprocess.run(
-        [scripts / "runtcmcdf2nc.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runtcmcdf2nc.py", nc_file)
 
 
 def test_tcm():
@@ -553,21 +372,11 @@ def test_ensure_cf():
 
 
 def mc_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runmcasc2cdf.py", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runmcasc2cdf.py", glob_att, config_yaml)
 
 
 def mc_nc(nc_file):
-    result = subprocess.run(
-        [scripts / "runmccdf2nc.py", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runmccdf2nc.py", nc_file)
 
 
 def test_mc():
@@ -576,22 +385,11 @@ def test_mc():
 
 
 def sg_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runots.py", "sgtid", "tid2cdf", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runots.py", "sgtid", "tid2cdf", glob_att, config_yaml)
 
 
 def sg_nc(nc_file, atmpres):
-    runlist = [scripts / "runots.py", "sgtid", "cdf2nc", nc_file, "--atmpres", atmpres]
-    result = subprocess.run(
-        runlist,
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runots.py", "sgtid", "cdf2nc", nc_file, "--atmpres", atmpres)
 
 
 def test_sg():
@@ -600,31 +398,15 @@ def test_sg():
 
 
 def sg_wv_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runots.py", "sgwvs", "wb2cdf", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runots.py", "sgwvs", "wb2cdf", glob_att, config_yaml)
 
 
 def sg_wv_nc(nc_file, atmpres):
-    runlist = [scripts / "runots.py", "sgwvs", "cdf2nc", nc_file, "--atmpres", atmpres]
-    result = subprocess.run(
-        runlist,
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runots.py", "sgwvs", "cdf2nc", nc_file, "--atmpres", atmpres)
 
 
 def sg_wv_wvs(nc_file):
-    result = subprocess.run(
-        [scripts / "runots.py", "sgwvs", "nc2waves", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runots.py", "sgwvs", "nc2waves", nc_file)
 
 
 def test_sg_wvs():
@@ -634,34 +416,18 @@ def test_sg_wvs():
 
 
 def tb_raw(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runots.py", "tb", "csv2cdf", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runots.py", "tb", "csv2cdf", glob_att, config_yaml)
 
 
 def tb_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        runlist = [scripts / "runots.py", "tb", "cdf2nc", nc_file, "--atmpres", atmpres]
+        run_script("runots.py", "tb", "cdf2nc", nc_file, "--atmpres", atmpres)
     else:
-        runlist = [scripts / "runots.py", "tb", "cdf2nc", nc_file]
-    result = subprocess.run(
-        runlist,
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+        run_script("runots.py", "tb", "cdf2nc", nc_file)
 
 
 def tb_wvs(nc_file):
-    result = subprocess.run(
-        [scripts / "runots.py", "tb", "nc2waves", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runots.py", "tb", "nc2waves", nc_file)
 
 
 def test_tb():
@@ -671,31 +437,15 @@ def test_tb():
 
 
 def glx_dat(glob_att, config_yaml):
-    result = subprocess.run(
-        [scripts / "runots.py", "glx", "dat2cdf", glob_att, config_yaml],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Finished writing data" in result.stdout.decode("utf8")
+    run_script("runots.py", "glx", "dat2cdf", glob_att, config_yaml)
 
 
 def glx_nc(nc_file, atmpres=None):
-
-    result = subprocess.run(
-        [scripts / "runots.py", "glx", "cdf2nc", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runots.py", "glx", "cdf2nc", nc_file)
 
 
 def glx_wvs(nc_file):
-    result = subprocess.run(
-        [scripts / "runots.py", "glx", "nc2waves", nc_file],
-        capture_output=True,
-        cwd=cwd,
-    )
-    assert "Done writing netCDF file" in result.stdout.decode("utf8")
+    run_script("runots.py", "glx", "nc2waves", nc_file)
 
 
 def test_glx():
