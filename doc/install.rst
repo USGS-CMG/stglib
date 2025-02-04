@@ -57,7 +57,7 @@ If you want to contribute to stglib development
 
 Set up Mambaforge or Anaconda as above. Obtain stglib by cloning the GitHub repo. Change to a directory where you'd like stglib to live and type:
 
-``git clone https://github.com/USGS-CMG/stglib.git``
+``git clone https://code.usgs.gov/cmgp/stglib.git``
 
 After ``cd``\ing to the directory containing stglib, type:
 
