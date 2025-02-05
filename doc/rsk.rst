@@ -14,17 +14,12 @@ Then use :doc:`runots.py </runots>` to process using the two :doc:`configuration
 Waves processing
 ================
 
-Option 1: internal waves code
------------------------------
+Option 1: stglib internal code
+------------------------------
 
-This option is recommended as it does not require MATLAB. Generate the waves statistics and incorporate them into an CF-compliant netCDF file with .nc extension using :doc:`runots.py </runots>`.
+This option is recommended as it is significantly faster than using pyDIWASP option. Generate the waves statistics and incorporate them into an CF-compliant netCDF file with .nc extension using :doc:`runots.py </runots>`.
 
-Option 2: DIWASP
-----------------
+Option 2: pyDIWASP
+------------------
 
-Run DIWASP (within MATLAB) to produce wave statistics (see ``scripts/rundiwasp.m`` for an example run script). DIWASP must be run within MATLAB.
-
-Incorporate the DIWASP statistics into an CF-compliant netCDF file with .nc extension using ``runrsknc2diwasp.py``.
-
-runrsknc2diwasp.py
-~~~~~~~~~~~~~~~~~~
+Generate the waves statistics using pyDIWASP and incorporate them into an CF-compliant netCDF file with .nc extension using :doc:`runots.py </runots>`. This method is slower than option 1.

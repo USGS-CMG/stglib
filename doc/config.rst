@@ -90,6 +90,25 @@ Options for signal filtering:
 - ``<VAR>_med_filt``: apply n point median filter, where n is specified value (must be an odd number).
 - ``filter_order``: specify order of butterworth filter (default = 4 if not specified).
 
+
+Options for wave processing using pyDIWASP:
+- ``diwasp_method``: estimator method used by pyDIWASP (options (available now): 'IMLM' (default) or 'DFTM')
+- ``diwasp_nfft``: length of FFTs used to calculate spectra (default = 256)
+- ``diwasp_nsegs``: number of segments to use to window input data for spectral analysis (default = 16)
+- ``diwasp_dres``: number (interger) of directions used for directional spectra (default = 180)
+- ``diwasp_dunit``: specifiy directional uints for directional wave spectra (options: 'naut' (default), 'cart', 'rad')
+- ``diwasp_xdir``: The compass direction of the x-axis from which directions are measured (default = 90)
+- ``diwasp_iter``: iteration limit (default = 50)
+- ``diwasp_smooth``: smooth directional spectra usign pyDIWASP smoothing option (default = 'ON')
+- ``diwasp_ibin``: velocity bin number (0 = 1st bin) to use for directional wave processing (default = 0)
+- ``diwasp_nsamps``: user specified number of samples to use in processing for each wave burst (optional)
+- ``diwasp_pow2``: if set to 'true' use next lowest power of 2 of samples for processing each wave burst (default = 'false')
+
+   refer to DIWASP orginal documentation for addition information:
+   “DIWASP, a directional wave spectra toolbox for MATLAB®: User Manual.
+   Research Report WP-1601-DJ (V1.4), Centre for Water Research, University of
+   Western Australia.”
+
 Aquadopp
 --------
 
@@ -115,6 +134,14 @@ Signature-specific options include (see Aquadopp for others):
 
 - ``outdir``: output directory (make sure it exists) to write individual ``cdf`` files before being compiled into a single ``cdf`` file per data type
 - ``orientation``: can be ``UP`` or ``DOWN`` use this to identify orientation of profiler
+- ``chunks``: list of key, value pairs for user specified chunking of data (e.g. ['time', 256000, 'bindist', 64])
+- ``wave_interval``: interval in seconds for calculating wave bursts from continuous data
+- ``wave_start_time``: start datetime for first wave burst (e.g. "2021-03-10 16:00:00")
+- ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
+- ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
+- ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
+- ``diwasp``: processing type for pyDIWASP wave processing; options available are: 'suv' and 'puv' for directional waves and 'pres' and 'elev' for non-directional waves
+- ``puv``: if 'true' and ``nc2waves`` processing is called directional wave processing using stglib ``puv_quick_vectorized`` method is run in addition to standard non-directional stglib wave processing
 
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml
@@ -271,7 +298,7 @@ Geolux Wave Radar
 -----------------
 - All the _min, _max, _bad_ens, etc. options available to the EXO
 - ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
-- ``wave_interval``: interval in seconds for calculating wave bursts from continuous pressure data
+- ``wave_interval``: interval in seconds for calculating wave bursts from continuous sea-surface elevation data
 - ``wave_duration``: duration in seconds for calculating wave statistics
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
