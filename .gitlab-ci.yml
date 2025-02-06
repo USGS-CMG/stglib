@@ -1,4 +1,4 @@
-image: continuumio/miniconda3:latest
+image: condaforge/miniforge3:latest
 
 stages:          # List of stages for jobs, and their order of execution
   - test
@@ -12,6 +12,7 @@ build-job:
     - conda env create -n stglib --file requirements.yml
     - conda init
     - source ~/.bashrc
+    - source activate base
     - conda activate stglib
     - conda info
     - conda list
