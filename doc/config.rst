@@ -1,6 +1,6 @@
 Configuration files
 *******************
-    
+
 There are two required configuration files for processing data: the global attributes file, which describes attributes that apply to the mooring, and the instrument configuration file, which describes attributes that apply to an instrument on a mooring. Contents of both files will be included as attributes in both the xarray Dataset and the netCDF files.
 
 A note on time and time zones
@@ -92,6 +92,7 @@ Options for signal filtering:
 
 
 Options for wave processing using pyDIWASP:
+
 - ``diwasp_method``: estimator method used by pyDIWASP (options (available now): 'IMLM' (default) or 'DFTM')
 - ``diwasp_nfft``: length of FFTs used to calculate spectra (default = 256)
 - ``diwasp_nsegs``: number of segments to use to window input data for spectral analysis (default = 16)
@@ -104,10 +105,7 @@ Options for wave processing using pyDIWASP:
 - ``diwasp_nsamps``: user specified number of samples to use in processing for each wave burst (optional)
 - ``diwasp_pow2``: if set to 'true' use next lowest power of 2 of samples for processing each wave burst (default = 'false')
 
-   refer to DIWASP orginal documentation for addition information:
-   “DIWASP, a directional wave spectra toolbox for MATLAB®: User Manual.
-   Research Report WP-1601-DJ (V1.4), Centre for Water Research, University of
-   Western Australia.”
+Refer to DIWASP orginal documentation for addition information: “DIWASP, a directional wave spectra toolbox for MATLAB®: User Manual. Research Report WP-1601-DJ (V1.4), Centre for Water Research, University of Western Australia.”
 
 Aquadopp
 --------
@@ -285,11 +283,11 @@ AQUAscat1000R
 - ``outdir``: path to desired folder for burst .cdf files (converted from burst .mat files in mat2cdf)
 - ``basefile``: path to folder containing burst .mat files generated from Aquatec's ReadAquascat1000.m
 - ``P_1_offset``: offset between 0 and abs pressure before deploying
-- ``P_1_scale``: scale factor to apply to raw pressure data, likely 2. Plot raw data to asses appropriate scale factor. 
-- ``Tx_offset``: offset between ABSS temperature and actual temperature. Plot raw data to asses appropriate scale factor. Check with another instrument. 
-- ``Tx_scale``: scale factor to apply to raw temperature data. Likely none needed. Plot raw data to asses appropriate scale factor. 
-- ``Bat_offset``: offset between ABSS raw battery voltage and actual battery voltage. Likely none needed. 
-- ``Bat_scale``: scale factor to apply to raw battery voltage data, likely 2. Plot raw data to asses appropriate scale factor. 
+- ``P_1_scale``: scale factor to apply to raw pressure data, likely 2. Plot raw data to asses appropriate scale factor.
+- ``Tx_offset``: offset between ABSS temperature and actual temperature. Plot raw data to asses appropriate scale factor. Check with another instrument.
+- ``Tx_scale``: scale factor to apply to raw temperature data. Likely none needed. Plot raw data to asses appropriate scale factor.
+- ``Bat_offset``: offset between ABSS raw battery voltage and actual battery voltage. Likely none needed.
+- ``Bat_scale``: scale factor to apply to raw battery voltage data, likely 2. Plot raw data to asses appropriate scale factor.
 - ``orientation``: orientation of transducer(s)
 - ``initial_instrument_height``: height of acoustic transducer
 - ``pressure_sensor_height``: height of pressure port on canister, likely different that transducer height

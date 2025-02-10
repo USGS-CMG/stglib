@@ -17,7 +17,7 @@ def read_par(filnam, spb=False, skiprows=None, skipfooter=0):
         Samples per burst if using burst sampling
     skiprows : int, optional
         How many header rows to skip. Default None
-    skipfooter : into, optional
+    skipfooter : int, optional
         How many footer rows to skip. Default 0
 
     Returns
@@ -45,7 +45,7 @@ def read_ntu(filnam, spb=False, skiprows=None, skipfooter=0):
         Samples per burst if using burst sampling
     skiprows : int, optional
         How many header rows to skip. Default None
-    skipfooter : into, optional
+    skipfooter : int, optional
         How many footer rows to skip. Default 0
 
     Returns
