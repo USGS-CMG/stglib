@@ -131,8 +131,8 @@ def nc_to_diwasp(nc_filename):
                 f"data type {data_type} is not recognized current options are ['suv', 'puv', 'elev', 'pres']"
             )
 
-    if "diwasp_bin" in ds.attrs:
-        ibin = ds.attrs["diwasp_bin"]
+    if "diwasp_ibin" in ds.attrs:
+        ibin = ds.attrs["diwasp_ibin"]
     else:
         ibin = 0
 
@@ -252,7 +252,7 @@ def make_diwasp_layout(ds, data_type=None, ibin=None):
 
         uxyz = vxyz = [0, 0, velz]
 
-        layout = np.array([sxyz, uxyz, vxyz])
+        layout = np.array([sxyz, uxyz, vxyz]).T
 
     elif data_type == "elev" or data_type == "pres":
         # datatypes=['elev']

@@ -276,11 +276,11 @@ def test_eofe():
 
 
 def sig_mat(glob_att, config_yaml):
-    run_script("runsigmat2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "sig", "mat2cdf", glob_att, config_yaml)
 
 
 def sig_nc(nc_file):
-    run_script("runsigcdf2nc.py", nc_file)
+    run_script("runots.py", "sig", "cdf2nc", nc_file)
 
 
 def sig_wvs(nc_file):
