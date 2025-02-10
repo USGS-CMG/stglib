@@ -244,8 +244,8 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
     dwv["diwasp_dm"] = xr.DataArray(np.round(Dm.values, 0), dims="time")
 
     # make some diwasp attrs
-    if "diwasp_bin" not in ds.attrs:
-        dwv.attrs["diwasp_bin"] = ibin
+    if "diwasp_ibin" not in ds.attrs:
+        dwv.attrs["diwasp_ibin"] = ibin
 
     # if "diwasp_inputs" not in ds.attrs:
     dwv.attrs["diwasp_inputs"] = ID["datatypes"]

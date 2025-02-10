@@ -23,6 +23,6 @@ diwasp_names: 'epic'
 diwasp_method: 'IMLM'
 diwasp_iter: 100
 diwasp_smooth: 'ON'
-diwasp_ibin: 0
+diwasp_ibin: 3
 diwasp_pow2: 'true'
 puv: 'true'
