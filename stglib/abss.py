@@ -270,6 +270,11 @@ def ds_add_var_attrs(ds):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
+    if "P_1ac" in ds:
+        ds["P_1ac"].attrs.update({"units": "dbar", "long_name": "Corrected pressure"})
+        if "P_1ac_note" in ds.attrs:
+            ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
+
     ds["bindist"].attrs.update(
         {
             "units": "m",
