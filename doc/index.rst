@@ -60,6 +60,7 @@ We have plans to support:
    wet
    eofe
    exo
+   glx
    hobo
    indexvel
    iq

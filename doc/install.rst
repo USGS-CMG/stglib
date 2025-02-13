@@ -74,3 +74,13 @@ Then type:
 This will create an editable stglib installation so you can make changes to the codebase. Get the latest changes to stglib by running ``git pull``.
 
 When new run scripts are added to stglib (for example, if support for a new instrument has been added), a ``git pull`` will not add them to your path. In this case you also need to re-run the ``pip install`` line above to install any new run scripts.
+
+Missing CF standard names
+=========================
+
+If you get errors regarding undefined standard_names in your compliance-checker report, you may need to update the CF Standard Name Table. This is not done automatically, even when upgrading stglib. To update, run the following from the command line in an environment with stglib activated.
+
+::
+
+  mamba update compliance-checker
+  compliance-checker -d latest
