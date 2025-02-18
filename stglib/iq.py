@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
+from stglib.aqd import aqdutils
+
 from . import core
 from .core import qaqc, utils
 
@@ -37,6 +39,115 @@ def mat_to_cdf(metadata):
     print(f"Finished writing data to {cdf_filename}")
 
     return ds
+
+
+def cdf_to_nc(cdf_filename, atmpres=False):
+    """
+    Load a raw .cdf file and generate a processed .nc file
+    """
+
+    # Load raw .cdf data
+    ds = xr.open_dataset(cdf_filename)
+
+    ds = update_prefixes(ds)
+
+    if atmpres is not False:
+        ds = aqdutils.atmos_correct(ds, atmpres)
+
+    # Clip data to in/out water times or via good_ens
+    ds = utils.clip_ds(ds)
+
+    ds = vel_to_ms(ds)
+
+    ds = create_iqbindepth(ds)
+
+    ds = create_iqz(ds)
+
+    ds = clean_iq(ds)
+
+    ds = trim_iqvel(ds)
+
+    ds = fill_snr(ds)
+
+    ds = fill_vbper(ds)
+
+    ds = rename_vars(ds)
+
+    # assign min/max:
+    ds = utils.add_min_max(ds)
+
+    ds = utils.add_start_stop_time(ds)
+
+    ds = utils.add_delta_t(ds)
+
+    # add lat/lon coordinates
+    ds = utils.ds_add_lat_lon(ds)
+
+    # QAQC
+    ds = qaqc.call_qaqc(ds)
+
+    ds = fill_velmean(ds)
+
+    ds = utils.create_z(ds)  # added 7/31/2023
+
+    ds = utils.add_standard_names(ds)
+
+    ds = ds_add_attrs(ds)
+
+    # ds = utils.no_p_create_depth(ds) #commented out 7/31/23
+
+    dropvars = [
+        "SampleNumber",
+        "SampleTime",
+        "Volume_Total",
+        "Volume_Positive",
+        "Volume_Negative",
+        "Vel",
+        "HorizontalSkew",
+        "PressOffsetAdjust",
+    ]
+    for k in dropvars:
+        if k in ds:
+            ds = ds.drop(k)
+
+    # add lat/lon coordinates to each variable
+    for var in ds.variables:
+        if (var not in ds.coords) and ("time" not in var):
+            # ds = utils.add_lat_lon(ds, var)
+            # cast as float32
+            ds = utils.set_var_dtype(ds, var)
+
+    dsflow = ds.copy()
+    dsprof = ds.copy()
+
+    dsflow = dsflow.drop([k for k in dsflow if "Profile_" in k])
+    dsflow = dsflow.drop(
+        ["bin_along", "bin_across"]
+    )  # do not need bin dims for the flow data
+    dsprof = dsprof.drop([k for k in dsprof if "Profile_" not in k])
+
+    newvars = {}
+    for k in dsprof:
+        newvars[k] = k.replace("Profile_", "")
+
+    dsprof = dsprof.rename(newvars)
+
+    # Write to .nc file
+    print("Writing cleaned/trimmed data to .nc file")
+
+    nc_filename = dsflow.attrs["filename"] + "flow-a.nc"
+    dsflow.to_netcdf(
+        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+    )
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+    print("Done writing netCDF file", nc_filename)
+
+    nc_filename = dsprof.attrs["filename"] + "prof-a.nc"
+    dsprof.to_netcdf(
+        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+    )
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+    print("Done writing netCDF file", nc_filename)
 
 
 def read_iq(filnam):
@@ -262,111 +373,6 @@ def create_iqbindist(ds):
     return ds
 
 
-def cdf_to_nc(cdf_filename):
-    """
-    Load a raw .cdf file and generate a processed .nc file
-    """
-
-    # Load raw .cdf data
-    ds = xr.open_dataset(cdf_filename)
-
-    ds = update_prefixes(ds)
-
-    # Clip data to in/out water times or via good_ens
-    ds = utils.clip_ds(ds)
-
-    ds = vel_to_ms(ds)
-
-    ds = create_iqbindepth(ds)
-
-    ds = create_iqz(ds)
-
-    ds = clean_iq(ds)
-
-    ds = trim_iqvel(ds)
-
-    ds = fill_snr(ds)
-
-    ds = fill_vbper(ds)
-
-    ds = rename_vars(ds)
-
-    # assign min/max:
-    ds = utils.add_min_max(ds)
-
-    ds = utils.add_start_stop_time(ds)
-
-    ds = utils.add_delta_t(ds)
-
-    # add lat/lon coordinates
-    ds = utils.ds_add_lat_lon(ds)
-
-    # QAQC
-    ds = qaqc.call_qaqc(ds)
-
-    ds = fill_velmean(ds)
-
-    ds = utils.create_z(ds)  # added 7/31/2023
-
-    ds = utils.add_standard_names(ds)
-
-    ds = ds_add_attrs(ds)
-
-    # ds = utils.no_p_create_depth(ds) #commented out 7/31/23
-
-    dropvars = [
-        "SampleNumber",
-        "SampleTime",
-        "Volume_Total",
-        "Volume_Positive",
-        "Volume_Negative",
-        "Vel",
-        "HorizontalSkew",
-    ]
-    for k in dropvars:
-        if k in ds:
-            ds = ds.drop(k)
-
-    # add lat/lon coordinates to each variable
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            # ds = utils.add_lat_lon(ds, var)
-            # cast as float32
-            ds = utils.set_var_dtype(ds, var)
-
-    dsflow = ds.copy()
-    dsprof = ds.copy()
-
-    dsflow = dsflow.drop([k for k in dsflow if "Profile_" in k])
-    dsflow = dsflow.drop(
-        ["bin_along", "bin_across"]
-    )  # do not need bin dims for the flow data
-    dsprof = dsprof.drop([k for k in dsprof if "Profile_" not in k])
-
-    newvars = {}
-    for k in dsprof:
-        newvars[k] = k.replace("Profile_", "")
-
-    dsprof = dsprof.rename(newvars)
-
-    # Write to .nc file
-    print("Writing cleaned/trimmed data to .nc file")
-
-    nc_filename = dsflow.attrs["filename"] + "flow-a.nc"
-    dsflow.to_netcdf(
-        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
-    )
-    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
-    print("Done writing netCDF file", nc_filename)
-
-    nc_filename = dsprof.attrs["filename"] + "prof-a.nc"
-    dsprof.to_netcdf(
-        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
-    )
-    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
-    print("Done writing netCDF file", nc_filename)
-
-
 def update_prefixes(ds):
     newvars = {}
     for k in ds:
@@ -396,15 +402,17 @@ def create_iqbindepth(ds):
     """
     Generate bin depths reltive to pressure.
     """
+
+    if "P_1ac" in ds:
+        pres = "P_1ac"
+    else:
+        pres = "Pressure"
+
     for bm in range(4):
         if ds.attrs["orientation"].upper() == "UP":
-            ds[f"Profile_{bm}_bindepth"] = (
-                ds["AdjustedPressure"] - ds[f"Profile_{bm}_bindist"]
-            )
+            ds[f"Profile_{bm}_bindepth"] = ds[pres] - ds[f"Profile_{bm}_bindist"]
         elif ds.attrs["orientation"].upper() == "DOWN":
-            ds[f"Profile_{bm}_bindepth"] = (
-                ds["AdjustedPressure"] + ds[f"Profile_{bm}_bindist"]
-            )
+            ds[f"Profile_{bm}_bindepth"] = ds[pres] + ds[f"Profile_{bm}_bindist"]
         else:
             print("Could not create z for bins, specifiy orientation")
         ds[f"Profile_{bm}_bindepth"].attrs.update(
@@ -592,13 +600,13 @@ def fill_snr(ds):
 
 def fill_vbper(ds):
     """
-    Fill adjusted pressure, stage, area, range, profile velocity, and depth data with corresponding vertical beam percent good threshold
+    Fill stage, area, range, profile velocity, and depth data with corresponding vertical beam percent good threshold
     """
 
     if "vbper_threshold" in ds.attrs:
         Ptxt = str(ds.attrs["vbper_threshold"])
 
-        histtext = "Filling P1ac, stage, area, range, and D_3 (depth) data using vertical beam percent good threshold threshold of {}.".format(
+        histtext = "Filling stage, area, range, and D_3 (depth) data using vertical beam percent good threshold threshold of {}.".format(
             Ptxt
         )
 
@@ -606,7 +614,7 @@ def fill_vbper(ds):
             Ptxt
         )
 
-        varlist = {"AdjustedPressure", "Depth", "Stage", "Area", "Range"}
+        varlist = {"Depth", "Stage", "Area", "Range"}
 
         for k in varlist:
             ds[k] = ds[k].where(ds.VbPercentGood > ds.attrs["vbper_threshold"])
@@ -617,7 +625,7 @@ def fill_vbper(ds):
 
     else:
         print(
-            "Did not fill pressure, stage, area, range, and depth data data using vertical beam percent good threshold"
+            "Did not fill stage, area, range, and depth data data using vertical beam percent good threshold"
         )
 
     return ds
@@ -667,8 +675,8 @@ def rename_vars(ds):
         "Roll": "Roll_1217",
         "Depth": "D_3",
         "Pressure": "P_1",
-        "AdjustedPressure": "P_1ac",
         "SoundSpeed": "SV_80",
+        "Pressure_ac": "P_1ac",
         "Profile_0_Amp": "Profile_AGC1_1221",
         "Profile_0_Vel": "Profile_vel1_1277",
         "Profile_0_VelStd": "Profile_vel1_1277Std",
@@ -915,26 +923,21 @@ def ds_add_attrs(ds):
             "units": "dbar",
         }
     )
-    ds["PressOffsetAdjust"].attrs.update(
-        {
-            "long_name": "Atmospheric pressure adjustment",
-            "units": "dbar",
-            "note": "see SonTek-IQ User's Manual for details",
-        }
-    )
-    ds["P_1ac"].attrs.update(
-        {
-            "long_name": "Corrected pressure",
-            "units": "dbar",
-        }
-    )
 
-    p1ac_note = "Measurement with atmospheric pressure removed (see SonTek-IQ User's Manual for details)"
+    if "P_1ac" in ds.variables:
+        ds["P_1ac"].attrs.update(
+            {
+                "long_name": "Corrected pressure",
+                "units": "dbar",
+            }
+        )
 
-    if "note" in ds["P_1ac"].attrs:
-        ds["P_1ac"].attrs["note"] = ds["P_1ac"].attrs["note"] + p1ac_note
-    else:
-        ds["P_1ac"].attrs["note"] = p1ac_note
+        p1ac_note = "Measurement with atmospheric pressure removed (see SonTek-IQ User's Manual for details)"
+
+        if "note" in ds["P_1ac"].attrs:
+            ds["P_1ac"].attrs["note"] = ds["P_1ac"].attrs["note"] + p1ac_note
+        else:
+            ds["P_1ac"].attrs["note"] = p1ac_note
 
     ds["Bat_106"].attrs.update({"long_name": "Battery voltage", "epic_code": "106"})
     ds["Ptch_1216"].attrs["long_name"] = "Pitch angle in degrees"
@@ -998,23 +1001,3 @@ def ds_add_attrs(ds):
             )
 
     return ds
-
-
-# I think we can remove this?
-def make_iq_plots(iq, directory="", savefig=False):
-    """
-    Make IQ turnaround plots
-    """
-
-    plt.figure(figsize=(11, 8.5))
-
-    for n, var in enumerate(
-        ["FlowData_Depth", "FlowData_Vel_Mean", "FlowData_Flow"], start=1
-    ):
-        plt.subplot(3, 1, n)
-        plt.plot(iq["time"], iq[var])
-        plt.ylabel(var + " [" + iq[var].attrs["units"] + "]")
-
-    if savefig:
-        plt.savefig(directory + "/iq_stage_vel_flow.pdf")
-    plt.show()
