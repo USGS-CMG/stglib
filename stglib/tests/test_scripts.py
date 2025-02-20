@@ -121,6 +121,9 @@ def test_aqdhr():
 
 
 def test_aqd_wvs():
+    if not Path("stglib/tests/data/BEL503.hdr").is_file():
+        with zipfile.ZipFile("stglib/tests/data/BEL503.zip", "r") as zip_ref:
+            zip_ref.extractall("stglib/tests/data/")
     aqd_wvs_raw("glob_attbel5C.txt", "BEL5C_wvsconfig.yaml")
     aqd_wvs_nc("BEL19B5C04aqdwv-raw.cdf", atmpres="atmpres-BEL5Cwvs.cdf")
     aqd_wvs_wvs("BEL19B5C04aqdwvb-cal.nc")
@@ -136,6 +139,9 @@ def test_aqdturnaround():
     # and XYZ coordinates
     aqdturnaround("NBMCCE02")
     # and ENU coordinates
+    if not Path("stglib/tests/data/BEL503.hdr").is_file():
+        with zipfile.ZipFile("stglib/tests/data/BEL503.zip", "r") as zip_ref:
+            zip_ref.extractall("stglib/tests/data/")
     aqdturnaround("BEL503")
 
 
@@ -164,6 +170,8 @@ def test_vec_burst():
 
 def test_vec_continuous():
     # continuous mode Vector
+    with zipfile.ZipFile("stglib/tests/data/V1482304.zip", "r") as zip_ref:
+        zip_ref.extractall("stglib/tests/data/")
     vec_raw("glob_att1126_msl.txt", "config_1126vec14823.yaml")
     vec_nc("1126vec14823-raw.cdf")
 
@@ -431,6 +439,8 @@ def tb_wvs(nc_file):
 
 
 def test_tb():
+    with zipfile.ZipFile("stglib/tests/data/example_TruBlue.zip", "r") as zip_ref:
+        zip_ref.extractall("stglib/tests/data/")
     tb_raw("TB_glob_att.txt", "TB_config.yaml")
     tb_nc("example_TruBlue-raw.cdf")
     tb_wvs("example_TruBlue-cont-cal.nc")
