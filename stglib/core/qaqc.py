@@ -1,6 +1,6 @@
-import numpy as np
+import warnings
 
-# import pandas as pd
+import numpy as np
 import scipy.signal
 import xarray as xr
 
@@ -57,7 +57,11 @@ def call_qaqc(ds):
 
 def trim_min(ds, var):
     if var + "_min" in ds.attrs:
-        cond = ds[var] >= ds.attrs[var + "_min"]
+        if "sample" in ds:
+            cond = (ds[var] >= ds.attrs[var + "_min"]).any(dim="sample")
+        else:
+            cond = ds[var] >= ds.attrs[var + "_min"]
+
         affected = cond.size - cond.sum() - ds[var].isnull().sum()
         ds[var] = ds[var].where(cond)
 
@@ -387,18 +391,16 @@ def trim_mask(ds, var):
             if "beam" in ds[trimvar].dims:
                 for bm in ds["beam"].values:
                     cond = ~ds[trimvar].sel(beam=bm).isnull()
-                    ds[var] = ds[var].where(cond)
-
                     affected = cond.size - cond.sum() - ds[var].isnull().sum()
+                    ds[var] = ds[var].where(cond)
 
                     notetxt = f"Values filled using {trimvar} beam {bm} mask; {affected.values} values affected. "
                     ds = utils.insert_note(ds, var, notetxt)
 
             else:
                 cond = ~ds[trimvar].isnull()
-                ds[var] = ds[var].where(cond)
-
                 affected = cond.size - cond.sum() - ds[var].isnull().sum()
+                ds[var] = ds[var].where(cond)
 
                 notetxt = f"Values filled using {trimvar} mask; {affected.values} values affected. "
                 ds = utils.insert_note(ds, var, notetxt)
@@ -488,7 +490,9 @@ def drop_vars(ds):
             if k in ds:
                 ds = ds.drop_vars(k)
                 dropped.append(k)
-
-        print(f"Dropped {dropped} from dataset at user request")
+            else:
+                warnings.warn(f"{k} not in dataset, cannot drop")
+        if dropped:
+            print(f"Dropped {dropped} from dataset at user request")
 
     return ds

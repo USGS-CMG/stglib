@@ -52,7 +52,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         ds = filter.apply_butter_filt(ds, v)
         ds = filter.apply_med_filt(ds, v)
 
-        ds = trim_min(ds, v)
+        ds = qaqc.trim_min(ds, v)
         ds = qaqc.trim_bad_ens(ds, v)
 
     for v in ["Turb", "C_51", "S_41", "T_28", "SpC_48"]:
@@ -64,6 +64,10 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
             ds = qaqc.trim_max_diff(ds, v)
             ds = qaqc.trim_max_diff_pct(ds, v)
             ds = qaqc.trim_bad_ens(ds, v)
+
+    # after check for masking vars by other vars
+    for var in ds.data_vars:
+        ds = qaqc.trim_mask(ds, var)
 
     if not is_profile:
         # add z coordinate dim
