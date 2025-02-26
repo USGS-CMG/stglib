@@ -59,7 +59,7 @@ Set up Mambaforge or Anaconda as above. Obtain stglib by cloning the GitHub repo
 
 ``git clone https://code.usgs.gov/cmgp/stglib.git``
 
-After ``cd``\ing to the directory containing stglib, type:
+After ``cd``\ing to the stglib directory (``cd stglib``), type:
 
 ``conda env create -n stglib --file requirements.yml``
 
