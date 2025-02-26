@@ -6,6 +6,7 @@ import platform
 import sqlite3
 import sys
 import warnings
+from pathlib import Path
 
 import netCDF4
 import numpy as np
@@ -42,7 +43,7 @@ def check_compliance(nc_file, conventions="CF-1.8"):
 
     verbose = 1
     criteria = "normal"
-    output_filename = nc_file + ".cfcheck.txt"
+    output_filename = f"{nc_file}.cfcheck.txt"
     output_format = "text"
     checker_names = [conventions.lower().replace("-", ":")]
 
@@ -51,7 +52,7 @@ def check_compliance(nc_file, conventions="CF-1.8"):
     )
 
     return_value, errors = ComplianceChecker.run_checker(
-        nc_file,
+        str(nc_file),
         checker_names,
         verbose,
         criteria,

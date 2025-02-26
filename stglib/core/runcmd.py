@@ -590,6 +590,11 @@ def runots():
             runmcasc2cdf(args)
         elif args.step == "cdf2nc":
             runmccdf2nc(args)
+    elif args.instrument == "rdi":
+        if args.step == "mat2cdf":
+            stglib.rdi.mat2cdf.mat_to_cdf(metadata)
+        if args.step == "cdf2nc":
+            run_cdf_to_nc(stglib.rdi.cdf2nc.cdf_to_nc, args)
     elif args.instrument == "sgtid":
         if args.step == "tid2cdf":
             stglib.sg.tid2cdf.tid_to_cdf(metadata)

@@ -9,14 +9,14 @@ Currently, this package has at least partial support for:
 - Nortek Aquadopp profilers, in mean-current wave-burst, and HR modes
 - Nortek Vector velocimeters
 - Nortek Signature profilers
-- RBR pressure (including waves) and turbidity sensors
+- Multiple RBR instruments, including moored and casting deployments
 - YSI EXO2 water-quality sondes
 - SonTek IQ flow monitors
 - WET labs sensors, including ECO NTUSB and ECO PAR
 - Onset HOBO pressure sensors
 - Vaisala Weather Transmitter WXT sensors
 - In-Situ Aqua TROLL sensors
-- RD Instruments ADCPs
+- RD Instruments WorkHorse ADCPs
 - Moving-boat ADCP data processed using [QRev](https://hydroacoustics.usgs.gov/movingboat/QRev.shtml), for use in index-velocity computation
 - EofE ECHOLOGGER altimeters
 - SBE 37 Microcat

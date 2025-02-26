@@ -147,6 +147,10 @@ def runots_parser():
     addinst2cdf(instsp, "asc2cdf")
     addcdf2nc(instsp)
 
+    instsp = add_instrument(subparsers, "rdi", "Teledyne RDI ADCP")
+    addinst2cdf(instsp, "mat2cdf")
+    addcdf2nc(instsp)
+
     instsp = add_instrument(subparsers, "sgtid", "Seabird Seagauge Tides")
     addinst2cdf(instsp, "tid2cdf")
     addcdf2nc(instsp)

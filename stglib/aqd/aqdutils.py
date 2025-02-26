@@ -84,7 +84,7 @@ def load_cdf(cdf_filename, atmpres=False):
     # remove units in case we change and we can use larger time steps
     ds.time.encoding.pop("units")
 
-    if atmpres is not False:
+    if atmpres is not False and atmpres is not None:
         ds = atmos_correct(ds, atmpres)
 
     return ds
@@ -214,7 +214,7 @@ def coord_transform(vel1, vel2, vel3, heading, pitch, roll, T, T_orig, cs, out="
     return u, v, w
 
 
-def set_orientation(VEL, T):
+def set_orientation(VEL, T=None, inst_type="AQD"):
     """
     Create Z variable depending on instrument orientation
     """
@@ -268,7 +268,8 @@ def set_orientation(VEL, T):
 
         long_name = "height relative to sea bed"
 
-    T_orig = T.copy()
+    if inst_type == "AQD":
+        T_orig = T.copy()
 
     if VEL.attrs["orientation"].upper() == "UP":
         print("User instructed that instrument was pointing UP")
@@ -280,17 +281,19 @@ def set_orientation(VEL, T):
 
     if VEL.attrs["orientation"].upper() == "DOWN":
         print("User instructed that instrument was pointing DOWN")
-        T[1, :] = -T[1, :]
-        T[2, :] = -T[2, :]
+        if inst_type == "AQD":
+            T[1, :] = -T[1, :]
+            T[2, :] = -T[2, :]
         VEL["z"] = xr.DataArray(elev - VEL["bindist"].values, dims="z")
         VEL["depth"] = xr.DataArray(
             np.nanmean(VEL[presvar]) + VEL["bindist"].values, dims="depth"
         )
 
-    if "AnalogInput1_height" in VEL.attrs:
-        VEL["zai1"] = xr.DataArray([elev_ai1], dims="zai1")
-    if "AnalogInput2_height" in VEL.attrs:
-        VEL["zai2"] = xr.DataArray([elev_ai2], dims="zai2")
+    if inst_type == "AQD":
+        if "AnalogInput1_height" in VEL.attrs:
+            VEL["zai1"] = xr.DataArray([elev_ai1], dims="zai1")
+        if "AnalogInput2_height" in VEL.attrs:
+            VEL["zai2"] = xr.DataArray([elev_ai2], dims="zai2")
 
     for z in ["z", "zai1", "zai2"]:
         if z not in VEL:
@@ -308,7 +311,10 @@ def set_orientation(VEL, T):
     VEL["depth"].attrs["positive"] = "down"
     VEL["depth"].attrs["long_name"] = "depth below mean sea level of deployment"
 
-    return VEL, T, T_orig
+    if inst_type == "AQD":
+        return VEL, T, T_orig
+    elif inst_type == "RDI":
+        return VEL
 
 
 def make_bin_depth(VEL, waves=False):
@@ -427,6 +433,9 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
             # FIXME incorporate press_ ac below
             P = ds["Pressure"]
             Ptxt = "NON-atmospherically corrected"
+        elif "P_1" in ds:
+            P = ds["P_1"]
+            Ptxt = "NON-atmospherically corrected"
 
         if ds.attrs["trim_method"].lower() == "water level":
             for var in data_vars:
@@ -476,9 +485,12 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
 
         if not lastbin == 0:
             # this trims so there are no all-nan rows in the data
-            ds = ds.isel(
-                bindist=slice(0, lastbin), z=slice(0, lastbin), depth=slice(0, lastbin)
-            )
+            isel = {}
+            for v in ["bindist", "depth", "z"]:
+                if v in ds:
+                    isel[v] = slice(0, lastbin)
+
+            ds = ds.isel(isel)
 
         # TODO: need to add histcomment
 
@@ -852,6 +864,10 @@ def check_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         print(
             f"Signature slant beam acoustic frequency = {freq} with beam_angle = {bang} from vertical"
         )
+
+    elif inst_type == "RDI":
+        ds.attrs["serial_number"] = ds.attrs["RDISerialNumber"]
+        ds.attrs["instrument_type"] = "Teledyne RDI WorkHorse ADCP"
 
     return ds
 
@@ -1387,6 +1403,8 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             blanking_distance = ds.attrs["AQDHRBlankingDistance"]
         elif inst_type == "SIG":
             blanking_distance = ds.attrs["SIGBurst_BlankingDistance"]
+        elif inst_type == "RDI":
+            blanking_distance = ds.attrs["blank"]
         ds["bindist"].attrs.update(
             {
                 "units": "m",

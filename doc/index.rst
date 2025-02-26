@@ -26,7 +26,7 @@ Currently, this package has at least partial support for:
 - Onset HOBO pressure sensors
 - Vaisala Weather Transmitter WXT sensors
 - In-Situ Aqua TROLL sensors
-- RD Instruments ADCPs
+- RD Instruments WorkHorse ADCPs
 - Moving-boat ADCP data processed using QRev_, for use in index-velocity computation
 - EofE ECHOLOGGER altimeters
 - SBE 37 Microcat
@@ -66,6 +66,7 @@ We have plans to support:
    iq
    lisst
    mc
+   rdi
    sgtid
    sgwvs
    tb
