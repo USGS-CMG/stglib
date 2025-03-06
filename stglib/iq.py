@@ -73,9 +73,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = rename_vars(ds)
 
-    # assign min/max:
-    ds = utils.add_min_max(ds)
-
     ds = utils.add_start_stop_time(ds)
 
     ds = utils.add_delta_t(ds)
@@ -90,25 +87,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.create_z(ds)  # added 7/31/2023
 
+    # assign min/max:
+    ds = utils.add_min_max(ds)
+
     ds = utils.add_standard_names(ds)
 
     ds = ds_add_attrs(ds)
-
-    # ds = utils.no_p_create_depth(ds) #commented out 7/31/23
-
-    dropvars = [
-        "SampleNumber",
-        "SampleTime",
-        "Volume_Total",
-        "Volume_Positive",
-        "Volume_Negative",
-        "Vel",
-        "HorizontalSkew",
-        "PressOffsetAdjust",
-    ]
-    for k in dropvars:
-        if k in ds:
-            ds = ds.drop(k)
 
     # add lat/lon coordinates to each variable
     for var in ds.variables:
@@ -131,6 +115,42 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         newvars[k] = k.replace("Profile_", "")
 
     dsprof = dsprof.rename(newvars)
+
+    dropvars = [
+        "SampleNumber",
+        "SampleTime",
+        "Volume_Total",
+        "Volume_Positive",
+        "Volume_Negative",
+        "Vel",
+        "HorizontalSkew",
+        "PressOffsetAdjust",
+        "InstrumentHeight",
+        "0_PingMethod",
+        "0_PulseLength",
+        "0_PulseSeparation",
+        "1_PingMethod",
+        "1_PulseLength",
+        "1_PulseSeparation",
+        "2_PingMethod",
+        "2_PulseLength",
+        "2_PulseSeparation",
+        "3_PingMethod",
+        "3_PulseLength",
+        "3_PulseSeparation",
+        "FlowSubData_NumberOfGoodCells",
+        "Cell_Location_Center",
+        "Cell_Location_Skew",
+        "Z_Vel",
+        "XL_Vel",
+        "XR_Vel",
+        "X_Vel",
+    ]
+    for k in dropvars:
+        if k in dsflow:
+            dsflow = dsflow.drop_vars(k)
+        if k in dsprof:
+            dsprof = dsprof.drop_vars(k)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
@@ -166,9 +186,7 @@ def read_iq(filnam):
     """
 
     iqmat = core.utils.loadmat(filnam)
-    # offset = iqmat['FlowSubData_PrfHeader_0_BlankingDistance']
-    # beamdist_0 = np.linspace(offset, offset + \
-    # 100*iqmat['FlowSubData_PrfHeader_0_CellSize'], 100)
+
     ds = {}
 
     ds["time"] = xr.DataArray(
@@ -187,12 +205,12 @@ def read_iq(filnam):
         [1, 2, 3, 4],
         dims="velbeam",
         attrs={"long_name": "velocity beam number", "units": "1"},
-    )
+    ).astype("int32")
     ds["beam"] = xr.DataArray(
         [1, 2, 3, 4, 5],
         dims="beam",
         attrs={"long_name": "beam number", "units": "1"},
-    )
+    ).astype("int32")
     # ds['beamdist_0'] = xr.DataArray(beamdist_0, dims='beamdist_0')
     # attrs = {}
 
@@ -200,27 +218,21 @@ def read_iq(filnam):
     # one burst longer
     timelen = len(ds["time"])
 
+    # convert any empty arrays to str so all Data_Units are str
+    for key, value in iqmat["Data_Units"].items():
+        if isinstance(value, np.ndarray):
+            iqmat["Data_Units"][key] = ", ".join(map(str, value))
+
     for k in iqmat:
-        if "__" not in k and "FlowSubData" not in k:
-            # print(k, np.shape(iqmat[k]))
+        if "__" not in k and "FlowSubData" not in k and "Profile" not in k:
             if len(np.ravel(iqmat[k])) == len(ds["time"]):
                 ds[k] = xr.DataArray(np.ravel(iqmat[k]), dims="time")
-                if k in iqmat["Data_Units"]:
-                    ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
-            elif "_2_" in k or "_3_" in k:
-                ds[k] = xr.DataArray(
-                    iqmat[k][0:timelen, :], dims=("time", "bin_across")
-                )
-                if k in iqmat["Data_Units"]:
-                    ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
-            elif "_0_" in k or "_1_" in k:
-                ds[k] = xr.DataArray(iqmat[k][0:timelen, :], dims=("time", "bin_along"))
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
             elif "FlowData_SNR" in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen, :], dims=("time", "velbeam"))
                 ds[k].attrs["units"] = iqmat["Data_Units"][k]
-            elif "FlowData_Vel" in k and "XYZ" not in k:
+            elif "FlowData_Vel" in k and "XYZ" not in k and "OBS" not in k:
                 ds[k] = xr.DataArray(iqmat[k][0:timelen, :], dims=("time", "velbeam"))
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
@@ -246,14 +258,112 @@ def read_iq(filnam):
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
 
-        elif "FlowSubData" in k:
-            if "CellSize" in k or "BlankingDistance" in k:
-                ds[k] = xr.DataArray(iqmat[k][0:timelen], dims=("time")) / 1000
+        if iqmat["System_IqSetup"]["advancedSetup"]["recordSubSampleProfiles"] == 1:
+
+            if "FlowSubData" in k:
+                if "NumberOfGoodCells" not in k:
+                    ds[k] = xr.DataArray(iqmat[k][0:timelen], dims=("time"))
+                    if k in iqmat["Data_Units"]:
+                        ds[k].attrs["units"] = iqmat["Data_Units"][k]
+
+                elif "NumberOfGoodCells" in k:
+                    ds[k] = xr.DataArray(
+                        iqmat[k][0:timelen, :], dims=("time", "velbeam")
+                    )
+
+            elif "_2_" in k or "_3_" in k or "Location_Skew" in k:
+                ds[k] = xr.DataArray(
+                    iqmat[k][0:timelen, :], dims=("time", "bin_across")
+                )
+                if k in iqmat["Data_Units"]:
+                    ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
+
+            elif "_0_" in k or "_1_" in k or "Location_Center" in k:
+                ds[k] = xr.DataArray(iqmat[k][0:timelen, :], dims=("time", "bin_along"))
+                if k in iqmat["Data_Units"]:
+                    ds[k].attrs["units"] = iqmat["Data_Units"][k].replace("/s", " s-1")
+
+            elif "Z_Vel" in k or "X_Vel" in k:
+                ds[k] = xr.DataArray(iqmat[k][0:timelen, :], dims=("time", "bin_along"))
                 if k in iqmat["Data_Units"]:
                     ds[k].attrs["units"] = iqmat["Data_Units"][k]
 
-    ds["bin_along"] = np.arange(ds["Profile_0_Vel"].shape[1])
-    ds["bin_across"] = np.arange(ds["Profile_2_Vel"].shape[1])
+            elif "XL" in k or "XR" in k:
+                ds[k] = xr.DataArray(
+                    iqmat[k][0:timelen, :], dims=("time", "bin_across")
+                )
+                if k in iqmat["Data_Units"]:
+                    ds[k].attrs["units"] = iqmat["Data_Units"][k]
+
+        # account for if profiling interval is not every sample, need to put on same time as flow data
+        elif iqmat["System_IqSetup"]["advancedSetup"]["recordSubSampleProfiles"] != 1:
+            prof_int = int(
+                iqmat["System_IqSetup"]["advancedSetup"]["recordSubSampleProfiles"]
+            )
+            if "FlowSubData" in k:
+                if "NumberOfGoodCells" not in k:
+                    x = np.full((iqmat["FlowData_SampleTime"].shape[0]), np.nan)
+                    for i in np.arange(0, iqmat[k].shape[0]):
+                        x[(i * prof_int)] = iqmat[k][i]
+                        ds[k] = xr.DataArray(x, dims=("time"))
+                        if k in iqmat["Data_Units"]:
+                            ds[k].attrs["units"] = iqmat["Data_Units"][k]
+
+                elif "NumberOfGoodCells" in k:
+                    x = np.full(
+                        (iqmat["FlowData_SampleTime"].shape[0], iqmat[k].shape[1]),
+                        np.nan,
+                    )
+                    for i in np.arange(0, iqmat[k].shape[0]):
+                        x[(i * prof_int)] = iqmat[k][i]
+                        ds[k] = xr.DataArray(x, dims=("time", "velbeam"))
+                        if k in iqmat["Data_Units"]:
+                            ds[k].attrs["units"] = iqmat["Data_Units"][k].replace(
+                                "/s", " s-1"
+                            )
+
+            elif "_2_" in k or "_3_" in k or "Location_Skew" in k:
+                x = np.full(
+                    (iqmat["FlowData_SampleTime"].shape[0], iqmat[k].shape[1]), np.nan
+                )
+                for i in np.arange(0, iqmat[k].shape[0]):
+                    x[(i * prof_int)] = iqmat[k][i]
+                    ds[k] = xr.DataArray(x, dims=("time", "bin_across"))
+                    if k in iqmat["Data_Units"]:
+                        ds[k].attrs["units"] = iqmat["Data_Units"][k].replace(
+                            "/s", " s-1"
+                        )
+
+            elif "_0_" in k or "_1_" in k or "Location_Center" in k:
+                x = np.full(
+                    (iqmat["FlowData_SampleTime"].shape[0], iqmat[k].shape[1]), np.nan
+                )
+                for i in np.arange(0, iqmat[k].shape[0]):
+                    x[(i * prof_int)] = iqmat[k][i]
+                    ds[k] = xr.DataArray(x, dims=("time", "bin_along"))
+                    if k in iqmat["Data_Units"]:
+                        ds[k].attrs["units"] = iqmat["Data_Units"][k].replace(
+                            "/s", " s-1"
+                        )
+
+            elif "Z_Vel" in k or "X_Vel" in k:
+                x = np.full(
+                    (iqmat["FlowData_SampleTime"].shape[0], iqmat[k].shape[1]), np.nan
+                )
+                for i in np.arange(0, iqmat[k].shape[0]):
+                    x[(i * prof_int)] = iqmat[k][i]
+                    ds[k] = xr.DataArray(x, dims=("time", "bin_along"))
+
+            elif "XL" in k or "XR" in k:
+                x = np.full(
+                    (iqmat["FlowData_SampleTime"].shape[0], iqmat[k].shape[1]), np.nan
+                )
+                for i in np.arange(0, iqmat[k].shape[0]):
+                    x[(i * prof_int)] = iqmat[k][i]
+                    ds[k] = xr.DataArray(x, dims=("time", "bin_across"))
+
+    ds["bin_along"] = (np.arange(ds["Profile_0_Vel"].shape[1]) + 1).astype("int32")
+    ds["bin_across"] = (np.arange(ds["Profile_2_Vel"].shape[1]) + 1).astype("int32")
 
     ds = xr.Dataset(ds)
 
@@ -358,7 +468,7 @@ def create_iqbindist(ds):
             # blanking distance + 1*binsize + (bin_along(or bin_across)*bin_size) = center of each bin
             cells[n, :] = (
                 ds[fsdbd][n].values + (r * ds[fsdcs][n].values) + (ds[fsdcs][n].values)
-            )
+            ) / 1000
         ds[f"Profile_{bm}_bindist"] = xr.DataArray(cells, dims=("time", bdname))
 
         ds[f"Profile_{bm}_bindist"].attrs.update(
@@ -403,8 +513,9 @@ def create_iqbindepth(ds):
     Generate bin depths reltive to pressure.
     """
 
-    if "P_1ac" in ds:
-        pres = "P_1ac"
+    # aqdutils.atmos_correct outputs var as Pressure_ac, this is renamed to P_1ac later in code
+    if "Pressure_ac" in ds:
+        pres = "Pressure_ac"
     else:
         pres = "Pressure"
 
@@ -495,7 +606,7 @@ def clean_iq(iq):
 
 def trim_iqvel(ds):
     """
-    Trim velocity data depending on specified method
+    Trim profile velocity data depending on specified method
     """
 
     if (
@@ -503,8 +614,8 @@ def trim_iqvel(ds):
         and ds.attrs["trim_method"].lower() != "none"
         and ds.attrs["trim_method"] is not None
     ):
-        if "AdjustedPressure" in ds:
-            P = ds["AdjustedPressure"]
+        if "Pressure_ac" in ds:
+            P = ds["Pressure_ac"]
             Ptxt = "atmospherically corrected"
         elif "P_1ac" in ds:
             P = ds["P_1ac"]
@@ -675,6 +786,7 @@ def rename_vars(ds):
         "Roll": "Roll_1217",
         "Depth": "D_3",
         "Pressure": "P_1",
+        "AdjustedPressure": "InstP_1ac",
         "SoundSpeed": "SV_80",
         "Pressure_ac": "P_1ac",
         "Profile_0_Amp": "Profile_AGC1_1221",
@@ -685,6 +797,7 @@ def rename_vars(ds):
         "Profile_0_bindist": "Profile_bindist1",
         "Profile_0_z": "Profile_z1",
         "Profile_0_bindepth": "Profile_bindepth1",
+        "Profile_0_Correlation": "Profile_correlation1",
         "Profile_1_Amp": "Profile_AGC2_1222",
         "Profile_1_Vel": "Profile_vel2_1278",
         "Profile_1_VelStd": "Profile_vel2_1278Std",
@@ -693,6 +806,7 @@ def rename_vars(ds):
         "Profile_1_bindist": "Profile_bindist2",
         "Profile_1_z": "Profile_z2",
         "Profile_1_bindepth": "Profile_bindepth2",
+        "Profile_1_Correlation": "Profile_correlation2",
         "Profile_2_Amp": "Profile_AGC3_1223",
         "Profile_2_Vel": "Profile_vel3_1279",
         "Profile_2_VelStd": "Profile_vel3_1279Std",
@@ -701,6 +815,7 @@ def rename_vars(ds):
         "Profile_2_bindist": "Profile_bindist3",
         "Profile_2_z": "Profile_z3",
         "Profile_2_bindepth": "Profile_bindepth3",
+        "Profile_2_Correlation": "Profile_correlation3",
         "Profile_3_Amp": "Profile_AGC4_1224",
         "Profile_3_Vel": "Profile_vel4_1280",
         "Profile_3_VelStd": "Profile_vel4_1280Std",
@@ -709,6 +824,7 @@ def rename_vars(ds):
         "Profile_3_bindist": "Profile_bindist4",
         "Profile_3_z": "Profile_z4",
         "Profile_3_bindepth": "Profile_bindepth4",
+        "Profile_3_Correlation": "Profile_correlation4",
     }
     # check to make sure they exist before trying to rename
     for k in varnames:
@@ -719,10 +835,11 @@ def rename_vars(ds):
 
 
 def ds_add_attrs(ds):
-    attrsnams = ["InstrumentSubType", "InstrumentFriendlyName"]
+    attrsnams = ["InstrumentFriendlyName", "InstrumentFamilyFriendlyName"]
 
     for k in attrsnams:
-        del ds.attrs[k]
+        if k in ds.attrs:
+            del ds.attrs[k]
 
     ds.attrs["serial_number"] = ds.attrs.pop("SerialNumber")
     ds.attrs["instrument_type"] = (
@@ -924,6 +1041,14 @@ def ds_add_attrs(ds):
         }
     )
 
+    ds["InstP_1ac"].attrs.update(
+        {
+            "long_name": "Instrument corrected pressure",
+            "units": "dbar",
+            "note": "Measurement with atmospheric pressure removed by using instrument vertical beam and calibrated pressure combination (see SonTek-IQ User's Manual for details)",
+        }
+    )
+
     if "P_1ac" in ds.variables:
         ds["P_1ac"].attrs.update(
             {
@@ -932,7 +1057,7 @@ def ds_add_attrs(ds):
             }
         )
 
-        p1ac_note = "Measurement with atmospheric pressure removed (see SonTek-IQ User's Manual for details)"
+        p1ac_note = "Measurement with atmospheric pressure removed"
 
         if "note" in ds["P_1ac"].attrs:
             ds["P_1ac"].attrs["note"] = ds["P_1ac"].attrs["note"] + p1ac_note
@@ -989,6 +1114,10 @@ def ds_add_attrs(ds):
         ds[f"Profile_bin_size{bm}"].attrs.update(
             {"long_name": f"beam {bm} bin size", "units": "m"}
         )
+
+        if f"Profile_correlation{bm}" in ds.variables:
+            ds[f"Profile_correlation{bm}"].attrs["long_name"] = f"beam {bm} correlation"
+
         if "height_above_geopotential_datum" in ds.attrs:
             ds[f"Profile_z{bm}"].attrs.update(
                 {
