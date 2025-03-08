@@ -160,6 +160,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # after check for masking vars by other vars
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
+        ds = qaqc.trim_mask_expr(ds, var)
 
     # fill with AGC and Cor threshold
     ds = aqdutils.fill_agc(ds)

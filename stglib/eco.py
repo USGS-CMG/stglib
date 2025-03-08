@@ -287,5 +287,6 @@ def eco_qaqc(ds):
         # after check for masking vars by others
         for var in ["Turb", "Turb_std"]:
             ds = qaqc.trim_mask(ds, var)
+            ds = qaqc.trim_mask_expr(ds, var)
 
     return ds

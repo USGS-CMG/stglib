@@ -68,6 +68,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     # after check for masking vars by other vars
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
+        ds = qaqc.trim_mask_expr(ds, var)
 
     if not is_profile:
         # add z coordinate dim

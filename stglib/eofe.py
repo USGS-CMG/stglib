@@ -170,6 +170,7 @@ def cdf_to_nc(cdf_filename):
     # after check for masking vars by others
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
+        ds = qaqc.trim_mask_expr(ds, var)
 
     # assign min/max
     ds = utils.add_min_max(ds)

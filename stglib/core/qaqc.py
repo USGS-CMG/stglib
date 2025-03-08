@@ -1,3 +1,4 @@
+import operator
 import warnings
 
 import numpy as np
@@ -10,9 +11,7 @@ from . import filter, utils
 def call_qaqc(ds):
     """Run all QAQC functions. Only those called in the yaml file will be implemented.  If you add a new QAQC function, be sure to add it here too."""
 
-    var_list = list(ds.data_vars)
-
-    for var in var_list:
+    for var in ds.data_vars:
 
         ds = filter.apply_butter_filt(ds, var)
         ds = filter.apply_med_filt(ds, var)
@@ -44,10 +43,11 @@ def call_qaqc(ds):
         ds = trim_bad_ens(ds, var)
         ds = trim_bad_ens_indiv(ds, var)
 
-    for var in var_list:
+    for var in ds.data_vars:
         ds = trim_mask(ds, var)  # re-run and check for masking
+        ds = trim_mask_expr(ds, var)
 
-    for var in var_list:
+    for var in ds.data_vars:
         ds = trim_by_any(ds, var)  # re-run and trim by other variables as necessary
 
     ds = drop_vars(ds)
@@ -404,6 +404,54 @@ def trim_mask(ds, var):
 
                 notetxt = f"Values filled using {trimvar} mask; {affected.values} values affected. "
                 ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
+def trim_mask_expr(ds, var):
+    """
+    Trim values based on an expression containing another variable.
+    For example, in the config yaml:
+
+    Turb_mask_expr: "P_1ac < 0.1"
+
+    will mask/nan all Turb data where P_1ac is less than 0.1
+    """
+    operator_map = {
+        ">": operator.gt,
+        "<": operator.lt,
+        ">=": operator.ge,
+        "<=": operator.le,
+        "==": operator.eq,
+        "!=": operator.ne,
+    }
+
+    def evaluate_mask_expr(ds, expression):
+        parts = expression.split()
+        if len(parts) != 3:
+            raise ValueError("Invalid mask expression string format")
+
+        left = ds[parts[0]]
+        operator_str = parts[1]
+        right = float(parts[2])
+
+        if operator_str in operator_map:
+            return operator_map[operator_str](left, right)
+        else:
+            raise ValueError(
+                f"Unsupported operator {operator_str}; supported operators are {[x for x in operator_map]}"
+            )
+
+    if f"{var}_mask_expr" in ds.attrs:
+        mask = ds.attrs[f"{var}_mask_expr"]
+        cond = evaluate_mask_expr(ds, mask)
+        affected = cond.sum()
+        ds[var] = ds[var].where(~cond)
+        # print(f"Evaluating '{mask}' with {v} = {ds[v]}: {result}")
+        notetxt = (
+            f"Values filled using mask of '{mask}'; {affected.values} values affected. "
+        )
+        ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 

@@ -107,6 +107,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # after check for masking vars by other vars
     for var in VEL.data_vars:
         VEL = qaqc.trim_mask(VEL, var)
+        VEL = qaqc.trim_mask_expr(VEL, var)
 
     # Add min/max values
     VEL = utils.add_min_max(VEL)
