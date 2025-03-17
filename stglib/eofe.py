@@ -564,8 +564,8 @@ def calc_cor_brange(ds):
     ds["brange"].attrs.update(
         {
             "units": "m",
-            "long_name": "sensor range to boundary",
-            "standard_name": "height_above_sea_floor",
+            "long_name": "Altimeter range to boundary",
+            "standard_name": "altimeter_range",
             "note": "Calculated using adjusted speed of sound",
         }
     )

@@ -444,7 +444,8 @@ def add_brange(ds):
         ds[brange_name].attrs.update(
             {
                 "units": "m",
-                "long_name": "Transducer distance to boundary",
+                "long_name": "Altimeter range to boundary",
+                "standard_name": "altimeter_range",
                 "frequency": freq,
                 "note": "Calculated from average of abs values in burst",
             }
