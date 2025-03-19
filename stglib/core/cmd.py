@@ -81,36 +81,8 @@ def runots_parser():
     addinst2cdf(instsp, "hdr2cdf")
     addcdf2nc(instsp)
 
-    instsp = add_instrument(subparsers, "wvs", "Aquadopp Waves")
-    addinst2cdf(instsp, "wad2cdf")
-    addcdf2nc(instsp)
-    addnc2waves(instsp)
-
     instsp = add_instrument(subparsers, "aqdwvs", "Aquadopp Waves")
     addinst2cdf(instsp, "wad2cdf")
-    addcdf2nc(instsp)
-    addnc2waves(instsp)
-
-    instsp = add_instrument(subparsers, "rbr", "RBR")
-    addinst2cdf(instsp, "csv2cdf")
-    addcdf2nc(instsp)
-    addnc2waves(instsp)
-    addnc2diwasp(instsp)
-
-    instsp = add_instrument(subparsers, "rsk", "RBR")
-    addinst2cdf(instsp, "csv2cdf")
-    addcdf2nc(instsp)
-    addnc2waves(instsp)
-    addnc2diwasp(instsp)
-
-    instsp = add_instrument(subparsers, "sig", "Nortek Signature")
-    addinst2cdf(instsp, "mat2cdf")
-    addcdf2nc(instsp)
-    addnc2waves(instsp)
-    addnc2diwasp(instsp)
-
-    instsp = add_instrument(subparsers, "vec", "Nortek Vector")
-    addinst2cdf(instsp, "dat2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
 
@@ -147,9 +119,21 @@ def runots_parser():
     addinst2cdf(instsp, "asc2cdf")
     addcdf2nc(instsp)
 
+    instsp = add_instrument(subparsers, "rbr", "RBR")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+    addnc2diwasp(instsp)
+
     instsp = add_instrument(subparsers, "rdi", "Teledyne RDI ADCP")
     addinst2cdf(instsp, "mat2cdf")
     addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "rsk", "RBR")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+    addnc2diwasp(instsp)
 
     instsp = add_instrument(subparsers, "sgtid", "Seabird Seagauge Tides")
     addinst2cdf(instsp, "tid2cdf")
@@ -159,6 +143,12 @@ def runots_parser():
     addinst2cdf(instsp, "wb2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
+
+    instsp = add_instrument(subparsers, "sig", "Nortek Signature")
+    addinst2cdf(instsp, "mat2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+    addnc2diwasp(instsp)
 
     instsp = add_instrument(subparsers, "tb", "TruBlue")
     addinst2cdf(instsp, "csv2cdf")
@@ -172,6 +162,16 @@ def runots_parser():
     instsp = add_instrument(subparsers, "troll", "AquaTROLL")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
+
+    instsp = add_instrument(subparsers, "vec", "Nortek Vector")
+    addinst2cdf(instsp, "dat2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
+
+    instsp = add_instrument(subparsers, "wvs", "Aquadopp Waves")
+    addinst2cdf(instsp, "wad2cdf")
+    addcdf2nc(instsp)
+    addnc2waves(instsp)
 
     instsp = add_instrument(subparsers, "wxt", "Vaisala WXT")
     addinst2cdf(instsp, "csv2cdf")
