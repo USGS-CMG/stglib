@@ -51,27 +51,27 @@ We have plans to support:
    atmos
    waves
    abss
+   eofe
+   glx
+   tcm
    aqd
    aqdhr
    wvs
-   rsk
    sig
    vec
-   wet
-   eofe
-   exo
-   glx
    hobo
    indexvel
+   rsk
    iq
-   lisst
    mc
-   rdi
    sgtid
    sgwvs
+   lisst
+   rdi
    tb
-   tcm
    wxt
+   wet
+   exo
    turnaround
    code
    contributing

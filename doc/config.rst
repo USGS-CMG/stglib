@@ -304,3 +304,8 @@ Geolux Wave Radar
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
 - ``wavedat_tolerance``: tolerance in seconds to fill gaps in wave data to be used for calculating wave statistics (default = '20 s').
 - ``wlfilt_tolerance``: tolerance in seconds to fill gaps in water level data to be used calculating fileterd water level ``water_level_filt`` (default = '60 s').
+
+Teledyne RDI instruments
+------------------------
+- Mostly follows the options available to the Aquadopp
+- Does not yet support waves

@@ -1,5 +1,5 @@
-Aquadopp (currents)
-*******************
+Nortek Aquadopp (currents)
+**************************
 
 First, in AquaPro, export data to text files using the default options.
 

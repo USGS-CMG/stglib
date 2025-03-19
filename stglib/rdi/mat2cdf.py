@@ -24,94 +24,106 @@ def mat_to_cdf(metadata):
     if "prefix" in ds.attrs:
         basefile = ds.attrs["prefix"] / basefile
 
-    # Log file with metadata
+    # Log file with metadata. Only one log file even if multiple exported ASCII and .mat files
     ds = read_log_file(ds, basefile.with_suffix(".log"))
 
-    # File with exported pressure data
-    sens = read_sens_file(basefile.with_suffix(".000.txt"))
-
     # Matlab file with exported velocity data (but no pressure data, which is why we need the above).
-    mat = read_mat_file(basefile.with_suffix(".000.mat"))
+    matfiles = [p for p in basefile.parent.iterdir() if p.suffix == ".mat"]
+    # mat = read_mat_file(basefile.with_suffix(".000.mat"))
+    mats = read_mat_file(matfiles)
 
-    ds["time"] = pd.to_datetime(mat["sens"]["time"], unit="s")
-    ds["time"].attrs["standard_name"] = "time"
-    ds["time"].encoding["dtype"] = "int32"
+    # File with exported pressure data
+    # sens = read_sens_file(basefile.with_suffix(".000.txt"))
+    sens = read_sens_file([Path(str(p).replace(".mat", ".txt")) for p in matfiles])
 
-    ds["bindist"] = mat["info"]["cell1"] + mat["info"]["cell"] * np.arange(
-        int(mat["info"]["ncells"])
-    )
-    ds["velbeam"] = ["E", "N", "U1", "U2"]
-    ds["beam"] = [1, 2, 3, 4]
-    ds["beam"].encoding["dtype"] = "i4"
+    dss = []
+    for mat in mats:
+        dsm = xr.Dataset()
+        dsm["time"] = pd.to_datetime(mat["sens"]["time"], unit="s")
+        dsm["time"].attrs["standard_name"] = "time"
+        dsm["time"].encoding["dtype"] = "int32"
 
-    ds["bindist"].attrs["units"] = "m"
-    ds["bindist"].attrs["long_name"] = "bin distance from instrument for slant beams"
-    ds["bindist"].attrs["epic_code"] = 0
-    ds["bindist"].attrs[
-        "NOTE"
-    ] = "distance is calculated from center of bin 1 and bin size"
+        dsm["bindist"] = mat["info"]["cell1"] + mat["info"]["cell"] * np.arange(
+            int(mat["info"]["ncells"])
+        )
+        dsm["velbeam"] = ["E", "N", "U1", "U2"]
+        dsm["beam"] = [1, 2, 3, 4]
+        dsm["beam"].encoding["dtype"] = "i4"
 
-    ds["vel"] = (["time", "bindist", "velbeam"], mat["wt"]["vel"])
+        dsm["bindist"].attrs["units"] = "m"
+        dsm["bindist"].attrs[
+            "long_name"
+        ] = "bin distance from instrument for slant beams"
+        dsm["bindist"].attrs["epic_code"] = 0
+        dsm["bindist"].attrs[
+            "NOTE"
+        ] = "distance is calculated from center of bin 1 and bin size"
+        dsm["vel"] = (["time", "bindist", "velbeam"], mat["wt"]["vel"])
 
-    for k in ["int", "corr", "pg"]:
-        ds[k] = (["time", "bindist", "beam"], mat["wt"][k])
+        for k in ["int", "corr", "pg"]:
+            dsm[k] = (["time", "bindist", "beam"], mat["wt"][k])
 
-    sensnames = {
-        "h": "Heading",
-        "p": "Pitch",
-        "r": "Roll",
-        "t": "Temperature",
-        "sos": "sv",
-        "s": "S",
-        "o": "Orient",
-        "v": "Battery",
-    }
-    for k in sensnames:
-        ds[sensnames[k]] = ("time", mat["sens"][k])
+        sensnames = {
+            "h": "Heading",
+            "p": "Pitch",
+            "r": "Roll",
+            "t": "Temperature",
+            "sos": "sv",
+            "s": "S",
+            "o": "Orient",
+            "v": "Battery",
+        }
+        for k in sensnames:
+            dsm[sensnames[k]] = ("time", mat["sens"][k])
 
-    for k in mat["info"]:
-        ds.attrs[k] = mat["info"][k]
+        for k in mat["info"]:
+            dsm.attrs[k] = mat["info"][k]
 
-    ds["Heading"].attrs["units"] = "degrees"
-    ds["Heading"].attrs["standard_name"] = "platform_orientation"
-    ds["Heading"].attrs["epic_code"] = 1215
+        dsm["Heading"].attrs["units"] = "degrees"
+        dsm["Heading"].attrs["standard_name"] = "platform_orientation"
+        dsm["Heading"].attrs["epic_code"] = 1215
 
-    ds["Pitch"].attrs["units"] = "degrees"
-    ds["Pitch"].attrs["standard_name"] = "platform_pitch"
-    ds["Pitch"].attrs["epic_code"] = 1216
+        dsm["Pitch"].attrs["units"] = "degrees"
+        dsm["Pitch"].attrs["standard_name"] = "platform_pitch"
+        dsm["Pitch"].attrs["epic_code"] = 1216
 
-    ds["Roll"].attrs["units"] = "degrees"
-    ds["Roll"].attrs["standard_name"] = "platform_roll"
-    ds["Roll"].attrs["epic_code"] = 1217
+        dsm["Roll"].attrs["units"] = "degrees"
+        dsm["Roll"].attrs["standard_name"] = "platform_roll"
+        dsm["Roll"].attrs["epic_code"] = 1217
 
-    ds["sv"].attrs["units"] = "m s-1"
-    ds["sv"].attrs["standard_name"] = "speed_of_sound_in_sea_water"
+        dsm["sv"].attrs["units"] = "m s-1"
+        dsm["sv"].attrs["standard_name"] = "speed_of_sound_in_sea_water"
 
-    ds["S"].attrs["units"] = "1"
-    ds["S"].attrs["standard_name"] = "sea_water_salinity"
-    ds["S"].attrs["epic_code"] = 40
+        dsm["S"].attrs["units"] = "1"
+        dsm["S"].attrs["standard_name"] = "sea_water_salinity"
+        dsm["S"].attrs["epic_code"] = 40
 
-    ds["Temperature"].attrs["units"] = "degree_C"
-    ds["Temperature"].attrs["long_name"] = "ADCP Transducer Temperature"
-    ds["Temperature"].attrs["epic_code"] = 1211
+        dsm["Temperature"].attrs["units"] = "degree_C"
+        dsm["Temperature"].attrs["long_name"] = "ADCP Transducer Temperature"
+        dsm["Temperature"].attrs["epic_code"] = 1211
+
+        if "vel5" in ds:  # 5-beam instrument
+            dsm["vel5"].attrs["units"] = "mm s-1"
+            dsm["vel5"].attrs["long_name"] = "Beam 5 velocity (mm s-1)"
+            dsm["vel5"].encoding["dtype"] = "i2"
+
+            dsm["cor5"].attrs["units"] = "counts"
+            dsm["cor5"].attrs["long_name"] = "Beam 5 correlation"
+            dsm["cor5"].encoding["dtype"] = "u2"
+
+            dsm["att5"].attrs["units"] = "counts"
+            dsm["att5"].attrs["long_name"] = "ADCP attenuation of beam 5"
+            dsm["att5"].encoding["dtype"] = "u2"
+        dss.append(dsm)
+
+    dsm = xr.concat(dss, dim="time", combine_attrs="no_conflicts")
+
+    ds = xr.merge([ds, dsm], combine_attrs="no_conflicts")
 
     if "Pressure" in sens:
         ds["Pressure"] = sens["Pressure"] / 10  # convert to dbar
         ds["Pressure"].attrs["units"] = "dbar"
         ds["Pressure"].attrs["standard_name"] = "sea_water_pressure"
-
-    if "vel5" in ds:  # 5-beam instrument
-        ds["vel5"].attrs["units"] = "mm s-1"
-        ds["vel5"].attrs["long_name"] = "Beam 5 velocity (mm s-1)"
-        ds["vel5"].encoding["dtype"] = "i2"
-
-        ds["cor5"].attrs["units"] = "counts"
-        ds["cor5"].attrs["long_name"] = "Beam 5 correlation"
-        ds["cor5"].encoding["dtype"] = "u2"
-
-        ds["att5"].attrs["units"] = "counts"
-        ds["att5"].attrs["long_name"] = "ADCP attenuation of beam 5"
-        ds["att5"].encoding["dtype"] = "u2"
 
     cdf_filename = Path(ds.attrs["filename"] + "-raw.cdf")
 
@@ -154,8 +166,13 @@ def read_mat_file(filnam):
     #        '   pg - percent good [%]           ',
     #        '   d - cells depths [m]            ',
     #        '   r - cells ranges [m]            '], dtype=object)
+    if not isinstance(filnam, list):
+        filnam = [filnam]
 
-    return utils.loadmat(filnam)
+    mats = []
+    for f in filnam:
+        mats.append(utils.loadmat(f))
+    return mats
 
 
 def read_log_file(ds, filnam):
@@ -192,12 +209,17 @@ def read_log_file(ds, filnam):
 
 
 def read_sens_file(filnam):
-    sens = pd.read_csv(filnam, header=0)
+    if not isinstance(filnam, list):
+        filnam = [filnam]
+    senss = []
+    for f in filnam:
+        sens = pd.read_csv(f, header=0)
 
-    # Need to be named "minute", "second" for to_datetime() to work
-    sens = sens.rename(columns={"Min": "Minute", "Sec": "Second"})
-    sens["time"] = pd.to_datetime(
-        sens[["Year", "Month", "Day", "Hour", "Minute", "Second"]]
-    )
+        # Need to be named "minute", "second" for to_datetime() to work
+        sens = sens.rename(columns={"Min": "Minute", "Sec": "Second"})
+        sens["time"] = pd.to_datetime(
+            sens[["Year", "Month", "Day", "Hour", "Minute", "Second"]]
+        )
+        senss.append(sens)
 
-    return sens.set_index("time")
+    return pd.concat(senss).set_index("time")

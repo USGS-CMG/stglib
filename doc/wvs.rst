@@ -1,5 +1,5 @@
-Aquadopp (waves)
-****************
+Nortek Aquadopp (waves)
+***********************
 
 First, export data to text format using the AquaPro software and default options.
 

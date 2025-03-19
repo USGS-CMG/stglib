@@ -1,5 +1,5 @@
-Aquadopp HR
-***********
+Nortek Aquadopp HR
+******************
 
 **Aquadopp HR mode data has only seen limited testing. Contributions welcome.**
 

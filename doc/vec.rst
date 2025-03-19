@@ -1,5 +1,5 @@
-Vector
-******
+Nortek Vector
+*************
 
 Instrument orientation
 ======================

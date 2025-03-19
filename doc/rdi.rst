@@ -46,6 +46,8 @@ Use :doc:`runots.py </runots>` to process using the two :doc:`configuration file
 
 For basefile, in the above example, you would use PCT20000.
 
+Velocity will split files at 25,000 ensembles, so you may end up with multiple files. As long as they all have the same base filename (e.g., PCT20000.000.mat, PCT20000.001.mat, PCT20000.000.txt, PCT20000.001.txt), stglib can handle these files. 
+
 
 
 Sentinel V instruments

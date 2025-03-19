@@ -1,5 +1,5 @@
-Signature
-*********
+Nortek Signature
+****************
 
 **NOTE: this code works with up- or down-looking Signature data collected in 'beam', 'XYZ' or 'earth'.
 It supports data types Burst, IBurst, Echo1, BurstHR, IBurstHR, Average. It also supports Altimeter and AHRS (Advanced Heading Reference System) data that are included when present with supported data types. Presently it does not yet support data type BottomTrack, but it can be added in the future as needed.**
