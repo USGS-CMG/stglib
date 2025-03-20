@@ -54,18 +54,12 @@ We have plans to support:
    eofe
    glx
    tcm
-   aqd
-   aqdhr
-   wvs
-   sig
-   vec
+   nortek
    hobo
    indexvel
    rsk
    iq
-   mc
-   sgtid
-   sgwvs
+   sbe
    lisst
    rdi
    tb
