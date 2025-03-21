@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -20,6 +22,8 @@ def csv_to_cdf(metadata):
     del metadata
 
     ds = utils.ensure_cf(ds)
+
+    ds = read_lop(ds, basefile + ".lop")
 
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
@@ -74,7 +78,11 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     if "sample" in ds:
         print("Writing burst-averaged data to .nc file")
         nc_filename = ds.attrs["filename"] + "-a.nc"
-        ds.mean(dim="sample").to_netcdf(
+        dsm = ds.mean(dim="sample", keep_attrs=True)
+        # need to recompute min/max on averaged values
+        dsm = utils.add_min_max(dsm, exclude_vars=["RSlower", "RSmedian", "RSupper"])
+
+        dsm.to_netcdf(
             nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
         )
         utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
@@ -469,5 +477,22 @@ def check_and_reshape_burst(ds):
 
     else:
         print("No operating_mode attr found; assuming fixed sample rate")
+
+    return ds
+
+
+def read_lop(ds, filnam):
+    try:
+        with open(filnam) as lop:
+            for line in lop:
+                ll = line.strip().split(":")
+                if len(ll) > 1:
+                    key = ll[0].replace(" ", "")
+                    value = ll[1]
+                    ds.attrs[f"LISST{key}"] = value
+    except FileNotFoundError:
+        warnings.warn(
+            "No .lop file found; not including any metadata that would be in that file"
+        )
 
     return ds
