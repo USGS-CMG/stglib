@@ -7,7 +7,7 @@ from .core import qaqc, utils
 
 def csv_to_cdf(metadata):
     """
-    Process Aqua TROLL .csv file to a raw .cdf file
+    Process LISST .csv file to a raw .cdf file
     """
 
     basefile = metadata["basefile"]
@@ -60,13 +60,25 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
-    nc_filename = ds.attrs["filename"] + "-a.nc"
+    if "sample" in ds:
+        nc_filename = ds.attrs["filename"] + "b-cal.nc"
+    else:
+        nc_filename = ds.attrs["filename"] + "-a.nc"
 
     ds.to_netcdf(
         nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
     )
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
     print("Done writing netCDF file", nc_filename)
+
+    if "sample" in ds:
+        print("Writing burst-averaged data to .nc file")
+        nc_filename = ds.attrs["filename"] + "-a.nc"
+        ds.mean(dim="sample").to_netcdf(
+            nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+        )
+        utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+        print("Done writing netCDF file", nc_filename)
 
 
 def read_lisst(f):
