@@ -429,7 +429,7 @@ def ds_add_attrs(ds):
         )
 
     """
-    # add initial height information and fill values to variabels
+    # add initial height information and fill values to variables
 
     def add_attributes(var, dsattrs):
         if "ea" in dsattrs["instrument_type"]:
@@ -486,7 +486,7 @@ def calc_bin_height(ds):
     )
 
     print(
-        "Calculating center of bin height from seafloor as: initial intrument height +/- bin(center) distance from transducer"
+        "Calculating center of bin height from seafloor as: initial instrument height +/- bin(center) distance from transducer"
     )
 
     if ds.attrs["orientation"].upper() == "DOWN":

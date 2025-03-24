@@ -255,7 +255,7 @@ def load_dat(basefile, metadata, dsvhd):
         index = np.where(sample == -65535)[0]
         index = np.append(index, [0])
         sample[index] = 1
-        # next take cummlative sum so that ensemble/sample numbers are continous and will include possible sample jumps
+        # next take cumulative sum so that ensemble/sample numbers are continuous and will include possible sample jumps
         sample = (sample.cumsum()) - 1
         # Use ensemble number (sample number) and frequency so time increases correctly throughout the dataset
         array = pd.to_datetime(array)
@@ -354,7 +354,7 @@ def read_vec_hdr(basefile):
                 Instmeta["VECComments"] = row[38:]
                 # There may be up to three lines of comments, but only if they were added during deployment.
                 # These extra lines will be preceded by blanks instead of a field name.
-                # After the comments lines are the System lines, which we currenty don't handle,
+                # After the comments lines are the System lines, which we currently don't handle,
                 # so we can read the next lines and add to Comments if present.
                 # Example showing a two-line comment followed by System1 field:
                 # Comments                              SP 15916 30 cmab

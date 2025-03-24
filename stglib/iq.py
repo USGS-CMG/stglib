@@ -510,7 +510,7 @@ def vel_to_ms(ds):
 
 def create_iqbindepth(ds):
     """
-    Generate bin depths reltive to pressure.
+    Generate bin depths relative to pressure.
     """
 
     # aqdutils.atmos_correct outputs var as Pressure_ac, this is renamed to P_1ac later in code
@@ -525,7 +525,7 @@ def create_iqbindepth(ds):
         elif ds.attrs["orientation"].upper() == "DOWN":
             ds[f"Profile_{bm}_bindepth"] = ds[pres] + ds[f"Profile_{bm}_bindist"]
         else:
-            print("Could not create z for bins, specifiy orientation")
+            print("Could not create z for bins, specify orientation")
         ds[f"Profile_{bm}_bindepth"].attrs.update(
             {
                 "units": "m",
@@ -576,7 +576,7 @@ def create_iqz(ds):
                     )
 
             else:
-                print("Could not create z for bins, specifiy orientation")
+                print("Could not create z for bins, specify orientation")
 
         else:
             print(
@@ -911,7 +911,7 @@ def ds_add_attrs(ds):
         }
     )
 
-    d3_note = "Calculated using vertical beam if VbPercentGood is greater than 30% and measured using pressure sesnor if VbPercentGood is less than 30%. Relative to the top of the instrument. See Sontek-IQ Series instrument manual for deatils."
+    d3_note = "Calculated using vertical beam if VbPercentGood is greater than 30% and measured using pressure sensor if VbPercentGood is less than 30%. Relative to the top of the instrument. See Sontek-IQ Series instrument manual for details."
     if "note" in ds["D_3"].attrs:
         ds["D_3"].attrs["note"] = ds["D_3"].attrs["note"] + d3_note
     else:

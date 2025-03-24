@@ -29,11 +29,11 @@ def butter_filt(sig, sr, cutfreq, ftype, ford=4):
 
 def make_butter_filt(ds, var, sr, cutfreq, ftype):
     """
-    Create smoothed data using specified butterworth filter type, order, and cutoff for user specified varaibles
+    Create smoothed data using specified butterworth filter type, order, and cutoff for user specified variables
 
     Parameters
     ----------
-        ds - xarray dataset that contains user specified varaible
+        ds - xarray dataset that contains user specified variable
         var - user specified variable
         sr - sample rate of data (hertz)
         cutfreq - cutoff frequency(s) for filter (hertz)

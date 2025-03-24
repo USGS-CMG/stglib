@@ -463,7 +463,7 @@ def make_waves_ds_elev(ds):
         ds[var].squeeze(), fs=1 / ds.attrs["sample_interval"], nperseg=nperseg
     )
 
-    # trim frequecies
+    # trim frequencies
     nyfreq = float(ds.attrs["sample_rate"]) / 2
 
     # set minimum frequency so that 32 complete intervals are contained in the wave burst
@@ -565,7 +565,7 @@ def transfer_function(k, h, z):
     Returns
     -------
     Kp : float
-        Presssure transfer function
+        Pressure transfer function
     """
     if isinstance(h, float) or h.ndim == 0:
         Kp = np.cosh(k * z) / np.cosh(k * h)

@@ -216,7 +216,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     end_time = time.time()
     print(
-        f"Proceesing cdf2nc for Signature data type {ds.attrs['data_type']} in deployment {ds.attrs['filename']} completed"
+        f"Processing cdf2nc for Signature data type {ds.attrs['data_type']} in deployment {ds.attrs['filename']} completed"
     )
     print(f"elapsed time = {end_time-start_time:.1f} seconds")
 

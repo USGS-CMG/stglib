@@ -22,7 +22,7 @@ To get to the final .nc file, the user would then run ``runots.py aqd cdf2nc raw
 
 To get final wave-statistics .nc files for supported instruments, the user has 2 potential options ``nc2waves`` and ``nc2diwasp`` with a clean .nc file of continuous or burst data as a positional argument
 
-To find out what options are available for a specfic instrument the user can run ``runots.py <insert instrument code> -h``
+To find out what options are available for a specific instrument the user can run ``runots.py <insert instrument code> -h``
    
 
 runots.py

@@ -661,7 +661,7 @@ def read_aqd_hdr(basefile):
             Instmeta[f"AQD{shim}Comments"] = row[38:]
             # There may be up to three lines of comments, but only if they were added during deployment.
             # These extra lines will be preceded by blanks instead of a field name.
-            # After the comments lines are the System lines, which we currenty don't handle,
+            # After the comments lines are the System lines, which we currently don't handle,
             # so we can read the next lines and add to Comments if present.
             # Example showing a two-line comment followed by System1 field:
             # Comments                              SP 15916 30 cmab
@@ -1506,7 +1506,7 @@ def fill_agc(ds):
     Average AGC (AGC_1202) is used to fill transformed eastward, northward, and upward velocities (u_1205, v_1206, w_1204).
     """
 
-    # lsit velocities to fill by agc threshold(s)
+    # list velocities to fill by agc threshold(s)
     uvw = ["u_1205", "v_1206", "w_1204"]
 
     if "velocity_agc_min" in ds.attrs:
@@ -1615,7 +1615,7 @@ def ds_swap_dims(ds):
             ds[vdim].attrs["axis"] = "Z"
             del ds["z"].attrs["axis"]
 
-    else:  # set vert dim to z if not specifed
+    else:  # set vert dim to z if not specified
         attrsbak = ds["z"].attrs
         for v in ds.data_vars:
             if "bins" in ds[v].coords:

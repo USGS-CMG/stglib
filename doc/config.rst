@@ -97,16 +97,16 @@ Options for wave processing using pyDIWASP:
 - ``diwasp_method``: estimator method used by pyDIWASP (options (available now): 'IMLM' (default) or 'DFTM')
 - ``diwasp_nfft``: length of FFTs used to calculate spectra (default = 256)
 - ``diwasp_nsegs``: number of segments to use to window input data for spectral analysis (default = 16)
-- ``diwasp_dres``: number (interger) of directions used for directional spectra (default = 180)
-- ``diwasp_dunit``: specifiy directional uints for directional wave spectra (options: 'naut' (default), 'cart', 'rad')
+- ``diwasp_dres``: number (integer) of directions used for directional spectra (default = 180)
+- ``diwasp_dunit``: specify directional units for directional wave spectra (options: 'naut' (default), 'cart', 'rad')
 - ``diwasp_xdir``: The compass direction of the x-axis from which directions are measured (default = 90)
 - ``diwasp_iter``: iteration limit (default = 50)
-- ``diwasp_smooth``: smooth directional spectra usign pyDIWASP smoothing option (default = 'ON')
+- ``diwasp_smooth``: smooth directional spectra using pyDIWASP smoothing option (default = 'ON')
 - ``diwasp_ibin``: velocity bin number (0 = 1st bin) to use for directional wave processing (default = 0)
 - ``diwasp_nsamps``: user specified number of samples to use in processing for each wave burst (optional)
 - ``diwasp_pow2``: if set to 'true' use next lowest power of 2 of samples for processing each wave burst (default = 'false')
 
-Refer to DIWASP orginal documentation for addition information: “DIWASP, a directional wave spectra toolbox for MATLAB®: User Manual. Research Report WP-1601-DJ (V1.4), Centre for Water Research, University of Western Australia.”
+Refer to DIWASP original documentation for addition information: “DIWASP, a directional wave spectra toolbox for MATLAB®: User Manual. Research Report WP-1601-DJ (V1.4), Centre for Water Research, University of Western Australia.”
 
 Aquadopp
 --------

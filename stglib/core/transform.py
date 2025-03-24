@@ -29,7 +29,7 @@ def coord_transform(ds, out="enu"):
 
     elif cs.lower() == "xyz" and out.lower() == "enu":
 
-        # need to create orienation matrix using heading, pitch, and roll
+        # need to create orientation matrix using heading, pitch, and roll
         orientmat = create_orientmat(ds)
 
         u, v, w = vec_xyz_to_enu(ds.VEL1, ds.VEL2, ds.VEL3, orientmat)
@@ -47,7 +47,7 @@ def coord_transform(ds, out="enu"):
         ds["Y"] = xr.DataArray(y, dims=("time"))
         ds["Z"] = xr.DataArray(z, dims=("time"))
 
-        # need to create orienation matrix using heading, pitch, and roll
+        # need to create orientation matrix using heading, pitch, and roll
         orientmat = create_orientmat(ds)
 
         # now transform to enu
@@ -63,7 +63,7 @@ def coord_transform(ds, out="enu"):
     # reverse transformation enu to xyz
     elif cs.lower() == "enu" and out.lower() == "xyz":
 
-        # need to create orienation matrix using heading, pitch, and roll
+        # need to create orientation matrix using heading, pitch, and roll
         orientmat = create_orientmat(ds)
 
         # need to transpose orientation matrix for reverse transformation
@@ -79,7 +79,7 @@ def coord_transform(ds, out="enu"):
     # reverse transformation enu to beam
     elif cs.lower() == "enu" and out.lower() == "beam":
 
-        # need to create orienation matrix using heading, pitch, and roll
+        # need to create orientation matrix using heading, pitch, and roll
         orientmat = create_orientmat(ds)
 
         # need to transpose orientation matrix for reverse transformation

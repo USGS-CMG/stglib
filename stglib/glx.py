@@ -388,10 +388,10 @@ def fill_time_gaps(ds):
 
 
 def create_filtered_water_level(ds):
-    """Create filetered water level, fill missing water level values temporarily to generate filter water level if largest gaps are less than tolerance"""
+    """Create filtered water level, fill missing water level values temporarily to generate filter water level if largest gaps are less than tolerance"""
 
     print("Add filtered water level variable")
-    # Nans in water level variable, to calculate filetered water level need to try to fill Nans if gaps aren't too big
+    # Nans in water level variable, to calculate filtered water level need to try to fill Nans if gaps aren't too big
     nnans = ds["water_level"].isnull().sum().values
 
     # set tolerance for filling gaps in water level data for calculating filtered water level
