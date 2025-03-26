@@ -62,7 +62,9 @@ def log_to_cdf(metadata):
 
     ds["time"] = ds["time"].astype("datetime64[s]")
     ds.to_netcdf(
-        cdf_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+        cdf_filename,
+        unlimited_dims=["time"],
+        encoding={"time": {"dtype": "i4"}, "sample": {"dtype": "i4"}},
     )
 
     print("Finished writing data to %s" % cdf_filename)
@@ -140,7 +142,9 @@ def cdf_to_nc(cdf_filename):
     nc_filename = ds.attrs["filename"] + "b-cal.nc"
 
     ds.to_netcdf(
-        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+        nc_filename,
+        unlimited_dims=["time"],
+        encoding={"time": {"dtype": "i4"}, "sample": {"dtype": "i4"}},
     )
 
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
