@@ -212,6 +212,7 @@ Sequoia Scientific LISST
 ------------------------
 
 - ``operating_mode``: set to ``burst`` if instrument was deployed in burst mode
+- ``basefile_lop``: filename, without extension, of .lop metadata file (if present)
 
 Sontek IQ
 ---------

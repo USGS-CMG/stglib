@@ -23,7 +23,7 @@ def csv_to_cdf(metadata):
 
     ds = utils.ensure_cf(ds)
 
-    ds = read_lop(ds, basefile + ".lop")
+    ds = read_lop(ds)
 
     cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
@@ -481,18 +481,20 @@ def check_and_reshape_burst(ds):
     return ds
 
 
-def read_lop(ds, filnam):
-    try:
-        with open(filnam) as lop:
-            for line in lop:
-                ll = line.strip().split(":")
-                if len(ll) > 1:
-                    key = ll[0].replace(" ", "")
-                    value = ll[1]
-                    ds.attrs[f"LISST{key}"] = value
-    except FileNotFoundError:
+def read_lop(ds):
+
+    if "basefile_lop" not in ds.attrs:
         warnings.warn(
-            "No .lop file found; not including any metadata that would be in that file"
+            "No .lop file specified; not including any metadata that would be in that file"
         )
+        return ds
+
+    with open(ds.attrs["basefile_lop"] + ".lop") as lop:
+        for line in lop:
+            ll = line.split(":", maxsplit=1)
+            if len(ll) > 1:
+                key = ll[0].replace(" ", "")
+                value = ll[1].strip()
+                ds.attrs[f"LISST{key}"] = value
 
     return ds
