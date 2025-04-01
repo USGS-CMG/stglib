@@ -373,6 +373,9 @@ def load_mat_file(filnam):
             else:
                 ds_dict[ds].attrs["sample_mode"] = "BURST"
 
+        elif ds == "dsa" or ds == "dsalt":
+            ds_dict[ds].attrs["sample_mode"] = "AVERAGE"
+
         read_config_mat(mat, ds_dict[ds])
 
     for ds in ds_dict:
@@ -486,7 +489,7 @@ def mat_to_cdf(metadata):
 
     for k in dsd:
         # dsb = dsd["dsb"]
-        fin = outdir + f"*-{dsd[k].attrs['data_type']}-*.cdf"
+        fin = outdir + ds.attrs["filename"] + f"-{dsd[k].attrs['data_type']}-*.cdf"
         print(k)
         print(fin)
         try:

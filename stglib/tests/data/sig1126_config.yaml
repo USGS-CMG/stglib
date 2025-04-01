@@ -26,3 +26,7 @@ diwasp_smooth: 'ON'
 diwasp_ibin: 3
 diwasp_pow2: 'true'
 puv: 'true'
+average_interval: 360
+average_duration: 120
+P_1ac_note: 'Corrected for variations in atmospheric pressure using MesoWest Station FW7612 Dennis.'
+trim_avg_vel_bins: 1

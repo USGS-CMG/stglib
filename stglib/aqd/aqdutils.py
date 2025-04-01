@@ -377,6 +377,8 @@ def magvar_correct(ds):
         ds[headvar] = ds[headvar] + magvardeg
         ds[headvar] = ds[headvar] % 360
 
+        uvar = None
+        vvar = None
         if "U" in ds and "V" in ds:
             uvar = "U"
             vvar = "V"
@@ -387,7 +389,8 @@ def magvar_correct(ds):
             uvar = "E"
             vvar = "N"
 
-        ds[uvar], ds[vvar] = rotate(ds[uvar], ds[vvar], magvardeg)
+        if uvar is not None and vvar is not None:
+            ds[uvar], ds[vvar] = rotate(ds[uvar], ds[vvar], magvardeg)
 
     return ds
 
@@ -418,85 +421,210 @@ def trim_vel(ds, waves=False, data_vars=["U", "V", "W", "AGC"]):
         Dataset with trimmed data
     """
 
-    if (
-        "trim_method" in ds.attrs
-        and ds.attrs["trim_method"].lower() != "none"
-        and ds.attrs["trim_method"] is not None
-    ):
-        if "Pressure_ac" in ds:
-            P = ds["Pressure_ac"]
-            Ptxt = "atmospherically corrected"
-        elif "P_1ac" in ds:
-            P = ds["P_1ac"]
-            Ptxt = "atmospherically corrected"
-        elif "Pressure" in ds:
-            # FIXME incorporate press_ ac below
-            P = ds["Pressure"]
-            Ptxt = "NON-atmospherically corrected"
-        elif "P_1" in ds:
-            P = ds["P_1"]
-            Ptxt = "NON-atmospherically corrected"
+    if ds.attrs["orientation"].upper() == "UP":
 
-        if ds.attrs["trim_method"].lower() == "water level":
-            for var in data_vars:
-                ds[var] = ds[var].where(ds["bindist"] < P)
+        if (
+            "trim_method" in ds.attrs
+            and ds.attrs["trim_method"].lower() != "none"
+            and ds.attrs["trim_method"] is not None
+        ):
+            if "Pressure_ac" in ds:
+                P = ds["Pressure_ac"]
+                Ptxt = "atmospherically corrected"
+            elif "P_1ac" in ds:
+                P = ds["P_1ac"]
+                Ptxt = "atmospherically corrected"
+            elif "Pressure" in ds:
+                # FIXME incorporate press_ ac below
+                P = ds["Pressure"]
+                Ptxt = "NON-atmospherically corrected"
+            elif "P_1" in ds:
+                P = ds["P_1"]
+                Ptxt = "NON-atmospherically corrected"
 
-            histtext = "Trimmed velocity data using {} pressure (water level).".format(
-                Ptxt
+            if ds.attrs["trim_method"].lower() == "water level":
+                for var in data_vars:
+                    ds[var] = ds[var].where(ds["bindist"] < P)
+
+                histtext = (
+                    "Trimmed velocity data using {} pressure (water level).".format(
+                        Ptxt
+                    )
+                )
+
+                ds = utils.insert_history(ds, histtext)
+
+            elif ds.attrs["trim_method"].lower() == "water level sl":
+                if "trim_surf_bins" in ds.attrs:
+                    surf_bins = ds.attrs["trim_surf_bins"]
+                    histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes (with {} additional surface bins removed).".format(
+                        Ptxt, surf_bins
+                    )
+                else:
+                    surf_bins = 0
+                    histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
+                        Ptxt
+                    )
+
+                for var in data_vars:
+                    ds[var] = ds[var].where(
+                        ds["bindist"]
+                        < (P * np.cos(np.deg2rad(ds.attrs["beam_angle"])))
+                        - (ds.attrs["bin_size"] * surf_bins)
+                    )
+
+                ds = utils.insert_history(ds, histtext)
+
+            elif ds.attrs["trim_method"].lower() == "bin range":
+                for var in data_vars:
+                    ds[var] = ds[var].isel(
+                        bindist=slice(
+                            ds.attrs["good_bins"][0], ds.attrs["good_bins"][1]
+                        )
+                    )
+
+                histtext = "Trimmed velocity data using using good_bins of {}.".format(
+                    ds.attrs["good_bins"]
+                )
+
+                ds = utils.insert_history(ds, histtext)
+
+            # find first bin that is all bad values
+            lastbin = (
+                ds[data_vars[0]].isnull().all(dim="time").argmax(dim="bindist").values
             )
 
-            ds = utils.insert_history(ds, histtext)
+            if not lastbin == 0:
+                # this trims so there are no all-nan rows in the data
+                isel = {}
+                for v in ["bindist", "depth", "z"]:
+                    if v in ds:
+                        isel[v] = slice(0, lastbin)
 
-        elif ds.attrs["trim_method"].lower() == "water level sl":
-            if "trim_surf_bins" in ds.attrs:
-                surf_bins = ds.attrs["trim_surf_bins"]
-                histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes (with {} additional surface bins removed).".format(
-                    Ptxt, surf_bins
+                ds = ds.isel(isel)
+
+            # TODO: need to add histcomment
+
+            # TODO: add other trim methods
+        else:
+            print("Did not trim velocity data")
+
+    elif ds.attrs["orientation"].upper() == "DOWN":
+
+        if (
+            "trim_method" in ds.attrs
+            and ds.attrs["trim_method"].lower() != "none"
+            and ds.attrs["trim_method"] is not None
+        ):
+            if "brange" in ds:
+                R = ds["brange"]
+                Rtxt = "distance to boundary from brange data"
+            elif "brange_file" in ds.attrs:
+                dsR = xr.open_dataset(ds.attrs["brange_file"], chunks={"time": 300000})
+                R = dsR["brange"]
+                tstep = (dsR["time"][1] - dsR["time"][0]).values / np.timedelta64(
+                    1, "s"
                 )
-            else:
-                surf_bins = 0
-                histtext = "Trimmed velocity data using {} pressure (water level) and sidelobes.".format(
-                    Ptxt
+                R = R.reindex_like(ds, method="nearest", tolerance=f"{int(tstep)} s")
+                Rtxt = (
+                    f"distance to boundary from brange file {ds.attrs['brange_file']}"
                 )
 
-            for var in data_vars:
-                ds[var] = ds[var].where(
-                    ds["bindist"]
-                    < (P * np.cos(np.deg2rad(ds.attrs["beam_angle"])))
-                    - (ds.attrs["bin_size"] * surf_bins)
+            if ds.attrs["trim_method"].lower() == "brange":
+                for var in data_vars:
+                    ds[var] = ds[var].where(ds["bindist"] < R)
+
+                histtext = "Trimmed velocity data using {}.".format(Rtxt)
+
+                ds = utils.insert_history(ds, histtext)
+
+            elif ds.attrs["trim_method"].lower() == "brange sl":
+                if "trim_bottom_bins" in ds.attrs:
+                    bot_bins = ds.attrs["trim_bottom_bins"]
+                    histtext = "Trimmed velocity data using {} and sidelobes (with {} additional bottom bins removed).".format(
+                        Rtxt, bot_bins
+                    )
+                else:
+                    bot_bins = 0
+                    histtext = "Trimmed velocity data using {} and sidelobes.".format(
+                        Rtxt
+                    )
+
+                for var in data_vars:
+                    ds[var] = ds[var].where(
+                        ds["bindist"]
+                        < (R * np.cos(np.deg2rad(ds.attrs["beam_angle"])))
+                        - (ds.attrs["bin_size"] * bot_bins)
+                    )
+
+                ds = utils.insert_history(ds, histtext)
+
+            elif ds.attrs["trim_method"].lower() == "inst_ht":
+                inst_ht = ds.attrs["initial_instrument_height"]
+                IHtxt = "initial instrument height"
+                for var in data_vars:
+                    ds[var] = ds[var].where(ds["bindist"] < inst_ht)
+
+                histtext = "Trimmed velocity data using {}.".format(IHtxt)
+
+                ds = utils.insert_history(ds, histtext)
+
+            elif ds.attrs["trim_method"].lower() == "inst_ht sl":
+                inst_ht = ds.attrs["initial_instrument_height"]
+                IHtxt = "initial instrument height"
+                if "trim_bottom_bins" in ds.attrs:
+                    bot_bins = ds.attrs["trim_bottom_bins"]
+                    histtext = "Trimmed velocity data using {} and sidelobes (with {} additional bottom bins removed).".format(
+                        IHtxt, bot_bins
+                    )
+                else:
+                    bot_bins = 0
+                    histtext = "Trimmed velocity data using {} and sidelobes.".format(
+                        IHtxt
+                    )
+
+                for var in data_vars:
+                    ds[var] = ds[var].where(
+                        ds["bindist"]
+                        < (inst_ht * np.cos(np.deg2rad(ds.attrs["beam_angle"])))
+                        - (ds.attrs["bin_size"] * bot_bins)
+                    )
+
+                ds = utils.insert_history(ds, histtext)
+
+            elif ds.attrs["trim_method"].lower() == "bin range":
+                for var in data_vars:
+                    ds[var] = ds[var].isel(
+                        bindist=slice(
+                            ds.attrs["good_bins"][0], ds.attrs["good_bins"][1]
+                        )
+                    )
+
+                histtext = "Trimmed velocity data using using good_bins of {}.".format(
+                    ds.attrs["good_bins"]
                 )
 
-            ds = utils.insert_history(ds, histtext)
+                ds = utils.insert_history(ds, histtext)
 
-        elif ds.attrs["trim_method"].lower() == "bin range":
-            for var in data_vars:
-                ds[var] = ds[var].isel(
-                    bindist=slice(ds.attrs["good_bins"][0], ds.attrs["good_bins"][1])
-                )
-
-            histtext = "Trimmed velocity data using using good_bins of {}.".format(
-                ds.attrs["good_bins"]
+            # find first bin that is all bad values
+            lastbin = (
+                ds[data_vars[0]].isnull().all(dim="time").argmax(dim="bindist").values
             )
 
-            ds = utils.insert_history(ds, histtext)
+            if not lastbin == 0:
+                # this trims so there are no all-nan rows in the data
+                isel = {}
+                for v in ["bindist", "depth", "z"]:
+                    if v in ds:
+                        isel[v] = slice(0, lastbin)
 
-        # find first bin that is all bad values
-        lastbin = ds[data_vars[0]].isnull().all(dim="time").argmax(dim="bindist").values
+                ds = ds.isel(isel)
 
-        if not lastbin == 0:
-            # this trims so there are no all-nan rows in the data
-            isel = {}
-            for v in ["bindist", "depth", "z"]:
-                if v in ds:
-                    isel[v] = slice(0, lastbin)
+            # TODO: need to add histcomment
 
-            ds = ds.isel(isel)
-
-        # TODO: need to add histcomment
-
-        # TODO: add other trim methods
-    else:
-        print("Did not trim velocity data")
+            # TODO: add other trim methods
+        else:
+            print("Did not trim velocity data")
 
     return ds
 
@@ -843,7 +971,7 @@ def check_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ):
             ds.attrs["bin_size"] = ds.attrs["SIGBurstHR_CellSize"]
             ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
-        elif ds.attrs["data_type"].upper() == "ECHO1":
+        elif ds.attrs["data_type"].upper() == "ECHOSOUNDER":
             ds.attrs["bin_size"] = ds.attrs["SIGEchoSounder_CellSize"]
             ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
         elif ds.attrs["data_type"].upper() == "AVERAGE":
@@ -1260,14 +1388,6 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
-    if "cor_avg" in ds:
-        ds["cor_avg"].attrs.update(
-            {
-                "units": "percent",
-                "long_name": "Average Beam Correlation",
-            }
-        )
-
     if "P_1" in ds:
         ds["P_1"].attrs.update(
             {
@@ -1396,7 +1516,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
-    if "bindist" in ds:
+    if "bindist" in ds and "blanking_distance" not in ds["bindist"].attrs:
         if inst_type == "AQD" and not hr:
             blanking_distance = ds.attrs["AQDBlankingDistance"]
         elif inst_type == "AQD" and hr:
@@ -1506,30 +1626,32 @@ def fill_agc(ds):
     Average AGC (AGC_1202) is used to fill transformed eastward, northward, and upward velocities (u_1205, v_1206, w_1204).
     """
 
-    # list velocities to fill by agc threshold(s)
-    uvw = ["u_1205", "v_1206", "w_1204"]
+    # lsit velocities to fill by cor threshold(s)
+    uvw = ["u_1205", "v_1206", "w_1204", "w2_1204", "vel_b5"]
 
     if "velocity_agc_min" in ds.attrs:
         for var in uvw:
-            ds[var] = ds[var].where(ds["AGC_1202"] > ds.attrs["velocity_agc_min"])
-            notetxt = "Velocity data filled using AGC_1202 minimum threshold of {} counts.".format(
-                ds.attrs["velocity_agc_min"]
-            )
+            if var in ds.data_vars:
+                ds[var] = ds[var].where(ds["AGC_1202"] > ds.attrs["velocity_agc_min"])
+                notetxt = "Velocity data filled using AGC_1202 minimum threshold of {} counts.".format(
+                    ds.attrs["velocity_agc_min"]
+                )
 
-            ds = utils.insert_note(ds, var, notetxt)
+                ds = utils.insert_note(ds, var, notetxt)
 
-            ds = utils.insert_history(ds, notetxt)
+        ds = utils.insert_history(ds, notetxt)
 
     if "velocity_agc_max" in ds.attrs:
         for var in uvw:
-            ds[var] = ds[var].where(ds["AGC_1202"] < ds.attrs["velocity_agc_max"])
-            notetxt = "Velocity data filled using AGC_1202 maximum threshold of {} counts.".format(
-                ds.attrs["velocity_agc_max"]
-            )
+            if var in ds.data_vars:
+                ds[var] = ds[var].where(ds["AGC_1202"] < ds.attrs["velocity_agc_max"])
+                notetxt = "Velocity data filled using AGC_1202 maximum threshold of {} counts.".format(
+                    ds.attrs["velocity_agc_max"]
+                )
 
-            ds = utils.insert_note(ds, var, notetxt)
+                ds = utils.insert_note(ds, var, notetxt)
 
-            ds = utils.insert_history(ds, notetxt)
+        ds = utils.insert_history(ds, notetxt)
 
     return ds
 
@@ -1542,29 +1664,44 @@ def fill_cor(ds):
     """
 
     # list velocities to fill by agc threshold(s)
-    uvw = ["u_1205", "v_1206", "w_1204"]
-
+    uvw = ["u_1205", "v_1206", "w_1204", "w2_1204", "vel_b5"]
+    notetxt = None
+    cor_var = None
     if "velocity_cor_min" in ds.attrs:
         for var in uvw:
-            ds[var] = ds[var].where(ds["cor_avg"] > ds.attrs["velocity_cor_min"])
-            notetxt = "Velocity data filled using average correlation minimum threshold of {} percent.".format(
-                ds.attrs["velocity_cor_min"]
-            )
+            if var == "vel_b5":
+                cor_var = "cor_b5"
+            else:
+                cor_var = "cor_avg"
+            if var in ds.data_vars:
+                ds[var] = ds[var].where(ds[cor_var] > ds.attrs["velocity_cor_min"])
+                notetxt = "Velocity data filled using average correlation minimum threshold of {} percent.".format(
+                    ds.attrs["velocity_cor_min"]
+                )
 
-            ds = utils.insert_note(ds, var, notetxt)
+                ds = utils.insert_note(ds, var, notetxt)
 
+        if notetxt is not None:
             ds = utils.insert_history(ds, notetxt)
 
+    notetxt = None
+    cor_var = None
     if "agc_cor_min" in ds.attrs:
-        var = "AGC_1202"
-        ds[var] = ds[var].where(ds["cor_avg"] > ds.attrs["agc_cor_min"])
-        notetxt = " data filled using average correlation minimum threshold of {} percent.".format(
-            ds.attrs["agc_cor_min"]
-        )
+        vars = ["AGC_1202", "amp_avg", "amp_b5"]
+        for var in vars:
+            if var == "amp_b5":
+                cor_var = "cor_b5"
+            else:
+                cor_var = "cor_avg"
+            if var in ds.data_vars:
+                ds[var] = ds[var].where(ds[cor_var] > ds.attrs["agc_cor_min"])
+                notetxt = " Echo data filled using average correlation minimum threshold of {} percent.".format(
+                    ds.attrs["agc_cor_min"]
+                )
 
-        ds = utils.insert_note(ds, var, notetxt)
-
-        ds = utils.insert_history(ds, notetxt)
+                ds = utils.insert_note(ds, var, notetxt)
+        if notetxt is not None:
+            ds = utils.insert_history(ds, notetxt)
 
     return ds
 

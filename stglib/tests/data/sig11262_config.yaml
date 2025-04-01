@@ -9,17 +9,10 @@ initial_instrument_height: 1.56  # meters
 initial_instrument_height_note: 'From seabed'
 zeroed_pressure: 'Yes' # was pressure zeroed before deployment
 trim_method: 'water level sl'  # Water Level SL trims bin if any part of bin or side lobe is out of water - works best when pressure is corrected for atmospheric
-#P_1ac_note: 'Corrected for variations in atmospheric pressure using MesoWest Station FW0901 Wellfleet.'
-#u_1205_bad_ens: [2019-01-22 09:01, 2019-01-22 13:16, 2019-01-22 21:45, 2019-01-23 02:16,2019-01-23 09:16, 2019-01-23 13:31,2019-02-01 09:01, 2019-02-01 18:16, 2019-02-02 21:31, 2019-02-02 22:16, 2019-02-03 08:01, 2019-02-03 10:46, 2019-02-03 20:01, 2019-02-04 00:31]
-#v_1206_bad_ens: [2019-01-22 09:01, 2019-01-22 13:16, 2019-01-22 21:45, 2019-01-23 02:16,2019-01-23 09:16, 2019-01-23 13:31,2019-02-01 09:01, 2019-02-01 18:16, 2019-02-02 21:31, 2019-02-02 22:16, 2019-02-03 08:01, 2019-02-03 10:46, 2019-02-03 20:01, 2019-02-04 00:31]
-#w_1204_bad_ens: [2019-01-22 09:01, 2019-01-22 13:16, 2019-01-22 21:45, 2019-01-23 02:16,2019-01-23 09:16, 2019-01-23 13:31,2019-02-01 09:01, 2019-02-01 18:16, 2019-02-02 21:31, 2019-02-02 22:16, 2019-02-03 08:01, 2019-02-03 10:46, 2019-02-03 20:01, 2019-02-04 00:31]
-#u_1205_maxabs_diff_2d: [time,0.3,z,0.3] #use to remove bad bin(s) near surface
-#v_1206_maxabs_diff_2d: [time,0.3,z,0.3]
-#w_1204_maxabs_diff_2d: [time,0.1,z,0.1]
-#u_1205_fliers: 1
-#v_1206_fliers: 1
-#w_1204_fliers: 1
-#u_1205_mask: ["v_1206", "w_1204"]
-#v_1206_mask: ["u_1205","w_1204"]
-#w_1204_mask: ["u_1205","v_1206"]
-#good_dates: [2018-11-12 16:31, 2019-02-15 14:12]
+trim_method: 'brange sl'  # brange SL trims bin if any part of bin or side lobe is at or below seabed- if brange is not in data set with velocity vars need to also specify braange_file
+brange_file: '11262sige1-a.nc'
+average_interval: 360
+average_duration: 120
+P_1ac_note: 'Corrected for variations in atmospheric pressure using MesoWest Station FW7612 Dennis.'
+velocity_cor_min: 65
+good_bindist: [0, 1.8]

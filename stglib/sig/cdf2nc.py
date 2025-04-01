@@ -2,8 +2,10 @@ import re
 import time
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 from dask.diagnostics import ProgressBar
+from tqdm import tqdm
 
 from ..aqd import aqdutils
 from ..core import filter, qaqc, utils
@@ -16,7 +18,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     Load a raw .cdf file and generate a processed .nc file
     """
     print(f"Loading {cdf_filename}")
-    # print(os.listdir())
     start_time = time.time()
 
     ds = xr.open_dataset(cdf_filename, chunks={"time": 200000, "bindist": 48})
@@ -43,14 +44,14 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.create_nominal_instrument_depth(ds)
 
-    # print(ds)
-
     # create Z depending on orientation
     ds = utils.create_z(ds)
 
     # Clip data to in/out water times or via good_ens
-    # Need to clip data after coord transform when using dolfyn
     ds = utils.clip_ds(ds)
+
+    # Clip profile data if specified by user
+    ds = utils.clip_ds_prf(ds)
 
     if (
         ds.attrs["data_type"] == "Burst"
@@ -85,6 +86,16 @@ def cdf_to_nc(cdf_filename, atmpres=False):
                 [ds[f"AmpBeam{i}"] for i in range(1, ds["NBeams"][0].values + 1)],
                 dim="beam",
             )
+    elif ds.attrs["data_type"] == "IBurst" or ds.attrs["data_type"] == "IBurstHR":
+        # Create separate vel variables first
+        ds["vel_b5"] = ds["VelBeam5"]
+
+        ds = aqdutils.magvar_correct(ds)
+        # remove side lobes from trim method for vertical beam
+        if "trim_method" in ds.attrs:
+            ds.attrs["trim_method"] = ds.attrs["trim_method"].strip(" sl")
+
+        ds = aqdutils.trim_vel(ds, data_vars=["vel_b5"])
 
     ds = aqdutils.make_bin_depth(ds)
 
@@ -94,8 +105,19 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = ds_make_ahrs_vars(ds)
 
-    # Rename DataArrays for EPIC compliance
-    ds = fix_encoding(ds)
+    # make average beam amplitude and correlation variables
+    if "amp" in ds.data_vars:
+        ds["amp_avg"] = ds["amp"].mean(dim="beam")
+    if "cor" in ds.data_vars:
+        ds["cor_avg"] = ds["cor"].mean(dim="beam")
+
+    # convert altimeter quality units to dB
+    alt_qual_vars = ["AltimeterQualityLE", "AltimeterQualityAST"]
+    for var in alt_qual_vars:
+        if var in ds.data_vars:
+            ds[var] = ds[var] / 100
+
+    # Rename DataArrays for CFompliance
     ds = aqdutils.ds_rename(ds)  # for common variables
     ds = ds_drop(ds)
     ds = ds_rename_sig(ds)  # for signature vars not in aqds or vecs
@@ -104,14 +126,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.ds_add_lat_lon(ds)
 
-    # Add EPIC and CMG attributes
+    # Add attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
     ds = ds_add_attrs_sig(ds)  # for signature vars
-
-    ds = fix_encoding(ds)
-
-    # Add DELTA_T for EPIC compliance
-    # ds = utils.add_delta_t(ds)
 
     # Add start_time and stop_time attrs
     ds = utils.add_start_stop_time(ds)
@@ -123,14 +140,23 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = drop_unused_dims(ds)
 
-    ds = utils.ds_add_lat_lon(ds)
-
     ds = utils.ds_coord_no_fillvalue(ds)
 
     ds = drop_attrs(ds)
 
     # Add min/max values
     ds = utils.add_min_max(ds)
+
+    # if BURST sample mode shape data into burst shape
+    if "BURST" in ds.attrs["sample_mode"]:
+        print("Sample mode is Burst, reshape data set into burst")
+        ds = ds_make_burst_shape(ds)
+        ds = reorder_dims(ds)
+        # redo attriburtes
+        ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
+        ds = ds_add_attrs_sig(ds)  # for signature vars
+
+    ds = fix_encoding(ds)
 
     # qaqc
     for var in ds.data_vars:
@@ -175,44 +201,154 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "BurstHR":
         nc_out = nc_filename + "b-cal.nc"
         print("writing Burst (b) data to netCDF nc file")
-        delayed_obj = ds.to_netcdf(nc_out, compute=False)
-        with ProgressBar():
-            delayed_obj.compute()
-        print("Done writing netCDF file", nc_out)
 
     elif ds.attrs["data_type"] == "IBurst" or ds.attrs["data_type"] == "IBurstHR":
         nc_out = nc_filename + "b5-cal.nc"
         print("writing IBurst (b5) data to netCDF nc file")
-        delayed_obj = ds.to_netcdf(nc_out, compute=False)
-        with ProgressBar():
-            delayed_obj.compute()
-        print("Done writing netCDF file", nc_out)
 
     elif ds.attrs["data_type"] == "EchoSounder":
         nc_out = nc_filename + "e1-cal.nc"
         print("writing Echo1 (echo1) data to netCDF nc file")
-        delayed_obj = ds.to_netcdf(nc_out, compute=False)
-        with ProgressBar():
-            delayed_obj.compute()
-        print("Done writing netCDF file", nc_out)
 
     elif ds.attrs["data_type"] == "Average":
         nc_out = nc_filename + "avg-cal.nc"
         print("writing Average (avg) data to netCDF nc file")
-        delayed_obj = ds.to_netcdf(nc_out, compute=False)
-        with ProgressBar():
-            delayed_obj.compute()
-        print("Done writing netCDF file", nc_out)
 
     elif ds.attrs["data_type"] == "Alt_Average":
         nc_out = nc_filename + "alt-cal.nc"
         print("writing Alt_Average (avg) data to netCDF nc file")
+
+    else:
+        raise KeyError("data_type not recognized")
+
+    delayed_obj = ds.to_netcdf(nc_out, compute=False)
+    with ProgressBar():
+        delayed_obj.compute()
+    print("Done writing netCDF file", nc_out)
+
+    utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
+
+    # Make average data products for Burst, BurstHR, IBurst, IBurstHR, and Echo data_type(s)
+    if ds.attrs["data_type"].lower() in [
+        "burst",
+        "bursthr",
+        "iburst",
+        "ibursthr",
+        "echosounder",
+    ]:
+        print(
+            "Create average data products from Burst, IBurst, or EchoSounder data types from BURST sample mode and if specified for CONTINUOUS"
+        )
+
+        # if sample_mode = Burst then make burst averages, while checking for user specified average_duration attribute
+        if ds.attrs["sample_mode"].upper() == "CONTINUOUS":
+            if "average_interval" in ds.attrs:
+                ds = fill_time_gaps(ds)
+                ds = ds_make_average_shape_mi(ds)
+            else:
+                return ds
+
+        if "average_duration" in ds.attrs:
+            ds.attrs["average_samples_per_burst"] = int(
+                ds.attrs["average_duration"] * ds.attrs["sample_rate"]
+            )
+            ds = ds.isel(sample=slice(0, ds.attrs["average_samples_per_burst"]))
+
+        # before taking mean - need to extract variable that will need to be vector averaged
+        va_vars = ["Hdg_1215", "Ptch_1216", "Roll_1217"]
+
+        # get vector averages
+        dsVA = utils.make_vector_average_vars(ds, data_vars=va_vars, dim="sample")
+
+        # take mean of data set across sample dimension
+        ds = ds.mean(dim="sample", keep_attrs=True)
+
+        # replace vector average vars with the vector averages in averaged dataset
+        for var in dsVA.data_vars:
+            ds[var] = dsVA[var]
+
+        if ds.attrs["sample_mode"].upper() == "BURST":
+            if "average_duration" in ds.attrs:
+                histtext = f"Create averaged data product from burst sampled {ds.attrs['data_type']} data type using user specified duration for avergage {ds.attrs['average_duration']} seconds."
+            else:
+                histtext = f"Create burst averaged data product from {ds.attrs['data_type']} data type."
+
+        elif ds.attrs["sample_mode"].upper() == "CONTINUOUS":
+            if "average_duration" in ds.attrs:
+                histtext = f"Create averaged data product from continously sampled {ds.attrs['data_type']} data type using user specified interval {ds.attrs['average_interval']} seconds and duration {ds.attrs['average_duration']} seconds."
+            else:
+                histtext = f"Create averaged data product from continuous sampled {ds.attrs['data_type']} data type using user specified interval {ds.attrs['average_interval']} seconds."
+
+        if len(dsVA.data_vars) > 0:
+            histtext = (
+                histtext + f"Data variables {va_vars} averaged using vector averaging"
+            )
+
+        ds = utils.insert_history(ds, histtext)
+
+        # add brange variable to echosounder data type
+        if ds.attrs["data_type"] == "EchoSounder":
+            var = "echo_amp"
+            ds = add_brange(ds, var)
+
+        # trim near surface bins of average data if user specified- this is often needed when strong wave velocities are present and time averaging is biased at the wave peaks
+        if (
+            ds.attrs["data_type"] == "Burst"
+            or ds.attrs["data_type"] == "BurstHR"
+            and "trim_avg_vel_bins" in ds.attrs
+        ):
+            ds = trim_avg_vel_bins(
+                ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204"]
+            )
+
+        ds = fix_encoding(ds)
+
+        ds = reorder_dims(ds)
+
+        # need to update time attributes after taking average of dataset
+        # ds["time"].attrs.update({"standard_name": "time", "axis": "T", "long_name": "time (UTC)"})
+
+        # redo attriburtes
+        ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
+        ds = ds_add_attrs_sig(ds)  # for signature vars
+
+        # clean-up some stuff
+        ds = ds_remove_inst_attrs(ds)
+        ds = ds_drop_more_vars(ds)
+        ds = drop_unused_dims(ds)
+
+        # add latitude and longitude to avg file
+        ds = utils.ds_add_lat_lon(ds)
+
+        ds = utils.ds_coord_no_fillvalue(ds)
+
+        # Add min/max values
+        print("adding min/max values")
+        ds = utils.add_min_max(ds)
+
+        ds = utils.add_delta_t(ds)
+
+        if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "BurstHR":
+            nc_out = nc_filename + "b-a.nc"
+            print("writing Burst (b) data to netCDF nc file")
+
+        elif ds.attrs["data_type"] == "IBurst" or ds.attrs["data_type"] == "IBurstHR":
+            nc_out = nc_filename + "b5-a.nc"
+            print("writing IBurst (b5) data to netCDF nc file")
+
+        elif ds.attrs["data_type"] == "EchoSounder":
+            nc_out = nc_filename + "e1-a.nc"
+            print("writing Echo1 (echo1) data to netCDF nc file")
+
+        else:
+            raise KeyError("data_type not recognized")
+
         delayed_obj = ds.to_netcdf(nc_out, compute=False)
         with ProgressBar():
             delayed_obj.compute()
         print("Done writing netCDF file", nc_out)
 
-    utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
+        utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
 
     end_time = time.time()
     print(
@@ -224,8 +360,15 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
 
 def drop_unused_dims(ds):
-    """only keep dims that will be in the final files"""
-    thedims = ["bindist"]  # keep bindist needed for wave processing
+    """
+    Only keep dims that will be in the final files
+    """
+    thedims = [
+        "bindist",
+        "depth",
+        "latitude",
+        "longitude",
+    ]  # keep bindist needed for wave processing + keep depth
     for v in ds.data_vars:
         for x in ds[v].dims:
             thedims.append(x)
@@ -238,7 +381,9 @@ def drop_unused_dims(ds):
 
 
 def drop_attrs(ds):
-    """Drop some global attrs"""
+    """
+    Drop some global attribuutes
+    """
     att2del = []
     for k in ds.attrs:
         if re.search("_Beam2xyz$", k):
@@ -314,6 +459,7 @@ def ds_drop(ds):
         "VelBeam2",
         "VelBeam3",
         "VelBeam4",
+        "VelBeam5",
         "AmpBeam1",
         "AmpBeam2",
         "AmpBeam3",
@@ -330,6 +476,31 @@ def ds_drop(ds):
 
     if ("AnalogInput2" in ds.attrs) and (ds.attrs["AnalogInput2"].lower() == "true"):
         todrop.remove("AnalogInput2")
+
+    return ds.drop_vars([t for t in todrop if t in ds.variables])
+
+
+def ds_drop_more_vars(ds):
+    """
+    Drop old DataArrays from Dataset that won't make it into the final .nc file
+    """
+
+    todrop = [
+        "xmit_energy",
+        "cor_nominal",
+        "TransMatrix",
+        "orientmat",
+        "mag",
+        "accel",
+        "gyro",
+        "quaternions",
+        "altle",
+        "altle_quality",
+        "ast_offset_time",
+        "ast_pressure",
+        "status",
+        "error",
+    ]
 
     return ds.drop_vars([t for t in todrop if t in ds.variables])
 
@@ -362,8 +533,8 @@ def ds_rename_sig(ds, waves=False):
         "CorBeam2": "cor2_1286",
         "CorBeam3": "cor3_1287",
         "CorBeam4": "cor4_1288",
-        "AltimeterDistanceLE": "brangeLE",
-        "AltimeterQualityLE": "alt_quality",
+        "AltimeterDistanceLE": "altle",
+        "AltimeterQualityLE": "altle_quality",
         "AltimeterDistanceAST": "brangeAST",
         "AltimeterQualityAST": "ast_quality",
         "AltimeterTimeOffsetAST": "ast_offset_time",
@@ -403,7 +574,9 @@ def ds_rename_sig(ds, waves=False):
 
 
 def fix_encoding(ds):
-    """ensure we don't set dtypes uint for CF compliance"""
+    """
+    Fix encoding for time and other data variables for CF compliance and use float32 for floating point data variables on these very large data sets
+    """
     if "units" in ds["time"].encoding:
         ds["time"].encoding.pop("units")
 
@@ -412,11 +585,11 @@ def fix_encoding(ds):
 
     if tstep < np.timedelta64(1, "m"):
 
-        histtext = f"make time encoding to dtype double because tstep {tstep} seconds is < 1 minute, round to milliseconds first"
+        histtext = f"make time encoding to dtype double because tstep {tstep} seconds is < 1 minute"
         ds = utils.insert_history(ds, histtext)
 
-        # round time to milliseconds first
-        ds["time"] = ds["time"].dt.round("ms")
+        # round time to milliseconds firstm --> Try without rounding
+        # ds["time"] = ds["time"].dt.round("ms")
         ds["time"].encoding["dtype"] = "double"
 
     else:
@@ -436,10 +609,20 @@ def fix_encoding(ds):
 
     for var in ds.data_vars:
         if ds[var].dtype == "uint32" or ds[var].dtype == "uint8":
+            if "dtype" in ds[var].encoding:
+                ds[var].encoding.pop("dtype")
             ds[var].encoding["dtype"] = "int32"
-        if var in ["cor", "cor_b5"]:
+        if var in ["cor", "cor_b5", "cor_nominal"]:
+            if "dtype" in ds[var].encoding:
+                ds[var].encoding.pop("dtype")
             ds[var].encoding["dtype"] = "float32"
         if ds[var].dtype == "float64":
+            if "dtype" in ds[var].encoding:
+                ds[var].encoding.pop("dtype")
+            ds[var].encoding["dtype"] = "float32"
+        if ds[var].dtype == "double":
+            if "dtype" in ds[var].encoding:
+                ds[var].encoding.pop("dtype")
             ds[var].encoding["dtype"] = "float32"
 
     return ds
@@ -567,7 +750,7 @@ def ds_add_attrs_sig(ds):
         ds["vel_b5"].attrs.update(
             {
                 "units": "m s-1",
-                "standard_name": "radial_sea_water_velocity_away_instrument",
+                "standard_name": "radial_sea_water_velocity_away_from_instrument",
                 "long_name": "Beam5 Velocity",
             }
         )
@@ -590,6 +773,15 @@ def ds_add_attrs_sig(ds):
             }
         )
 
+    if "amp_avg" in ds:
+        ds["amp_avg"].attrs.update(
+            {
+                "units": "dB",
+                "standard_name": "signal_intensity_from_multibeam_acoustic_doppler_velocity_sensor_in_sea_water",
+                "long_name": "Average Acoustic Signal Amplitude",
+            }
+        )
+
     if "echo_amp" in ds:
         ds["echo_amp"].attrs.update(
             {
@@ -605,6 +797,15 @@ def ds_add_attrs_sig(ds):
                 "units": "percent",
                 "standard_name": "beam_consistency_indicator_from_multibeam_acoustic_doppler_velocity_profiler_in_sea_water",
                 "long_name": "Acoustic Signal Correlation",
+            }
+        )
+
+    if "cor_avg" in ds:
+        ds["cor_avg"].attrs.update(
+            {
+                "units": "percent",
+                "standard_name": "beam_consistency_indicator_from_multibeam_acoustic_doppler_velocity_profiler_in_sea_water",
+                "long_name": "Average Acoustic Signal Correlation",
             }
         )
 
@@ -642,6 +843,8 @@ def ds_add_attrs_sig(ds):
         )
 
     if "brange" in ds:
+        if "note" in ds["brange"].attrs:
+            del ds["brange"].attrs["note"]
         ds["brange"].attrs.update(
             {
                 "units": "m",
@@ -650,14 +853,10 @@ def ds_add_attrs_sig(ds):
             }
         )
 
-    if "alt_quality" in ds:
-        ds["alt_quality"] = ds["ast_quality"] / 100
-        ds["alt_quality"].encoding["dtype"] = "float32"
-        ds["alt_quality"].attrs.update(
-            {
-                "units": "dB",
-                "long_name": "Altimeter Quality",
-            }
+    if "altle_quality" in ds:
+        ds["altle_quality"].encoding["dtype"] = "float32"
+        ds["altle_quality"].attrs.update(
+            {"units": "dB", "long_name": "Altimeter quality leading edge"}
         )
 
     if "brangeAST" in ds:
@@ -670,7 +869,6 @@ def ds_add_attrs_sig(ds):
         )
 
     if "ast_quality" in ds:
-        ds["ast_quality"] = ds["ast_quality"] / 100
         ds["ast_quality"].encoding["dtype"] = "float32"
         ds["ast_quality"].attrs.update(
             {
@@ -955,5 +1153,297 @@ def ds_make_tmat(ds):
             tdims = ds[v].dims
             ds[v] = ds[v].swap_dims({tdims[0]: "inst4"})
             ds[v] = ds[v].swap_dims({tdims[1]: "beam"})
+
+    return ds
+
+
+def ds_make_average_shape_mi(ds):
+    """
+    Reshape CONTINUOUS data set into burst shape using multi-indexing for purpose of averaging the data set
+    """
+
+    # average_interval is [sec] interval for wave statistics for continuous data
+    ds.attrs["average_samples_per_burst"] = int(
+        ds.attrs["average_interval"] / ds.attrs["sample_interval"]
+    )
+    nsamps = ds.attrs["average_samples_per_burst"]
+
+    if len(ds.time) % nsamps != 0:
+        ds = ds.isel(time=slice(0, -(int(len(ds.time) % (nsamps)))))
+
+    # create samples & new_time
+    x = np.arange(nsamps)
+    y = ds["time"][0:-1:nsamps]
+
+    # make new arrays for multi-index
+    samp, t = np.meshgrid(x, y)
+    s = samp.flatten()
+    t3 = t.flatten()
+
+    # create multi-index
+    ind = pd.MultiIndex.from_arrays((t3, s), names=("new_time", "new_sample"))
+    # unstack to make burst shape dataset
+    ds = ds.assign_coords(
+        xr.Coordinates.from_pandas_multiindex(ind, dim="time")
+    ).unstack("time")
+    # dsa = dsa.unstack()
+    ds = ds.drop_vars("sample").rename({"new_time": "time", "new_sample": "sample"})
+
+    return ds
+
+
+def reorder_dims(ds):
+    """
+    Reorder dimension for CF complinace
+    """
+    print("Reordeing data variable dimensions for CF complinace")
+    for var in ds.data_vars:
+        if "z" in ds[var].dims and len(ds[var].dims) == 2:
+            ds[var] = ds[var].transpose("time", "z")
+        elif "z" in ds[var].dims and "beam" in ds[var].dims and len(ds[var].dims) == 3:
+            ds[var] = ds[var].transpose("beam", "time", "z")
+        elif (
+            "z" in ds[var].dims and "sample" in ds[var].dims and len(ds[var].dims) == 3
+        ):
+            ds[var] = ds[var].transpose("time", "z", "sample")
+        elif "z" in ds[var].dims and len(ds[var].dims) == 4:
+            ds[var] = ds[var].transpose("beam", "time", "z", "sample")
+    return ds
+
+
+def ds_remove_inst_attrs(ds, inst_type="SIG"):
+    rm = []  # initialize list of attrs to be removed
+
+    for j in ds.attrs:
+        if re.match(f"^{inst_type}*", j):
+            rm.append(j)
+    for k in rm:
+        del ds.attrs[k]
+
+    return ds
+
+
+def fill_time_gaps(ds):
+    """
+    Fill any gaps in time index to make time even for CONTINUOUS data set before reshaping
+    """
+
+    if "sample_mode" in ds.attrs:
+
+        if ds.attrs["sample_mode"].upper() == "CONTINUOUS":
+
+            print("Checking for time gaps in CONTINUOUS sampled data")
+            sr = ds.attrs["sample_rate"]
+            sins = 1 / sr * 1e9
+            pds = (
+                int(
+                    (ds["time"][-1].values - ds["time"][0].values)
+                    / (sins * np.timedelta64(1, "ns"))
+                )
+                + 1
+            )
+            idx = pd.date_range(
+                str(ds["time"][0].values), periods=pds, freq=f"{sins}ns"
+            )
+
+            if len(idx) > len(ds["time"]):
+                print(
+                    f"Gaps in time index- reindexing to make time index even in CONTINUOUS sampled data using {sims/2} milliseconds tolerance for data variables"
+                )
+
+                # make sure time index is unique
+                ds = ds.drop_duplicates(dim="time")
+
+                ds = ds.reindex(time=idx, method="nearest", tolerance=f"{sins/2} ns")
+
+        else:
+            print(
+                f"Not checking for time index gaps for sample mode {ds.attrs['sample_mode']}"
+            )
+
+    else:
+        print("Not checking for time gaps, sample_mode attribute is missing")
+
+    return ds
+
+
+def ds_make_burst_shape(ds):
+    """
+    Reshape BURST data into burst shape
+    """
+
+    # find times of first sample in each burst
+    t = ds["time"][ds["sample"].values == 1]
+    # get corresponding burst number
+    # b_num = ds["burst"][ds["sample"].values == 1]
+    sr = ds.attrs["sample_rate"]
+    sims = 1 / sr * 1000
+
+    s = []
+    t3 = []
+    for i in tqdm(np.arange(0, len(t))):
+        if t[i] < t[-1]:
+            t2 = t[i + 1] - np.timedelta64(int(sims), "ms") / 2
+        else:
+            t2 = ds["time"][len(ds.time) - 1]
+
+        t2, samp = np.meshgrid(
+            t[i],
+            ds["sample"].sel(
+                time=slice(
+                    t[i],
+                    t2,
+                )
+            ),
+        )
+
+        s.append(np.array(samp.transpose().flatten()))
+        t3.append(np.array(t2.transpose().flatten()))
+
+    s = np.hstack(s)
+    t3 = np.hstack(t3)
+
+    ind = pd.MultiIndex.from_arrays((t3, s), names=("new_time", "new_sample"))
+
+    ds = (
+        ds.sel(time=slice(t[0], ds["time"][-1]))
+        .assign_coords(xr.Coordinates.from_pandas_multiindex(ind, dim="time"))
+        .unstack("time")
+    )
+
+    ds = ds.drop("sample").rename({"new_time": "time", "new_sample": "sample"})
+
+    return ds
+
+
+def trim_avg_vel_bins(ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204"]):
+    """
+    Trim top bin(s) after average if specified by user
+    """
+
+    if (
+        "trim_method" in ds.attrs
+        and ds.attrs["trim_method"].lower() != "none"
+        and ds.attrs["trim_method"] is not None
+        and "trim_avg_vel_bins" in ds.attrs
+        and ds.attrs["trim_avg_vel_bins"] is not None
+    ):
+        if "P_1ac" in ds:
+            P = ds["P_1ac"]
+            Ptxt = "atmospherically corrected"
+        else:
+            raise ValueError(
+                f"Corrected pressure (P_1ac) variable not found cannot continue with average velocity bin trimming"
+            )
+
+        avg_bins = ds.attrs["trim_avg_vel_bins"]
+
+        # need to use bindist as vertical dimension for trimming, so swap dims
+        for var in data_vars:
+            dims = ds[var].dims
+            vdim = None
+            for k in ds.coords:
+                if "axis" in ds[k].attrs:
+                    if ds[k].attrs["axis"] == "Z":
+                        vdim = k
+
+            if vdim != "bindist":
+                attrsbak = ds[vdim].attrs
+                ds[var] = ds[var].swap_dims({vdim: "bindist"})
+
+        if ds.attrs["trim_method"].lower() == "water level":
+            for var in data_vars:
+                ds[var] = ds[var].where(
+                    ds["bindist"] < P - (ds.attrs["bin_size"] * avg_bins)
+                )
+
+        elif ds.attrs["trim_method"].lower() == "water level sl":
+            if "trim_surf_bins" in ds.attrs:
+                surf_bins = ds.attrs["trim_surf_bins"]
+
+            else:
+                surf_bins = 0
+
+            for var in data_vars:
+                ds[var] = ds[var].where(
+                    ds["bindist"]
+                    < (P * np.cos(np.deg2rad(ds.attrs["beam_angle"])))
+                    - (ds.attrs["bin_size"] * surf_bins)
+                    - (ds.attrs["bin_size"] * avg_bins)
+                )
+
+        elif ds.attrs["trim_method"].lower() == "bin range":
+            for var in data_vars:
+                ds[var] = ds[var].isel(
+                    bindist=slice(
+                        ds.attrs["good_bins"][0], ds.attrs["good_bins"][1] - avg_bins
+                    )
+                )
+
+            histtext = "Trimmed velocity data using using good_bins of {}.".format(
+                ds.attrs["good_bins"]
+            )
+
+        histtext = f"Trimmed average velocity data by additional user specified {avg_bins} surface bins"
+
+        ds = utils.insert_history(ds, histtext)
+
+        # swap vertical dim back
+        for var in data_vars:
+            if vdim != "bindist":
+                ds[var] = ds[var].swap_dims({"bindist": vdim})
+                ds[vdim].attrs = attrsbak
+
+    return ds
+
+
+def add_brange(ds, var):
+    """
+    Add brange variable to data set using input echosounder variable
+    """
+
+    if var in ds.data_vars:
+
+        # Check for user specifiefd blanking distance
+        if "brange_blank" in ds.attrs:
+            brange_blank = ds.attrs["brange_blank"]
+        else:
+            brange_blank = 0.2  # set default to 0.2 meters
+
+        # Find valid coordinate dimensions for dataset
+        vdim = None
+        for k in ds.coords:
+            if "axis" in ds[k].attrs:
+                if ds[k].attrs["axis"] == "Z":
+                    vdim = k
+
+        if vdim is not None and vdim != "bindist":
+
+            ds["brange"] = (
+                ds[var]
+                .swap_dims({vdim: "bindist"})
+                .where(ds.bindist > brange_blank)
+                .idxmax(dim="bindist")
+            )
+
+            histtext = f"brange variable added to {ds.attrs['data_type']} data set"
+            ds = utils.insert_history(ds, histtext)
+
+        elif vdim is not None and vdim == "bindist":
+
+            ds["brange"] = (
+                ds[var].where(ds.bindist > brange_blank).idxmax(dim="bindist")
+            )
+
+            histtext = f"brange variable added to {ds.attrs['data_type']} data set"
+            ds = utils.insert_history(ds, histtext)
+
+        else:
+            print(
+                f"Not able to add brange variable to {ds.attrs['data_type']} data set "
+            )
+
+    else:
+        print(f"{var} variable not in data set, unable to create brange variable")
 
     return ds

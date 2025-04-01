@@ -1660,6 +1660,9 @@ def create_filtered_water_level_var(ds):
 
 
 def rename_diwasp_wave_vars(ds):
+    """
+    Rename DIWASP variables to standard EPIC names used in stglib wave statistics
+    """
     # rename wave vars to user specified convention
     if ds.attrs["diwasp_names"].lower() == "epic":
         varnames = {
@@ -1706,3 +1709,89 @@ def rename_diwasp_fspec(diwasp):
         return diwasp
 
     return diwasp.rename(newname)
+
+
+def clip_ds_prf(ds):
+    """
+    Clip profile data set by user specified bindist range - looks for vertical coordinates ["z", "depth", "bindist", "bins" ] to clip
+    """
+
+    # Find valid coordinate dimensions for dataset
+    coords = []
+    for k in ds.coords:
+        coords.append(k)
+
+    if "good_bindist" in ds.attrs:
+        if "bindist" in coords:
+            idx1 = int(
+                ds["bindist"]
+                .where(ds.bindist > ds.attrs["good_bindist"][0])
+                .argmin()
+                .values
+            )
+            idx2 = int(
+                ds["bindist"]
+                .where(ds.bindist > ds.attrs["good_bindist"][1])
+                .argmin()
+                .values
+            )
+
+            for k in ["z", "bindist", "depth", "bins"]:
+                if k in ds.coords:
+                    ds = ds.isel({k: slice(idx1, idx2)})
+
+            histtext = f"Profile data clipped by bin distance range {ds.attrs['good_bindist'][0]} m to {ds.attrs['good_bindist'][1]} m"
+            ds = insert_history(ds, histtext)
+
+        else:
+
+            print(
+                f"Profile data not clipped using 'good_bindist', 'bindist' is not a valid coordinate dimension {coords}"
+            )
+
+    else:
+
+        print("Profile data not clipped; no values specified in metadata")
+
+    return ds
+
+
+def cart2pol(x, y):
+    """
+    Simple cartesian to polar coordinate transformation
+    returns:
+    rho - radius in same units as x and y
+    phi - angle in radians
+    """
+    rho = np.sqrt(x**2 + y**2)
+    phi = np.arctan2(y, x)
+    return (rho, phi)
+
+
+def pol2cart(rho, phi):
+    """
+    Simple polar to cartesian coordinate transformation
+    inputs:
+    rho - radius in same units as returned values for x and y
+    phi - angle in radians
+    """
+    x = rho * np.cos(phi)
+    y = rho * np.sin(phi)
+    return (x, y)
+
+
+def make_vector_average_vars(ds, data_vars=None, dim=None):
+    """
+    Find vector averages for specified variables, along specified dimension
+    """
+    dsVA = xr.Dataset()
+    if data_vars is not None and dim is not None:
+        for var in data_vars:
+            if var in ds.data_vars:
+                R = ds[var]
+                np.radians(R)
+                Rx, Ry = pol2cart(1, np.radians(R))
+                rho, phi = cart2pol(Rx.mean(dim=dim), Ry.mean(dim=dim))
+                dsVA[var] = np.degrees(phi)
+
+    return dsVA
