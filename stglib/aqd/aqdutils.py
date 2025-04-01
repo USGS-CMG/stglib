@@ -220,8 +220,10 @@ def set_orientation(VEL, T=None, inst_type="AQD"):
     """
     if "Pressure_ac" in VEL:
         presvar = "Pressure_ac"
-    else:
+    elif "Pressure" in VEL:
         presvar = "Pressure"
+    else:
+        presvar = None
 
     geopotential_datum_name = None
 
@@ -275,9 +277,10 @@ def set_orientation(VEL, T=None, inst_type="AQD"):
         print("User instructed that instrument was pointing UP")
 
         VEL["z"] = xr.DataArray(elev + VEL["bindist"].values, dims="z")
-        VEL["depth"] = xr.DataArray(
-            np.nanmean(VEL[presvar]) - VEL["bindist"].values, dims="depth"
-        )
+        if presvar:
+            VEL["depth"] = xr.DataArray(
+                np.nanmean(VEL[presvar]) - VEL["bindist"].values, dims="depth"
+            )
 
     if VEL.attrs["orientation"].upper() == "DOWN":
         print("User instructed that instrument was pointing DOWN")
@@ -285,9 +288,10 @@ def set_orientation(VEL, T=None, inst_type="AQD"):
             T[1, :] = -T[1, :]
             T[2, :] = -T[2, :]
         VEL["z"] = xr.DataArray(elev - VEL["bindist"].values, dims="z")
-        VEL["depth"] = xr.DataArray(
-            np.nanmean(VEL[presvar]) + VEL["bindist"].values, dims="depth"
-        )
+        if presvar:
+            VEL["depth"] = xr.DataArray(
+                np.nanmean(VEL[presvar]) + VEL["bindist"].values, dims="depth"
+            )
 
     if inst_type == "AQD":
         if "AnalogInput1_height" in VEL.attrs:
@@ -306,10 +310,11 @@ def set_orientation(VEL, T=None, inst_type="AQD"):
         if geopotential_datum_name:
             VEL[z].attrs["geopotential_datum_name"] = geopotential_datum_name
 
-    VEL["depth"].attrs["standard_name"] = "depth"
-    VEL["depth"].attrs["units"] = "m"
-    VEL["depth"].attrs["positive"] = "down"
-    VEL["depth"].attrs["long_name"] = "depth below mean sea level of deployment"
+    if "depth" in VEL:
+        VEL["depth"].attrs["standard_name"] = "depth"
+        VEL["depth"].attrs["units"] = "m"
+        VEL["depth"].attrs["positive"] = "down"
+        VEL["depth"].attrs["long_name"] = "depth below mean sea level of deployment"
 
     if inst_type == "AQD":
         return VEL, T, T_orig
@@ -322,8 +327,13 @@ def make_bin_depth(VEL, waves=False):
 
     if "Pressure_ac" in VEL:
         pres = "Pressure_ac"
-    else:
+    elif "Pressure" in VEL:
         pres = "Pressure"
+    else:
+        pres = None
+
+    if not pres:
+        return VEL
 
     if "orientation" in VEL.attrs:
         if VEL.attrs["orientation"].lower() == "down":
