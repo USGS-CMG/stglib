@@ -10,9 +10,136 @@ import pandas as pd
 import xarray as xr
 from dask.diagnostics import ProgressBar
 from joblib import Parallel, delayed
+from tqdm import tqdm
 
 from stglib.aqd import aqdutils
 from stglib.core import qaqc, utils
+
+
+def mat2cdf(metadata):
+
+    raw_dir = metadata["basefile"]
+
+    # finding all files that end with .mat
+    matfiles = list(Path(raw_dir).glob("*.mat"))
+
+    # create empty list to append xr datasets to
+    dslist = []
+
+    print(f"Loading .mat files...")
+
+    for f in tqdm(matfiles):
+        dslist = load_mat_files(f, dslist)
+
+    print(f"Concatenating .mat files...")
+
+    ds = xr.concat(dslist, dim="time")
+
+    print(f"Sorting .mat files...")
+
+    ds = ds.sortby("time")
+
+    print(f"Writing metadata...")
+
+    ds = utils.write_metadata(ds, metadata)
+
+    ds = utils.ensure_cf(ds)
+
+    # configure file
+
+    cdf_filename = ds.attrs["filename"] + "-raw.cdf"
+
+    delayed_obj = ds.to_netcdf(cdf_filename, unlimited_dims=["time"], compute=False)
+
+    with ProgressBar():
+
+        delayed_obj.compute()
+
+    print(f"Finished writing data to {cdf_filename}")
+
+
+def cdf2nc(cdf_filename, atmpres=False):
+
+    ds = xr.open_dataset(cdf_filename, chunks={"time": 100})
+
+    if "chunks" in ds.attrs:
+        chunksizes = dict(zip(ds.attrs["chunks"][::2], ds.attrs["chunks"][1::2]))
+        ds.close()
+        # make sure values are type int, needed because they are written out to global attribute in -raw.cdf file they are str
+        for key in chunksizes:
+            if isinstance(chunksizes[key], str):
+                chunksizes[key] = int(chunksizes[key])
+        print(f"Using user specified chunksizes = {chunksizes}")
+
+        ds = xr.open_dataset(cdf_filename, chunks=chunksizes)
+
+    ds["bindist"] = ds["bindist"].sel(transducer_number=0, time=ds["time"][0])
+
+    ds = ds.swap_dims({"bin_number": "bindist"})
+    ds = remove_aux_snum(ds)
+    ds = abs_rename(ds)
+    ds = scale_vars(ds)
+
+    if atmpres is not False:
+        ds = aqdutils.atmos_correct(ds, atmpres)
+
+    ds = utils.clip_ds(ds)
+    ds = utils.create_z(ds)
+    ds = aqdutils.make_bin_depth(ds)
+    ds = utils.create_nominal_instrument_depth(ds)
+    ds = utils.add_start_stop_time(ds)
+    ds = utils.add_delta_t(ds)
+    ds = utils.shift_time(ds, 0)
+    ds = aqdutils.ds_swap_dims(ds)
+    ds = aqdutils.ds_rename(ds)
+    ds = frequency_dim(ds)
+    ds = reorder_dims(ds)
+    ds = add_amp(ds)
+
+    print(f"Applying QAQC")
+    ds = qaqc.call_qaqc(ds)
+
+    ds = abs_drop_vars(ds)
+    ds = utils.ds_add_lat_lon(ds)
+    ds = utils.add_min_max(ds)
+    ds = ds_add_var_attrs(ds)
+    ds = organize_attributes(ds)
+    ds = remove_attributes(ds)
+    ds = var_encoding(ds)
+    ds = time_encoding(ds)
+
+    create_nc(ds)
+
+    if "average_duration" in ds.attrs:
+
+        ds.attrs["average_samples_per_burst"] = int(
+            ds.attrs["average_duration"] * ds.attrs["sample_rate"]
+        )
+
+        ds = ds.isel(sample=slice(0, ds.attrs["average_samples_per_burst"]))
+
+    ds = ds.mean(dim="sample", keep_attrs=True)
+
+    if "average_duration" in ds.attrs:
+        histtext = f"Create burst averaged data product using user specified duration for avergage {ds.attrs['average_duration']} seconds"
+    else:
+        histtext = f"Create burst averaged data product"
+
+    ds = utils.insert_history(ds, histtext)
+
+    ds = add_brange_abss(ds, "abs")
+
+    # drop brange matrix var and battery vor average file
+    ds = ds.drop_vars({"brange", "Bat_106"})
+
+    print(f"Applying QAQC to average file variables")
+    ds = qaqc.call_qaqc(ds)
+
+    ds = utils.ds_add_lat_lon(ds)
+    ds = utils.add_min_max(ds)
+    ds = time_encoding(ds)
+
+    create_average_nc(ds)
 
 
 def load_mat_files(f, dslist):
@@ -239,11 +366,6 @@ def abs_drop_vars(ds):
     if ds["Analogue2"].all() == 0:
         ds = ds.drop_vars("Analogue2")
 
-    # drop bindist as dim and make variable
-
-    ds["bindist"] = ds["bindist"].swap_dims({"bindist": "z"})
-    ds = ds.reset_coords("bindist")
-
     return ds
 
 
@@ -323,7 +445,7 @@ def ds_add_var_attrs(ds):
     ds["abs"].attrs.update(
         {
             "units": "normalized counts",
-            "long_name": "Transducer backscatter amplitude",
+            "long_name": "Acoustic backscatter strength",
             "transducer_offset_from_bottom": ds.attrs["initial_instrument_height"],
         }
     )
@@ -331,9 +453,10 @@ def ds_add_var_attrs(ds):
     ds["amp"].attrs.update(
         {
             "units": "decibels",
-            "long_name": "Transducer backscatter strength",
+            "long_name": "Acoustic signal amplitude",
             "standard_name": "sound_intensity_level_in_water",
             "transducer_offset_from_bottom": ds.attrs["initial_instrument_height"],
+            "note": "abs data converted from counts to decibels using equation: decibels = 20*log10(counts). ",
         }
     )
 
@@ -364,6 +487,7 @@ def organize_attributes(ds):
     ds.attrs["abs_profile_rate_note"] = (
         "The stored profile rate (ping_rate / abs_average)"
     )
+    ds.attrs["sample_rate"] = int(ds.attrs["abs_profile_rate"][0])
 
     return ds
 
@@ -413,43 +537,57 @@ def reorder_dims(ds):
 
     for var in ds:
         if "mean" not in var and "abs" in var:
-            ds[var] = ds[var].transpose("time", "sample", "z", "frequency")
+            ds[var] = ds[var].transpose("frequency", "time", "sample", "z")
 
     return ds
 
 
-def add_brange(ds):
+def add_brange_abss(ds, var):
     """use highest abs backscatter strength to find distance to boundary, omit bins in blanking distance"""
 
     print(f"Adding distance to boundary variables (brange)")
 
-    var_mean = ds["abs"].mean(dim="sample")
+    if var in ds.data_vars:
 
-    index = (
-        var_mean.swap_dims({"z": "bindist"})
-        .where(ds.bindist > 0.2)
-        .argmax(dim="bindist")
-    )
+        # Check for user specifiefd blanking distance
+        if "brange_blank" in ds.attrs:
+            brange_blank = ds.attrs["brange_blank"]
+        else:
+            brange_blank = 0.2  # set default to 0.2 meters
 
-    brange = ds["bindist"][index]
+        # Find valid coordinate dimensions for dataset
+        vdim = None
+        for k in ds.coords:
+            if "axis" in ds[k].attrs:
+                if ds[k].attrs["axis"] == "Z":
+                    vdim = k
 
-    ds["brange"] = xr.DataArray(brange, dims=["time", "frequency"])
+        if vdim is not None and vdim != "bindist":
 
-    for i in range(len(ds.frequency)):
-        brange_name = "brange_" + str(i + 1)
-        freq = str(ds.frequency[i].values)
-        brange = ds["brange"].sel(frequency=ds.frequency[i]).values
-        ds[brange_name] = xr.DataArray(brange, dims=["time"])
+            brange = (
+                ds[var]
+                .swap_dims({vdim: "bindist"})
+                .where(ds.bindist > 0.2)
+                .idxmax(dim="bindist")
+            )
 
-        ds[brange_name].attrs.update(
-            {
-                "units": "m",
-                "long_name": "Altimeter range to boundary",
-                "standard_name": "altimeter_range",
-                "frequency": freq,
-                "note": "Calculated from average of abs values in burst",
-            }
-        )
+            ds["brange"] = xr.DataArray(brange, dims=["frequency", "time"])
+
+            for i in range(len(ds.frequency)):
+                brange_name = "brange_" + str(i + 1)
+                freq = str(ds.frequency[i].values)
+                brange = ds["brange"].sel(frequency=ds.frequency[i]).values
+                ds[brange_name] = xr.DataArray(brange, dims=["time"])
+
+                ds[brange_name].attrs.update(
+                    {
+                        "units": "m",
+                        "long_name": "Altimeter range to boundary",
+                        "standard_name": "altimeter_range",
+                        "frequency": freq,
+                        "note": "Calculated from abs values. ",
+                    }
+                )
 
     return ds
 
@@ -461,7 +599,7 @@ def add_amp(ds):
 
     amp = ds["abs"].values * 65536
     amp = 20 * (np.log10(amp, where=(amp != 0)))
-    ds["amp"] = xr.DataArray(amp, dims=["time", "sample", "z", "frequency"])
+    ds["amp"] = xr.DataArray(amp, dims=["frequency", "time", "sample", "z"])
 
     return ds
 
@@ -511,85 +649,7 @@ def frequency_dim(ds):
     return ds
 
 
-def mat2cdf(metadata):
-
-    outdir = metadata["outdir"]
-
-    raw_dir = metadata["basefile"]
-
-    # finding all files that end with .mat
-    matfiles = list(Path(raw_dir).glob("*.mat"))
-
-    # create empty list to append xr datasets to
-    dslist = []
-
-    for f in matfiles:
-        dslist = load_mat_files(f, dslist)
-
-    ds = xr.concat(dslist, dim="time")
-    ds = ds.sortby("time")
-
-    ds = utils.write_metadata(ds, metadata)
-
-    ds = utils.ensure_cf(ds)
-
-    # configure file
-
-    cdf_filename = ds.attrs["filename"] + "-raw.cdf"
-
-    # ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
-
-    delayed_obj = ds.to_netcdf(cdf_filename, unlimited_dims=["time"], compute=False)
-
-    with ProgressBar():
-
-        delayed_obj.compute()
-
-    # utils.check_compliance(cdf_filename, conventions=ds.attrs["Conventions"])
-
-    print(f"Finished writing data to {cdf_filename}")
-
-
-def cdf2nc(cdf_filename, atmpres=False):
-
-    ds = xr.open_dataset(cdf_filename)
-
-    ds["bindist"] = ds["bindist"].sel(transducer_number=0, time=ds["time"][0])
-
-    ds = ds.swap_dims({"bin_number": "bindist"})
-    ds = remove_aux_snum(ds)
-    ds = abs_rename(ds)
-    ds = scale_vars(ds)
-
-    if atmpres is not False:
-        ds = aqdutils.atmos_correct(ds, atmpres)
-
-    # Clip data to in/out water times or via good_ens
-
-    ds = utils.clip_ds(ds)
-    ds = utils.create_z(ds)
-    ds = aqdutils.make_bin_depth(ds)
-    ds = utils.create_nominal_instrument_depth(ds)
-    ds = utils.add_start_stop_time(ds)
-    ds = utils.add_delta_t(ds)
-    ds = utils.shift_time(ds, 0)
-    ds = aqdutils.ds_swap_dims(ds)
-    ds = aqdutils.ds_rename(ds)
-    ds = frequency_dim(ds)
-    ds = reorder_dims(ds)
-    ds = add_brange(ds)
-    ds = add_amp(ds)
-
-    ds = qaqc.call_qaqc(ds)
-
-    ds = abs_drop_vars(ds)
-    ds = utils.add_min_max(ds)
-    ds = ds_add_var_attrs(ds)
-    ds = organize_attributes(ds)
-    ds = remove_attributes(ds)
-    ds = var_encoding(ds)
-    ds = time_encoding(ds)
-
+def create_nc(ds):
     # configure burst file
     nc_burst_filename = ds.attrs["filename"] + "b-cal.nc"
 
@@ -605,18 +665,17 @@ def cdf2nc(cdf_filename, atmpres=False):
 
     print(f"Finished writing data to {nc_burst_filename}")
 
-    # take mean over sample dimension for all variables
-    ds = ds.mean(dim="sample", keep_attrs=True)
 
-    # configure sample file
-    nc_averaged_filename = ds.attrs["filename"] + "s-cal.nc"
+def create_average_nc(ds):
 
-    delayed_obj = ds.to_netcdf(
-        nc_averaged_filename, unlimited_dims=["time"], compute=False
-    )
+    if "prefix" in ds.attrs:
+        nc_averaged_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "b-a.nc"
+    else:
+        nc_averaged_filename = ds.attrs["filename"] + "b-a.nc"
+
+    delayed_obj = ds.to_netcdf(nc_averaged_filename, compute=False)
 
     with ProgressBar():
-
         delayed_obj.compute()
 
     utils.check_compliance(nc_averaged_filename, conventions=ds.attrs["Conventions"])
