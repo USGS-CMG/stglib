@@ -32,10 +32,15 @@ def ensure_cf(ds):
             "Non-CF Conventions are not supported. Ensure you are setting Conventions appropriately."
         )
 
+    if ds.attrs["Conventions"] != "CF-1.9":
+        warnings.warn(
+            f"You are using a version of the CF Conventions ({ds.attrs['Conventions']}) that is not the latest supported version (CF-1.9). Consider changing to CF-1.9."
+        )
+
     return ds
 
 
-def check_compliance(nc_file, conventions="CF-1.8"):
+def check_compliance(nc_file, conventions="CF-1.9"):
     from compliance_checker.runner import CheckSuite, ComplianceChecker
 
     check_suite = CheckSuite()

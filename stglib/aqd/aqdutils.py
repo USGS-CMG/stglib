@@ -1578,11 +1578,6 @@ def check_valid_config_metadata(metadata, inst_type="AQD"):
             "Conventions other than a version of the CF Metadata Conventions are not supported"
         )
 
-    if metadata["Conventions"] != "CF-1.8":
-        warnings.warn(
-            f"You are using a version of the CF Conventions ({metadata['Conventions']}) that is not the latest supported version (CF-1.8). Consider changing to CF-1.8."
-        )
-
     if "orientation" in metadata:
         metadata["orientation"] = metadata["orientation"].upper()
 
