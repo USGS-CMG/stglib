@@ -53,7 +53,7 @@ def check_compliance(nc_file, conventions="CF-1.9"):
     checker_names = [conventions.lower().replace("-", ":")]
 
     print(
-        f"*** Checking CF compliance. Please view contents of {output_filename} for any compliance issues."
+        f"*** Checking CF compliance. Displaying results of compliance checker below (also saved in {output_filename})."
     )
 
     return_value, errors = ComplianceChecker.run_checker(
@@ -64,6 +64,9 @@ def check_compliance(nc_file, conventions="CF-1.9"):
         output_filename=output_filename,
         output_format=output_format,
     )
+
+    with open(output_filename) as f:
+        print(f.read())
 
 
 def clip_ds(ds, wvs=False):
