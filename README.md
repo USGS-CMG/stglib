@@ -30,7 +30,7 @@ We have plans to support:
 
 This package makes heavy use of [NumPy](http://www.numpy.org), [xarray](http://xarray.pydata.org/en/stable/), and [netCDF4](http://unidata.github.io/netcdf4-python/). It works on Python 3.9+.
 
-[Read the documentation](http://stglib.readthedocs.io/).
+[Read the documentation](https://cmgp.code-pages.usgs.gov/stglib).
 
 # Suggested Citation
 

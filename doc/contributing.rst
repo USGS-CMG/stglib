@@ -140,7 +140,7 @@ development environment:
 - Make sure your conda is up to date with the command (``conda update conda``)
 - Make sure that you have cloned the repository
 - ``cd`` to the *stglib* source directory (your fork, locally, on your own machine)
-- install *stglib* per `Installation <https://stglib.readthedocs.io/en/latest/install.html>`
+- install *stglib* per `Installation <https://cmgp.code-pages.usgs.gov/stglib/install.html>`
 
 At this point you should be able to import *stglib* from your locally built version in
 a python interpreter or in jupyter-notebook::

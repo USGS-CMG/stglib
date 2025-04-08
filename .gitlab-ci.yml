@@ -1,11 +1,32 @@
 image: condaforge/miniforge3:latest
 
 stages:          # List of stages for jobs, and their order of execution
-  - test
+  - deploy
+
+pages:
+  stage: deploy
+  before_script:
+    - conda install make -y
+    - conda env create -n stglib-docs --file doc/environment.yml
+    - conda init
+    - source ~/.bashrc
+    - source activate base
+    - conda activate stglib-docs
+    - conda info
+    - conda list
+  script:
+    - cd doc && make html
+  after_script:
+    - mv doc/_build/html/ ./public/
+  artifacts:
+    paths:
+    - public
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
 build-job:
-  stage: test
-  script:
+  stage: deploy
+  before_script:
     - conda install git-lfs -y
     - git lfs install
     - git lfs checkout
@@ -17,4 +38,5 @@ build-job:
     - conda info
     - conda list
     - pip install -e . --no-deps
+  script:
     - pytest
