@@ -1347,7 +1347,7 @@ def add_delta_t(ds):
     if not deltat.is_integer():
         warnings.warn("DELTA_T is not an integer; casting as int in attrs")
 
-    ds.attrs["DELTA_T"] = int(deltat)
+    ds.attrs["DELTA_T"] = int(round(deltat))
 
     return ds
 
@@ -1520,6 +1520,22 @@ def check_time_fits_in_int32(ds, var):
         return False
     else:
         return True
+
+
+def check_time_encoding(ds):
+    """ensure we don't set dtypes uint for CF compliance"""
+
+    if "units" in ds["time"].encoding:
+        ds["time"].encoding.pop("units")
+
+    if check_time_fits_in_int32(ds, "time"):
+        ds["time"].encoding["dtype"] = "i4"
+
+    else:
+        print("time variable will not fit in int32; casting to double")
+        ds["time"].encoding["dtype"] = "double"
+
+    return ds
 
 
 def check_valid_globalatts_metadata(metadata):

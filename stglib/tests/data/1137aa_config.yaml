@@ -7,4 +7,5 @@ orientation: 'DOWN' # use this to identify orientation of profiler
 initial_instrument_height: 0.34  # meters, seabed to transducer
 average_salinity: 32
 average_salinity_note: 'estimated (ocean), PSU'
-#skiprows: ?? #optional to speicfy how many rows to skip to start reading data records in log file
+skiprows: 130
+skipfooter: 0

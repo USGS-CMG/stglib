@@ -10,37 +10,24 @@ from .core import qaqc, utils
 def log_to_cdf(metadata):
     basefile = metadata["basefile"]
 
-    if "prefix" in metadata:
-        basefile = metadata["prefix"] + basefile
-
-    # utils.check_valid_metadata(metadata)
-
-    # get instrument metadata from the LOG file
-    # Assume ea400 in burst mode if no attrs
-    if "instrument_type" not in metadata or metadata["instrument_type"] == "ea":
-        if "instrument_type" not in metadata:
-            print("instrument_type not specified assumed to be type == ea")
-            metadata["instrument_type"] = "ea"
-
+    # if ea400
+    if metadata["instrument_type"] == "ea":
         instmeta = read_ea_instmet(basefile + ".log")
-        metadata["instmeta"] = instmeta
-        print("Loading LOG file")
-        # load point sensor data (temp, altitude, pitch, roll, ping #, sample #)
-        ds = load_ea_point(basefile + ".log", metadata)
+        ds = load_ea_point(basefile + ".log", instmeta)
+        ds = load_ea_profile(ds, basefile + ".log", instmeta)
 
-        ds = utils.write_metadata(ds, metadata)
-
-        # load profile sensor data (counts)
-        ds = load_ea_profile(ds, basefile + ".log")
-
-    # Else, check for aa400
+    # if aa400
     elif metadata["instrument_type"] == "aa":
         instmeta = read_aa_instmet(basefile + ".log")
-        metadata["instmeta"] = instmeta
-        print("Loading LOG file")
-        # load point sensor data (temp, altitude, ping #)
-        ds = load_aa_point(basefile + ".log", metadata)
-        ds = utils.write_metadata(ds, metadata)
+        ds = load_aa_point(
+            basefile + ".log",
+            instmeta,
+            skiprows=metadata["skiprows"],
+            skipfooter=metadata["skipfooter"],
+        )
+        metadata.pop("skiprows")
+        metadata.pop("skipfooter")
+
     else:
         raise ValueError(
             "instrument_type in config file, {:s}, is invalid".format(
@@ -48,23 +35,20 @@ def log_to_cdf(metadata):
             )
         )
 
-    ds = utils.ensure_cf(ds)
+    metadata["instmeta"] = instmeta
 
+    ds = utils.write_metadata(ds, metadata)
+    ds = utils.ensure_cf(ds)
     ds = utils.shift_time(ds, 0)
 
     # configure file
     print("Configuring .cdf file")
 
-    if "prefix" in ds.attrs:
-        cdf_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "-raw.cdf"
-    else:
-        cdf_filename = ds.attrs["filename"] + "-raw.cdf"
+    cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
-    ds["time"] = ds["time"].astype("datetime64[s]")
     ds.to_netcdf(
         cdf_filename,
         unlimited_dims=["time"],
-        encoding={"time": {"dtype": "i4"}, "sample": {"dtype": "i4"}},
     )
 
     print("Finished writing data to %s" % cdf_filename)
@@ -80,34 +64,21 @@ def cdf_to_nc(cdf_filename):
     # Load raw .cdf data
     ds = xr.load_dataset(cdf_filename)
 
-    # create burst num variable
-    ds = burst_num(ds)
-
-    # Clip data to in/out water times or via good_ens
-    ds = utils.clip_ds(ds)
-
-    # Trim data when instrument is out of water during a deployment and extra bins if good_bins specified
     if "bins" in ds:
+        # Trim data when instrument is out of water during a deployment and extra bins if good_bins specified
         ds = trim_alt(ds)
+        ds = calc_bin_height(ds)  # calculate bin height
+        # calculate corrected bin height (on NAVD88 datum) with adjusted sound speed
+        ds = calc_cor_bin_height(ds)
     else:
         ds = trim_alt(ds, data_vars=["Altitude_m", "AmplitudeFS", "Temperature_C"])
-
-    # calculate bin height for profiling echologger (i.e. type == ea)
-    if "bins" in ds:
-        ds = calc_bin_height(ds)
 
     # calculate corrected altitude (distance to bed/b_range) with adjusted sound speed
     ds = calc_cor_brange(ds)
 
-    # calculate corrected bin height (on NAVD88 datum) with adjusted sound speed
-    if "bins" in ds:
-        ds = calc_cor_bin_height(ds)
-
+    # calculate seabed elevation referenced to datum
     ds = calc_boundary_elev(ds)
 
-    # if "bins" in ds:
-    #   ds = utils.create_z_bindist(ds)  #create z for profile
-    # else:
     ds = utils.create_z(ds)
 
     # swap bin dim with bin_height
@@ -119,22 +90,24 @@ def cdf_to_nc(cdf_filename):
     # drop some vars after renaming
     for k in [
         "bins",
-        "ping",
-        "ping_num_in_series",
+        "Ping",
+        "Ping_num_in_series",
         "Altitude_m",
         "Battery_mV",
     ]:
         if k in ds:
             ds = ds.drop_vars(k)
 
-    # add lat/lons as coordinates
-    ds = utils.ds_add_lat_lon(ds)
-
     # add attributes to each variable
     ds = ds_add_attrs(ds)
 
-    # add metadata to global atts
+    # Call utils
+    ds = utils.clip_ds(ds)
+    ds = utils.add_min_max(ds)
+    ds = utils.ds_add_lat_lon(ds)
+    ds = utils.ds_coord_no_fillvalue(ds)
     ds = utils.add_start_stop_time(ds)
+    ds = utils.check_time_encoding(ds)
     ds = utils.add_delta_t(ds)
 
     # Write to .nc file
@@ -144,48 +117,27 @@ def cdf_to_nc(cdf_filename):
     ds.to_netcdf(
         nc_filename,
         unlimited_dims=["time"],
-        encoding={"time": {"dtype": "i4"}, "sample": {"dtype": "i4"}},
+        encoding={"sample": {"dtype": "i4"}},
     )
 
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done writing netCDF file", nc_filename)
 
-    # Average busrt and write to -a.nc file
+    # Average burst and write to -a.nc file
     ds = average_burst(ds)
 
-    for var in ds.data_vars:
-        # do any diff trimming first
-        ds = qaqc.trim_min_diff(ds, var)
-        ds = qaqc.trim_min_diff_pct(ds, var)
-        ds = qaqc.trim_max_diff(ds, var)
-        ds = qaqc.trim_max_diff_pct(ds, var)
-        ds = qaqc.trim_med_diff(ds, var)
-        ds = qaqc.trim_med_diff_pct(ds, var)
-        ds = qaqc.trim_maxabs_diff_2d(ds, var)
-        ds = qaqc.trim_maxabs_diff(ds, var)
-        # then do other trimming
-        ds = qaqc.trim_bad_ens(ds, var)
-        ds = qaqc.trim_min(ds, var)
-        ds = qaqc.trim_max(ds, var)
-        ds = aqdutils.trim_single_bins(ds, var)
-        ds = qaqc.trim_fliers(ds, var)
+    # QAQC
+    ds = qaqc.call_qaqc(ds)
 
-    # after check for masking vars by others
-    for var in ds.data_vars:
-        ds = qaqc.trim_mask(ds, var)
-        ds = qaqc.trim_mask_expr(ds, var)
-
-    # assign min/max
+    # Call utils
     ds = utils.add_min_max(ds)
-
-    ds = utils.ds_coord_no_fillvalue(ds)
 
     nc_filename = ds.attrs["filename"] + "-a.nc"
 
-    # ds['time']=ds['time'].astype('datetime64[s]')
     ds.to_netcdf(
-        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+        nc_filename,
+        unlimited_dims=["time"],
     )
 
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
@@ -241,70 +193,57 @@ def read_ea_instmet(basefile):
     return instmeta
 
 
-def load_ea_point(basefile, metadata):
+def load_ea_point(basefile, instmeta):
     with open(basefile) as f:
         data = f.read().splitlines()
 
         point = {}
-
-        TimeLocal = []
-        TimeUTC = []
-        Ping = []
-        Ping_num_in_series = []
-        Altitude_m = []
-        Temperature_C = []
-        Roll_deg = []
-        Pitch_deg = []
+        point["TimeLocal"] = []
+        point["TimeUTC"] = []
+        point["Ping"] = []
+        point["Ping_num_in_series"] = []
+        point["Altitude_m"] = []
+        point["Temperature_C"] = []
+        point["Pitch_deg"] = []
+        point["Roll_deg"] = []
 
         for row in data:
             dat = row.split()
             if "#TimeLocal" in row:
-                TimeLocal.append(dat[1] + " " + dat[2])
+                point["TimeLocal"].append(dat[1] + " " + dat[2])
             elif "#TimeUTC" in row:
-                TimeUTC.append(dat[1] + " " + dat[2])
+                point["TimeUTC"].append(dat[1] + " " + dat[2])
             elif "#Ping  " in row:
-                Ping.append(float(dat[1]))
+                point["Ping"].append(float(dat[1]))
             elif "#Ping num in series" in row:
-                Ping_num_in_series.append(float(dat[4]))
+                point["Ping_num_in_series"].append(float(dat[4]))
             elif "#Altitude,m" in row:
-                Altitude_m.append(float(dat[1]))
+                point["Altitude_m"].append(float(dat[1]))
             elif "#Temperature" in row:
-                Temperature_C.append(float(dat[1]))
+                point["Temperature_C"].append(float(dat[1]))
             elif "#Pitch,deg" in row:
-                Pitch_deg.append(float(dat[1]))
+                point["Pitch_deg"].append(float(dat[1]))
             elif "#Roll,deg" in row:
-                Roll_deg.append(float(dat[1]))
+                point["Roll_deg"].append(float(dat[1]))
 
-    # Add lists to point dictionary
-    point["TimeLocal"] = TimeLocal
-    point["TimeUTC"] = TimeUTC
-    point["Ping"] = Ping
-    point["Ping_num_in_series"] = Ping_num_in_series
-    point["Altitude_m"] = Altitude_m
-    point["Temperature_C"] = Temperature_C
-    point["Pitch_deg"] = Pitch_deg
-    point["Roll_deg"] = Roll_deg
+    # point["TimeUTC"] = pd.to_datetime(point["TimeUTC"])
+    point["TimeUTC"] = pd.to_datetime(point["TimeUTC"]).to_numpy()
+
+    samples = instmeta["Pulses_in_series_num"]
+    n = instmeta["Bin_count"]
 
     for k in point:
         point[k] = np.array(point[k])
+        point[k] = point[k].reshape((-1, samples))
 
-    point["TimeUTC"] = pd.to_datetime(point["TimeUTC"])
-    point["TimeLocal"] = pd.to_datetime(point["TimeLocal"])
+    time = point["TimeUTC"][:, 0]
 
-    # reshape point data
-    samples = metadata["instmeta"]["Pulses_in_series_num"]
-    n = metadata["instmeta"]["Bin_count"]
-    for k in point:
-        if "Time" not in k:
-            point[k] = point[k].reshape((-1, samples))
-
-    time = point["TimeUTC"][::samples]
     ds = xr.Dataset()
     ds["time"] = xr.DataArray(time, dims="time")
     ds["sample"] = xr.DataArray(np.arange(0, samples), dims="sample")
     ds["bins"] = xr.DataArray(np.arange(n), dims="bins")
 
-    # add dimensions to variables
+    # add variables to xarray
     for k in point:
         if "Time" not in k:
             ds[k] = xr.DataArray(point[k], dims=("time", "sample"))
@@ -312,9 +251,8 @@ def load_ea_point(basefile, metadata):
     return ds
 
 
-def load_ea_profile(ds, basefile):
+def load_ea_profile(ds, basefile, instmeta):
     profile = []
-
     with open(basefile) as f:  # read in profile echo data
         for row in f:
             if row.rstrip() == "##DataStart":
@@ -324,8 +262,8 @@ def load_ea_profile(ds, basefile):
                     profile.append(float(row))
 
     # reshape profile data
-    samples = ds.Pulses_in_series_num
-    n = ds.Bin_count
+    samples = instmeta["Pulses_in_series_num"]
+    n = instmeta["Bin_count"]
     profile = np.array(profile)
     profile = profile.reshape((-1, samples, n))
     ds["Counts"] = xr.DataArray(
@@ -337,19 +275,8 @@ def load_ea_profile(ds, basefile):
     return ds
 
 
-def burst_num(ds):
-    ds["burst"] = xr.DataArray(
-        np.arange(1, len(ds["time"]) + 1, 1, dtype="int32"), dims="time"
-    )
-
-    return ds
-
-
 def ds_rename_vars(ds):
-    # modified from exo.ds_rename_vars
     varnames = {
-        "Ping": "ping",
-        "Ping_num_in_series": "ping_num_in_series",
         "Temperature_C": "Tx_1211",
         "Pitch_deg": "Ptch_1216",
         "Roll_deg": "Roll_1217",
@@ -367,24 +294,12 @@ def ds_rename_vars(ds):
 
 
 def ds_add_attrs(ds):
-    # modified from exo.ds_add_attrs
-    ds = utils.ds_coord_no_fillvalue(ds)
 
     ds["time"].attrs.update(
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
     ds["sample"].attrs.update({"units": "1", "long_name": "Sample in burst"})
-
-    ds["burst"].attrs.update(
-        {
-            "units": "1",
-            "long_name": "Burst number",
-            # "generic_name": "record",
-            # "epic_code": "1207",
-            # "coverage_content_type": "physicalMeasurement",
-        }
-    )
 
     ds["Tx_1211"].attrs.update(
         {
@@ -396,6 +311,8 @@ def ds_add_attrs(ds):
     )
 
     if "ea" in ds.attrs["instrument_type"]:
+        ds.attrs["instrument_type"] = "EofE ECHOLOGGER EA400 profiling altimeter"
+
         ds["AGC_1202"].attrs.update(
             {
                 "units": "counts",
@@ -424,6 +341,8 @@ def ds_add_attrs(ds):
         )
 
     if "aa" in ds.attrs["instrument_type"]:
+        ds.attrs["instrument_type"] = "EofE ECHOLOGGER AA400 altimeter"
+
         ds["AMP_723"].attrs.update(
             {
                 "units": "percent",
@@ -431,38 +350,6 @@ def ds_add_attrs(ds):
                 "epic_code": "723",
             }
         )
-
-    """
-    # add initial height information and fill values to variables
-
-    def add_attributes(var, dsattrs):
-        if "ea" in dsattrs["instrument_type"]:
-            var.attrs.update(
-                {
-                    "initial_instrument_height": dsattrs["initial_instrument_height"],
-                    "height_depth_units": "m",
-                    "sensor_type": "ECHOLOGGER EA400",
-                }
-            )
-        elif "aa" in dsattrs["instrument_type"]:
-            var.attrs.update(
-                {
-                    "initial_instrument_height": dsattrs["initial_instrument_height"],
-                    "height_depth_units": "m",
-                    "sensor_type": "ECHOLOGGER AA400",
-                }
-            )
-
-    # don't include all attributes for coordinates that are also variables
-    #for var in ds.variables:
-    #    if (var not in ds.coords) and ("time" not in var):
-    #        add_attributes(ds[var], ds.attrs)
-    """
-    # rename instrument_type for global attributes
-    if "aa" in ds.attrs["instrument_type"]:
-        ds.attrs["instrument_type"] = "EofE ECHOLOGGER AA400 altimeter"
-    elif "ea" in ds.attrs["instrument_type"]:
-        ds.attrs["instrument_type"] = "EofE ECHOLOGGER EA400 profiling altimeter"
 
     return ds
 
@@ -561,7 +448,8 @@ def calc_cor_brange(ds):
     soundspd = gsw.sound_speed(ds.attrs["average_salinity"], ds.Temperature_C, p)
     ds["brange"] = xr.DataArray(time_sec * soundspd).round(3)  # round brange to mm
 
-    histtext = f"Adjusted sound velocity calculated using sound_speed(s,t,p) from gsw toolbox (https://teos-10.github.io/GSW-Python/). Inputs: Salinity (s) from average salinity of {ds.attrs['average_salinity']} PSU, temperature (t) from ea400 internal temperature measurements, pressure (p) from instrument depth {math_sign} median(altitude)/2. "
+    histtext = f"Adjusted sound velocity calculated using sound_speed(s,t,p) from gsw toolbox (https://teos-10.github.io/GSW-Python/). Inputs: Salinity (s) from average salinity of {
+        ds.attrs['average_salinity']} PSU, temperature (t) from ea400 internal temperature measurements, pressure (p) from instrument depth {math_sign} median(altitude)/2. "
 
     ds = utils.insert_history(ds, histtext)
 
@@ -579,10 +467,6 @@ def calc_cor_brange(ds):
 
 def calc_boundary_elev(ds):
     # find seabed elevation referenced to datum
-    histtext = (
-        "add boundary_elevation using speed of sound corrected brange and ref datum"
-    )
-    ds = utils.insert_history(ds, histtext)
 
     if "NAVD88_ref" in ds.attrs:
         ds.attrs["geopotential_datum_name"] = "NAVD88"
@@ -677,6 +561,11 @@ def calc_boundary_elev(ds):
         3
     )  # round seabed_elevation to mm
 
+    histtext = (
+        "add boundary_elevation using speed of sound corrected brange and ref datum"
+    )
+    ds = utils.insert_history(ds, histtext)
+
     return ds
 
 
@@ -731,9 +620,6 @@ def average_burst(ds):
     ds = ds.mean(
         "sample", skipna=True, keep_attrs=True
     )  # take mean across 'sample' dim
-    ds["burst"] = ds.burst.astype(
-        dtype="int32"
-    )  # need to retype to int32 bc np/xarray changes int to float when averaging
 
     # round brange and seabed_elevation to 3 decimal places (mm)
     if "brange" in ds:
@@ -781,67 +667,77 @@ def read_aa_instmet(basefile):
     return instmeta
 
 
-def load_aa_point(basefile, metadata):
-    with open(basefile) as f:
-        if "skiprows" in metadata:
-            for k in np.arange(0, metadata["skiprows"]):
-                line = f.readline()
+def load_aa_point(filnam, instmeta, skiprows=None, skipfooter=None, encoding="utf-8"):
+    """Read data from an EofE AA400 .log file into an xarray
+    Dataset.
 
-        else:
-            line = ""
-            while "   Date       Time" not in line:
-                line = f.readline()
-            line = f.readline()
+    Parameters
+    ----------
+    filnam : string
+        The filename
+    skiprows : int, optional
+        How many header rows to skip. Default None
+    skipfooter : int, optional
+        How many footer rows to skip. Default None
+    encoding : string, optional
+        File encoding. Default 'utf-8'
+    Returns
+    -------
+    xarray.Dataset
+        An xarray Dataset of the altimeter data
+    """
 
-        data = f.read().splitlines()
-        data = data[0 : metadata["instmeta"]["NRecords"]]
+    df = pd.read_csv(
+        filnam,
+        skiprows=skiprows,
+        skipfooter=skipfooter,
+        header=None,
+        usecols=np.arange(0, 7),  # Use first 7 columns of data (altitude in mm)
+        sep=r"[, ]+",  # Delimiter is comma or whitespace
+        names=[
+            "Date",
+            "Time",
+            "Ping",
+            "Altitude_m",
+            "Temperature_C",
+            "Battery_mV",
+            "AmplitudeFS",
+        ],
+        encoding=encoding,
+        engine="python",
+        index_col=False,
+    )
 
-        point = {}
+    # Need to use because parse_dates in pd.read_csv is deprecated
+    df["time"] = pd.to_datetime(
+        df["Date"].astype(str) + (df["Time"]), format="%Y%m%d%H:%M:%S.%f"
+    )
+    df.pop("Date")
+    df.pop("Time")
 
-        TimeUTC = []
-        Ping = []
-        Altitude_m = []
-        Temperature_C = []
-        Battery_mV = []
-        AmplitudeFS = []
+    # Convert altitude from mm to m
+    df["Altitude_m"] = df["Altitude_m"] / 1000
 
-        for row in data:
-            dat = np.array(row.split())
-            TimeUTC.append(dat[0] + " " + dat[1])
-            Ping.append(float(dat[2]))
-            Altitude_m.append(float(dat[3]) / 1000)
-            Temperature_C.append(float(dat[4]))
-            Battery_mV.append(float(dat[5]))
-            AmplitudeFS.append(float(dat[6]))
-
-    # Add lists to point dictionary
-    point["TimeUTC"] = TimeUTC
-    point["Ping"] = Ping
-    point["Altitude_m"] = Altitude_m
-    point["Temperature_C"] = Temperature_C
-    point["Battery_mV"] = Battery_mV
-    point["AmplitudeFS"] = AmplitudeFS
+    # Convert to dictionary and reshape
+    point = df.to_dict(orient="list")
+    samples = instmeta["Pulses_in_series_num"]
 
     for k in point:
-        point[k] = np.array(point[k])
+        point[k] = np.reshape(point[k], (-1, samples))
 
-    point["TimeUTC"] = pd.to_datetime(point["TimeUTC"])
+    time = point["time"][:, 0]
 
-    # reshape point data
-    samples = metadata["instmeta"]["Pulses_in_series_num"]
-
-    for k in point:
-        if "Time" not in k:
-            point[k] = point[k].reshape((-1, samples))
-
-    time = point["TimeUTC"][::samples]
     ds = xr.Dataset()
     ds["time"] = xr.DataArray(time, dims="time")
     ds["sample"] = xr.DataArray(np.arange(0, samples), dims="sample")
-    # add dimensions to variables
+
+    # add variables to xarray
     for k in point:
-        if "Time" not in k:
+        if "time" not in k:
             ds[k] = xr.DataArray(point[k], dims=("time", "sample"))
+
+    # need to retype to int32
+    ds["AmplitudeFS"] = ds["AmplitudeFS"].astype(dtype="int32")
 
     return ds
 
@@ -871,9 +767,8 @@ def trim_alt(ds, data_vars=["Altitude_m", "Counts", "Temperature_C"]):
         for trm_meth in trm_list:
             if trm_meth.lower() == "altitude":
                 print("Trimming using altitude data")
-                altitude = ds[
-                    "Altitude_m"
-                ]  # need to use atltitude values before starting trimming
+                # need to use altitude values before starting trimming
+                altitude = ds["Altitude_m"]
                 for var in data_vars:
                     ds[var] = ds[var].where(~(altitude < ds.attrs["Deadzone_m"]))
                     ds[var] = ds[var].where(~(altitude > ds.attrs["Range_m"]))

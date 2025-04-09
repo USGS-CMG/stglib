@@ -204,6 +204,8 @@ EofE ECHOLOGGER
 ---------------
 - All the _min, _max, _bad_ens, etc. options available to the EXO.
 - ``instrument_type``: types "ea" and "aa" are supported.
+- ``skiprows``: for type "aa", the number of lines to skip in the .log file before the real data begins
+- ``skipfooter``: for type "aa", the number of lines to skip in the .log file after the data end
 - ``orientation``: orientation of transducers types 'DOWN' or 'UP' are supported.
 - ``average_salinity``: average salinity value (PSU) for the water mass for the deployment site and time period.
 - ``average_salinity_note``: source of average salinity value.
