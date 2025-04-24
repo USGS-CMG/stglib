@@ -65,11 +65,11 @@ def cdf_to_nc(cdf_filename):
     ds = xr.load_dataset(cdf_filename)
 
     if "bins" in ds:
-        # Trim data when instrument is out of water during a deployment and extra bins if good_bins specified
-        ds = trim_alt(ds)
         ds = calc_bin_height(ds)  # calculate bin height
         # calculate corrected bin height (on NAVD88 datum) with adjusted sound speed
         ds = calc_cor_bin_height(ds)
+        # Trim data when instrument is out of water during a deployment and extra bins if good_bins specified
+        ds = trim_alt(ds)
     else:
         ds = trim_alt(ds, data_vars=["Altitude_m", "AmplitudeFS", "Temperature_C"])
 
