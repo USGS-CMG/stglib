@@ -1622,8 +1622,9 @@ def create_water_level_var(ds):
     """
 
     if (
-        "P_1ac" in list(ds.data_vars)
-        and ds.z.attrs["geopotential_datum_name"] == "NAVD88"
+        "P_1ac" in ds.data_vars
+        and "geopotential_datum_name" in ds["z"].attrs
+        and ds["z"].attrs["geopotential_datum_name"] == "NAVD88"
     ):
         if "sample" in ds.dims:
             ds["water_level"] = xr.DataArray(
