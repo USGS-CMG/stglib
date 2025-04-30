@@ -13,7 +13,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     ds = open_raw_cdf(cdf_filename)
 
     is_profile = (
-        (ds.attrs["sample_mode"] == "CONTINUOUS")
+        (ds.attrs["sample_mode"].upper() == "CONTINUOUS")
         and ("featureType" in ds.attrs)
         and (ds.attrs["featureType"] == "profile")
     )
@@ -127,7 +127,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
         elif is_profile:
             nc_filename = ds.attrs["filename"] + "prof-cal.nc"
 
-        elif (ds.attrs["sample_mode"] == "CONTINUOUS") and (
+        elif (ds.attrs["sample_mode"].upper() == "CONTINUOUS") and (
             "burst" not in ds or "sample" not in ds
         ):
             nc_filename = ds.attrs["filename"] + "cont-cal.nc"
@@ -298,7 +298,7 @@ def ds_add_attrs(ds, is_profile):
     if is_profile:
         ds["time"].attrs["long_name"] = "observation time (UTC)"
 
-    if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("sample" not in ds):
+    if (ds.attrs["sample_mode"].upper() == "CONTINUOUS") and ("sample" not in ds):
         if utils.check_time_fits_in_int32(ds, "time"):
             ds["time"].encoding["dtype"] = "i4"
         else:

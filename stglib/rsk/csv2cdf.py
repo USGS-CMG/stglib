@@ -47,12 +47,12 @@ def csv_to_cdf(metadata):
     ds = set_up_instrument_and_sampling_attrs(ds, meta)
 
     is_profile = (
-        (ds.attrs["sample_mode"] == "CONTINUOUS")
+        (ds.attrs["sample_mode"].upper() == "CONTINUOUS")
         and ("featureType" in ds.attrs)
         and (ds.attrs["featureType"] == "profile")
     )
 
-    if ds.attrs["sample_mode"] == "WAVE":
+    if ds.attrs["sample_mode"].upper() == "WAVE":
         burst = pd.read_csv(basefile + "_burst.txt")
 
         burst = burst.rename(columns={"Time": "time"}).set_index("time")

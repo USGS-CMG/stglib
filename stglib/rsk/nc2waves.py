@@ -12,7 +12,7 @@ def nc_to_waves(nc_filename):
     ds = xr.open_dataset(nc_filename)
 
     # check to see if need to make wave burst from continuous data
-    if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
+    if ds.attrs["sample_mode"].upper() == "CONTINUOUS" and "wave_interval" in ds.attrs:
         # make wave burst ncfile from continuous data if wave_interval is specified
         ds = make_wave_bursts(ds)
 
@@ -64,7 +64,7 @@ def nc_to_diwasp(nc_filename):
     ds = xr.open_dataset(nc_filename)
 
     # check to see if need to make wave burst from continuous data
-    if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
+    if ds.attrs["sample_mode"].upper() == "CONTINUOUS" and "wave_interval" in ds.attrs:
         # check for wave_start_time attrs
         if "wave_start_time" in ds.attrs:
             print(
