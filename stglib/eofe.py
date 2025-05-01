@@ -448,8 +448,10 @@ def calc_cor_brange(ds):
     soundspd = gsw.sound_speed(ds.attrs["average_salinity"], ds.Temperature_C, p)
     ds["brange"] = xr.DataArray(time_sec * soundspd).round(3)  # round brange to mm
 
-    histtext = f"Adjusted sound velocity calculated using sound_speed(s,t,p) from gsw toolbox (https://teos-10.github.io/GSW-Python/). Inputs: Salinity (s) from average salinity of {
-        ds.attrs['average_salinity']} PSU, temperature (t) from ea400 internal temperature measurements, pressure (p) from instrument depth {math_sign} median(altitude)/2. "
+    histtext = (
+        f"Adjusted sound velocity calculated using sound_speed(s,t,p) from gsw toolbox (https://teos-10.github.io/GSW-Python/). Inputs: Salinity (s) from average salinity of "
+        f"{ds.attrs['average_salinity']} PSU, temperature (t) from ea400 internal temperature measurements, pressure (p) from instrument depth {math_sign} median(altitude)/2. "
+    )
 
     ds = utils.insert_history(ds, histtext)
 
