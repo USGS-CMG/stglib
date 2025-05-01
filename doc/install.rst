@@ -1,31 +1,6 @@
 Installation
 ************
 
-The easy (CHS) way
-==================
-
-`Create a Pangeo CHS account <https://taskmgr.chs.usgs.gov/servicedesk/customer/portal/10/create/251>`_.
-
-Log in to CHS Pangeo JupyterHub, and edit/create your ``~/.condarc`` file:
-
-::
-
-   channels:
-     - conda-forge
-     - defaults
-   channel_priority: strict
-   envs_dirs:
-     - /home/jovyan/my-conda-envs
-
-Then create the stglib environment, install stglib, and activate the environment:
-
-::
-
-  conda create -n stglib stglib ipykernel
-  conda activate stglib
-
-Now you can start processing data!
-
 The easy (local machine) way
 ============================
 
@@ -40,22 +15,22 @@ Install and activate an stglib environment:
 
 ::
 
-  mamba create -n stglib stglib
-  mamba activate stglib
+  conda create -n stglib stglib
+  conda activate stglib
 
 To update stglib
 
 ::
 
-   mamba activate stglib
-   mamba update stglib
+   conda activate stglib
+   conda update stglib
 
 Now you can start processing data!
 
 If you want to contribute to stglib development
 ===============================================
 
-Set up Mambaforge or Anaconda as above. Obtain stglib by cloning the GitHub repo. Change to a directory where you'd like stglib to live and type:
+Set up Miniforge as above. Obtain stglib by cloning the GitHub repo. Change to a directory where you'd like stglib to live and type:
 
 ``git clone https://code.usgs.gov/cmgp/stglib.git``
 
@@ -82,5 +57,5 @@ If you get errors regarding undefined standard_names in your compliance-checker 
 
 ::
 
-  mamba update compliance-checker
+  conda update compliance-checker
   compliance-checker -d latest
