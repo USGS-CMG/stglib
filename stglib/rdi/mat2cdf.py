@@ -47,6 +47,7 @@ def mat_to_cdf(metadata):
             int(mat["info"]["ncells"])
         )
         dsm["velbeam"] = ["E", "N", "U1", "U2"]
+        dsm["velbeam"].encoding["dtype"] = "str"
         dsm["beam"] = [1, 2, 3, 4]
         dsm["beam"].encoding["dtype"] = "i4"
 
