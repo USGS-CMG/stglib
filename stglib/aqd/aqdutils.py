@@ -243,20 +243,12 @@ def set_orientation(VEL, T=None, inst_type="AQD"):
         long_name = "height relative to NAVD88"
         geopotential_datum_name = "NAVD88"
     elif "height_above_geopotential_datum" in VEL.attrs:
-        elev = (
-            VEL.attrs["height_above_geopotential_datum"]
-            + VEL.attrs["transducer_offset_from_bottom"]
-        )
+        hagd = VEL.attrs["height_above_geopotential_datum"]
+        elev = hagd + VEL.attrs["transducer_offset_from_bottom"]
         if "AnalogInput1_height" in VEL.attrs:
-            elev_ai1 = (
-                VEL.attrs["height_above_geopotential_datum"]
-                + VEL.attrs["AnalogInput1_height"]
-            )
+            elev_ai1 = hagd + VEL.attrs["AnalogInput1_height"]
         if "AnalogInput2_height" in VEL.attrs:
-            elev_ai2 = (
-                VEL.attrs["height_above_geopotential_datum"]
-                + VEL.attrs["AnalogInput2_height"]
-            )
+            elev_ai2 = hagd + VEL.attrs["AnalogInput2_height"]
 
         long_name = f"height relative to {VEL.attrs['geopotential_datum_name']}"
         geopotential_datum_name = VEL.attrs["geopotential_datum_name"]

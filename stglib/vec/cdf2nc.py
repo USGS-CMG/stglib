@@ -143,24 +143,13 @@ def set_orientation(VEL):
         #     VEL.attrs["height_above_geopotential_datum"]
         #     + VEL.attrs["transducer_offset_from_bottom"]
         # )
-        elev_vel = (
-            VEL.attrs["height_above_geopotential_datum"]
-            + VEL.attrs["velocity_sample_volume_height"]
-        )
-        elev_pres = (
-            VEL.attrs["height_above_geopotential_datum"]
-            + VEL.attrs["pressure_sensor_height"]
-        )
+        hagd = VEL.attrs["height_above_geopotential_datum"]
+        elev_vel = hagd + VEL.attrs["velocity_sample_volume_height"]
+        elev_pres = hagd + VEL.attrs["pressure_sensor_height"]
         if "AnalogInput1_height" in VEL.attrs:
-            elev_ai1 = (
-                VEL.attrs["height_above_geopotential_datum"]
-                + VEL.attrs["AnalogInput1_height"]
-            )
+            elev_ai1 = hagd + VEL.attrs["AnalogInput1_height"]
         if "AnalogInput2_height" in VEL.attrs:
-            elev_ai2 = (
-                VEL.attrs["height_above_geopotential_datum"]
-                + VEL.attrs["AnalogInput2_height"]
-            )
+            elev_ai2 = hagd + VEL.attrs["AnalogInput2_height"]
 
         long_name = f"height relative to {VEL.attrs['geopotential_datum_name']}"
         geopotential_datum_name = VEL.attrs["geopotential_datum_name"]

@@ -59,6 +59,7 @@ Options common to most (all?) instrument config files:
 - ``good_dates``: a list of dates to clip data by instead of the default ``Deployment_date`` and ``Recovery_date``. Example: ``good_dates: ['2021-01-22 18:32', '2021-04-13 19:27'] # first burst looked suspect``. Multiple date ranges can also be used. Example: ``good_dates: ['2021-01-22 18:32', '2021-02-28 23:59', '2021-04-01 00:00', '2021-04-13 19:27'] # the month of March was bad``
 - ``good_ens``: a list of good indices (based on the raw file, zero-based) to clip the data by. Example: ``good_ens: [10, 500]``. To specify multiple good ranges, add additional pairs of indices: ``good_ens: [10, 500, 560, 600]`` will clip the data to samples 10-500 and 560-600 in the final file.
 - ``vert_dim``: user specified coordinate variable for vertical dimension for data variables with non-singular vertical dimension (default = 'z')
+- ``height_above_geopotential_datum`` and ``geopotential_datum_name`` to indicate the elevation of the sea bed. Any value can be used for ``geopotential_datum_name``; `typical ones within the U.S. include <https://www.ngs.noaa.gov/datums/vertical/index.shtml>`_: NAVD88, GUVD04, NMVD03, PRVD02, VIVD09.
 
 Multiple instruments
 --------------------
