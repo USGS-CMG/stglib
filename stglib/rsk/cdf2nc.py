@@ -63,7 +63,13 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
             ds = qaqc.trim_min_diff_pct(ds, v)
             ds = qaqc.trim_max_diff(ds, v)
             ds = qaqc.trim_max_diff_pct(ds, v)
+            ds = qaqc.trim_med_diff(ds, v)
+            ds = qaqc.trim_med_diff_pct(ds, v)
+            ds = qaqc.trim_max_blip(ds, v)
+            ds = qaqc.trim_max_blip_pct(ds, v)
             ds = qaqc.trim_bad_ens(ds, v)
+            ds = qaqc.trim_bad_ens_indiv(ds, v)
+            ds = qaqc.trim_fliers(ds, v)
 
     # after check for masking vars by other vars
     for var in ds.data_vars:
