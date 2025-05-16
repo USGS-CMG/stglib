@@ -28,7 +28,7 @@ We have plans to support:
 
 - RDI Sentinel V profilers
 
-This package makes heavy use of [NumPy](http://www.numpy.org), [xarray](http://xarray.pydata.org/en/stable/), and [netCDF4](http://unidata.github.io/netcdf4-python/). It works on Python 3.9+.
+This package makes heavy use of [NumPy](http://www.numpy.org), [xarray](http://xarray.pydata.org/en/stable/), and [netCDF4](http://unidata.github.io/netcdf4-python/). It works on Python 3.10+.
 
 [Read the documentation](https://cmgp.code-pages.usgs.gov/stglib).
 
