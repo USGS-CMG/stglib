@@ -36,6 +36,24 @@ def read_asc(filnam, skiprows=51, encoding="utf-8"):
     return mc
 
 
+def read_asc_header(filnam):
+    """Read header from an SBE 37 MicroCAT .asc file and add to metadata"""
+
+    header = {}
+
+    with open(filnam) as file:
+        for line in file:
+            col = line.split()
+            if "*" not in line:
+                break
+            elif "SERIAL NO." in line:
+                header["serial_number"] = col[6]
+            elif "sample interval" in line:
+                header["sample_interval"] = col[4]
+
+    return header
+
+
 def asc_to_cdf(metadata):
     """
     Load a raw .asc file and generate a .cdf file
@@ -43,6 +61,10 @@ def asc_to_cdf(metadata):
     basefile = metadata["basefile"]
 
     ds = read_asc(basefile + ".asc", skiprows=metadata["skiprows"])
+
+    header = read_asc_header(basefile + ".asc")
+
+    metadata.update(header)
 
     metadata.pop("skiprows")
 
@@ -88,6 +110,7 @@ def cdf_to_nc(cdf_filename):
     ds = utils.add_start_stop_time(ds)
     ds = utils.add_min_max(ds)
     ds = utils.add_delta_t(ds)
+    ds = utils.ds_coord_no_fillvalue(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
@@ -119,7 +142,6 @@ def ds_add_attrs(ds):
     """
     Add attributes: units, standard name from CF website, long names
     """
-    ds = utils.ds_coord_no_fillvalue(ds)
 
     ds["time"].attrs.update(
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
