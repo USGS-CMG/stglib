@@ -392,7 +392,13 @@ def magvar_correct(ds):
             vvar = "N"
 
         if uvar is not None and vvar is not None:
+            uvarattrsbak = ds[uvar].attrs
+            vvarattrsbak = ds[vvar].attrs
+
             ds[uvar], ds[vvar] = rotate(ds[uvar], ds[vvar], magvardeg)
+
+            ds[uvar].attrs = uvarattrsbak
+            ds[vvar].attrs = vvarattrsbak
 
     return ds
 
@@ -981,10 +987,19 @@ def check_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         elif ds.attrs["data_type"].upper() == "ALT_AVERAGE":
             ds.attrs["bin_size"] = ds.attrs["SIGAlt_Average_CellSize"]
 
-        if ds.attrs["frequency"] == 1000 or ds.attrs["frequency"] == 500:
-            ds.attrs["beam_angle"] = 25
-        elif ds.attrs["frequency"] == 250:
-            ds.attrs["beam_angle"] = 20
+        if (
+            ds.attrs["data_type"].upper() == "IBURST"
+            or ds.attrs["data_type"].upper() == "IBURSTHR"
+            or ds.attrs["data_type"] == "ECHOSOUNDER"
+        ):
+            ds.attrs["beam_angle"] = 0
+            beam_type = "beam 5"
+        else:
+            if ds.attrs["frequency"] == 1000 or ds.attrs["frequency"] == 500:
+                ds.attrs["beam_angle"] = 25
+            elif ds.attrs["frequency"] == 250:
+                ds.attrs["beam_angle"] = 20
+            beam_type = "slant beam"
 
         if "sample_rate" in ds.attrs and "sample_interval" not in ds.attrs:
             ds.attrs["sample_interval"] = 1 / ds.attrs["sample_rate"]
@@ -992,7 +1007,7 @@ def check_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         freq = ds.attrs["frequency"]
         bang = ds.attrs["beam_angle"]
         print(
-            f"Signature slant beam acoustic frequency = {freq} with beam_angle = {bang} from vertical"
+            f"Signature {beam_type} acoustic frequency = {freq} with beam_angle = {bang} from vertical"
         )
 
     elif inst_type == "RDI":

@@ -65,6 +65,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds["W1"] = ds["VelUp1"]
         ds["W2"] = ds["VelUp2"]
 
+        ds = filter.filter_vel(ds, data_vars=["U", "V", "W1", "W2"])
         ds = aqdutils.magvar_correct(ds)
         ds = aqdutils.trim_vel(ds, data_vars=["U", "V", "W1", "W2"])
 
@@ -91,10 +92,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds["vel_b5"] = ds["VelBeam5"]
 
         ds = aqdutils.magvar_correct(ds)
-        # remove side lobes from trim method for vertical beam
-        if "trim_method" in ds.attrs:
-            ds.attrs["trim_method"] = ds.attrs["trim_method"].strip(" sl")
 
+        ds = filter.filter_vel(ds, data_vars=["vel_b5"])
         ds = aqdutils.trim_vel(ds, data_vars=["vel_b5"])
 
     ds = aqdutils.make_bin_depth(ds)
@@ -118,7 +117,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             ds[var] = ds[var] / 100
 
     # Rename DataArrays for CFompliance
-    ds = aqdutils.ds_rename(ds)  # for common variables
+    # ds = aqdutils.ds_rename(ds)  # for common variables
     ds = ds_drop(ds)
     ds = ds_rename_sig(ds)  # for signature vars not in aqds or vecs
     # swap vert dim to z or user specified in vert_dim
@@ -143,9 +142,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = utils.ds_coord_no_fillvalue(ds)
 
     ds = drop_attrs(ds)
-
-    # Add min/max values
-    ds = utils.add_min_max(ds)
 
     # if BURST sample mode shape data into burst shape
     if "BURST" in ds.attrs["sample_mode"]:
@@ -191,6 +187,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # fill with AGC and Cor threshold
     ds = aqdutils.fill_agc(ds)
     ds = aqdutils.fill_cor(ds)
+
+    # Add min/max values
+    ds = utils.add_min_max(ds)
 
     # write out nc file by data_type
     if "prefix" in ds.attrs:
@@ -322,8 +321,41 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
         ds = utils.ds_coord_no_fillvalue(ds)
 
+        # qaqc - again on average data
+        for var in ds.data_vars:
+            # need to do this or else a "coordinates" attribute with value of "burst" hangs around
+            # ds[var].encoding["coordinates"] = None
+
+            # check for any filtering first
+            ds = filter.apply_butter_filt(ds, var)
+            ds = filter.apply_med_filt(ds, var)
+
+            ds = qaqc.trim_min(ds, var)
+            ds = qaqc.trim_max(ds, var)
+            ds = qaqc.trim_min_diff(ds, var)
+            ds = qaqc.trim_min_diff_pct(ds, var)
+            ds = qaqc.trim_max_diff(ds, var)
+            ds = qaqc.trim_maxabs_diff_2d(ds, var)
+            ds = qaqc.trim_max_diff_pct(ds, var)
+            ds = qaqc.trim_med_diff(ds, var)
+            ds = qaqc.trim_med_diff_pct(ds, var)
+            ds = qaqc.trim_max_blip(ds, var)
+            ds = qaqc.trim_max_blip_pct(ds, var)
+            ds = qaqc.trim_bad_ens(ds, var)
+            ds = qaqc.trim_bad_ens_indiv(ds, var)
+            ds = qaqc.trim_fliers(ds, var)
+            ds = qaqc.trim_warmup(ds, var)
+
+        # after check for masking vars by other vars
+        for var in ds.data_vars:
+            ds = qaqc.trim_mask(ds, var)
+            ds = qaqc.trim_mask_expr(ds, var)
+
+        # fill with AGC and Cor threshold
+        ds = aqdutils.fill_agc(ds)
+        ds = aqdutils.fill_cor(ds)
+
         # Add min/max values
-        print("adding min/max values")
         ds = utils.add_min_max(ds)
 
         ds = utils.add_delta_t(ds)
@@ -514,6 +546,20 @@ def ds_rename_sig(ds, waves=False):
         "AmbiguityVel": "ambig_vel",
         "Status": "status",
         "Error": "error",
+        "Temperature": "Tx_1211",
+        "Pressure": "P_1",
+        "pressure": "P_1",
+        "Pressure_ac": "P_1ac",
+        "Temperature": "Tx_1211",
+        "Heading": "Hdg_1215",
+        "heading": "Hdg_1215",
+        "Pitch": "Ptch_1216",
+        "pitch": "Ptch_1216",
+        "Roll": "Roll_1217",
+        "roll": "Roll_1217",
+        "Battery": "Bat_106",
+        "Soundspeed": "SV_80",
+        "Burst": "burst",
         "TransmitEnergy": "xmit_energy",
         "U": "u_1205",
         "V": "v_1206",
@@ -548,6 +594,10 @@ def ds_rename_sig(ds, waves=False):
         "Pitchstd": "Ptch_std",
         "Rollstd": "Roll_std",
         "Pressurestd": "Pres_std",
+        "U_unfiltered": "u_1205_unfiltered",
+        "V_unfiltered": "v_1206_unfiltered",
+        "W1_unfiltered": "w_1204_unfiltered",
+        "W2_unfiltered": "w2_1204_unfiltered",
     }
 
     for v in varnames:
@@ -752,6 +802,15 @@ def ds_add_attrs_sig(ds):
                 "units": "m s-1",
                 "standard_name": "radial_sea_water_velocity_away_from_instrument",
                 "long_name": "Beam5 Velocity",
+            }
+        )
+
+    if "vel_b5_unfiltered" in ds:
+        ds["vel_b5_unfiltered"].attrs.update(
+            {
+                "units": "m s-1",
+                "standard_name": "radial_sea_water_velocity_away_from_instrument",
+                "long_name": "Beam5 Velocity (unfiltered)",
             }
         )
 
@@ -1055,6 +1114,44 @@ def ds_add_attrs_sig(ds):
                 "cell_methods": "time: standard_deviation",
             }
         )
+    if "u_1205_unfiltered" in ds:
+        ds["u_1205_unfiltered"].attrs.update(
+            {
+                "units": "m s-1",
+                "long_name": "Eastward Velocity (unfiltered)",
+                "standard_name": "eastward_sea_water_velocity",
+                "epic_code": 1205,
+            }
+        )
+
+    if "v_1206_unfiltered" in ds:
+        ds["v_1206_unfiltered"].attrs.update(
+            {
+                "units": "m s-1",
+                "long_name": "Northward Velocity (unfiltered)",
+                "standard_name": "northward_sea_water_velocity",
+                "epic_code": 1206,
+            }
+        )
+
+    if "w_1204_unfiltered" in ds:
+        ds["w_1204_unfiltered"].attrs.update(
+            {
+                "units": "m s-1",
+                "long_name": "Vertical Velocity (unfiltered)",
+                "standard_name": "upward_sea_water_velocity",
+                "epic_code": 1204,
+            }
+        )
+
+    if "w2_1204_unfiltered" in ds:
+        ds["w2_1204_unfiltered"].attrs.update(
+            {
+                "units": "m s-1",
+                "long_name": "Vertical Velocity (2nd - unfiltered)",
+                "standard_name": "upward_sea_water_velocity",
+            }
+        )
 
     return ds
 
@@ -1196,7 +1293,7 @@ def reorder_dims(ds):
     """
     Reorder dimension for CF complinace
     """
-    print("Reordeing data variable dimensions for CF complinace")
+    print("Reordering data variable dimensions for CF complinace")
     for var in ds.data_vars:
         if "z" in ds[var].dims and len(ds[var].dims) == 2:
             ds[var] = ds[var].transpose("time", "z")
@@ -1248,7 +1345,7 @@ def fill_time_gaps(ds):
 
             if len(idx) > len(ds["time"]):
                 print(
-                    f"Gaps in time index- reindexing to make time index even in CONTINUOUS sampled data using {sims/2} milliseconds tolerance for data variables"
+                    f"Gaps in time index- reindexing to make time index even in CONTINUOUS sampled data using {sins/2} milliseconds tolerance for data variables"
                 )
 
                 # make sure time index is unique

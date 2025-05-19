@@ -77,9 +77,21 @@ def make_butter_filt(ds, var, sr, cutfreq, ftype):
         notetxt = f"Values filtered using order = {ford} butterworth {ftype} filter with {cutfreq} Hz cutoff frequency. "
         ds = utils.insert_note(ds, var, notetxt)
 
+    elif ds[var].ndim == 2 and "time" in ds[var].dims and "bindist" in ds[var].dims:
+        print(f"Applying {ftype} filter to {var} profile data")
+        for k in ds["bindist"]:
+
+            filtered = butter_filt(
+                ds[var].sel(bindist=k).values, sr, cutfreq, ftype, ford
+            )
+            ds[var].loc[dict(bindist=k)] = filtered
+
+        notetxt = f"Values filtered using order = {ford} butterworth {ftype} filter with {cutfreq} Hz cutoff frequency. "
+        ds = utils.insert_note(ds, var, notetxt)
+
     else:
         print(
-            f"Not able to apply {ftype} filter because only 'time' , ('time','sample'), or ('time','z') dimensions are handled and {var} dims are {ds[var].dims}"
+            f"Not able to apply {ftype} filter because only 'time', ('time','sample'), ('time','z'), ('time', 'bindist') dimensions are handled and {var} dims are {ds[var].dims}"
         )
 
     return ds
@@ -214,6 +226,52 @@ def apply_med_filt(ds, var):
         else:
             raise ValueError(
                 f"Not able to apply median filter because kernel size specified {kernel_size} is not an odd whole number"
+            )
+
+    return ds
+
+
+def filter_vel(ds, data_vars=["U", "V", "W"]):
+    """Filter velocity variables if specified using Butterworth filter - save orignal unfiltered data also"""
+
+    if "vel_filter_method" in ds.attrs and "vel_filter_cut" in ds.attrs:
+        # loop through data variables
+        if "sample_rate" in ds.attrs or "sample_interval" in ds.attrs:
+            # check to make sure sample_rate or sample_intreval attributes exits.
+            if "sample_rate" in ds.attrs:
+                sr = ds.attrs["sample_rate"]
+            else:
+                sr = 1 / ds.attrs["sample_interval"]
+
+            # loop through data variables
+            for var in data_vars:
+
+                if var in ds.data_vars:
+
+                    # back-up attrs
+                    attrsbak = ds[var].attrs
+                    ds[var + "_unfiltered"] = ds[var].copy()
+                    ds[var + "_unfiltered"].attrs = attrsbak
+
+                    ftype = ds.attrs["vel_filter_method"]
+
+                    if ftype == "lowpass" or ftype == "highpass":
+                        cutfreq = 1 / ds.attrs["vel_filter_cut"]
+                        ds = make_butter_filt(ds, var, sr, cutfreq, ftype)
+
+                    elif ftype == "bandpass":
+                        cutfreq_lo = 1 / ds.attrs["vel_filter_cut"][0]
+                        cutfreq_hi = 1 / ds.attrs["vel_filter_cut"][1]
+                        cutfreq = [cutfreq_lo, cutfreq_hi]
+                        ds = make_butter_filt(ds, var, sr, cutfreq, ftype)
+                    else:
+                        raise ValueError(
+                            f"filter method specified {ftype} is not in avaiable list [lowpass, highpass, or bandpass]."
+                        )
+
+        else:
+            raise ValueError(
+                f"sample_rate or sample _interval do not exist in global attributes, cannot apply {ds.attrs['vel_filter_method']} filter to velocity variables. "
             )
 
     return ds

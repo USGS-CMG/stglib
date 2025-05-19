@@ -8,9 +8,10 @@ orientation: 'Down'          # use this to identify orientation of profiler
 initial_instrument_height: 1.56  # meters
 initial_instrument_height_note: 'From seabed'
 zeroed_pressure: 'Yes' # was pressure zeroed before deployment
-trim_method: 'water level sl'  # Water Level SL trims bin if any part of bin or side lobe is out of water - works best when pressure is corrected for atmospheric
 trim_method: 'brange sl'  # brange SL trims bin if any part of bin or side lobe is at or below seabed- if brange is not in data set with velocity vars need to also specify braange_file
 brange_file: '11262sige1-a.nc'
+vel_filter_method: "lowpass" # velocity variable filter method [lowpass, highpass, and bandpass]
+vel_filter_cut: 2 # filter cutoff period in seconds for velocity variable filtering
 average_interval: 360
 average_duration: 120
 P_1ac_note: 'Corrected for variations in atmospheric pressure using MesoWest Station FW7612 Dennis.'
