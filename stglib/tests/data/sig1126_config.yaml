@@ -30,3 +30,4 @@ average_interval: 360
 average_duration: 120
 P_1ac_note: 'Corrected for variations in atmospheric pressure using MesoWest Station FW7612 Dennis.'
 trim_avg_vel_bins: 1
+pressure_sensor_height: 2.12

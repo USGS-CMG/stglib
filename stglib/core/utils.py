@@ -300,6 +300,8 @@ def ds_coord_no_fillvalue(ds):
         "frequency",
         "z",
         "bindist",
+        "zsen",
+        "depthsen",
     ]:
         if var in ds:
             ds[var].encoding["_FillValue"] = None
@@ -1104,10 +1106,15 @@ def create_nominal_instrument_depth(ds):
 
 
 def create_z(ds):
-    # create z for exo
+    # create z and depth coordinate variables
     iih = ds.attrs["initial_instrument_height"]
     if "bindist" in ds:
         bd = ds["bindist"].values
+
+    if "pressure_sensor_height" in ds.attrs:
+        psh = ds.attrs["pressure_sensor_height"]
+    else:
+        psh = None
 
     if "NAVD88_ref" in ds.attrs:
         hagd = ds.attrs["NAVD88_ref"]
@@ -1136,6 +1143,16 @@ def create_z(ds):
     ds["z"].attrs["units"] = "m"
     ds["z"].attrs["standard_name"] = "height"
 
+    if psh is not None:
+        # Create zsen for sensor data
+        ds["zsen"] = xr.DataArray([hagd + psh], dims="zsen")
+        ds["zsen"].attrs["positive"] = "up"
+        ds["zsen"].attrs["units"] = "m"
+        ds["zsen"].attrs["standard_name"] = "height"
+        if gdn != "sea bed":
+            ds["zsen"].attrs["geopotential_datum_name"] = gdn
+        ds["zsen"].attrs["long_name"] = f"pressure sensor height relative to {gdn}"
+
     # find depth dimension values
     # check for sea floor depth standard names
     # this creates a depth variable for the instrument measurement location
@@ -1163,6 +1180,9 @@ def create_z(ds):
             else:
                 depvar = [ds.attrs[name] - iih]
 
+            if psh is not None:
+                depsenvar = [ds.attrs[name] - psh]
+
         if depvar is not None:
             break
 
@@ -1186,12 +1206,23 @@ def create_z(ds):
             # name = "sea_floor_depth_below_mean_sea_level"
             longname = "depth below mean sea level from data"
 
+            if psh is not None:
+                depsenvar = [np.nanmean(ds[v])]
+
     ds["depth"] = xr.DataArray(depvar, dims="depth")
 
     ds["depth"].attrs["positive"] = "down"
     ds["depth"].attrs["units"] = "m"
     ds["depth"].attrs["standard_name"] = "depth"
     ds["depth"].attrs["long_name"] = longname
+
+    if psh is not None:
+        # Create depthsen for sensor data
+        ds["depthsen"] = xr.DataArray(depsenvar, dims="depthsen")
+        ds["depthsen"].attrs["positive"] = "down"
+        ds["depthsen"].attrs["units"] = "m"
+        ds["depthsen"].attrs["standard_name"] = "depth"
+        ds["depthsen"].attrs["long_name"] = f"pressure sensor {longname}"
 
     return ds
 

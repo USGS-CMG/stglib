@@ -730,7 +730,7 @@ def load_aa_point(filnam, instmeta, skiprows=None, skipfooter=None, encoding="ut
     time = point["time"][:, 0]
 
     ds = xr.Dataset()
-    ds["time"] = xr.DataArray(time, dims="time")
+    ds["time"] = xr.DataArray(pd.to_datetime(time), dims="time")
     ds["sample"] = xr.DataArray(np.arange(0, samples), dims="sample")
 
     # add variables to xarray

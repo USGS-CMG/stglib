@@ -116,8 +116,9 @@ Aquadopp-specific options include:
 
 - ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``'bin range'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
 - ``<VAR>_trim_single_bins``: trim data where only a single bin of data (after trimming via ``trim_method``) remains. Set this value to ``true`` to enable.
-- ``<VAR>_maxabs_diff_2d``: trim values in a 2D DataArray when the absolute value of the increase is greater than a specified amount
+- ``<VAR>_maxabs_diff_2d``: trim values in a 2D DataArray when the absolute value of the increase is greater than a specified amount.
 - ``AnalogInput1_<ATTR>`` or ``AnalogInput2_<ATTR>``: if ``<ATTR>`` is "height", "standard_name", "long_name", "units", "institution", "comment", "source", or "references", this will create the appropriate attribute for the given variable.
+
 
 For Aquadopp waves:
 
@@ -142,6 +143,9 @@ Signature-specific options include (see Aquadopp for others):
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
 - ``diwasp``: processing type for pyDIWASP wave processing; options available are: 'suv' and 'puv' for directional waves and 'pres' and 'elev' for non-directional waves
 - ``puv``: if 'true' and ``nc2waves`` processing is called directional wave processing using stglib ``puv_quick_vectorized`` method is run in addition to standard non-directional stglib wave processing
+- ``vel_filter_method``: velocity variable filter method [lowpass, highpass, and bandpass].
+- ``vel_filter_cut``: filter cutoff period in seconds for velocity variable filtering.
+- ``pressure_sensor_height``: height of pressure port on instrument housing, also used for other sensors that are not profile data.
 
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml

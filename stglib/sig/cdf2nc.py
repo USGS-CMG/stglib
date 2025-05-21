@@ -400,6 +400,9 @@ def drop_unused_dims(ds):
         "depth",
         "latitude",
         "longitude",
+        "z",
+        "zsen",
+        "depthsen",
     ]  # keep bindist needed for wave processing + keep depth
     for v in ds.data_vars:
         for x in ds[v].dims:
@@ -1425,13 +1428,17 @@ def trim_avg_vel_bins(ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204"]):
         and "trim_avg_vel_bins" in ds.attrs
         and ds.attrs["trim_avg_vel_bins"] is not None
     ):
-        if "P_1ac" in ds:
+        if "brangeAST" in ds:
+            P = ds["brangeAST"]
+            Ptxt = "Acoustic Surface Tracking"
+        elif "P_1ac" in ds:
             P = ds["P_1ac"]
             Ptxt = "atmospherically corrected"
         else:
-            raise ValueError(
-                f"Corrected pressure (P_1ac) variable not found cannot continue with average velocity bin trimming"
+            print(
+                f"Acoustic surface tracking (brangeAST) or Corrected pressure (P_1ac) variable not found cannot continue with average velocity bin trimming"
             )
+            return ds
 
         avg_bins = ds.attrs["trim_avg_vel_bins"]
 

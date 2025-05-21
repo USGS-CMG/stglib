@@ -17,3 +17,4 @@ average_duration: 120
 P_1ac_note: 'Corrected for variations in atmospheric pressure using MesoWest Station FW7612 Dennis.'
 velocity_cor_min: 65
 good_bindist: [0, 1.8]
+pressure_sensor_height: 1.56
