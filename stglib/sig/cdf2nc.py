@@ -553,7 +553,6 @@ def ds_rename_sig(ds, waves=False):
         "Pressure": "P_1",
         "pressure": "P_1",
         "Pressure_ac": "P_1ac",
-        "Temperature": "Tx_1211",
         "Heading": "Hdg_1215",
         "heading": "Hdg_1215",
         "Pitch": "Ptch_1216",
@@ -1433,10 +1432,9 @@ def trim_avg_vel_bins(ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204"]):
             Ptxt = "Acoustic Surface Tracking"
         elif "P_1ac" in ds:
             P = ds["P_1ac"]
-            Ptxt = "atmospherically corrected"
         else:
             print(
-                f"Acoustic surface tracking (brangeAST) or Corrected pressure (P_1ac) variable not found cannot continue with average velocity bin trimming"
+                "Acoustic surface tracking (brangeAST) or corrected pressure (P_1ac) variable not found. Cannot continue with average velocity bin trimming."
             )
             return ds
 
@@ -1444,7 +1442,6 @@ def trim_avg_vel_bins(ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204"]):
 
         # need to use bindist as vertical dimension for trimming, so swap dims
         for var in data_vars:
-            dims = ds[var].dims
             vdim = None
             for k in ds.coords:
                 if "axis" in ds[k].attrs:

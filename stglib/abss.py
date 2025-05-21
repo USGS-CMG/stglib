@@ -26,20 +26,20 @@ def mat2cdf(metadata):
     # create empty list to append xr datasets to
     dslist = []
 
-    print(f"Loading .mat files...")
+    print("Loading .mat files...")
 
     for f in tqdm(matfiles):
         dslist = load_mat_files(f, dslist)
 
-    print(f"Concatenating .mat files...")
+    print("Concatenating .mat files...")
 
     ds = xr.concat(dslist, dim="time")
 
-    print(f"Sorting .mat files...")
+    print("Sorting .mat files...")
 
     ds = ds.sortby("time")
 
-    print(f"Writing metadata...")
+    print("Writing metadata...")
 
     ds = utils.write_metadata(ds, metadata)
 
@@ -96,7 +96,7 @@ def cdf2nc(cdf_filename, atmpres=False):
     ds = reorder_dims(ds)
     ds = add_amp(ds)
 
-    print(f"Applying QAQC")
+    print("Applying QAQC")
     ds = qaqc.call_qaqc(ds)
 
     ds = abs_drop_vars(ds)
@@ -123,7 +123,7 @@ def cdf2nc(cdf_filename, atmpres=False):
     if "average_duration" in ds.attrs:
         histtext = f"Create burst averaged data product using user specified duration for avergage {ds.attrs['average_duration']} seconds"
     else:
-        histtext = f"Create burst averaged data product"
+        histtext = "Create burst averaged data product"
 
     ds = utils.insert_history(ds, histtext)
 
@@ -132,7 +132,7 @@ def cdf2nc(cdf_filename, atmpres=False):
     # drop brange matrix var and battery vor average file
     ds = ds.drop_vars({"brange", "Bat_106"})
 
-    print(f"Applying QAQC to average file variables")
+    print("Applying QAQC to average file variables")
     ds = qaqc.call_qaqc(ds)
 
     ds = utils.ds_add_lat_lon(ds)
@@ -345,7 +345,7 @@ def scale_vars(ds):
 def abs_drop_vars(ds):
     """drop unnecessary variables"""
 
-    print(f"Dropping excess variables")
+    print("Dropping excess variables")
 
     varnames = {
         "bin_number",
@@ -386,7 +386,7 @@ def remove_aux_snum(ds):
 def ds_add_var_attrs(ds):
     """add necessary attributes to variables"""
 
-    print(f"Adding necessary attributes")
+    print("Adding necessary attributes")
 
     ds["time"].attrs.update(
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
@@ -545,15 +545,9 @@ def reorder_dims(ds):
 def add_brange_abss(ds, var):
     """use highest abs backscatter strength to find distance to boundary, omit bins in blanking distance"""
 
-    print(f"Adding distance to boundary variables (brange)")
+    print("Adding distance to boundary variables (brange)")
 
     if var in ds.data_vars:
-
-        # Check for user specifiefd blanking distance
-        if "brange_blank" in ds.attrs:
-            brange_blank = ds.attrs["brange_blank"]
-        else:
-            brange_blank = 0.2  # set default to 0.2 meters
 
         # Find valid coordinate dimensions for dataset
         vdim = None
@@ -595,7 +589,7 @@ def add_brange_abss(ds, var):
 def add_amp(ds):
     """convert abs data in counts to amplitude in dB"""
 
-    print(f"Adding backscatter strength variables (amp) in decibels (dB)")
+    print("Adding backscatter strength variables (amp) in decibels (dB)")
 
     amp = ds["abs"].values * 65536
     amp = 20 * (np.log10(amp, where=(amp != 0)))
@@ -636,7 +630,7 @@ def time_encoding(ds):
 def frequency_dim(ds):
     """create frequency dimension and replace with transducer_number, sort frequency by ascending"""
 
-    print(f"Creating frequency dim")
+    print("Creating frequency dim")
 
     ds["frequency"] = ds.attrs["AbsTxFrequency"] / 1000000
     ds["frequency"].attrs.update({"units": "MHz", "long_name": "transducer frequency"})

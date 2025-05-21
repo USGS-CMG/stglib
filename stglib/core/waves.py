@@ -495,8 +495,7 @@ def make_waves_ds_elev(ds):
 
     k = np.asarray([qkfs(2 * np.pi * f, x) for x in h.values])
 
-    Kp = 1  # measurement are of the sea-surface directly
-    Pnn = Pxx
+    Pnn = Pxx  # measurement is of the sea-surface directly
 
     spec = xr.Dataset()
 

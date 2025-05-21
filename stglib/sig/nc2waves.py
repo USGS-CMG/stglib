@@ -372,7 +372,7 @@ def drop_attrs(ds):
     exclude = []  # initialize attrs to exclude
 
     for j in ds.attrs:
-        if re.match(f"^SIG", j):
+        if re.match("^SIG", j):
             rm.append(j)
 
     for k in rm:
