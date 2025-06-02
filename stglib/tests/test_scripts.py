@@ -462,3 +462,24 @@ def test_glx():
     glx_dat("glob_att_geolux_x600_202403.txt", "geolux_x600_202403_config.yaml")
     glx_nc("FRFx600_202403glx-raw.cdf")
     glx_wvs("FRFx600_202403glxcont-cal.nc")
+
+
+def son_raw(glob_att, config_yaml):
+    run_script("runots.py", "son", "raw2cdf", glob_att, config_yaml)
+
+
+def son_nc(nc_file, height=None):
+    if height is not None:
+        run_script("runots.py", "son", "cdf2nc", nc_file, "--height", height)
+    else:
+        run_script("runots.py", "son", "cdf2nc", nc_file)
+
+
+def son_xy(nc_file):
+    run_script("runots.py", "son", "nc2xy", nc_file)
+
+
+def test_son():
+    son_raw("glob_att1126son.txt", "11265son_config.yaml")
+    son_nc("11265son_5m-raw.cdf", "1126abs910s-cal.nc")
+    son_xy("11265sonb_5m-a.nc")

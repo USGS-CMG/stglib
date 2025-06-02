@@ -1,0 +1,9 @@
+basefile: '5m_sonar_test_data/'
+filename: '11265son'
+LatLonDatum: NAD83
+initial_instrument_height: 1.37
+initial_instrument_height_note: height above seabed
+serial_number: 8820
+brange_file: 1126abs910s-cal.nc
+height_var: 'brange_1'
+dxy: 0.01 # meters

@@ -17,6 +17,7 @@ from . import (
     rsk,
     sg,
     sig,
+    son,
     tb,
     tcm,
     troll,
@@ -27,5 +28,6 @@ from .aqd import aqdutils
 from .core import cmd, filter, qaqc, utils, waves
 from .core.utils import read_globalatts
 from .sg import sgutils
+from .son import sonutils
 
 __version__ = _version.get_versions()["version"]

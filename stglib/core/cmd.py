@@ -23,6 +23,12 @@ def atmarg(parser):
     )
 
 
+def hgtarg(parser):
+    parser.add_argument(
+        "--height", help="path to nc file containing height above seabed data"
+    )
+
+
 def ncarg(parser):
     parser.add_argument("ncname", help="processed .nc filename")
 
@@ -35,6 +41,10 @@ def addcdf2nc(instsp, description="Convert raw .cdf to clean .nc"):
 
 def addnc2waves(instsp):
     instsp.add_parser("nc2waves", parents=[nc2waves_parser()], add_help=False)
+
+
+def addnc2xy(instsp):
+    instsp.add_parser("nc2xy", parents=[nc2xy_parser()], add_help=False)
 
 
 def addnc2diwasp(instsp):
@@ -177,6 +187,11 @@ def runots_parser():
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
 
+    instsp = add_instrument(subparsers, "son", "Imagenex sonar")
+    addinst2cdf(instsp, "raw2cdf")
+    addcdf2nc(instsp)
+    addnc2xy(instsp)
+
     return parser
 
 
@@ -193,18 +208,29 @@ def inst2cdf_parser(description="Convert instrument files to raw .cdf format"):
 def cdf2nc_parser(
     description="Convert raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure",
     atmpres=True,
+    height=True,
 ):
     """generic parser for raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure"""
     parser = argparse.ArgumentParser(description=description)
     cdfarg(parser)
     if atmpres:
         atmarg(parser)
+    if height:
+        hgtarg(parser)
 
     return parser
 
 
 def nc2waves_parser(description="Generate wave-statistics file"):
     """generic parser for processed .nc to wave statistics"""
+    parser = argparse.ArgumentParser(description=description)
+    ncarg(parser)
+
+    return parser
+
+
+def nc2xy_parser(description="Convert polar to cartesian coordinates"):
+    """generic parser for processing sonar .nc to xy coordinates"""
     parser = argparse.ArgumentParser(description=description)
     ncarg(parser)
 

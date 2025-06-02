@@ -1,0 +1,31 @@
+title; Time-series measurements of oceanographic and seabed change data collected in Cape Cod Bay, Barnstable, MA, March 10 to April 7, 2021
+    SciPi; John Warner
+    PROJECT; USGS Coastal and Marine Hazards and Resources Program
+    EXPERIMENT; CCB21
+    DESCRIPTION; Cape Cod Bay, Sandy Neck Beach, Barnstable, MA
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.8
+    MOORING; 1126
+    sea_floor_depth_below_mean_sea_level; 8.86
+    WATER_DEPTH; 8.86
+    WATER_DEPTH_NOTE; (meters), Mean water level from seagauge pressure data
+    height_above_geopotential_datum; -9.01
+    geopotential_datum_name; NAVD88
+    geopotential_datum_note; Elevation at seabed using VDatum with LMSL and GEOID18
+    latitude; 41.742668
+    longitude; -70.330457
+    magnetic_variation; -14.47
+    Deployment_date; 10-Mar-2021 16:00
+    Recovery_date; 07-Apr-2021 14:07
+    DATA_CMNT; No magnetic variation recorded, used data from IGRF model via ngdc.noaa.gov.
+    platform_type; Quadpod
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; Cape Cod Bay
+    VAR_FILL; NaN
+    Field_Activity_Number; 2021-018-FA, 2021-020-FA
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov

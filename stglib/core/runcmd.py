@@ -34,6 +34,8 @@ def run_cdf_to_nc(f, args):
     for cdfname in args.cdfname:
         if hasattr(args, "atmpres") and args.atmpres:
             ds = f(cdfname, atmpres=args.atmpres)
+        elif hasattr(args, "height") and args.height:
+            ds = f(cdfname, height=args.height)
         else:
             ds = f(cdfname)
 
@@ -630,3 +632,10 @@ def runots():
             runwxtcsv2cdf(args)
         elif args.step == "cdf2nc":
             runwxtcdf2nc(args)
+    elif args.instrument == "son":
+        if args.step == "raw2cdf":
+            stglib.son.raw2cdf.file81R_to_cdf(metadata)
+        elif args.step == "cdf2nc":
+            run_cdf_to_nc(stglib.son.cdf2nc.cdf_to_nc, args)
+        elif args.step == "nc2xy":
+            stglib.son.nc2xy.nc_to_xy(args.ncname)

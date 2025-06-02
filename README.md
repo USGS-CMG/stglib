@@ -23,6 +23,7 @@ Currently, this package has at least partial support for:
 - SBE 26plus Seagauge
 - TruBlue pressure sensors
 - AQUAscat1000R
+- Imagenex Sonar
 
 We have plans to support:
 

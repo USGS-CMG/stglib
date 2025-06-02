@@ -317,3 +317,11 @@ Teledyne RDI instruments
 ------------------------
 - Mostly follows the options available to the Aquadopp
 - Does not yet support waves
+
+Imagenex Sonar
+--------------
+- ``basefile``: the input folder of all raw files (e.g. ``basefile: 'Raw_data/5m/'``)
+- ``serial_number``: add the serial number because it isn't output in the sensor file
+- ``brange_file``: the name of the height input file
+- ``height_var``: the variable in the height input file containing height above seabed data
+- ``dxy``: distance in meters between adjacent pixels in resulting image (e.g. 0.01 is 1 cm)

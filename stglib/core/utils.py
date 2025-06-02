@@ -199,6 +199,11 @@ def add_min_max(ds, exclude_vars=None):
         "sample",
         "depth",
         "z",
+        "x",
+        "y",
+        "sweep",
+        "scan",
+        "points",
         "frequency",
         "bin_along",
         "bin_across",
@@ -299,9 +304,14 @@ def ds_coord_no_fillvalue(ds):
         "sample",
         "frequency",
         "z",
+        "x",
+        "y",
         "bindist",
         "zsen",
         "depthsen",
+        "sweep",
+        "scan",
+        "points",
     ]:
         if var in ds:
             ds[var].encoding["_FillValue"] = None
