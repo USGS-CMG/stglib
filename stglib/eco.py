@@ -166,18 +166,17 @@ def cdf_to_nc(cdf_filename):
 
     if "ntu" in ds.attrs["instrument_type"].lower():
         if "user_ntucal_coeffs" in ds.attrs:
-            ds["Turb"] = xr.DataArray(
-                np.polyval(ds.attrs["user_ntucal_coeffs"], ds["counts"]),
-                dims=["time", "sample"],
-            ).mean(dim="sample")
+            turb_data = np.polyval(ds.attrs["user_ntucal_coeffs"], ds["counts"])
+            ds["Turb"] = xr.DataArray(turb_data, dims=["time", "sample"]).mean(
+                dim="sample"
+            )
             ds["Turb"].attrs["units"] = "1"
             ds["Turb"].attrs["long_name"] = "Turbidity (NTU)"
             ds["Turb"].attrs["standard_name"] = "sea_water_turbidity"
             ds["Turb"].attrs["comments"] = "Nephelometric turbidity units (NTU)"
-            ds["Turb_std"] = xr.DataArray(
-                np.polyval(ds.attrs["user_ntucal_coeffs"], ds["counts"]),
-                dims=["time", "sample"],
-            ).std(dim="sample")
+            ds["Turb_std"] = xr.DataArray(turb_data, dims=["time", "sample"]).std(
+                dim="sample"
+            )
             ds["Turb_std"].attrs["units"] = "1"
             ds["Turb_std"].attrs[
                 "long_name"

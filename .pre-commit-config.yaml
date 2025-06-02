@@ -18,3 +18,7 @@ repos:
     rev: v3.19.1
     hooks:
       - id: pyupgrade
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.10
+    hooks:
+      - id: ruff-check
