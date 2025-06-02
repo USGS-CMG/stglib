@@ -57,11 +57,7 @@ def call_qaqc(ds):
 
 def trim_min(ds, var):
     if var + "_min" in ds.attrs:
-        if "sample" in ds:
-            cond = (ds[var] >= ds.attrs[var + "_min"]).any(dim="sample")
-        else:
-            cond = ds[var] >= ds.attrs[var + "_min"]
-
+        cond = ds[var] >= ds.attrs[var + "_min"]
         affected = cond.size - cond.sum() - ds[var].isnull().sum()
         ds[var] = ds[var].where(cond)
 
