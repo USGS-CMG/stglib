@@ -7,7 +7,6 @@ import re
 import sqlite3
 import sys
 import warnings
-from pathlib import Path
 
 import netCDF4
 import numpy as np
@@ -213,6 +212,7 @@ def add_min_max(ds, exclude_vars=None):
         "diwasp_direction",
         "puv_frequency",
         "puv_frequency_clipped",
+        "xdcr_freq",
         "beam",
         "inst",
         "earth",

@@ -1,15 +1,10 @@
-import datetime
-import glob
 import re
-import time
 from pathlib import Path
 
-import dask.array as da
 import numpy as np
 import pandas as pd
 import xarray as xr
 from dask.diagnostics import ProgressBar
-from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from stglib.aqd import aqdutils
@@ -60,7 +55,7 @@ def mat2cdf(metadata):
 
 def cdf2nc(cdf_filename, atmpres=False):
 
-    ds = xr.open_dataset(cdf_filename, chunks={"time": 100})
+    ds = xr.open_dataset(cdf_filename, chunks="auto")
 
     if "chunks" in ds.attrs:
         chunksizes = dict(zip(ds.attrs["chunks"][::2], ds.attrs["chunks"][1::2]))
@@ -73,9 +68,10 @@ def cdf2nc(cdf_filename, atmpres=False):
 
         ds = xr.open_dataset(cdf_filename, chunks=chunksizes)
 
-    ds["bindist"] = ds["bindist"].sel(transducer_number=0, time=ds["time"][0])
+    ds["bindist"] = ds["bindist"].sel(transducer_number=1, time=ds["time"][0])
 
     ds = ds.swap_dims({"bin_number": "bindist"})
+    ds = remove_attributes(ds)
     ds = remove_aux_snum(ds)
     ds = abs_rename(ds)
     ds = scale_vars(ds)
@@ -103,8 +99,6 @@ def cdf2nc(cdf_filename, atmpres=False):
     ds = utils.ds_add_lat_lon(ds)
     ds = utils.add_min_max(ds)
     ds = ds_add_var_attrs(ds)
-    ds = organize_attributes(ds)
-    ds = remove_attributes(ds)
     ds = var_encoding(ds)
     ds = time_encoding(ds)
 
@@ -131,6 +125,7 @@ def cdf2nc(cdf_filename, atmpres=False):
 
     # drop brange matrix var and battery vor average file
     ds = ds.drop_vars({"brange", "Bat_106"})
+    ds = ds_remove_inst_attrs(ds, "ABS")
 
     print("Applying QAQC to average file variables")
     ds = qaqc.call_qaqc(ds)
@@ -168,11 +163,11 @@ def load_mat_files(f, dslist):
 
     # find transducer and bin numbers
 
-    tnum = list(range(mat["AbsBinRange"].shape[1]))
+    tnum = np.arange(1, mat["AbsBinRange"].shape[1] + 1)
 
     ds["transducer_number"] = xr.DataArray(tnum, dims="transducer_number")
 
-    bnum = list(range(mat["AbsBinRange"].shape[0]))
+    bnum = np.arange(1, mat["AbsBinRange"].shape[0] + 1)
 
     ds["bin_number"] = xr.DataArray(bnum, dims="bin_number")
 
@@ -180,11 +175,11 @@ def load_mat_files(f, dslist):
 
     # ds["aux_number"] = xr.DataArray(auxnum, dims = 'aux_number')
 
-    sampnum = list(range(mat["NumAuxSamples"]))
+    sampnum = np.arange(1, mat["NumAuxSamples"] + 1)
 
     ds["sample_number"] = xr.DataArray(sampnum, dims="sample_number")
 
-    auxsampnum = list(range(mat["NumAuxSamples"] + 1))
+    auxsampnum = np.arange(1, mat["AuxData"].shape[0] + 1)
 
     ds["aux_sample_number"] = xr.DataArray(auxsampnum, dims="aux_sample_number")
 
@@ -213,6 +208,7 @@ def load_mat_files(f, dslist):
     # create global attributes
     names = [
         "WakeSource",
+        "AuxChannelName",
         "AuxChannelUnit",
         "SessionTitle",
         "PingRate",
@@ -243,7 +239,7 @@ def load_mat_files(f, dslist):
     ]
 
     for k in names:
-        ds.attrs[k] = mat[k]
+        ds.attrs[f"ABS{k}"] = mat[k]
 
     dslist.append(ds)
 
@@ -262,6 +258,8 @@ def abs_rename(ds):
     for v in varnames:
         if v in ds:
             ds = ds.rename({v: varnames[v]})
+
+    ds.attrs["sample_rate"] = int(ds.attrs["ABSAbsProfileRate"][0])
 
     return ds
 
@@ -369,6 +367,17 @@ def abs_drop_vars(ds):
     return ds
 
 
+def remove_attributes(ds):
+    """remove unnecessary global attributes from raw instrument file"""
+
+    names = ["ABSSessionTitle", "ABSAbsTransducerName"]
+
+    for att in names:
+        del ds.attrs[att]
+
+    return ds
+
+
 def remove_aux_snum(ds):
 
     stop = len(ds.aux_sample_number)
@@ -393,7 +402,13 @@ def ds_add_var_attrs(ds):
     )
 
     if "P_1ac" in ds:
-        ds["P_1ac"].attrs.update({"units": "dbar", "long_name": "Corrected pressure"})
+        ds["P_1ac"].attrs.update(
+            {
+                "units": "dbar",
+                "long_name": "Corrected pressure",
+                "standard_name": "sea_water_pressure_due_to_sea_water",
+            }
+        )
         if "P_1ac_note" in ds.attrs:
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
@@ -401,8 +416,8 @@ def ds_add_var_attrs(ds):
         {
             "units": "m",
             "long_name": "distance from transducer head",
-            "bin_size": ds.attrs["AbsBinLengthMM"][0] * 0.001,
-            "bin_count": ds.attrs["AbsNumBins"][0],
+            "bin_size": ds.attrs["ABSAbsBinLengthMM"][0] * 0.001,
+            "bin_count": ds.attrs["ABSAbsNumBins"][0],
         }
     )
 
@@ -410,8 +425,8 @@ def ds_add_var_attrs(ds):
         {
             "units": "m",
             "long_name": "bin depth",
-            "bin_size": ds.attrs["AbsBinLengthMM"][0] * 0.001,
-            "bin_count": ds.attrs["AbsNumBins"][0],
+            "bin_size": ds.attrs["ABSAbsBinLengthMM"][0] * 0.001,
+            "bin_count": ds.attrs["ABSAbsNumBins"][0],
         }
     )
 
@@ -424,7 +439,7 @@ def ds_add_var_attrs(ds):
 
     ds["Tx_1211"].attrs.update(
         {
-            "units": "C",
+            "units": "degree_C",
             "long_name": "Instrument Internal Temperature",
             "epic_code": 1211,
         }
@@ -434,6 +449,7 @@ def ds_add_var_attrs(ds):
         {
             "units": "dbar",
             "long_name": "Uncorrected pressure",
+            "standard_name": "sea_water_pressure",
             "epic_code": 1,
         }
     )
@@ -456,78 +472,23 @@ def ds_add_var_attrs(ds):
             "long_name": "Acoustic signal amplitude",
             "standard_name": "sound_intensity_level_in_water",
             "transducer_offset_from_bottom": ds.attrs["initial_instrument_height"],
-            "note": "abs data converted from counts to decibels using equation: decibels = 20*log10(counts). ",
+            "note": "abs data converted from counts to decibels using equation: decibels = 20*log10(counts).",
         }
     )
 
     return ds
 
 
-def organize_attributes(ds):
-    """better describe and re-organize instrument provided attributes"""
-    ds.attrs["ping_rate"] = ds.attrs["PingRate"]
-    ds.attrs["ping_rate_note"] = "The base profile rate (Hz) before averaging"
-    ds.attrs["num_pings"] = ds.attrs["NumPings"]
-    ds.attrs["num_pings_note"] = "The number of pings/profiles before averaging"
-    ds.attrs["enabled_channels"] = ds.attrs["NumAbsTimeSlots"]
-    ds.attrs["enabled_channels_note"] = "The number of enabled ABS channels"
-    ds.attrs["aux_channel_rate"] = ds.attrs["AuxSampleRate"]
-    ds.attrs["aux_channel_rate_note"] = "The auxiliary channel sampling rate (Hz)"
-    ds.attrs["abs_average"] = ds.attrs["AbsAverage"]
-    ds.attrs["abs_average_note"] = "The number of abs profiles to average"
-    ds.attrs["abs_transducer_radius"] = ds.attrs["AbsTransducerRadius"]
-    ds.attrs["abs_transducer_radius_note"] = "The radius of transducer (m)"
-    ds.attrs["abs_transducer_beam_width"] = ds.attrs["AbsTransducerBeamWidth"]
-    ds.attrs["abs_transducer_beam_width_note"] = "The beam width (deg)"
-    ds.attrs["abs_transducer_kt"] = ds.attrs["AbsTransducerBeamWidth"]
-    ds.attrs["abs_transducer_kt_note"] = "The system constant for each channel"
-    ds.attrs["abs_channel_frequency"] = ds.attrs["AbsTxFrequency"]
-    ds.attrs["abs_channel_frequency_note"] = "The frequency for each channel (Hz)"
-    ds.attrs["abs_profile_rate"] = ds.attrs["AbsProfileRate"]
-    ds.attrs["abs_profile_rate_note"] = (
-        "The stored profile rate (ping_rate / abs_average)"
-    )
-    ds.attrs["sample_rate"] = int(ds.attrs["abs_profile_rate"][0])
+def ds_remove_inst_attrs(ds, inst_type="ABS"):
+    """remove unnecessary attributes from the raw instrument file for the averaged file"""
 
-    return ds
+    rm = []  # initialize list of attrs to be removed
 
-
-def remove_attributes(ds):
-    """remove unnecessary global attributes from raw instrument file"""
-
-    names = [
-        "AbsComplex",
-        "AuxChannelUnit",
-        "AbsStartBin",
-        "AbsNumBins",
-        "AbsPowerLevel",
-        "AbsTVG",
-        "AbsStartingGain",
-        "AbsDecimation",
-        "WakeSource",
-        "AbsTransducerName",
-        "AbsRxChan",
-        "AbsTxChan",
-        "AbsNumProfiles",
-        "AbsBinLengthMM",
-        "NumAuxChans",
-        "AbsBinLength",
-        "AbsTransducerRadius",
-        "AbsAverage",
-        "AuxSampleRate",
-        "NumAbsTimeSlots",
-        "NumPings",
-        "PingRate",
-        "AbsTransducerBeamWidth",
-        "AbsTxFrequency",
-        "AbsTxPulseLength",
-        "AbsProfileRate",
-        "SessionTitle",
-        "AbsTransducerKt",
-    ]
-
-    for att in names:
-        del ds.attrs[att]
+    for j in ds.attrs:
+        if re.match(f"^{inst_type}*", j):
+            rm.append(j)
+    for k in rm:
+        del ds.attrs[k]
 
     return ds
 
@@ -537,7 +498,7 @@ def reorder_dims(ds):
 
     for var in ds:
         if "mean" not in var and "abs" in var:
-            ds[var] = ds[var].transpose("frequency", "time", "sample", "z")
+            ds[var] = ds[var].transpose("xdcr_freq", "time", "sample", "z")
 
     return ds
 
@@ -551,7 +512,7 @@ def add_brange_abss(ds, var):
 
         # Find valid coordinate dimensions for dataset
         vdim = None
-        for k in ds.coords:
+        for k in ds.abs.dims:
             if "axis" in ds[k].attrs:
                 if ds[k].attrs["axis"] == "Z":
                     vdim = k
@@ -565,12 +526,12 @@ def add_brange_abss(ds, var):
                 .idxmax(dim="bindist")
             )
 
-            ds["brange"] = xr.DataArray(brange, dims=["frequency", "time"])
+            ds["brange"] = xr.DataArray(brange, dims=["xdcr_freq", "time"])
 
-            for i in range(len(ds.frequency)):
-                brange_name = "brange_" + str(i + 1)
-                freq = str(ds.frequency[i].values)
-                brange = ds["brange"].sel(frequency=ds.frequency[i]).values
+            for i in range(len(ds.xdcr_freq)):
+                brange_name = f"brange_{i + 1}"
+                freq = str(ds.xdcr_freq[i].values)
+                brange = ds["brange"].sel(xdcr_freq=ds.xdcr_freq[i]).values
                 ds[brange_name] = xr.DataArray(brange, dims=["time"])
 
                 ds[brange_name].attrs.update(
@@ -578,7 +539,7 @@ def add_brange_abss(ds, var):
                         "units": "m",
                         "long_name": "Altimeter range to boundary",
                         "standard_name": "altimeter_range",
-                        "frequency": freq,
+                        "xdcr_freq": freq,
                         "note": "Calculated from abs values. ",
                     }
                 )
@@ -593,7 +554,7 @@ def add_amp(ds):
 
     amp = ds["abs"].values * 65536
     amp = 20 * (np.log10(amp, where=(amp != 0)))
-    ds["amp"] = xr.DataArray(amp, dims=["frequency", "time", "sample", "z"])
+    ds["amp"] = xr.DataArray(amp, dims=["xdcr_freq", "time", "sample", "z"])
 
     return ds
 
@@ -630,22 +591,28 @@ def time_encoding(ds):
 def frequency_dim(ds):
     """create frequency dimension and replace with transducer_number, sort frequency by ascending"""
 
-    print("Creating frequency dim")
+    print("Creating transducer frequency dim")
 
-    ds["frequency"] = ds.attrs["AbsTxFrequency"] / 1000000
-    ds["frequency"].attrs.update({"units": "MHz", "long_name": "transducer frequency"})
+    ds["xdcr_freq"] = ds.attrs["ABSAbsTxFrequency"] / 1000000
+    ds["xdcr_freq"].attrs.update(
+        {
+            "units": "MHz",
+            "long_name": "transducer frequency",
+            "standard_name": "sound_frequency",
+        }
+    )
     for var in ds:
         if "abs" in var:
-            ds[var] = ds[var].swap_dims({"transducer_number": "frequency"})
+            ds[var] = ds[var].swap_dims({"transducer_number": "xdcr_freq"})
     ds = ds.drop_dims("transducer_number")
-    ds = ds.sortby(ds["frequency"])
+    ds = ds.sortby(ds["xdcr_freq"])
 
     return ds
 
 
 def create_nc(ds):
     # configure burst file
-    nc_burst_filename = ds.attrs["filename"] + "b-cal.nc"
+    nc_burst_filename = ds.attrs["filename"] + "b.nc"
 
     delayed_obj = ds.to_netcdf(
         nc_burst_filename, unlimited_dims=["time"], compute=False
