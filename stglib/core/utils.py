@@ -3,6 +3,7 @@ import datetime
 import inspect
 import os
 import platform
+import re
 import sqlite3
 import sys
 import warnings
@@ -189,7 +190,7 @@ def add_min_max(ds, exclude_vars=None):
     """
 
     exclude = list(ds.dims)
-    [exclude.append(k) for k in ds.variables if "time" in k]
+    [exclude.append(k) for k in ds.variables if re.match("time*", k)]
     exclude.extend(["TIM", "TransMatrix", "orientmat"])
     if exclude_vars:
         exclude.extend(exclude_vars)
@@ -212,6 +213,14 @@ def add_min_max(ds, exclude_vars=None):
         "diwasp_direction",
         "puv_frequency",
         "puv_frequency_clipped",
+        "beam",
+        "inst",
+        "earth",
+        "inst4",
+        "earth4",
+        "q",
+        "depthsen",
+        "zsen",
     ]
 
     for k in ds.variables:
@@ -1012,7 +1021,7 @@ def shift_time(ds, timeshift, apply_clock_error=True, apply_clock_drift=True):
     return ds
 
 
-def create_water_depth_var(ds):
+def create_water_depth_var(ds, psh="initial_instrument_height"):
     press = None
 
     if "Pressure_ac" in ds:
@@ -1027,19 +1036,19 @@ def create_water_depth_var(ds):
     if press is not None:
         if "sample" in ds.dims:
             ds["water_depth"] = xr.DataArray(
-                ds[press].squeeze().mean(dim="sample")
-                + ds.attrs["initial_instrument_height"]
+                ds[press].squeeze().mean(dim="sample") + ds.attrs[psh]
             )
 
         else:
-            ds["water_depth"] = xr.DataArray(
-                ds[press].squeeze() + ds.attrs["initial_instrument_height"]
-            )
+            ds["water_depth"] = xr.DataArray(ds[press].squeeze() + ds.attrs[psh])
 
         ds["water_depth"].attrs["long_name"] = "Total water depth"
         ds["water_depth"].attrs["units"] = "m"
         ds["water_depth"].attrs["standard_name"] = "sea_floor_depth_below_sea_surface"
         ds["water_depth"].attrs["epic_code"] = 3
+
+        histtext = f"Create water_depth variable using {press} and {psh} attribute"
+        ds = insert_history(ds, histtext)
 
     return ds
 
@@ -1585,22 +1594,22 @@ def _todict(matobj):
     return dic
 
 
-def create_water_level_var(ds):
+def create_water_level_var(ds, var="P_1ac", vdim="z"):
     """
     Create water level variable from NAVD88 sensor height
     """
 
     if (
-        "P_1ac" in ds.data_vars
-        and "geopotential_datum_name" in ds["z"].attrs
-        and ds["z"].attrs["geopotential_datum_name"] == "NAVD88"
+        var in ds.data_vars
+        and "geopotential_datum_name" in ds[vdim].attrs
+        and ds[vdim].attrs["geopotential_datum_name"] == "NAVD88"
     ):
         if "sample" in ds.dims:
             ds["water_level"] = xr.DataArray(
-                ds["P_1ac"].squeeze().mean(dim="sample") + ds["z"].values
+                ds[var].squeeze().mean(dim="sample") + ds[vdim].values
             )
         else:
-            ds["water_level"] = ds["P_1ac"] + ds["z"].values
+            ds["water_level"] = ds[var] + ds[vdim].values
 
         ds["water_level"].attrs["long_name"] = "Water level NAVD88"
         ds["water_level"].attrs["units"] = "m"
@@ -1608,9 +1617,14 @@ def create_water_level_var(ds):
             "standard_name"
         ] = "sea_surface_height_above_geopotential_datum"
         ds["water_level"].attrs["geopotential_datum_name"] = "NAVD88"
+        ds["water_level"].attrs["note"] = f"Water level calculated using {var} + {vdim}"
+
+        histtext = f"Create water_level variable relative to NAVD88 using {var} and {vdim} vertical dimension"
+        ds = insert_history(ds, histtext)
+
     else:
         print(
-            "Cannot create water_level variable without P_1ac and height_above_geopotential_datum relative to NAVD88 in global attributes file."
+            f"Cannot create water_level variable without {var} and height_above_geopotential_datum relative to NAVD88 in global attributes file."
         )
     return ds
 
@@ -1781,11 +1795,13 @@ def make_vector_average_vars(ds, data_vars=None, dim=None):
     dsVA = xr.Dataset()
     if data_vars is not None and dim is not None:
         for var in data_vars:
+            attrsbak = []
             if var in ds.data_vars:
+                attrsbak = ds[var].attrs
                 R = ds[var]
-                np.radians(R)
                 Rx, Ry = pol2cart(1, np.radians(R))
                 rho, phi = cart2pol(Rx.mean(dim=dim), Ry.mean(dim=dim))
                 dsVA[var] = np.degrees(phi)
+                dsVA[var].attrs = attrsbak
 
     return dsVA

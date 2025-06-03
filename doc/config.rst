@@ -143,9 +143,10 @@ Signature-specific options include (see Aquadopp for others):
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
 - ``diwasp``: processing type for pyDIWASP wave processing; options available are: 'suv' and 'puv' for directional waves and 'pres' and 'elev' for non-directional waves
 - ``puv``: if 'true' and ``nc2waves`` processing is called directional wave processing using stglib ``puv_quick_vectorized`` method is run in addition to standard non-directional stglib wave processing
-- ``vel_filter_method``: velocity variable filter method [lowpass, highpass, and bandpass].
-- ``vel_filter_cut``: filter cutoff period in seconds for velocity variable filtering.
-- ``pressure_sensor_height``: height of pressure port on instrument housing, also used for other sensors that are not profile data.
+- ``vel_filter_method``: velocity variable filter method [lowpass, highpass, and bandpass]
+- ``vel_filter_cut``: filter cutoff period in seconds for velocity variable filtering
+- ``pressure_sensor_height``: height of pressure port on instrument housing, also used for other sensors that are not profile data
+- ``water_level_var``: option for user to specify variable to use for water level (options: 'P_1ac' (default), 'brangeAST')
 
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml

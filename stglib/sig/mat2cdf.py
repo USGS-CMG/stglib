@@ -494,7 +494,7 @@ def mat_to_cdf(metadata):
         print(fin)
         try:
             ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
-            ds = aqdutils.check_attrs(ds, inst_type="SIG")
+
             if "Beam2xyz" in ds:
                 if "time" in ds["Beam2xyz"].dims:
                     ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)

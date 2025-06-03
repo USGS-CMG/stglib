@@ -1,9 +1,11 @@
 import re
+import warnings
 
 import numpy as np
 import xarray as xr
 
 from ..core import qaqc, utils, waves
+from .cdf2nc import add_water_level
 
 
 def nc_to_waves(nc_filename):
@@ -25,6 +27,28 @@ def nc_to_waves(nc_filename):
         # make wave burst ncfile from continuous data if wave_interval is specified
         ds = make_wave_bursts(ds)
 
+    if "BURST" in ds.attrs["sample_mode"]:
+        if "wave_interval" not in ds.attrs:
+            if "burst_interval" in ds.attrs:
+                ds.attrs["wave_interval"] = ds.attrs["burst_interval"]
+            else:
+                ds.attrs["wave_interval"] = int(
+                    (ds["time"][1] - ds["time"][0]).dt.round("s").values
+                    / np.timedelta64(1, "s")
+                )
+
+    # check to see if wave duration is specified and if so trim burst samples accordingly
+    if "wave_duration" in ds.attrs:
+        if ds.attrs["wave_duration"] <= ds.attrs["wave_interval"]:
+            nsamps = int(ds.attrs["wave_duration"] * ds.attrs["sample_rate"])
+            ds = ds.isel(sample=slice(0, nsamps))
+            ds.attrs["wave_samples_per_burst"] = nsamps
+
+        else:
+            warnings.warn(
+                f"wave_duration {ds.attrs.wave_duration} cannot be greater than wave_interval {ds.attrs.wave_interval}, this configuration setting will be ignored"
+            )
+
     spec = waves.make_waves_ds(ds)
     ds = utils.ds_add_waves_history(ds)
 
@@ -39,7 +63,12 @@ def nc_to_waves(nc_filename):
     if dopuv:
         ds = do_puv(ds)
 
-    ds = utils.create_water_depth_var(ds)
+    if "pressure_sensor_height" in ds.attrs:
+        ds = utils.create_water_depth_var(ds, psh="pressure_sensor_height")
+    else:
+        ds = utils.create_water_depth_var(ds)
+
+    ds = add_water_level(ds)
 
     for k in [
         "burst",
@@ -49,6 +78,7 @@ def nc_to_waves(nc_filename):
         "u_1205",
         "v_1206",
         "w_1204",
+        "w2_1204",
         "Tx_1211",
         "SV_80",
         "vel",
@@ -56,11 +86,16 @@ def nc_to_waves(nc_filename):
         "cor",
         "brangeAST",
         "TransMatrix",
+        "bin_depth",
+        "amp_avg",
+        "cor_avg",
     ]:
         if k in ds:
             ds = ds.drop_vars(k)
 
     # ds = qaqc.drop_vars(ds)
+
+    ds = make_waves_vdims(ds, wtype="nc2waves")
 
     ds = drop_unused_dims(ds)
 
@@ -120,6 +155,28 @@ def nc_to_diwasp(nc_filename):
         # make wave burst ncfile from continuous data if wave_interval is specified
         ds = make_wave_bursts(ds)
 
+    if "BURST" in ds.attrs["sample_mode"]:
+        if "wave_interval" not in ds.attrs:
+            if "burst_interval" in ds.attrs:
+                ds.attrs["wave_interval"] = ds.attrs["burst_interval"]
+            else:
+                ds.attrs["wave_interval"] = int(
+                    (ds["time"][1] - ds["time"][0]).dt.round("s").values
+                    / np.timedelta64(1, "s")
+                )
+
+    # check to see if wave duration is specified and if so trim burst samples accordingly
+    if "wave_duration" in ds.attrs:
+        if ds.attrs["wave_duration"] <= ds.attrs["wave_interval"]:
+            nsamps = int(ds.attrs["wave_duration"] * ds.attrs["sample_rate"])
+            ds = ds.isel(sample=slice(0, nsamps))
+            ds.attrs["wave_samples_per_burst"] = nsamps
+
+        else:
+            warnings.warn(
+                f"wave_duration {ds.attrs.wave_duration} cannot be greater than wave_interval {ds.attrs.wave_interval}, this configuration setting will be ignored"
+            )
+
     if "diwasp" not in ds.attrs:
         # if not specified choose 'suv' method for signature
         ds.attrs["diwasp"] = "suv"
@@ -177,7 +234,12 @@ def nc_to_diwasp(nc_filename):
     # rename Fspec based on input datatype
     ds = utils.rename_diwasp_fspec(ds)
 
-    ds = utils.create_water_depth_var(ds)
+    if "pressure_sensor_height" in ds.attrs:
+        ds = utils.create_water_depth_var(ds, psh="pressure_sensor_height")
+    else:
+        ds = utils.create_water_depth_var(ds)
+
+    ds = add_water_level(ds)
 
     for k in [
         "burst",
@@ -187,6 +249,7 @@ def nc_to_diwasp(nc_filename):
         "u_1205",
         "v_1206",
         "w_1204",
+        "w2_1204",
         "Tx_1211",
         "SV_80",
         "vel",
@@ -203,6 +266,8 @@ def nc_to_diwasp(nc_filename):
     # use "epic" names
     ds.attrs["diwasp_names"] = "epic"
     ds = utils.rename_diwasp_wave_vars(ds)
+
+    ds = make_waves_vdims(ds, wtype="nc2diwasp")
 
     ds = drop_unused_dims(ds)
 
@@ -353,7 +418,17 @@ def make_wave_bursts(ds):
 
 def drop_unused_dims(ds):
     """only keep dims that will be in the final files"""
-    thedims = []
+    thedims = [
+        "frequency",
+        "direction",
+        "latitude",
+        "longitude",
+        "z",
+        "depth",
+        "zsen",
+        "depthsen",
+    ]
+
     for v in ds.data_vars:
         for x in ds[v].dims:
             thedims.append(x)
@@ -545,5 +620,79 @@ def do_puv(ds):
     ] = "Hs computed via sqrt(2) * Hrmsu with f^-4 tail applied"
     ds["puv_Hsu_tail"].attrs["standard_name"] = "sea_surface_wave_significant_height"
     ds["puv_Hsu_tail"].attrs["units"] = "m"
+
+    return ds
+
+
+def make_waves_vdims(ds, wtype="nc2waves"):
+    """Modify vertical dimensions for waves output"""
+    if wtype == "nc2waves":
+        if "puv" in ds.attrs and ds.attrs["puv"].lower() == "true":
+            data_type = "puv"
+            if "puv_bin" in ds.attrs:
+                ibin = ds.attrs["puv_bin"]
+            else:
+                ibin = 0
+        else:
+            data_type = "pres"
+
+    elif wtype == "nc2diwasp":
+        data_type = ds.attrs["diwasp"]
+
+        if data_type in ["suv", "puv"]:
+            if "diwasp_ibin" in ds.attrs:
+                ibin = ds.attrs["diwasp_ibin"]
+            else:
+                ibin = 0
+
+    attrsz = ds["z"].attrs
+    attrsdep = ds["depth"].attrs
+    notez = None
+    notedep = None
+    if data_type in ["suv", "puv"]:
+        # set vertical dimension for veloctiy measurement used in suv, puv calcs
+        if "z" in ds.dims:
+            ds["z"] = xr.DataArray([ds["z"][ibin].values], dims="z")
+            notez = "height to wave velocity measurement"
+
+        if "depth" in ds.dims:
+            ds["depth"] = xr.DataArray([ds["depth"][ibin].values], dims="depth")
+            notedep = "depth to wave velocity measurement"
+
+    elif data_type in ["pres", "elev"]:
+        # swap vertical dimension to sensor location if not doing puv
+        bin0dist = ds["bindist"][0].values
+        if "zsen" in ds.dims:
+            ds["z"] = xr.DataArray(ds["zsen"].values, dims="z")
+        else:
+            if ds.attrs["orientation"].upper() == "DOWN":
+                ds["z"] = xr.DataArray([ds["z"][0].values + bin0dist], dims="z")
+            if ds.attrs["orientation"].upper() == "UP":
+                ds["z"] = xr.DataArray([ds["z"][0].values - bin0dist], dims="z")
+
+        if "depthsen" in ds.dims:
+            ds["depth"] = xr.DataArray(ds["depthsen"].values, dims="depth")
+
+        else:
+            if ds.attrs["orientation"].upper() == "DOWN":
+                ds["depth"] = xr.DataArray(
+                    [ds["depth"][0].values - bin0dist], dims="depth"
+                )
+            if ds.attrs["orientation"].upper() == "UP":
+                ds["depth"] = xr.DataArray(
+                    [ds["depth"][0].values + bin0dist], dims="depth"
+                )
+
+        vdimsdrop = ["zsen", "depthsen", "bindist"]
+        for k in vdimsdrop:
+            if k in ds.dims:
+                ds = ds.drop_vars(k)
+
+    ds["z"].attrs = attrsz
+    ds["depth"].attrs = attrsdep
+    if notez:
+        ds["z"].attrs["note"] = notez
+    if notedep:
+        ds["depth"].attrs["note"] = notedep
 
     return ds

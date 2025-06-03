@@ -36,7 +36,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     end_time = time.time()
     print(f"Finished loading {cdf_filename} in {end_time-start_time:.1f} seconds")
 
-    ds = aqdutils.check_attrs(ds, inst_type="SIG")
+    ds = check_attrs_sig(ds, inst_type="SIG")
 
     # Add atmospheric pressure offset
     if atmpres is not False:
@@ -129,6 +129,30 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
     ds = ds_add_attrs_sig(ds)  # for signature vars
 
+    # Check if any heading values are negative and if so convert using modulus
+    ds["Hdg_1215"] = ds["Hdg_1215"] % 360
+
+    # add water level if using brangeAST to find water level
+    if (
+        "zsen" in ds.dims
+        and "water_level_var" in ds.attrs
+        and "brangeAST" in ds.attrs["water_level_var"]
+    ):
+
+        if "brangeAST" in ds.data_vars:
+            ds = utils.create_water_level_var(
+                ds, var=ds.attrs["water_level_var"], vdim="zsen"
+            )
+        else:
+            print(
+                f"Cannot create water_level variable of {ds.attrs['sample_rate']} Hz data because brangeAST is not variable in data set"
+            )
+
+    elif "zsen" not in ds.dims:
+        print(
+            "Cannot create water_level variable because zsen is not a dimension in data set, likely due to pressure_sensor_height not being specified in config file"
+        )
+
     # Add start_time and stop_time attrs
     ds = utils.add_start_stop_time(ds)
 
@@ -198,23 +222,23 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         nc_filename = ds.attrs["filename"]
 
     if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "BurstHR":
-        nc_out = nc_filename + "b-cal.nc"
+        nc_out = nc_filename + "b.nc"
         print("writing Burst (b) data to netCDF nc file")
 
     elif ds.attrs["data_type"] == "IBurst" or ds.attrs["data_type"] == "IBurstHR":
-        nc_out = nc_filename + "b5-cal.nc"
+        nc_out = nc_filename + "b5.nc"
         print("writing IBurst (b5) data to netCDF nc file")
 
     elif ds.attrs["data_type"] == "EchoSounder":
-        nc_out = nc_filename + "e1-cal.nc"
+        nc_out = nc_filename + "e1.nc"
         print("writing Echo1 (echo1) data to netCDF nc file")
 
     elif ds.attrs["data_type"] == "Average":
-        nc_out = nc_filename + "avg-cal.nc"
+        nc_out = nc_filename + "avg.nc"
         print("writing Average (avg) data to netCDF nc file")
 
     elif ds.attrs["data_type"] == "Alt_Average":
-        nc_out = nc_filename + "alt-cal.nc"
+        nc_out = nc_filename + "alt.nc"
         print("writing Alt_Average (avg) data to netCDF nc file")
 
     else:
@@ -266,6 +290,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         for var in dsVA.data_vars:
             ds[var] = dsVA[var]
 
+        # Check if any heading values are negative and if so convert using modulus - need to check again after taking vector averages
+        ds["Hdg_1215"] = ds["Hdg_1215"] % 360
+
         if ds.attrs["sample_mode"].upper() == "BURST":
             if "average_duration" in ds.attrs:
                 histtext = f"Create averaged data product from burst sampled {ds.attrs['data_type']} data type using user specified duration for avergage {ds.attrs['average_duration']} seconds."
@@ -284,6 +311,14 @@ def cdf_to_nc(cdf_filename, atmpres=False):
             )
 
         ds = utils.insert_history(ds, histtext)
+
+        if "pressure_sensor_height" in ds.attrs:
+            ds = utils.create_water_depth_var(ds, psh="pressure_sensor_height")
+        else:
+            ds = utils.create_water_depth_var(ds)
+
+        # add water_level variable if able
+        ds = add_water_level(ds)
 
         # add brange variable to echosounder data type
         if ds.attrs["data_type"] == "EchoSounder":
@@ -310,6 +345,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         # redo attriburtes
         ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
         ds = ds_add_attrs_sig(ds)  # for signature vars
+        ds = utils.add_standard_names(ds)  # add common standard names
 
         # clean-up some stuff
         ds = ds_remove_inst_attrs(ds)
@@ -391,10 +427,67 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     return ds
 
 
+def check_attrs_sig(ds, inst_type="SIG"):
+    """
+    # Add some metadata originally in the run scripts
+    """
+    if inst_type == "SIG":
+        ds.attrs["serial_number"] = ds.attrs["SIGSerialNo"]
+        ds.attrs["frequency"] = ds.attrs["SIGHeadFrequency"]
+        ds.attrs["instrument_type"] = ds.attrs["SIGInstrumentName"]
+
+        # find bin_size and sample_rate attributes
+        if (
+            ds.attrs["data_type"].upper() == "BURST"
+            or ds.attrs["data_type"].upper() == "IBURST"
+        ):
+            ds.attrs["bin_size"] = ds.attrs["SIGBurst_CellSize"]
+            ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
+        elif (
+            ds.attrs["data_type"].upper() == "BURSTHR"
+            or ds.attrs["data_type"].upper() == "IBURSTHR"
+        ):
+            ds.attrs["bin_size"] = ds.attrs["SIGBurstHR_CellSize"]
+            ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
+        elif ds.attrs["data_type"].upper() == "ECHOSOUNDER":
+            ds.attrs["bin_size"] = ds.attrs["SIGEchoSounder_CellSize"]
+            ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
+        elif ds.attrs["data_type"].upper() == "AVERAGE":
+            ds.attrs["bin_size"] = ds.attrs["SIGAverage_CellSize"]
+        elif ds.attrs["data_type"].upper() == "ALT_AVERAGE":
+            ds.attrs["bin_size"] = ds.attrs["SIGAlt_Average_CellSize"]
+
+        if (
+            ds.attrs["data_type"].upper() == "IBURST"
+            or ds.attrs["data_type"].upper() == "IBURSTHR"
+            or ds.attrs["data_type"] == "ECHOSOUNDER"
+        ):
+            ds.attrs["beam_angle"] = 0
+            beam_type = "beam 5"
+        else:
+            if ds.attrs["frequency"] == 1000 or ds.attrs["frequency"] == 500:
+                ds.attrs["beam_angle"] = 25
+            elif ds.attrs["frequency"] == 250:
+                ds.attrs["beam_angle"] = 20
+            beam_type = "slant beam"
+
+        if "sample_rate" in ds.attrs and "sample_interval" not in ds.attrs:
+            ds.attrs["sample_interval"] = 1 / ds.attrs["sample_rate"]
+
+        freq = ds.attrs["frequency"]
+        bang = ds.attrs["beam_angle"]
+        print(
+            f"Signature {beam_type} acoustic frequency = {freq} with beam_angle = {bang} from vertical"
+        )
+
+    return ds
+
+
 def drop_unused_dims(ds):
     """
     Only keep dims that will be in the final files
     """
+    # make list of dimensions to keep
     thedims = [
         "bindist",
         "depth",
@@ -403,7 +496,8 @@ def drop_unused_dims(ds):
         "z",
         "zsen",
         "depthsen",
-    ]  # keep bindist needed for wave processing + keep depth
+    ]
+
     for v in ds.data_vars:
         for x in ds[v].dims:
             thedims.append(x)
@@ -419,7 +513,7 @@ def drop_attrs(ds):
     """
     Drop some global attribuutes
     """
-    att2del = []
+    att2del = ["outdir"]
     for k in ds.attrs:
         if re.search("_Beam2xyz$", k):
             att2del.append(k)
@@ -431,15 +525,23 @@ def drop_attrs(ds):
     dtlist = [
         "Burst",
         "BurstHR",
-        "IBurst",
-        "IBurstHR",
         "EchoSounder",
         "Average",
         "Alt_Average",
         "Alt_Burst",
     ]
-    if ds.attrs["data_type"] in dtlist:
-        dtlist.remove(ds.attrs["data_type"])
+
+    if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "IBurst":
+        dtlist.remove("Burst")
+    elif ds.attrs["data_type"] == "BurstHR" or ds.attrs["data_type"] == "IBurstHR":
+        dtlist.remove("Burst")
+        dtlist.remove("BurstHR")
+    elif ds.attrs["data_type"] == "EchoSounder":
+        dtlist.remove("Burst")
+        dtlist.remove("EchoSounder")
+    else:
+        if ds.attrs["data_type"] in dtlist:
+            dtlist.remove(ds.attrs["data_type"])
 
     rm = []  # initialize list of attrs to be removed
     for k in dtlist:
@@ -504,6 +606,7 @@ def ds_drop(ds):
         "CorBeam3",
         "CorBeam4",
         "AltimeterStatus",
+        "cor_nominal",
     ]
 
     if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"].lower() == "true"):
@@ -535,6 +638,7 @@ def ds_drop_more_vars(ds):
         "ast_pressure",
         "status",
         "error",
+        "Bat_106",
     ]
 
     return ds.drop_vars([t for t in todrop if t in ds.variables])
@@ -738,6 +842,7 @@ def ds_add_attrs_sig(ds):
             {
                 "units": "1",
                 "long_name": "Rotation Matrix from AHRS",
+                "comments": "Nortek Attitude and Heading Reference System (AHRS)",
             }
         )
 
@@ -746,6 +851,7 @@ def ds_add_attrs_sig(ds):
             {
                 "units": "rad s-1",
                 "long_name": "Angular Velocity from AHRS",
+                "comments": "Nortek Attitude and Heading Reference System (AHRS)",
             }
         )
 
@@ -1072,7 +1178,7 @@ def ds_add_attrs_sig(ds):
     if "TransMatrix" in ds:
         ds["TransMatrix"].attrs.update(
             {
-                # "units": "1",
+                "units": "1",
                 "long_name": "Instrument Transformation Matrix",
             }
         )
@@ -1429,7 +1535,6 @@ def trim_avg_vel_bins(ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204"]):
     ):
         if "brangeAST" in ds:
             P = ds["brangeAST"]
-            Ptxt = "Acoustic Surface Tracking"
         elif "P_1ac" in ds:
             P = ds["P_1ac"]
         else:
@@ -1546,5 +1651,31 @@ def add_brange(ds, var):
 
     else:
         print(f"{var} variable not in data set, unable to create brange variable")
+
+    return ds
+
+
+def add_water_level(ds):
+    """
+    Add water_level variable
+    """
+    if "zsen" in ds.dims and "water_level" not in ds.data_vars:
+        if (
+            "water_level_var" in ds.attrs
+            and ds.attrs["water_level_var"] in ds.data_vars
+        ):
+            ds = utils.create_water_level_var(
+                ds, var=ds.attrs["water_level_var"], vdim="zsen"
+            )
+        elif "P_1ac" in ds.data_vars:
+            ds = utils.create_water_level_var(ds, var="P_1ac", vdim="zsen")
+        else:
+            print(
+                "Cannot create water_level variable because P_1ac or brangeAST are not variable in data set"
+            )
+    elif "zsen" not in ds.dims:
+        print(
+            "Cannot create water_level variable because zsen is not a dimension in data set, likely due to pressure_sensor_height not being specified in config file"
+        )
 
     return ds
