@@ -217,7 +217,7 @@ def file81R_to_cdf(metadata):
     ds = utils.ensure_cf(ds)
 
     # Configure file
-    cdf_filename = f"{ds.attrs["filename"]}_{str(ds.attrs["SONRange"])}m-raw.cdf"
+    cdf_filename = f"{ds.attrs['filename']}_{str(ds.attrs['SONRange'])}m-raw.cdf"
 
     ds.to_netcdf(cdf_filename, unlimited_dims=["time"], compute=False)
 
