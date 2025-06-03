@@ -32,9 +32,9 @@ def ensure_cf(ds):
             "Non-CF Conventions are not supported. Ensure you are setting Conventions appropriately."
         )
 
-    if ds.attrs["Conventions"] != "CF-1.9":
+    if ds.attrs["Conventions"] != stglib.__cfmax__:
         warnings.warn(
-            f"You are using a version of the CF Conventions ({ds.attrs['Conventions']}) that is not the latest supported version (CF-1.9). Consider changing to CF-1.9."
+            f"You are using a version of the CF Conventions ({ds.attrs['Conventions']}) that is not the latest supported version ({stglib.__cfmax__}). Consider changing to {stglib.__cfmax__}."
         )
 
     return ds

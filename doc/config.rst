@@ -8,26 +8,28 @@ A note on time and time zones
 
 Time is always in Coordinated Universal Time (UTC).
 
-Transitioning from EPIC to CF Conventions
-=========================================
+CF Conventions
+==============
 
-Historically, data have been released according to NOAA PMEL/EPIC conventions. Today, `CF Conventions <http://cfconventions.org>`_ are used much more frequently, and stglib supports only CF Conventions. Specifying conventions is done via ``Conventions`` keyword in either the global attributes file or the instrument configuration file.
+The files produced by stglib strive to adhere to `CF Conventions <http://cfconventions.org>`_.
+Specifying these conventions is required and is done via the ``Conventions`` (note capitalization) keyword in either the global attributes file or the instrument configuration file.
+As much as possible, we use the ``standard_name`` for variables as defined in the `CF Standard Name Table <https://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html>`_.
 
 Setting CF in global attributes
 -------------------------------
 
 ::
 
-  Conventions; CF-1.9
+  Conventions; CF-1.10
 
 Setting CF in the instrument configuration file
 -----------------------------------------------
 
 ::
 
-  Conventions: 'CF-1.9'
+  Conventions: 'CF-1.10'
 
-Specifying CF-1.9 or a later release of the standard will enable straight-to-CF processing.
+Specifying CF-1.10 or a later release of the standard will enable straight-to-CF processing.
 
 Global attributes configuration file
 ====================================
