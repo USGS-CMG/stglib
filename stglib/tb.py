@@ -3,7 +3,7 @@ from datetime import timedelta
 import pandas as pd
 import xarray as xr
 
-from .core import filter, qaqc, utils
+from .core import qaqc, utils
 
 
 def read_header(filnam):
@@ -60,7 +60,7 @@ def read_csv(filnam, skiprows=20, encoding="utf-8"):
         index_col=False,
     )
     df["time"] = df["time"].str.strip("'")
-    df["time"] = df["time"].astype("datetime64[ns]")
+    df["time"] = pd.to_datetime(df["time"])
     df.set_index("time", inplace=True)
     tb = df.to_xarray()
     return tb
