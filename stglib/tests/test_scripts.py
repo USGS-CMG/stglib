@@ -420,7 +420,7 @@ def sg_wv_wvs(nc_file):
 def test_sg_wvs():
     sg_wv_raw("sg_glob_att1126.txt", "11264sg_config.yaml")
     sg_wv_nc("11264sg-waves-raw.cdf", "11264sg-atmpres.cdf")
-    sg_wv_wvs("11264sgb-cal.nc")
+    sg_wv_wvs("11264sgb.nc")
 
 
 def tb_raw(glob_att, config_yaml):

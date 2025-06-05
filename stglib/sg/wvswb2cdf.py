@@ -13,6 +13,7 @@ def wb_to_cdf(metadata):
 
     # Append to metadata variable
     metadata.update(hexmeta)
+    metadata.update({"data_type": "WAVE"})
 
     # Read in data
     ds = sgutils.read_wb(basefile + ".wb")

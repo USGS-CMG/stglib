@@ -23,6 +23,10 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # Load raw .cdf data
     ds = xr.open_dataset(cdf_filename)
 
+    # Rename sample rate
+    ds.attrs["sample_rate"] = ds.attrs["SGSample_rate"]
+    ds.attrs.pop("SGSample_rate")
+
     # Atmospheric pressure correction
     if ds.attrs["file_type"] == ".tid":
         ds = utils.atmos_correct(ds, atmpres)
@@ -59,10 +63,11 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     ds = utils.add_start_stop_time(ds)
     ds = utils.add_delta_t(ds)
     ds = utils.add_min_max(ds)
+    ds = utils.ds_coord_no_fillvalue(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
-    nc_filename = ds.attrs["filename"] + "s-tide-a.nc"
+    nc_filename = ds.attrs["filename"] + "t-a.nc"
 
     ds.to_netcdf(
         nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
@@ -91,15 +96,15 @@ def ds_drop_tid(ds):
     Drop global attribute metadata not needed for .tid file
     """
     gatts = [
-        "WaveInterval",
-        "WaveIntervalUnits",
-        "WaveSamples",
+        "SGWaveInterval",
+        "SGWaveIntervalUnits",
+        "SGWaveSamples",
         "sample_rate",
-        "sample_rate_units",
-        "BurstDuration",
-        "BurstDurationUnits",
-        "WaveBurstsPerDay",
-        "NumberOfWaveBursts",
+        # "SGsample_rate_units",
+        "SGBurstDuration",
+        "SGBurstDurationUnits",
+        "SGWaveBurstsPerDay",
+        "SGNumberOfWaveBursts",
     ]
 
     # Check to make sure they exist
@@ -114,21 +119,21 @@ def ds_drop_wb(ds):
     Drop global attribute metadata not needed for .wb file
     """
     gatts = [
-        "WaveInterval",
-        "WaveIntervalUnits",
-        "WaveSamples",
+        "SGWaveInterval",
+        "SGWaveIntervalUnits",
+        "SGWaveSamples",
         "sample_rate",
-        "sample_rate_units",
-        "BurstDuration",
-        "BurstDurationUnits",
-        "WaveBurstsPerDay",
-        "NumberOfWaveBursts",
-        "TideInterval",
-        "TideIntervalUnits",
-        "TideDuration",
-        "TideDurationUnits",
-        "TideSamplesPerDay",
-        "NumberOfTideMeasurements",
+        # "SGsample_rate_units",
+        "SGBurstDuration",
+        "SGBurstDurationUnits",
+        "SGWaveBurstsPerDay",
+        "SGNumberOfWaveBursts",
+        "SGTideInterval",
+        "SGTideIntervalUnits",
+        "SGTideDuration",
+        "SGTideDurationUnits",
+        "SGTideSamplesPerDay",
+        "SGNumberOfTideMeasurements",
     ]
 
     # Check to make sure they exist
@@ -142,7 +147,7 @@ def avg_tide_bursts(ds):
 
     # Calculate how many rows to subdivide each wave burst (round up)
     rows = math.ceil(
-        float(ds.attrs["BurstDuration"]) / float(ds.attrs["calculated_tide_interval"])
+        float(ds.attrs["SGBurstDuration"]) / float(ds.attrs["calculated_tide_interval"])
     )
 
     # Calculate how many columns to subdivide each wave burst
@@ -172,7 +177,7 @@ def avg_tide_bursts(ds):
         timestamp.append(new_time)
 
         # Reshape adding nans to end of array
-        no_pads = rows * cols - int(ds.attrs["WaveSamples"])
+        no_pads = rows * cols - int(ds.attrs["SGWaveSamples"])
         new_P1_burst = np.pad(
             ds.P_1[t].values, (0, no_pads), mode="constant", constant_values=np.nan
         ).reshape(rows, cols)

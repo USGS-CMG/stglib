@@ -19,6 +19,10 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     # Load raw .cdf data
     ds = xr.open_dataset(cdf_filename)
 
+    # Rename sample rate
+    ds.attrs["sample_rate"] = ds.attrs["SGSample_rate"]
+    ds.attrs.pop("SGSample_rate")
+
     # remove units in case we change and we can use larger time steps
     ds.time.encoding.pop("units")
 
@@ -47,10 +51,12 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     ds = utils.ds_add_lat_lon(ds)
     ds = utils.add_start_stop_time(ds)
     ds = utils.add_min_max(ds)
+    ds = utils.add_delta_t(ds)
+    ds = utils.ds_coord_no_fillvalue(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
-    nc_filename = ds.attrs["filename"] + "b-cal.nc"
+    nc_filename = ds.attrs["filename"] + "b.nc"
 
     ds.to_netcdf(
         nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
@@ -65,12 +71,12 @@ def ds_drop_meta(ds):
     Drop global attribute metadata not needed for .wb file
     """
     gatts = [
-        "TideInterval",
-        "TideIntervalUnits",
-        "TideDuration",
-        "TideDurationUnits",
-        "TideSamplesPerDay",
-        "NumberOfTideMeasurements",
+        "SGTideInterval",
+        "SGTideIntervalUnits",
+        "SGTideDuration",
+        "SGTideDurationUnits",
+        "SGTideSamplesPerDay",
+        "SGNumberOfTideMeasurements",
     ]
 
     # Check to make sure they exist

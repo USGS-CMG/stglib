@@ -45,8 +45,9 @@ def nc_to_waves(nc_filename):
 
     # assign min/max (need to do this after trimming):
     ds = utils.add_min_max(ds)
+    ds = utils.add_delta_t(ds)
 
-    nc_filename = ds.attrs["filename"] + "w-a.nc"
+    nc_filename = ds.attrs["filename"] + "s-a.nc"
 
     ds.to_netcdf(nc_filename, unlimited_dims=["time"])
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
@@ -61,7 +62,7 @@ def make_wave_bursts(ds):
     )
 
     # Calculate how many rows to subdivide each burst
-    rows = float(ds.attrs["BurstDuration"]) / float(
+    rows = float(ds.attrs["SGBurstDuration"]) / float(
         ds.attrs["calculated_wave_interval"]
     )
 

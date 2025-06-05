@@ -36,8 +36,10 @@ def tid_to_cdf(metadata):
     # Read in data
     if file_type == ".tid":
         ds = read_tid(basefile + file_type)
+        metadata.update({"data_type": "TIDE"})
     elif file_type == ".wb":
         ds = sgutils.read_wb(basefile + file_type)
+        metadata.update({"data_type": "WAVE"})
 
     # Convert pressure from psia to dbar
     ds["P_1"] = ds.P_1 / 14.503773800722 * 10
