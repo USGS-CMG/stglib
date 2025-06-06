@@ -11,7 +11,7 @@ from ..core import utils
 def csv_to_cdf(metadata):
     basefile = metadata["basefile"]
 
-    with open(basefile + "_metadata.txt") as f:
+    with open(basefile + "_metadata.txt", encoding="utf-8") as f:
         meta = yaml.safe_load(f)
 
     print(f"Reading {basefile}_data.txt")
