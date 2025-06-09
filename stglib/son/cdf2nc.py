@@ -118,7 +118,8 @@ def cdf_to_nc(cdf_filename, height=None):
     # Correct theta
     ds_avg["theta"] = correct_theta(ds_avg)
 
-    # Recalculate min/max
+    # Add attrs and recalculate min/max
+    ds_avg = sonutils.ds_add_attrs(ds_avg)
     ds_avg = utils.add_min_max(ds_avg)
 
     print("Writing averaged data to .nc file")

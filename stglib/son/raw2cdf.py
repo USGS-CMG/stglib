@@ -91,11 +91,11 @@ def read_81R(fname):
         if ReturnHeader:
             variables["ReturnDataHeaderType"][i] = ReturnHeader["ReturnDataHeaderType"]
             # variables["HeadID"][i] = ReturnHeader["HeadID"]
-            variables["HeadPosition"][i] = ReturnHeader["HeadPosition"]
+            variables["HeadPosition"][i] = float(ReturnHeader["HeadPosition"])
             variables["HeadAngle"][i] = ReturnHeader["HeadAngle"]
-            variables["StepDirection"][i] = ReturnHeader["StepDirection"]
+            variables["StepDirection"][i] = float(ReturnHeader["StepDirection"])
             # variables["Range"][i] = ReturnHeader["Range"]
-            variables["ProfileRange"][i] = ReturnHeader["ProfileRange"]
+            variables["ProfileRange"][i] = float(ReturnHeader["ProfileRange"])
             variables["NDataBytes"][i] = ReturnHeader["NDataBytes"]
             variables["SonarPosition"][i] = ReturnHeader["SonarPosition"]
             variables["SonarAngle"][i] = ReturnHeader["SonarAngle"]
