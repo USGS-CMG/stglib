@@ -42,8 +42,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     if atmpres is not False:
         ds = aqdutils.atmos_correct(ds, atmpres)
 
-    ds = utils.create_nominal_instrument_depth(ds)
-
     # create Z depending on orientation
     ds = utils.create_z(ds)
 
@@ -125,12 +123,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.ds_add_lat_lon(ds)
 
+    # Convert any negative heading values using modulus
+    ds["Hdg_1215"] = ds["Hdg_1215"] % 360
+
     # Add attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
     ds = ds_add_attrs_sig(ds)  # for signature vars
-
-    # Check if any heading values are negative and if so convert using modulus
-    ds["Hdg_1215"] = ds["Hdg_1215"] % 360
 
     # add water level if using brangeAST to find water level
     if (
@@ -290,7 +288,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         for var in dsVA.data_vars:
             ds[var] = dsVA[var]
 
-        # Check if any heading values are negative and if so convert using modulus - need to check again after taking vector averages
+        # Convert any heading values to 0-360 using modulus - need to check again after taking vector averages
         ds["Hdg_1215"] = ds["Hdg_1215"] % 360
 
         if ds.attrs["sample_mode"].upper() == "BURST":

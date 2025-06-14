@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 import xarray as xr
 
-from ..core import qaqc, utils, waves
+from ..core import utils, waves
 from .cdf2nc import add_water_level
 
 
@@ -118,6 +118,8 @@ def nc_to_waves(nc_filename):
 
     # assign min/max (need to do this after trimming):
     ds = utils.add_min_max(ds)
+
+    ds = utils.add_delta_t(ds)
 
     # round time to minutes to make sure fits in dtype i4. will be fine for wave burst start times
     ds["time"] = ds["time"].dt.round("min")
@@ -287,6 +289,8 @@ def nc_to_diwasp(nc_filename):
 
     # assign min/max (need to do this after trimming):
     ds = utils.add_min_max(ds)
+
+    ds = utils.add_delta_t(ds)
 
     # round time to minutes to make sure fits in dtype i4. will be fine for wave burst start times
     ds["time"] = ds["time"].dt.round("min")
