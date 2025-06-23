@@ -1,9 +1,3 @@
-# from ..lib import pyDIWASP
-# from ..lib import pyDIWASP.dirspec
-# from ..lib.pyDWASP import dirspec
-import multiprocessing
-import os
-import sys
 import warnings
 
 import matplotlib.pyplot as plt
@@ -13,11 +7,7 @@ import scipy.signal as spsig
 import xarray as xr
 from tqdm import tqdm
 
-parent_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-lib_dir = os.path.join(parent_dir, "lib")
-sys.path.append(lib_dir)
-
-import pyDIWASP
+from ..lib import pyDIWASP
 
 
 def make_diwasp_inputs(
@@ -479,22 +469,6 @@ def make_waves_ds_elev(ds):
     f = f[ind]
     Pxx = Pxx[:, ind]
 
-    z = ds.attrs["initial_instrument_height"]
-
-    if "elev" in var:
-        h = ds[var].squeeze().mean(dim="sample")
-
-    elif "brange" in var:
-        if "orientation" in ds.attrs:
-            if ds.attrs["orientation"].lower() == "down":
-                h = ds[var].squeeze().mean(dim="sample") - z
-            else:
-                h = ds[var].squeeze().mean(dim="sample") + z
-        else:
-            h = ds[var].squeeze().mean(dim="sample") + z
-
-    k = np.asarray([qkfs(2 * np.pi * f, x) for x in h.values])
-
     Pnn = Pxx  # measurement is of the sea-surface directly
 
     spec = xr.Dataset()
@@ -512,7 +486,6 @@ def make_waves_ds_elev(ds):
     spec["wh_4061"] = xr.DataArray(make_Hs(spec["m0"]), dims="time")
     spec["wp_4060"] = xr.DataArray(make_Tm(spec["m0"], spec["m2"]), dims="time")
     spec["wp_peak"] = xr.DataArray(make_Tp(spec["sspec"]), dims="time")
-    spec["k"] = xr.DataArray(k, dims=("time", "frequency"))
 
     return spec
 

@@ -461,7 +461,7 @@ def glx_wvs(nc_file):
 def test_glx():
     glx_dat("glob_att_geolux_x600_202403.txt", "geolux_x600_202403_config.yaml")
     glx_nc("FRFx600_202403glx-raw.cdf")
-    glx_wvs("FRFx600_202403glxcont-cal.nc")
+    glx_wvs("FRFx600_202403glxb.nc")
 
 
 def son_raw(glob_att, config_yaml):

@@ -2,8 +2,8 @@ basefile: 'NOPP_FRF_361101075444401_FastHzData_20240327'
 filename: 'FRFx600_202403glx'
 LatLonDatum: NAD83
 filtered_wl: 'true' 
-initial_instrument_height: 16.80
-initial_instrument_height_note: Elevation in meters relative to seabed.
+#initial_instrument_height: 16.80
+#initial_instrument_height_note: Elevation in meters relative to seabed.
 fill_value: 7999.
 instrument_type: 'Geolux LX-80-15 10Hz'
 sample_mode: 'continuous'

@@ -54,7 +54,7 @@ Options common to most (all?) instrument config files:
 - ``filename``: output filename, to which ``-raw.cdf``, ``-a.nc``, etc. will be appended
 - ``ClockError``: number, in seconds, negative is slow. Applies a simple offset for times. Useful if the instrument was deployed in an incorrect time zone.
 - ``ClockDrift``: number, in seconds, negative is slow. Linearly interpolates times for when the instrument clock has drifted.
-- ``initial_instrument_height``: elevation of instrument in meters
+- ``initial_instrument_height``: elevation of instrument in meters (all except Geolux wave radar - glx)
 - ``initial_instrument_height_note``
 - ``P_1ac_note``: a note on the atmospheric pressure source used
 - ``zeroed_pressure``: a note detailing whether the pressure sensor was zeroed before deployment, and other pertinent details such as date and time of zeroing.

@@ -6,14 +6,11 @@
     DATA_SUBTYPE; MOORED
     DATA_ORIGIN; USGS
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.8
+    Conventions; CF-1.10
     MOORING; FRFx600_202403
-    sea_floor_depth_below_mean_sea_level; 8.03
-    WATER_DEPTH; 8.03
-    WATER_DEPTH_NOTE; Estimated from USACE surveys in meters relative to NAVD88, positive down convention.
-    height_above_geopotential_datum; -8.16
+    height_above_geopotential_datum; 8.64
     geopotential_datum_name; NAVD88
-	geopotential_datum_note; elevation of seabed from FRF bathy surveys on 12-Mar-2024
+	geopotential_datum_note; sensor height
     latitude;  36.183688
     longitude; -75.745215
     magnetic_variation; -10.96

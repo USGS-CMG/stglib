@@ -4,11 +4,10 @@ import warnings
 import numpy as np
 import pandas as pd
 import xarray as xr
-import yaml
 from tqdm import tqdm
 
-from .aqd import aqdutils
-from .core import filter, qaqc, utils, waves
+# from .aqd import aqdutils
+from .core import qaqc, utils, waves
 
 
 def dat_to_cdf(metadata):
@@ -93,7 +92,7 @@ def cdf_to_nc(cdf_filename):
         if k in ds:
             ds = ds.drop_vars(k)
 
-    ds = utils.create_z(ds)
+    ds = create_z_glx(ds)
 
     if "sample_rate" in ds.attrs and "sample_interval" not in ds.attrs:
         ds.attrs["sample_interval"] = 1 / ds.attrs["sample_rate"]
@@ -137,7 +136,7 @@ def cdf_to_nc(cdf_filename):
 
     # Write to .nc file
     print("Writing cleaned/trimmed burst data and averaged burst data to .nc file")
-    nc_filename = ds.attrs["filename"] + "cont-cal.nc"
+    nc_filename = f"{ds.attrs['filename']}b.nc"
 
     ds["time"] = ds["time"].dt.round("ms")
 
@@ -168,7 +167,8 @@ def nc_to_waves(nc_filename):
         )
 
     # make elevation variable
-    elev = ds.attrs["initial_instrument_height"] - ds["brange"]
+    #  geolux will always be downward looking and height is positive up convention
+    elev = ds["z"] - ds["brange"]  
 
     # set tolerance for filling gaps in wave burst data
     if "wavedat_tolerance" not in ds.attrs:
@@ -203,6 +203,7 @@ def nc_to_waves(nc_filename):
     for k in ["wp_peak", "wh_4061", "wp_4060", "sspec"]:
         ds[k] = spec[k]
 
+    """
     # ds = utils.create_water_depth_var(ds)
     ds["water_depth"] = xr.DataArray(ds["elev"].squeeze().mean(dim="sample"))
     ds["water_depth"].attrs.update(
@@ -213,6 +214,7 @@ def nc_to_waves(nc_filename):
             "epic_code": 3,
         }
     )
+    """
 
     ds["water_level"] = ds["water_level"].mean(dim="sample")
     ds["water_level"].attrs.update(
@@ -436,3 +438,43 @@ def ds_add_waves_history(ds):
     )
 
     return utils.insert_history(ds, histtext)
+
+
+def create_z_glx(ds):
+    # create z only for glx - height give to geolux sesnor
+    notetxt = None
+    if "NAVD88_ref" in ds.attrs:
+        hagd = ds.attrs["NAVD88_ref"]
+        gdn = "NAVD88"
+        if "NAVD88_ref_note" in ds.attrs:
+            notetxt = ds.attrs["NAVD88_ref_note"]
+
+    elif "height_above_geopotential_datum" in ds.attrs:
+        hagd = ds.attrs["height_above_geopotential_datum"]
+        gdn = ds.attrs["geopotential_datum_name"]
+        if "geopotential_datum_note" in ds.attrs:
+            notetxt = ds.attrs["geopotential_datum_note"]
+
+    elif "height_above_mean_sea_level" in ds.attrs:
+        hagd = ds.attrs["height_above_mean_sea_level"]
+        gdn = "mean_sea_level"
+
+    else:
+        hagd = 0
+        gdn = "water level"
+
+    ds["z"] = xr.DataArray([hagd], dims="z")
+
+    if gdn != "water level" or gdn != "mean_sea_level":
+        ds["z"].attrs["geopotential_datum_name"] = gdn
+
+    ds["z"].attrs["long_name"] = f"height relative to {gdn}"
+
+    ds["z"].attrs["positive"] = "up"
+    ds["z"].attrs["axis"] = "Z"
+    ds["z"].attrs["units"] = "m"
+    ds["z"].attrs["standard_name"] = "height"
+    if notetxt is not None:
+        ds["z"].attrs["note"] = notetxt
+
+    return ds
