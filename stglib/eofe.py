@@ -35,11 +35,18 @@ def log_to_cdf(metadata):
             )
         )
 
+    prefix = metadata["instrument_type"].upper()
+
     metadata["instmeta"] = instmeta
 
     ds = utils.write_metadata(ds, metadata)
     ds = utils.ensure_cf(ds)
     ds = utils.shift_time(ds, 0)
+
+    if ds.attrs[f"{prefix}Pulses_in_series_num"] > 1:
+        ds.attrs.update({"sample_mode": "BURST"})
+    else:
+        ds.attrs.update({"sample_mode": "CONTINUOUS"})
 
     # configure file
     print("Configuring .cdf file")
@@ -112,7 +119,7 @@ def cdf_to_nc(cdf_filename):
 
     # Write to .nc file
     print("Writing cleaned/trimmed burst data and averaged burst data to .nc file")
-    nc_filename = ds.attrs["filename"] + "b-cal.nc"
+    nc_filename = ds.attrs["filename"] + "b.nc"
 
     ds.to_netcdf(
         nc_filename,
@@ -133,7 +140,7 @@ def cdf_to_nc(cdf_filename):
     # Call utils
     ds = utils.add_min_max(ds)
 
-    nc_filename = ds.attrs["filename"] + "-a.nc"
+    nc_filename = ds.attrs["filename"] + "b-a.nc"
 
     ds.to_netcdf(
         nc_filename,
@@ -155,40 +162,40 @@ def read_ea_instmet(basefile):
             row = f.readline().rstrip()
             dat = row.split()
             if "#DeviceID" in row:
-                instmeta["DeviceID"] = row[10:]
+                instmeta["EADeviceID"] = row[10:]
                 instmeta["serial_number"] = dat[1]
             elif "#NSamples" in row:
-                instmeta["Bin_count"] = int(dat[1])
+                instmeta["EABin_count"] = int(dat[1])
             elif "#Resolution,m" in row:
-                instmeta["Bin_size_m"] = float(dat[1])
+                instmeta["EABin_size_m"] = float(dat[1])
             elif "#SoundSpeed,mps" in row:
-                instmeta["SoundSpeed_mps"] = float(dat[1])
+                instmeta["EASoundSpeed_mps"] = float(dat[1])
             elif "#Tx_Frequency,Hz" in row:
-                instmeta["Tx_Frequency_Hz"] = float(dat[1])
+                instmeta["EATx_Frequency_Hz"] = float(dat[1])
             elif "#Range,m" in row:
-                instmeta["Range_m"] = float(dat[1])
+                instmeta["EARange_m"] = float(dat[1])
             elif "#Pulse period,sec" in row:
-                instmeta["Pulse_period_sec"] = float(dat[2])
+                instmeta["EAPulse_period_sec"] = float(dat[2])
             elif "#Pulses in series,num" in row:
-                instmeta["Pulses_in_series_num"] = int(dat[3])
+                instmeta["EAPulses_in_series_num"] = int(dat[3])
             elif "#Interval between series,sec" in row:
-                instmeta["Interval_between_series_sec"] = float(dat[3])
+                instmeta["EAInterval_between_series_sec"] = float(dat[3])
             elif "#Threshold,%" in row:
-                instmeta["Threshold_percent"] = int(dat[1])
+                instmeta["EAThreshold_percent"] = int(dat[1])
             elif "#Offset,m" in row:
-                instmeta["Offset_m"] = float(dat[1])
+                instmeta["EAOffset_m"] = float(dat[1])
             elif "#Deadzone,m" in row:
-                instmeta["Deadzone_m"] = float(dat[1])
+                instmeta["EADeadzone_m"] = float(dat[1])
             elif "#PulseLength,uks" in row:
-                instmeta["PulseLength_microsec"] = float(dat[1])
+                instmeta["EAPulseLength_microsec"] = float(dat[1])
             elif "#TVG_Gain,dB" in row:
-                instmeta["TVG_Gain_dB"] = float(dat[1])
+                instmeta["EATVG_Gain_dB"] = float(dat[1])
             elif "#TVG_Slope,dB/km" in row:
-                instmeta["TVG_Slope_dBkm"] = float(dat[1])
+                instmeta["EATVG_Slope_dBkm"] = float(dat[1])
             elif "#TVG_Mode" in row:
-                instmeta["TVG_Mode"] = int(dat[1])
+                instmeta["EATVG_Mode"] = int(dat[1])
             elif "#OutputMode" in row:
-                instmeta["OutputMode"] = int(dat[1])
+                instmeta["EAOutputMode"] = int(dat[1])
 
     return instmeta
 
@@ -229,8 +236,8 @@ def load_ea_point(basefile, instmeta):
     # point["TimeUTC"] = pd.to_datetime(point["TimeUTC"])
     point["TimeUTC"] = pd.to_datetime(point["TimeUTC"]).to_numpy()
 
-    samples = instmeta["Pulses_in_series_num"]
-    n = instmeta["Bin_count"]
+    samples = instmeta["EAPulses_in_series_num"]
+    n = instmeta["EABin_count"]
 
     for k in point:
         point[k] = np.array(point[k])
@@ -262,8 +269,8 @@ def load_ea_profile(ds, basefile, instmeta):
                     profile.append(float(row))
 
     # reshape profile data
-    samples = instmeta["Pulses_in_series_num"]
-    n = instmeta["Bin_count"]
+    samples = instmeta["EAPulses_in_series_num"]
+    n = instmeta["EABin_count"]
     profile = np.array(profile)
     profile = profile.reshape((-1, samples, n))
     ds["Counts"] = xr.DataArray(
@@ -364,14 +371,16 @@ def calc_bin_height(ds):
     # stop: number of bins - 1 * bin size, add (ds.attrs["Bin_size_m"] / 2) for center of bin as point of reference
     # num: number of bins (Bin_count)
 
+    prefix = ds.attrs["instrument_type"].upper()
+
     ds["bindist"] = xr.DataArray(
         np.linspace(
-            0 + (ds.attrs["Bin_size_m"] / 2),
+            0 + (ds.attrs[f"{prefix}Bin_size_m"] / 2),
             (
-                ((ds.attrs["Bin_count"] - 1) * ds.attrs["Bin_size_m"])
-                + (ds.attrs["Bin_size_m"] / 2)
+                ((ds.attrs[f"{prefix}Bin_count"] - 1) * ds.attrs[f"{prefix}Bin_size_m"])
+                + (ds.attrs[f"{prefix}Bin_size_m"] / 2)
             ),
-            num=ds.attrs["Bin_count"],
+            num=ds.attrs[f"{prefix}Bin_count"],
         ),
         dims="bins",
     )
@@ -409,7 +418,7 @@ def calc_bin_height(ds):
             "units": "m",
             "long_name": "bin(center) distance from seafloor",
             "positive": "up",
-            "note": f"Distance is along profile from seafloor to center of bin. Calculated as initial instrument height {math_sign} bin(center) distance from transducer based on {ds.attrs['SoundSpeed_mps']} m/s sound vel.",
+            "note": f"Distance is along profile from seafloor to center of bin. Calculated as initial instrument height {math_sign} bin(center) distance from transducer based on {ds.attrs[f"{prefix}SoundSpeed_mps"]} m/s sound vel.",
             # % math_sign,
         }
     )
@@ -425,9 +434,11 @@ def calc_cor_brange(ds):
     print("Correcting distance to bed (brange) using adjusted sound speed")
     # here the brange is still called Altitude_m but variable name will change to brange later in code
 
+    prefix = ds.attrs["instrument_type"].upper()
+
     # Correct using adjusted sound speed
     # distance (m) = time (sec) x sound speed (m/sec)
-    time_sec = xr.DataArray((ds.Altitude_m) / ds.attrs["SoundSpeed_mps"])
+    time_sec = xr.DataArray((ds.Altitude_m) / ds.attrs[f"{prefix}SoundSpeed_mps"])
     #
     # seawater.svel(s,t,p); s = average salinity (psu) from exo, t = temp (c) from altimeter, p = approximate pressure (db) calculated from instrument depth +/- median(Altitude)/2
     if ds.attrs["orientation"].upper() == "DOWN":
@@ -573,13 +584,16 @@ def calc_boundary_elev(ds):
 
 def calc_cor_bin_height(ds):
     print("Calculating corrected bin height from adjusted speed of sound")
+
+    prefix = ds.attrs["instrument_type"].upper()
+
     binheight = (
         xr.DataArray(ds.bin_height)
         .expand_dims({"time": ds.time, "sample": ds.sample})
         .transpose("bins", "time", "sample")
     )
     # calculate travel time per bin
-    time_sec = xr.DataArray((binheight) / ds.attrs["SoundSpeed_mps"])
+    time_sec = xr.DataArray((binheight) / ds.attrs[f"{prefix}SoundSpeed_mps"])
     # calculate sound speed
 
     p = (
@@ -641,31 +655,31 @@ def read_aa_instmet(basefile):
             row = f.readline().rstrip()
             dat = row.split()
             if " Device" in row:
-                instmeta["DeviceID"] = dat[2]
+                instmeta["serial_number"] = dat[2]
             elif "- range" in row:
-                instmeta["Range_m"] = float(dat[3]) / 1000
+                instmeta["AARange_m"] = float(dat[3]) / 1000
             elif "- interval" in row:
-                instmeta["Interval_between_series_sec"] = float(dat[3])
+                instmeta["AAInterval_between_series_sec"] = float(dat[3])
             elif "- series" in row:
-                instmeta["Pulses_in_series_num"] = int(dat[3])
+                instmeta["AAPulses_in_series_num"] = int(dat[3])
             elif "- threshold" in row:
-                instmeta["Threshold_percent"] = int(dat[3])
+                instmeta["AAThreshold_percent"] = int(dat[3])
             elif "- offset" in row:
-                instmeta["Offset_m"] = float(dat[3]) / 1000
+                instmeta["AAOffset_m"] = float(dat[3]) / 1000
             elif "- deadzone" in row:
-                instmeta["Deadzone_m"] = float(dat[3]) / 1000
+                instmeta["AADeadzone_m"] = float(dat[3]) / 1000
             elif "- txlength" in row:
-                instmeta["PulseLength_microsec"] = int(dat[3])
+                instmeta["AAPulseLength_microsec"] = int(dat[3])
             elif "- amplitude" in row:
-                instmeta["Amplitude_Threshold_percent"] = int(dat[3])
+                instmeta["AAAmplitude_Threshold_percent"] = int(dat[3])
             elif "-" and "sampling" in row:
-                instmeta["Sampling_rate_Hz"] = int(dat[3])
+                instmeta["AASampling_rate_Hz"] = int(dat[3])
             elif "Total Number of Series" in row:
-                instmeta["NSeries"] = int(dat[5])
+                instmeta["AANSeries"] = int(dat[5])
             elif "Total Number of Records" in row:
-                instmeta["NRecords"] = int(dat[5])
+                instmeta["AANRecords"] = int(dat[5])
 
-    instmeta["SoundSpeed_mps"] = 1500  # aa400 fixed speed of sound value
+    instmeta["AASoundSpeed_mps"] = 1500  # aa400 fixed speed of sound value
     return instmeta
 
 
@@ -722,7 +736,7 @@ def load_aa_point(filnam, instmeta, skiprows=None, skipfooter=None, encoding="ut
 
     # Convert to dictionary and reshape
     point = df.to_dict(orient="list")
-    samples = instmeta["Pulses_in_series_num"]
+    samples = instmeta["AAPulses_in_series_num"]
 
     for k in point:
         point[k] = np.reshape(point[k], (-1, samples))
@@ -738,8 +752,8 @@ def load_aa_point(filnam, instmeta, skiprows=None, skipfooter=None, encoding="ut
         if "time" not in k:
             ds[k] = xr.DataArray(point[k], dims=("time", "sample"))
 
-    # need to retype to int32
-    ds["AmplitudeFS"] = ds["AmplitudeFS"].astype(dtype="int32")
+    # need to retype to float
+    ds["AmplitudeFS"] = ds["AmplitudeFS"].astype(dtype="float")
 
     return ds
 
@@ -760,6 +774,8 @@ def trim_alt(ds, data_vars=["Altitude_m", "Counts", "Temperature_C"]):
         Dataset with trimmed data
     """
 
+    prefix = ds.attrs["instrument_type"].upper()
+
     if "trim_method" in ds.attrs:
         trm_list = ds.attrs["trim_method"]
 
@@ -770,10 +786,13 @@ def trim_alt(ds, data_vars=["Altitude_m", "Counts", "Temperature_C"]):
             if trm_meth.lower() == "altitude":
                 print("Trimming using altitude data")
                 # need to use altitude values before starting trimming
-                altitude = ds["Altitude_m"]
                 for var in data_vars:
-                    ds[var] = ds[var].where(~(altitude < ds.attrs["Deadzone_m"]))
-                    ds[var] = ds[var].where(~(altitude > ds.attrs["Range_m"]))
+                    ds[var] = ds[var].where(
+                        ds["Altitude_m"] >= ds.attrs[f"{prefix}Deadzone_m"]
+                    )
+                    ds[var] = ds[var].where(
+                        ds["Altitude_m"] <= ds.attrs[f"{prefix}Range_m"]
+                    )
                     print(f"Trimming {var}")
 
                 histtext = "Trimmed altimeter data using Altimeter_m = 0."
