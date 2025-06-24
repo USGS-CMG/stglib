@@ -418,7 +418,7 @@ def calc_bin_height(ds):
             "units": "m",
             "long_name": "bin(center) distance from seafloor",
             "positive": "up",
-            "note": f"Distance is along profile from seafloor to center of bin. Calculated as initial instrument height {math_sign} bin(center) distance from transducer based on {ds.attrs[f"{prefix}SoundSpeed_mps"]} m/s sound vel.",
+            "note": f"Distance is along profile from seafloor to center of bin. Calculated as initial instrument height {math_sign} bin(center) distance from transducer based on {ds.attrs[f'{prefix}SoundSpeed_mps']} m/s sound vel.",
             # % math_sign,
         }
     )
