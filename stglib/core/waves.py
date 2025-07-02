@@ -378,7 +378,9 @@ def make_waves_ds(ds):
         )
         presvar = "P_1"
 
-    f, Pxx = pressure_spectra(ds[presvar].squeeze(), fs=1 / ds.attrs["sample_interval"])
+    f, Pxx = pressure_spectra(
+        ds[presvar].squeeze().values, fs=1 / ds.attrs["sample_interval"]
+    )
 
     if "pressure_sensor_height" in ds.attrs:
         z = ds.attrs["pressure_sensor_height"]
@@ -450,7 +452,7 @@ def make_waves_ds_elev(ds):
     nperseg = next_power_of_2(int(nsamps / nsegs))
 
     f, Pxx = pressure_spectra(
-        ds[var].squeeze(), fs=1 / ds.attrs["sample_interval"], nperseg=nperseg
+        ds[var].squeeze().values, fs=1 / ds.attrs["sample_interval"], nperseg=nperseg
     )
 
     # trim frequencies
