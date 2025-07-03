@@ -94,7 +94,6 @@ Options for signal filtering:
 - ``<VAR>_med_filt``: apply n point median filter, where n is specified value (must be an odd number).
 - ``filter_order``: specify order of butterworth filter (default = 4 if not specified).
 
-
 Options for wave processing using pyDIWASP:
 
 - ``diwasp_method``: estimator method used by pyDIWASP (options (available now): 'IMLM' (default) or 'DFTM')
@@ -194,7 +193,6 @@ WET Labs ECO NTU
 
 NTU-specific options include:
 
-- All the _min, _max, _bad_ens, etc. options available to the EXO.
 - ``Turb_std_max``: fill turbidity based on a maximum standard deviation value.
 - ``spb``: samples per burst
 - ``user_ntucal_coeffs``: polynomial coefficients, e.g., ``[9.078E-07, 5.883E-02, -2.899E+00]``.
@@ -210,7 +208,7 @@ WXT-specific options include:
 
 EofE ECHOLOGGER
 ---------------
-- All the _min, _max, _bad_ens, etc. options available to the EXO.
+
 - ``instrument_type``: types "ea" and "aa" are supported.
 - ``skiprows``: for type "aa", the number of lines to skip in the .log file before the real data begins
 - ``skipfooter``: for type "aa", the number of lines to skip in the .log file after the data end
@@ -227,7 +225,6 @@ Sequoia Scientific LISST
 Sontek IQ
 ---------
 
-- All the _min, _max, _bad_ens, etc. options available to the EXO.
 - ``orientation``: can be ``UP`` or ``DOWN`` use this to identify orientation of profiler
 - ``positive_direction``: direction (degrees) of positive flow indicated by the X arrow on top of instrument (optional, recommended)
 - ``flood_direction``: direction (degrees) of flood current in channel, may be opposite of positive flow direction depending on field set up (optional, recommended)
@@ -236,7 +233,6 @@ Sontek IQ
 Onset Hobo
 ----------
 
-- All the _min, _max, _bad_ens, etc. options available to the EXO.
 - ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
 - ``instrument_type``: can be ``hwl`` (water level), ``hwlb`` (water level as barometer), ``hdo`` (dissolved oxygen) or ``hcnd`` (conductivity) use these based on parameter measured by hobo logger
 - ``skipfooter``: number of lines to skip in the CSV file at the end of the file
@@ -246,7 +242,6 @@ Onset Hobo
 Lowell TCM Hobo
 ---------------
 
-- All the _min, _max, _bad_ens, etc. options available to the EXO.
 - ``skipfooter``: number of lines to skip in the CSV file at the end of the file
 - ``ncols``: number of columns of data to read, starting at first
 - ``names``: option for user specified column names (only recommended when code will not read names using automated/default method)
@@ -260,20 +255,21 @@ Vector
 
 SBE 37 MicroCAT
 ---------------
-- All the _min, _max, _bad_ens, etc. options available to the EXO
+
 - ``skiprows``: number of lines to skip in the ASC before the real data begins
 
 SBE 26plus Seagauge
 -------------------
 For Seagauge tides:
+
 - ``file_type``: set to ``.tid`` or ``.wb`` to specify raw data file type
 - ``calculated_tide_interval``: enter the desired tide interval when using the .wb file
 - ``calculated_tide_interval_units``: tide interval units
 - ``calculated_tide_duration``: enter the desired tide duration when using the .wb file
 - ``calculated_tide_duration_units``: tide duration units
-- All the _min, _max, _bad_ens, etc. options available to the EXO.
 
 For Seagauge waves:
+
 - ``calculated_wave_interval``: enter the desired wave interval
 - ``calculated_wave_interval_units``: wave interval units
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
@@ -282,7 +278,7 @@ For Seagauge waves:
 
 TruBlue
 -------
-- All the _min, _max, _bad_ens, etc. options available to the EXO
+
 - ``skiprows``: number of header lines to skip in the txt file before the real data begins
 - ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
 - ``wave_interval``: interval in seconds for calculating wave bursts from continuous pressure data
@@ -295,30 +291,31 @@ AQUAscat1000R
 - ``outdir``: path to desired folder for burst .cdf files (converted from burst .mat files in mat2cdf)
 - ``basefile``: path to folder containing burst .mat files generated from Aquatec's ReadAquascat1000.m
 - ``P_1_offset``: offset between 0 and abs pressure before deploying
-- ``P_1_scale``: scale factor to apply to raw pressure data, likely 2. Plot raw data to asses appropriate scale factor.
-- ``Tx_offset``: offset between ABSS temperature and actual temperature. Plot raw data to asses appropriate scale factor. Check with another instrument.
-- ``Tx_scale``: scale factor to apply to raw temperature data. Likely none needed. Plot raw data to asses appropriate scale factor.
+- ``P_1_scale``: scale factor to apply to raw pressure data, likely 2. Plot raw data to assess appropriate scale factor.
+- ``Tx_offset``: offset between ABSS temperature and actual temperature. Plot raw data to assess appropriate scale factor. Check with another instrument.
+- ``Tx_scale``: scale factor to apply to raw temperature data. Likely none needed. Plot raw data to assess appropriate scale factor.
 - ``Bat_offset``: offset between ABSS raw battery voltage and actual battery voltage. Likely none needed.
-- ``Bat_scale``: scale factor to apply to raw battery voltage data, likely 2. Plot raw data to asses appropriate scale factor.
+- ``Bat_scale``: scale factor to apply to raw battery voltage data, likely 2. Plot raw data to assess appropriate scale factor.
 - ``orientation``: orientation of transducer(s)
 - ``initial_instrument_height``: height of acoustic transducer
-- ``pressure_sensor_height``: height of pressure port on canister, likely different that transducer height
+- ``pressure_sensor_height``: height of pressure port on canister, likely different than transducer height
 
 Geolux Wave Radar
 -----------------
-- All the _min, _max, _bad_ens, etc. options available to the EXO
-- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
+
+- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass Butterworth filter with 6 min cutoff)
 - ``wave_interval``: interval in seconds for calculating wave bursts from continuous sea-surface elevation data
 - ``wave_duration``: duration in seconds for calculating wave statistics
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
 - ``wavedat_tolerance``: tolerance in seconds to fill gaps in wave data to be used for calculating wave statistics (default = '20 s').
-- ``wlfilt_tolerance``: tolerance in seconds to fill gaps in water level data to be used calculating fileterd water level ``water_level_filt`` (default = '60 s').
+- ``wlfilt_tolerance``: tolerance in seconds to fill gaps in water level data to be used calculating filtered water level ``water_level_filt`` (default = '60 s').
 
 Teledyne RDI instruments
 ------------------------
-- Mostly follows the options available to the Aquadopp
+
+- ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``'bin range'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
 - Does not yet support waves
 
 Imagenex Sonar
