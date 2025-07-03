@@ -105,7 +105,8 @@ def csv_to_cdf(metadata):
     elif is_profile:
         # work with profiles, e.g. CTD casts
 
-        events = pd.read_csv(basefile + "_events.txt")
+        eventsfn = basefile + "_events.txt"
+        events = pd.read_csv(eventsfn)
         events.rename(columns={"Time": "time"}, inplace=True)
         events["time"] = pd.to_datetime(events["time"])
         events.set_index("time", inplace=True)
@@ -113,11 +114,13 @@ def csv_to_cdf(metadata):
         en = ["paused" in x for x in events["Type"]]
         starts = events[st].index
         ends = events[en].index
-        # sometimes the first start event seems to be missing from the events file
+        # the first start event sometimes appears afer a "sampling paused" event from the initial setup
         if starts[0] > ends[0]:
-            starts = np.insert(starts, 0, ds.time[0].values)
+            ends = np.delete(ends, 0)
         if starts.shape != ends.shape:
-            raise ValueError("starts shape does not equal ends shape")
+            raise ValueError(
+                f"length of start events does not equal length of pause events in {eventsfn}"
+            )
 
         pr = xr.Dataset()
 
