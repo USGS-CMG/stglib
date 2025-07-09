@@ -29,7 +29,7 @@ Setting CF in the instrument configuration file
 
   Conventions: 'CF-1.10'
 
-Specifying CF-1.10 or a later release of the standard will enable straight-to-CF processing.
+Specifying CF Conventions as above will enable straight-to-CF processing.
 
 Global attributes configuration file
 ====================================
@@ -49,7 +49,7 @@ This file is instrument-specific and is YAML formatted. A few examples are given
 
 Options common to most (all?) instrument config files:
 
-- ``Conventions``: version of the CF Conventions, ``'CF-1.9'`` presently
+- ``Conventions``: version of the CF Conventions, ``'CF-1.10'`` presently
 - ``basefile``: the input filename without extension
 - ``filename``: output filename, to which ``-raw.cdf``, ``-a.nc``, etc. will be appended
 - ``ClockError``: number, in seconds, negative is slow. Applies a simple offset for times. Useful if the instrument was deployed in an incorrect time zone.
