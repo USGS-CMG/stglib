@@ -1345,7 +1345,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds["snr"].attrs.update(
             {
                 "units": "dB",
-                "long_name": "Signal to Noise Ratio",
+                "long_name": "Signal-to-Noise Ratio",
             }
         )
 
@@ -1353,7 +1353,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds["SNR1"].attrs.update(
             {
                 "units": "dB",
-                "long_name": "Signal to Noise Ratio Beam 1",
+                "long_name": "Signal-to-Noise Ratio Beam 1",
             }
         )
 
@@ -1361,7 +1361,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds["SNR2"].attrs.update(
             {
                 "units": "dB",
-                "long_name": "Signal to Noise Ratio Beam 2",
+                "long_name": "Signal-to-Noise Ratio Beam 2",
             }
         )
 
@@ -1369,7 +1369,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         ds["SNR3"].attrs.update(
             {
                 "units": "dB",
-                "long_name": "Signal to Noise Ratio Beam 3",
+                "long_name": "Signal-to-Noise Ratio Beam 3",
             }
         )
 
@@ -1499,9 +1499,10 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         }
     )
 
-    ds["Bat_106"].attrs.update(
-        {"units": "V", "long_name": "Battery voltage", "epic_code": 106}
-    )
+    if "Bat_106" in ds:
+        ds["Bat_106"].attrs.update(
+            {"units": "V", "long_name": "Battery voltage", "epic_code": 106}
+        )
 
     if "brange" in ds:
         ds["brange"].attrs.update(
@@ -1533,7 +1534,11 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             }
         )
 
-    if "bindist" in ds and "blanking_distance" not in ds["bindist"].attrs:
+    if (
+        inst_type != "VEC"
+        and "bindist" in ds
+        and "blanking_distance" not in ds["bindist"].attrs
+    ):
         if inst_type == "AQD" and not hr:
             blanking_distance = ds.attrs["AQDBlankingDistance"]
         elif inst_type == "AQD" and hr:

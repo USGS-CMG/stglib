@@ -248,9 +248,14 @@ Lowell TCM Hobo
 
 Vector
 ------
-- ``pressure_sensor_height`` and ``velocity_sample_volume_height`` to specify the elevations of these two sensors.
+- ``initial_instrument_height`` to specify the height (m) of center transducer from bed (do not include blanking distance).
+- ``pressure_sensor_height`` to specify the height (m) of pressure port from bed.
 - ``puv``: set to ``true`` to compute PUV wave statistics. **(EXPERIMENTAL)**
 - ``orientation``: ``UP`` means probe head is pointing up (sample volume above probe head). ``DOWN`` means probe head is pointing down (sample volume below probe head).
+- ``velocity_sample_volume_height``: height (m) to center of sample volume from bed (bed to center transducer - blanking distance (.157 m)).
+- ``average_interval`` to specify interval (in seconds) in which samples will be averaged. If sample mode is CONTINUOUS, no average file will be outputted without ``average_interval`` specified. If sample mode is BURST, the average interval will be defaulted to burst length if ``average_interval`` is not specified.
+- ``average_duration`` to specify duration of time (in seconds) within the averaging interval to take average. If ``average_duration`` is not specified, the duration will default to averaging over entire ``average_interval``.
+- ``chunks``: list of key, value pairs for user specified chunking of data (e.g. ['time', 256000, 'bindist', 64])
 - Many of the Aquadopp options apply to the Vector.
 
 SBE 37 MicroCAT

@@ -1,0 +1,29 @@
+title;	Burst vector test
+MOORING;	FISH0104green
+PROGRAM;	Coastal Hazards
+PROJECT;	Stglib development
+EXPERIMENT;	Stglib development
+Region;	Stglib development
+CruiseID;	NA
+SciPi;	NA
+Year;	2017
+Site;	MOF
+platform_type;	Fish Box
+latitude;	37.92865
+longitude;  -122.48343
+WATER_DEPTH;	1.5
+WATER_DEPTH_source; Estimated
+WATER_DEPTH_note; Water depth at time of deployment
+Deployment_date;	2017-01-31 09:15
+Recovery_date;	2017-02-01 07:15
+DESCRIPTION;	MOF Test
+magnetic_variation;	13.24
+DATA_TYPE;	TIME
+DATA_SUBTYPE;	MOORED
+DATA_ORIGIN;	USGS
+COORD_SYSTEM;	GEOGRAPHIC
+Conventions;	CF-1.10
+POS_CONST;	0
+DEPTH_CONST;	0
+history;
+DATA_CMNT; none

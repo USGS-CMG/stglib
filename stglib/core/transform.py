@@ -163,15 +163,15 @@ def create_orientmat(ds):
     orientmat = orientmat.transpose(2, 1, 0)
 
     ds["orientmat"] = xr.DataArray(orientmat, dims=["earth", "inst", "time"])
-    ds["orientmat"].attrs[
-        "long_name"
-    ] = "XYZ (inst) to ENU (earth) Transformation Matrix"
-    ds["orientmat"].attrs[
-        "note"
-    ] = "Generated from instrument heading, pitch, and roll data"
+    ds["orientmat"].attrs.update(
+        {
+            "long_name": "XYZ (inst) to ENU (earth) Transformation Matrix",
+            "note": "Generated from instrument heading, pitch, and roll data",
+            "units": "1",
+        }
+    )
 
     ds["earth"] = ["E", "N", "U"]
-    ds["earth"].attrs["units"] = 1
     ds["earth"].attrs["long_name"] = "Earth Reference Frame"
 
     return orientmat

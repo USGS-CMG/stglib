@@ -27,6 +27,7 @@ def run_script(script_name, *args):
         or "Done writing netCDF file" in output
         or "Done creating" in output
         or "Finished creating" in output
+        or "Done writing averaged netCDF file" in output
     )
 
 
@@ -160,12 +161,14 @@ def vec_wvs(nc_file):
     run_script("runvecnc2waves.py", nc_file)
 
 
-@pytest.mark.skip(reason="works locally but not on GitLab CI")
+# @pytest.mark.skip(reason="works locally but not on GitLab CI")
 def test_vec_burst():
     # burst mode vector, fails on gitlab CI
-    vec_raw("gatts_NBM22CSB.txt", "config_NBM22CSB.yaml")
-    vec_nc("NBMCSBvec01-raw.cdf")
-    vec_wvs("NBMCSBvec01b-cal.nc")
+    with zipfile.ZipFile("stglib/tests/data/FISH0104green.zip", "r") as zip_ref:
+        zip_ref.extractall("stglib/tests/data/")
+    vec_raw("gatts_FISH0104green.txt", "FISH0104green.yaml")
+    vec_nc("FISH0104green-raw.cdf")
+    vec_wvs("FISH0104greenb.nc")
 
 
 def test_vec_continuous():

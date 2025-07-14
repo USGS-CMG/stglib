@@ -34,8 +34,6 @@ def dat_to_cdf(metadata):
 
     ds = utils.ensure_cf(ds)
 
-    ds = aqdutils.check_attrs(ds, inst_type="VEC")
-
     dssen = load_sen(basefile)
 
     # r = np.shape(dssen.Heading)[0]
@@ -92,9 +90,9 @@ def dat_to_cdf(metadata):
     ds["TransMatrix"] = xr.DataArray(ds.attrs["VECTransMatrix"], dims=["inst", "beam"])
     ds["TransMatrix"].attrs["long_name"] = "Beam to XYZ (inst) Transformation Matrix"
     ds["TransMatrix"].attrs["note"] = "Provided by Nortek, based on transducer geometry"
+    ds["TransMatrix"].attrs["units"] = "1"
 
     ds["inst"] = ["X", "Y", "Z"]
-    ds["inst"].attrs["units"] = "1"
     ds["inst"].attrs["long_name"] = "Inst Reference Frame"
 
     ds["beam"] = [1, 2, 3]

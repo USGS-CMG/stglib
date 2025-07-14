@@ -1,10 +1,8 @@
-basefile: 'NBMCSB02'
-filename: 'NBMCSBvec01'
+basefile: 'FISH0104green'
+filename: 'FISH0104green'
 LatLonDatum: 'NAD83'
 initial_instrument_height: 0.5 # DJN guessed value
 orientation: 'down'
-AnalogInput1: "true"
-AnalogInput1_warmup_samples: 1
 puv: "true"
 puv_first_frequency_cutoff: 0.1
 puv_last_frequency_cutoff: 0.5

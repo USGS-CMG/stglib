@@ -14,7 +14,7 @@ WATER_DEPTH;	2.2
 WATER_DEPTH_source; Ships echosounder
 WATER_DEPTH_note; Water depth at time of deployment
 Deployment_date;	14-JUN-2022 19:13
-Recovery_date;	10-AUG-2022 18:19
+Recovery_date;	15-JUN-2022 12:00
 OFAFunding;	 San Francisco Bay Regional Monitoring Program, San Francisco Estuary Institute
 CollaboratingAgency;	USGS WERC
 DESCRIPTION;	Coffee Table
@@ -23,7 +23,7 @@ DATA_TYPE;	TIME
 DATA_SUBTYPE;	MOORED
 DATA_ORIGIN;	USGS/PCMSC
 COORD_SYSTEM;	GEOGRAPHIC
-Conventions;	PMEL/EPIC
+Conventions;	CF-1.8
 POS_CONST;	0
 DEPTH_CONST;	0
 history;

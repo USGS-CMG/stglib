@@ -1,3 +1,4 @@
+import re
 import warnings
 
 import numpy as np
@@ -16,14 +17,24 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     """
 
     # Load raw .cdf data
-    ds = aqdutils.load_cdf(cdf_filename, atmpres=atmpres)
+    ds = xr.load_dataset(cdf_filename)
+
+    if atmpres is not False:
+        ds = aqdutils.atmos_correct(ds, atmpres)
 
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)
 
-    ds = utils.create_nominal_instrument_depth(ds)
+    ds = add_vec_globatts(ds)
 
-    ds = set_orientation(ds)
+    ds = check_orientation(ds)
+
+    # create bindist to pass through utils.create_z
+    ds = create_bindist(ds)
+
+    ds = utils.create_z(ds)
+
+    ds = create_analog_z(ds)
 
     ds = transform.coord_transform(ds)
 
@@ -31,7 +42,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = combine_vars(ds)
 
-    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
+    if ds.attrs["sample_mode"] == "BURST":
         ds = dist_to_boundary(ds)
 
     ds = scale_analoginput(ds)
@@ -43,7 +54,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = aqdutils.ds_rename(ds)
 
     # Shape into burst if not continuous mode
-    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
+    if ds.attrs["sample_mode"] == "BURST":
         ds = reshape(ds)
 
     ds = qaqc.drop_vars(ds)
@@ -51,11 +62,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Add EPIC and CMG attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
 
-    # ds = associate_z_coord(ds)
-
-    ds = fill_snr(ds)
-
-    ds = fill_cor(ds)
+    ds = ds_add_attrs_vec(ds)
 
     for var in ds.data_vars:
         # need to do this or else a "coordinates" attribute with value of "burst" hangs around
@@ -81,6 +88,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = qaqc.trim_fliers(ds, var)
         ds = qaqc.trim_warmup(ds, var)
 
+    ds = fill_snr(ds)
+
+    ds = fill_cor(ds)
+
     # after check for masking vars by other vars
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
@@ -94,89 +105,134 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.add_standard_names(ds)
 
-    if "chunks" in ds.attrs:
-        ds = ds.chunk({str(ds.attrs["chunks"][0]): int(ds.attrs["chunks"][1])})
-    else:
-        ds = ds.chunk({"time": 2000})
+    ds = utils.ds_add_lat_lon(ds)
+
+    ds = utils.add_min_max(ds)
 
     ds = time_encoding(ds)
 
     ds = var_encoding(ds)
 
+    ds = utils.ds_coord_no_fillvalue(ds)
+
+    if "chunks" in ds.attrs:
+        chunksizes = dict(zip(ds.attrs["chunks"][::2], ds.attrs["chunks"][1::2]))
+        for key in chunksizes:
+            if isinstance(chunksizes[key], str):
+                chunksizes[key] = int(chunksizes[key])
+        print(f"Using user specified chunksizes = {chunksizes}")
+
+        ds = ds.chunk(chunks=chunksizes)
+
+    else:
+        ds = ds.chunk(chunks="auto")
+
     create_nc(ds)
+
+    # average files
+    if ds.attrs["sample_mode"].upper() == "CONTINUOUS":
+        if "average_interval" in ds.attrs:
+            ds = fill_time_gaps(ds)
+            ds = ds_make_average_shape_mi(ds)
+        else:
+            return ds
+
+    if "average_duration" in ds.attrs:
+        ds.attrs["average_samples_per_burst"] = int(
+            ds.attrs["average_duration"] * ds.attrs["sample_rate"]
+        )
+        ds = ds.isel(sample=slice(0, ds.attrs["average_samples_per_burst"]))
+
+    # before taking mean - need to extract variable that will need to be vector averaged
+    va_vars = ["Hdg_1215", "Ptch_1216", "Roll_1217"]
+
+    # get vector averages
+    dsVA = utils.make_vector_average_vars(ds, data_vars=va_vars, dim="sample")
+
+    # add 360 degrees if the vector averaging makes heading negative
+    dsVA["Hdg_1215"] = dsVA["Hdg_1215"] % 360
+
+    ds = ds.mean(dim="sample", keep_attrs=True)
+
+    # replace vector averaged tilt variables
+    for var in dsVA.data_vars:
+        ds[var] = dsVA[var]
+
+    if ds.attrs["sample_mode"].upper() == "BURST":
+        if "average_duration" in ds.attrs:
+            histtext = f"Create burst averaged data product using user specified duration for avergage {ds.attrs['average_duration']} seconds"
+        else:
+            histtext = "Create burst averaged data product"
+
+    elif ds.attrs["sample_mode"].upper() == "CONTINUOUS":
+        if "average_duration" in ds.attrs:
+            histtext = f"Create averaged data product from continously sampled data using user specified interval {ds.attrs['average_interval']} seconds and duration {ds.attrs['average_duration']} seconds"
+        else:
+            histtext = f"Create averaged data product from continuous sampled data using user specified interval {ds.attrs['average_interval']} seconds"
+
+    ds = utils.insert_history(ds, histtext)
+
+    ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
+
+    ds = utils.add_standard_names(ds)
+
+    ds = utils.add_min_max(ds)
+
+    ds = drop_more_vars(ds)
+
+    ds = drop_dims(ds)
+
+    ds = reorder_dims(ds)
+
+    ds = ds_remove_inst_attrs(ds)
+
+    ds = time_encoding(ds)
+
+    ds = utils.add_delta_t(ds)
+
+    ds = utils.ds_coord_no_fillvalue(ds)
+
+    create_average_nc(ds)
 
     return ds
 
 
-def set_orientation(VEL):
+def add_vec_globatts(ds):
+
+    ds.attrs["serial_number"] = ds.attrs["VECSerialNumber"]
+    ds.attrs["frequency"] = ds.attrs["VECFrequency"]
+    ds.attrs["instrument_type"] = "Nortek Vector"
+    ds.attrs["sample_rate"] = ds.attrs["VECSamplingRate"]
+
+    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
+        ds.attrs["sample_mode"] = "BURST"
+        ds.attrs["samples_per_burst"] = ds.attrs["VECSamplesPerBurst"]
+        ds.attrs["burst_interval"] = ds.attrs["VECBurstInterval"]
+    elif ds.attrs["VECBurstInterval"] == "CONTINUOUS":
+        ds.attrs["sample_mode"] = ds.attrs["VECBurstInterval"]
+
+    return ds
+
+
+def check_orientation(ds):
     """
-    Create z variable depending on instrument orientation
-    Mostly taken from ../aqd/aqdutils.py
+    Use orientation variable to verify the vector canister was mounted correctly on mooring for velocity transformations
     """
-
-    if "Pressure_ac" in VEL:
-        presvar = "Pressure_ac"
-    else:
-        presvar = "Pressure"
-
-    geopotential_datum_name = None
-
-    if "NAVD88_ref" in VEL.attrs or "NAVD88_elevation_ref" in VEL.attrs:
-        # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
-        if "NAVD88_ref" in VEL.attrs:
-            navd88_ref = VEL.attrs["NAVD88_ref"]
-        elif "NAVD88_elevation_ref" in VEL.attrs:
-            navd88_ref = VEL.attrs["NAVD88_elevation_ref"]
-
-        # elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
-        elev_vel = navd88_ref + VEL.attrs["velocity_sample_volume_height"]
-        elev_pres = navd88_ref + VEL.attrs["pressure_sensor_height"]
-        if "AnalogInput1_height" in VEL.attrs:
-            elev_ai1 = navd88_ref + VEL.attrs["AnalogInput1_height"]
-        if "AnalogInput2_height" in VEL.attrs:
-            elev_ai2 = navd88_ref + VEL.attrs["AnalogInput2_height"]
-
-        long_name = "height relative to NAVD88"
-        geopotential_datum_name = "NAVD88"
-    elif "height_above_geopotential_datum" in VEL.attrs:
-        # elev = (
-        #     VEL.attrs["height_above_geopotential_datum"]
-        #     + VEL.attrs["transducer_offset_from_bottom"]
-        # )
-        hagd = VEL.attrs["height_above_geopotential_datum"]
-        elev_vel = hagd + VEL.attrs["velocity_sample_volume_height"]
-        elev_pres = hagd + VEL.attrs["pressure_sensor_height"]
-        if "AnalogInput1_height" in VEL.attrs:
-            elev_ai1 = hagd + VEL.attrs["AnalogInput1_height"]
-        if "AnalogInput2_height" in VEL.attrs:
-            elev_ai2 = hagd + VEL.attrs["AnalogInput2_height"]
-
-        long_name = f"height relative to {VEL.attrs['geopotential_datum_name']}"
-        geopotential_datum_name = VEL.attrs["geopotential_datum_name"]
-    else:
-        # if we don't have NAVD88 elevations, reference to sea-bed elevation
-        # elev = VEL.attrs["transducer_offset_from_bottom"]
-        elev_vel = VEL.attrs["velocity_sample_volume_height"]
-        elev_pres = VEL.attrs["pressure_sensor_height"]
-        if "AnalogInput1_height" in VEL.attrs:
-            elev_ai1 = VEL.attrs["AnalogInput1_height"]
-        if "AnalogInput2_height" in VEL.attrs:
-            elev_ai2 = VEL.attrs["AnalogInput2_height"]
-
-        long_name = "height relative to sea bed"
 
     # User orientation refers to probe orientation
     # Nortek status code orientation refers to z-axis positive direction
     # See Nortek "The Comprehensive Manual - Velocimeters"
     # section 3.1.7 Orientation of Vector probes
-    userorient = VEL.attrs["orientation"]
+
+    userorient = ds.attrs["orientation"]
+
     # last bit of statuscode is orientation, which is saved as variable for vel transformations (inspried by dolfyn)
-    sc = str(VEL["orientation"].isel(time=int(len(VEL["time"]) / 2)).values)
+    sc = str(ds["orientation"].isel(time=int(len(ds["time"]) / 2)).values)
     if sc == "0":
         scname = "UP"
     elif sc == "1":
         scname = "DOWN"
-    headtype = VEL.attrs["VECHeadSerialNumber"][0:3]
+    headtype = ds.attrs["VECHeadSerialNumber"][0:3]
 
     print(
         f"Instrument reported {headtype} case with orientation status code {sc} -> z-axis positive {scname} at middle of deployment"
@@ -214,46 +270,101 @@ def set_orientation(VEL):
             "Incorrect vector orientation will cause erroneous velocity transformations. Check deployment orientation details and vector manual to verify vector was oriented correctly"
         )
 
-    diff = elev_pres - elev_vel
-    VEL["depthvel"] = xr.DataArray(np.nanmean(VEL[presvar]) + [diff], dims="depthvel")
-    VEL["depthpres"] = xr.DataArray([np.nanmean(VEL[presvar])], dims="depthpres")
-    VEL["zvel"] = xr.DataArray([elev_vel], dims="zvel")
-    VEL["zpres"] = xr.DataArray([elev_pres], dims="zpres")
-    if "AnalogInput1_height" in VEL.attrs:
-        VEL["zai1"] = xr.DataArray([elev_ai1], dims="zai1")
-    if "AnalogInput2_height" in VEL.attrs:
-        VEL["zai2"] = xr.DataArray([elev_ai2], dims="zai2")
+    return ds
+
+
+def create_bindist(ds):
+    """
+    Create bindist coordinate variable for utils.create_z
+    Use initial_instrument_height to get distance from bed to transducer
+    According to manual (pp. 18-19), beams cross 0.157m from center transducer, which is in center of measurement volume
+
+    Vector manual: https://support.nortekgroup.com/hc/en-us/articles/360029839351-The-Comprehensive-Manual-Velocimeters
+
+    """
+
+    ds["bindist"] = xr.DataArray(
+        [0.157],
+        dims="bindist",
+        attrs={
+            "units": "m",
+            "long_name": "distance from transducer head",
+            "bin_size": float(ds.attrs["VECSamplingVolume"][:-2]) / 1000,
+            "bin_count": 1,
+        },
+    )
+
+    return ds
+
+
+def create_analog_z(ds):
+    """
+    Create z variable for analog inputs depending on instrument orientation
+    Mostly taken from ../aqd/aqdutils.py
+    """
+
+    geopotential_datum_name = None
+
+    if "NAVD88_ref" in ds.attrs or "NAVD88_elevation_ref" in ds.attrs:
+        # if we have NAVD88 elevations of the bed, reference relative to the instrument height in NAVD88
+        if "NAVD88_ref" in ds.attrs:
+            navd88_ref = ds.attrs["NAVD88_ref"]
+        elif "NAVD88_elevation_ref" in ds.attrs:
+            navd88_ref = ds.attrs["NAVD88_elevation_ref"]
+
+        # elev = VEL.attrs["NAVD88_ref"] + VEL.attrs["transducer_offset_from_bottom"]
+        if "AnalogInput1_height" in ds.attrs:
+            elev_ai1 = navd88_ref + ds.attrs["AnalogInput1_height"]
+        if "AnalogInput2_height" in ds.attrs:
+            elev_ai2 = navd88_ref + ds.attrs["AnalogInput2_height"]
+
+        long_name = "height relative to NAVD88"
+        geopotential_datum_name = "NAVD88"
+    elif "height_above_geopotential_datum" in ds.attrs:
+        # elev = (
+        #     VEL.attrs["height_above_geopotential_datum"]
+        #     + VEL.attrs["transducer_offset_from_bottom"]
+        # )
+        hagd = ds.attrs["height_above_geopotential_datum"]
+        if "AnalogInput1_height" in ds.attrs:
+            elev_ai1 = hagd + ds.attrs["AnalogInput1_height"]
+        if "AnalogInput2_height" in ds.attrs:
+            elev_ai2 = hagd + ds.attrs["AnalogInput2_height"]
+
+        long_name = f"height relative to {ds.attrs['geopotential_datum_name']}"
+        geopotential_datum_name = ds.attrs["geopotential_datum_name"]
+    else:
+        # if we don't have NAVD88 elevations, reference to sea-bed elevation
+        # elev = VEL.attrs["transducer_offset_from_bottom"]
+        if "AnalogInput1_height" in ds.attrs:
+            elev_ai1 = ds.attrs["AnalogInput1_height"]
+        if "AnalogInput2_height" in ds.attrs:
+            elev_ai2 = ds.attrs["AnalogInput2_height"]
+
+        long_name = "height relative to sea bed"
+
+    if "AnalogInput1_height" in ds.attrs:
+        ds["zai1"] = xr.DataArray([elev_ai1], dims="zai1")
+    if "AnalogInput2_height" in ds.attrs:
+        ds["zai2"] = xr.DataArray([elev_ai2], dims="zai2")
 
     lnshim = {
-        "zvel": "of velocity sensor",
-        "zpres": "of pressure sensor",
         "zai1": "of analog input 1",
         "zai2": "of analog input 2",
     }
-    for z in ["zvel", "zpres", "zai1", "zai2"]:
-        if z not in VEL:
+
+    for z in ["zai1", "zai2"]:
+        if z not in ds:
             continue
-        VEL[z].attrs["standard_name"] = "height"
-        VEL[z].attrs["units"] = "m"
-        VEL[z].attrs["positive"] = "up"
-        VEL[z].attrs["axis"] = "Z"
-        VEL[z].attrs["long_name"] = f"{long_name} {lnshim[z]}"
+        ds[z].attrs["standard_name"] = "height"
+        ds[z].attrs["units"] = "m"
+        ds[z].attrs["positive"] = "up"
+        ds[z].attrs["axis"] = "Z"
+        ds[z].attrs["long_name"] = f"{long_name} {lnshim[z]}"
         if geopotential_datum_name:
-            VEL[z].attrs["geopotential_datum_name"] = geopotential_datum_name
+            ds[z].attrs["geopotential_datum_name"] = geopotential_datum_name
 
-    for d in ["depthvel", "depthpres"]:
-        VEL[d].attrs["standard_name"] = "depth"
-        VEL[d].attrs["units"] = "m"
-        VEL[d].attrs["positive"] = "down"
-        VEL[d].attrs[
-            "long_name"
-        ] = f"depth {lnshim[z]} below mean sea level of deployment"
-
-    # "z" is ambiguous, so drop it from Dataset for now
-    # FIXME: remove creation of z variable above instead of just dropping it
-    # VEL = VEL.drop("z")
-
-    return VEL
+    return ds
 
 
 def ds_drop(ds):
@@ -283,6 +394,8 @@ def ds_drop(ds):
         "vel1_1277",
         "vel2_1278",
         "vel3_1279",
+        "Burst",
+        "Battery",
     ]
 
     if ("AnalogInput1" in ds.attrs) and (ds.attrs["AnalogInput1"].lower() == "true"):
@@ -290,6 +403,12 @@ def ds_drop(ds):
 
     if ("AnalogInput2" in ds.attrs) and (ds.attrs["AnalogInput2"].lower() == "true"):
         todrop.remove("AnalogInput2")
+
+    # drop vars burst and battery if continuous mode to save file space; keep if in burst mode
+    if ds.attrs["sample_mode"] == "BURST":
+        keep = ["Burst", "Battery"]
+        for var in keep:
+            todrop.remove(var)
 
     return ds.drop([t for t in todrop if t in ds.variables])
 
@@ -368,6 +487,9 @@ def reshape(ds):
 
     s = []
     t3 = []
+
+    ds.time.encoding.pop("units")
+
     for i in tqdm(np.arange(0, len(t))):
         t2, samp = np.meshgrid(
             t[i],
@@ -394,10 +516,33 @@ def reshape(ds):
     return ds
 
 
+def ds_add_attrs_vec(ds):
+
+    if "amp" in ds:
+        ds["amp"].attrs.update(
+            {
+                "units": "Counts",
+                "standard_name": "signal_intensity_from_multibeam_acoustic_doppler_velocity_sensor_in_sea_water",
+                "long_name": "Acoustic Signal Amplitude",
+            }
+        )
+
+    if "amp_avg" in ds:
+        ds["amp_avg"].attrs.update(
+            {
+                "units": "Counts",
+                "standard_name": "signal_intensity_from_multibeam_acoustic_doppler_velocity_sensor_in_sea_water",
+                "long_name": "Average Acoustic Signal Amplitude",
+            }
+        )
+
+    return ds
+
+
 def combine_vars(ds):
     """Combines beam variables (cor, amp, snr) and raw (beam or xyz) velocities into matrix to limit number of variables"""
 
-    ds["AGC_1202"] = (ds["AMP1"] + ds["AMP2"] + ds["AMP3"]) / 3
+    ds["amp_avg"] = (ds["AMP1"] + ds["AMP2"] + ds["AMP3"]) / 3
 
     veldim = ds.attrs["VECCoordinateSystem"].lower()
 
@@ -413,10 +558,10 @@ def combine_vars(ds):
     )
 
     ds["cor"] = xr.DataArray([ds.COR1, ds.COR2, ds.COR3], dims=["beam", "time"]).astype(
-        "int32"
+        "float32"
     )
     ds["amp"] = xr.DataArray([ds.AMP1, ds.AMP2, ds.AMP3], dims=["beam", "time"]).astype(
-        "int32"
+        "float32"
     )
     ds["snr"] = xr.DataArray([ds.SNR1, ds.SNR2, ds.SNR3], dims=["beam", "time"])
 
@@ -475,12 +620,33 @@ def fill_cor(ds):
     return ds
 
 
+def remove_vec_globatts(ds):
+    """remove unnecessary global attributes from raw instrument file"""
+
+    names = [
+        "VECTiltSensor",
+        "VECAnalogPowerOutput",
+        "VECRecorderSize",
+        "VECDeploymentName",
+        "VECDNumberOfBeams",
+        "VECOutputFormat",
+        "VECOutputSync",
+        "VECSamplingRate",
+        "VECSerialNumber",
+    ]
+
+    for att in names:
+        del ds.attrs[att]
+
+    return ds
+
+
 def time_encoding(ds):
     """ensure we don't set dtypes uint for CF compliance"""
     if "units" in ds["time"].encoding:
         ds["time"].encoding.pop("units")
 
-    if ds.attrs["VECBurstInterval"] == "CONTINUOUS":
+    if ds.attrs["sample_mode"] == "CONTINUOUS":
         if utils.check_time_fits_in_int32(ds, "time"):
             ds["time"].encoding["dtype"] = "i4"
         else:
@@ -500,65 +666,175 @@ def time_encoding(ds):
 def var_encoding(ds):
     for var in ds.data_vars:
         if ds[var].dtype == "float64":
+            if "dtype" in ds[var].encoding:
+                ds[var].encoding.pop("dtype")
+
+            ds[var] = ds[var].astype("float32", copy=False)
             ds[var].encoding["dtype"] = "float32"
-    for var in ["burst", "orientation", "amp"]:
-        ds[var].encoding["dtype"] = "int32"
-        ds[var].encoding["_FillValue"] = -2147483648
+
+    for var in ["burst", "orientation", "sample", "beam"]:
+        if var in ds:
+            if "dtype" in ds[var].encoding:
+                ds[var].encoding.pop("dtype")
+
+            ds[var] = ds[var].astype("int32", copy=False)
+            ds[var].encoding["dtype"] = "int32"
 
     return ds
 
 
 def create_nc(ds):
 
-    if ds.attrs["VECBurstInterval"] != "CONTINUOUS":
+    if "prefix" in ds.attrs:
+        nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "b.nc"
+    else:
+        nc_filename = ds.attrs["filename"] + "b.nc"
 
-        if "prefix" in ds.attrs:
-            nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "b-cal.nc"
-        else:
-            nc_filename = ds.attrs["filename"] + "b-cal.nc"
-
-        delayed_obj = ds.to_netcdf(nc_filename, compute=False)
-        with ProgressBar():
-            delayed_obj.compute()
-        utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
-
-        print("Done writing netCDF file", nc_filename)
-
-        print("Creating burst-mean statistics file")
-
-        dsmean = ds.mean(dim="sample", keep_attrs=True)
-
-        # we already applied ClockDrift, ClockError in dat2cdf so don't re-apply it here.
-        # but we do want to shift time since we are presenting mean values.
-        dsmean = utils.shift_time(
-            dsmean,
-            dsmean.attrs["VECSamplesPerBurst"] / dsmean.attrs["VECSamplingRate"] / 2,
-            apply_clock_error=False,
-            apply_clock_drift=False,
-        )
-
-        if "prefix" in dsmean.attrs:
-            nc_filename = dsmean.attrs["prefix"] + dsmean.attrs["filename"] + "-a.nc"
-        else:
-            nc_filename = dsmean.attrs["filename"] + "-a.nc"
-
-        delayed_obj = dsmean.to_netcdf(
-            nc_filename,
-            encoding={"time": {"dtype": ds["time"].encoding["dtype"]}},
-            compute=False,
-        )
-
-    elif ds.attrs["VECBurstInterval"] == "CONTINUOUS":
-
-        if "prefix" in ds.attrs:
-            nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "cont-cal.nc"
-        else:
-            nc_filename = ds.attrs["filename"] + "cont-cal.nc"
-
-        delayed_obj = ds.to_netcdf(nc_filename, compute=False)
+    delayed_obj = ds.to_netcdf(nc_filename, compute=False)
 
     with ProgressBar():
         delayed_obj.compute()
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
-    print("Done writing netCDF file", nc_filename)
+    print(f"Finished writing data to {nc_filename}")
+
+    return ds
+
+
+def fill_time_gaps(ds):
+    """Fill any gaps in time index to make time even for CONTINUOUS data set before reshaping"""
+
+    if "sample_mode" in ds.attrs:
+
+        if ds.attrs["sample_mode"].upper() == "CONTINUOUS":
+
+            print("Checking for time gaps in CONTINUOUS sampled data")
+            sr = ds.attrs["sample_rate"]
+            sims = 1 / sr * 1000000000
+            pds = (
+                int(
+                    (ds["time"][-1].values - ds["time"][0].values)
+                    / (sims * np.timedelta64(1, "ns"))
+                )
+                + 1
+            )
+            idx = pd.date_range(
+                str(ds["time"][0].values), periods=pds, freq=f"{sims}ns"
+            )
+
+            if len(idx) > len(ds["time"]):
+                print(
+                    f"Gaps in time index- reindexing to make time index even in CONTINUOUS sampled data using {sims/2} milliseconds tolerance for data variables"
+                )
+
+                # make sure time index is unique
+                ds = ds.drop_duplicates(dim="time")
+
+                ds = ds.reindex(time=idx, method="nearest", tolerance=f"{sims/2} ms")
+
+        else:
+            print(
+                f"Not checking for time index gaps for sample mode {ds.attrs['sample_mode']}"
+            )
+
+    else:
+        print("Not checking for time gaps, sample_mode attribute is missing")
+
+    return ds
+
+
+def ds_make_average_shape_mi(ds):
+
+    # average_interval is [sec] interval for wave statistics for continuous data
+    ds.attrs["average_samples_per_burst"] = int(
+        ds.attrs["average_interval"] / ds.attrs["sample_interval"]
+    )
+    nsamps = ds.attrs["average_samples_per_burst"]
+
+    if len(ds.time) % nsamps != 0:
+        ds = ds.isel(time=slice(0, -(int(len(ds.time) % (nsamps)))))
+
+    # create samples & new_time
+    x = np.arange(nsamps)
+    y = ds["time"][0:-1:nsamps]
+
+    # make new arrays for multi-index
+    samp, t = np.meshgrid(x, y)
+    s = samp.flatten()
+    t3 = t.flatten()
+
+    print(t3.dtype)
+
+    # create multi-index
+    ind = pd.MultiIndex.from_arrays((t3, s), names=("new_time", "new_sample"))
+    # unstack to make burst shape dataset
+    ds = ds.assign_coords(
+        xr.Coordinates.from_pandas_multiindex(ind, dim="time")
+    ).unstack("time")
+    # dsa = dsa.unstack()
+    ds = ds.drop_vars("sample").rename({"new_time": "time", "new_sample": "sample"})
+
+    return ds
+
+
+def drop_more_vars(ds):
+    """
+    Drop DataArrays from Dataset that are not needed for averaged file
+    """
+
+    todrop = ["TransMatrix", "orientmat", "burst", "orientation"]
+
+    return ds.drop([t for t in todrop if t in ds.variables])
+
+
+def drop_dims(ds):
+    """
+    Drop dims from Dataset that are not needed for averaged file
+    """
+
+    todrop = [
+        "inst",
+        "earth",
+    ]
+
+    return ds.drop([t for t in todrop if t in ds.variables])
+
+
+def reorder_dims(ds):
+    """reorder dimensions for CF compliance"""
+
+    for var in ds.data_vars:
+        if "beam" in ds[var].dims:
+            ds[var] = ds[var].transpose("beam", "time")
+
+    return ds
+
+
+def ds_remove_inst_attrs(ds, inst_type="VEC"):
+    """Drop instrument attributes from raw Nortek files"""
+    rm = []  # initialize list of attrs to be removed
+
+    for j in ds.attrs:
+        if re.match(f"^{inst_type}*", j):
+            rm.append(j)
+    for k in rm:
+        del ds.attrs[k]
+
+    return ds
+
+
+def create_average_nc(ds):
+
+    if "prefix" in ds.attrs:
+        nc_filename = ds.attrs["prefix"] + ds.attrs["filename"] + "b-a.nc"
+    else:
+        nc_filename = ds.attrs["filename"] + "b-a.nc"
+
+    delayed_obj = ds.to_netcdf(nc_filename, compute=False)
+
+    with ProgressBar():
+        delayed_obj.compute()
+
+    utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
+
+    print(f"Finished writing data to {nc_filename}")
