@@ -48,6 +48,7 @@ def read_asc_header(filnam):
                 break
             elif "SERIAL NO." in line:
                 header["serial_number"] = col[6]
+                header["instrument_type"] = col[1]
             elif "sample interval" in line:
                 header["sample_interval"] = col[4]
 
