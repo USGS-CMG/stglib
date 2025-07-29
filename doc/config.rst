@@ -94,6 +94,13 @@ Options for signal filtering:
 - ``<VAR>_med_filt``: apply n point median filter, where n is specified value (must be an odd number).
 - ``filter_order``: specify order of butterworth filter (default = 4 if not specified).
 
+Options for water level:
+- ``water_level_var``: option for user to specify variable to use for water level (options: 'P_1ac' (default), 'brangeAST')
+- ``water_level_salinity_var``: option for user to specify salinity variable to use for improved water level calculations when using pressure (default = 'S_41')
+- ``water_level_temperature_var``: option for user to specify water temperature variable to use for improved water level calculations when using pressure (default = 'T_28')
+- ``average_salinity``: average salinity value (PSU) for the water mass for the deployment site and time period.
+- ``average_salinity_note``: source of average salinity value.
+
 Options for wave processing using pyDIWASP:
 
 - ``diwasp_method``: estimator method used by pyDIWASP (options (available now): 'IMLM' (default) or 'DFTM')

@@ -399,13 +399,22 @@ def sg_raw(glob_att, config_yaml):
     run_script("runots.py", "sgtid", "tid2cdf", glob_att, config_yaml)
 
 
-def sg_nc(nc_file, atmpres):
-    run_script("runots.py", "sgtid", "cdf2nc", nc_file, "--atmpres", atmpres)
+def sg_nc(nc_file, atmpres, salwtemp):
+    run_script(
+        "runots.py",
+        "sgtid",
+        "cdf2nc",
+        nc_file,
+        "--atmpres",
+        atmpres,
+        "--salwtemp",
+        salwtemp,
+    )
 
 
 def test_sg():
     sg_raw("sg_glob_att1126.txt", "11264sg_config.yaml")
-    sg_nc("11264sg-tide-raw.cdf", "11264sg-atmpres.cdf")
+    sg_nc("11264sg-tide-raw.cdf", "11264sg-atmpres.cdf", "11263mc-a.nc")
 
 
 def sg_wv_raw(glob_att, config_yaml):

@@ -32,10 +32,18 @@ def run_cdf_to_nc(f, args):
         args.cdfname = [args.cdfname]
 
     for cdfname in args.cdfname:
-        if hasattr(args, "atmpres") and args.atmpres:
+
+        if (hasattr(args, "salwtemp") and args.salwtemp) and (
+            hasattr(args, "atmpres") and args.atmpres
+        ):
+            ds = f(cdfname, atmpres=args.atmpres, salwtemp=args.salwtemp)
+        elif hasattr(args, "atmpres") and args.atmpres:
             ds = f(cdfname, atmpres=args.atmpres)
         elif hasattr(args, "height") and args.height:
             ds = f(cdfname, height=args.height)
+        elif hasattr(args, "salwtemp") and args.salwtemp:
+            ds = f(cdfname, salwtemp=args.salwtemp)
+
         else:
             ds = f(cdfname)
 

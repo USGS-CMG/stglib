@@ -8,6 +8,7 @@ import sqlite3
 import sys
 import warnings
 
+import gsw as gsw
 import netCDF4
 import numpy as np
 import pandas as pd
@@ -1021,8 +1022,11 @@ def shift_time(ds, timeshift, apply_clock_error=True, apply_clock_drift=True):
     return ds
 
 
-def create_water_depth_var(ds, psh="initial_instrument_height"):
+def create_water_depth_var(ds, psh="initial_instrument_height", salwtemp=None):
+    """Create total water depth variable using pressure variable, if possible accounting for density of water to convert pressure to depth"""
+
     press = None
+    calctext = None
 
     if "Pressure_ac" in ds:
         press = "Pressure_ac"
@@ -1034,20 +1038,26 @@ def create_water_depth_var(ds, psh="initial_instrument_height"):
         press = "P_1"
 
     if press is not None:
-        if "sample" in ds.dims:
-            ds["water_depth"] = xr.DataArray(
-                ds[press].squeeze().mean(dim="sample") + ds.attrs[psh]
-            )
+        # if using pressure variable convert to depth
+        depvar, calctext = pres2dep(ds, pvar=press, salwtemp=salwtemp)
 
+        if depvar is not None:
+            histtext = "Create water_depth variable " + calctext + f"+ {psh}"
         else:
-            ds["water_depth"] = xr.DataArray(ds[press].squeeze() + ds.attrs[psh])
+            depvar = ds[press]
+            histtext = f"Create water_depth variable as {press} + {psh}"
+
+        if "sample" in ds.dims:
+            ds["water_depth"] = depvar.squeeze().mean(dim="sample") + ds.attrs[psh]
+        else:
+            ds["water_depth"] = depvar + ds.attrs[psh]
 
         ds["water_depth"].attrs["long_name"] = "Total water depth"
         ds["water_depth"].attrs["units"] = "m"
         ds["water_depth"].attrs["standard_name"] = "sea_floor_depth_below_sea_surface"
         ds["water_depth"].attrs["epic_code"] = 3
 
-        histtext = f"Create water_depth variable using {press} and {psh} attribute"
+        # histtext = f"Create water_depth variable using {press} and {psh} attribute"
         ds = insert_history(ds, histtext)
 
     return ds
@@ -1594,22 +1604,44 @@ def _todict(matobj):
     return dic
 
 
-def create_water_level_var(ds, var="P_1ac", vdim="z"):
+def create_water_level_var(ds, var="P_1ac", vdim="z", salwtemp=None):
     """
     Create water level variable from NAVD88 sensor height
     """
 
+    calctext = None
     if (
         var in ds.data_vars
         and "geopotential_datum_name" in ds[vdim].attrs
         and ds[vdim].attrs["geopotential_datum_name"] == "NAVD88"
     ):
-        if "sample" in ds.dims:
-            ds["water_level"] = xr.DataArray(
-                ds[var].squeeze().mean(dim="sample") + ds[vdim].values
-            )
+
+        if var in ["P_1ac", "Pressure_ac", "Pressure", "P_1"]:
+            # if using pressure variable convert to depth
+            depvar, calctext = pres2dep(ds, pvar=var, salwtemp=salwtemp)
+
+            if depvar is not None:
+                histtext = (
+                    "Create water_level variable relative to NAVD88 "
+                    + calctext
+                    + f"+ {vdim}"
+                )
+            else:
+                depvar = ds[var]
+                histtext = (
+                    f"Create water_level variable relative to NAVD88 as {var} + {vdim}"
+                )
+
         else:
-            ds["water_level"] = ds[var] + ds[vdim].values
+            depvar = ds[var]
+            histtext = (
+                f"Create water_level variable relative to NAVD88 as {var} + {vdim}"
+            )
+
+        if "sample" in ds.dims:
+            ds["water_level"] = depvar.squeeze().mean(dim="sample") + ds[vdim].values
+        else:
+            ds["water_level"] = depvar + ds[vdim].values
 
         ds["water_level"].attrs["long_name"] = "Water level NAVD88"
         ds["water_level"].attrs["units"] = "m"
@@ -1617,9 +1649,17 @@ def create_water_level_var(ds, var="P_1ac", vdim="z"):
             "standard_name"
         ] = "sea_surface_height_above_geopotential_datum"
         ds["water_level"].attrs["geopotential_datum_name"] = "NAVD88"
-        ds["water_level"].attrs["note"] = f"Water level calculated using {var} + {vdim}"
 
-        histtext = f"Create water_level variable relative to NAVD88 using {var} and {vdim} vertical dimension"
+        if calctext is not None:
+            ds["water_level"].attrs["note"] = (
+                "Water level calculated " + calctext + f"+ {vdim}"
+            )
+        else:
+            ds["water_level"].attrs[
+                "note"
+            ] = f"Water level calculated as {var} + {vdim}"
+
+        # histtext = f"Create water_level variable relative to NAVD88 using {var} and {vdim} vertical dimension"
         ds = insert_history(ds, histtext)
 
     else:
@@ -1805,3 +1845,65 @@ def make_vector_average_vars(ds, data_vars=None, dim=None):
                 dsVA[var].attrs = attrsbak
 
     return dsVA
+
+
+def pres2dep(ds, pvar="P_1ac", salwtemp=None):
+    """
+    Convert pressure to depth using pres = rho * g * h eqn, where h = height of water (depth)
+    """
+
+    dep = None
+    S = None
+    T = None
+    calctext = None
+
+    if "water_level_salinity_var" in ds.attrs:
+        svar = ds.attrs["water_level_salinity_var"]
+    else:
+        svar = "S_41"
+
+    if "water_level_temperature_var" in ds.attrs:
+        wtvar = ds.attrs["water_level_temperature_var"]
+    else:
+        wtvar = "T_28"
+
+    if salwtemp is not None:
+        stdat = xr.load_dataset(salwtemp)
+
+        if svar in stdat.data_vars and wtvar in stdat.data_vars:
+            S = stdat[svar]
+            T = stdat[wtvar]
+
+            S = S.reindex_like(ds[pvar], method="nearest").values
+            T = T.reindex_like(ds[pvar], method="nearest").values
+
+            calctext = f"by converting {pvar} to sensor depth using {svar} and {wtvar} from file {salwtemp} "
+
+    elif svar in ds.data_vars and wtvar in ds.data_vars:
+
+        S = ds[svar].values
+        T = ds[wtvar].values
+
+        calctext = f"by converting {pvar} to sensor depth using {svar} and {wtvar} "
+
+    elif "average_salinity" in ds.attrs and (
+        wtvar in ds.data_vars or "Tx_1211" in ds.data_vars
+    ):
+
+        S = ds.attrs["average_salinity"]
+
+        if wtvar in ds.data_vars:
+            T = ds[wtvar].values
+        elif "Tx_1211" in ds.data_vars:
+            wtvar = "Tx_1211"
+            T = ds[wtvar].values
+
+        calctext = f"by converting {pvar} to sensor depth using user specified average_salinity {S} and {wtvar} "
+
+    if S is not None and T is not None:
+        print(f"Converting {pvar} to depth as {svar} & {wtvar}")
+        rho = gsw.rho(S, T, ds[pvar].values)
+        g = gsw.grav(ds.attrs["latitude"], p=0)
+        dep = ds[pvar] / (rho * g) * 1e4
+
+    return dep, calctext

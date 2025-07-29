@@ -4,7 +4,9 @@ import xarray as xr
 from ..core import filter, qaqc, utils
 
 
-def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
+def cdf_to_nc(
+    cdf_filename, atmpres=None, salwtemp=None, writefile=True, format="NETCDF4"
+):
     """
     Load raw .cdf file, trim, apply QAQC, and save to .nc
     """
@@ -79,8 +81,8 @@ def cdf_to_nc(cdf_filename, atmpres=None, writefile=True, format="NETCDF4"):
     if not is_profile:
         # add z coordinate dim
         ds = utils.create_z(ds)
-        ds = utils.create_water_level_var(ds)
-        ds = utils.create_water_depth_var(ds)
+        ds = utils.create_water_level_var(ds, salwtemp=salwtemp)
+        ds = utils.create_water_depth_var(ds, salwtemp=salwtemp)
         ds = utils.create_filtered_water_level_var(ds)
         ds = utils.add_min_max(ds)
         ds = utils.ds_add_lat_lon(ds)

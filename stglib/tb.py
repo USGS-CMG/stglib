@@ -102,7 +102,7 @@ def txt_to_cdf(metadata):
     return ds
 
 
-def cdf_to_nc(cdf_filename, atmpres=None):
+def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     """
     Load a raw .cdf file and generate a processed .nc file
     """
@@ -135,9 +135,9 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     ds = utils.clip_ds(ds)
     ds = utils.create_nominal_instrument_depth(ds)
     ds = utils.create_z(ds)
-    ds = utils.create_water_level_var(ds)
+    ds = utils.create_water_level_var(ds, salwtemp=salwtemp)
     ds = utils.create_filtered_water_level_var(ds)
-    ds = utils.create_water_depth_var(ds)
+    ds = utils.create_water_depth_var(ds, salwtemp=salwtemp)
     ds = qaqc.call_qaqc(ds)  # Needs to happen after water level
     ds = utils.ds_add_lat_lon(ds)
     ds = utils.add_start_stop_time(ds)

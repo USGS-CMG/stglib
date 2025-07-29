@@ -8,13 +8,14 @@ from ..core import qaqc, utils
 from . import sgutils
 
 
-def cdf_to_nc(cdf_filename, atmpres=None):
+def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     """
     Load a raw .cdf file and generate a processed .nc file
     """
 
     # Check for atmpres correction file
     # Atmpres file is required for seagauge because pressure is measured as absolute pressure
+
     if atmpres is None:
         raise FileNotFoundError(
             "The atmpres file does not exist. Atmpres file is required for Seagauge because pressure is measured as absolute pressure."
@@ -57,8 +58,8 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     ds = utils.clip_ds(ds)
     ds = utils.create_nominal_instrument_depth(ds)
     ds = utils.create_z(ds)
-    ds = utils.create_water_level_var(ds)
-    ds = utils.create_water_depth_var(ds)
+    ds = utils.create_water_level_var(ds, salwtemp=salwtemp)
+    ds = utils.create_water_depth_var(ds, salwtemp=salwtemp)
     ds = utils.ds_add_lat_lon(ds)
     ds = utils.add_start_stop_time(ds)
     ds = utils.add_delta_t(ds)

@@ -430,7 +430,7 @@ def get_col_names(filnam, metadata):
     return names
 
 
-def cdf_to_nc(cdf_filename, atmpres=False):
+def cdf_to_nc(cdf_filename, atmpres=False, salwtemp=None):
     """
     Load a raw .cdf file and generate a processed .nc file
     """
@@ -451,7 +451,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = utils.atmos_correct(ds, atmpres)
 
     ds = utils.create_z(ds)  # added 7/31/2023
-    ds = utils.create_water_level_var(ds)
+    ds = utils.create_water_level_var(ds, salwtemp=salwtemp)
     ds = utils.create_filtered_water_level_var(ds)
     ds = qaqc.call_qaqc(ds)  # Needs to happen after water level
     ds = ds_add_attrs(ds)

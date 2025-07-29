@@ -19,13 +19,20 @@ def cdfarg(parser):
 
 def atmarg(parser):
     parser.add_argument(
-        "--atmpres", help="path to cdf file containing atmopsheric pressure data"
+        "--atmpres", help="path to cdf file containing atmospheric pressure data"
     )
 
 
 def hgtarg(parser):
     parser.add_argument(
         "--height", help="path to nc file containing height above seabed data"
+    )
+
+
+def swtarg(parser):
+    parser.add_argument(
+        "--salwtemp",
+        help="path to nc file containing salinity and water temperature data",
     )
 
 
@@ -209,6 +216,7 @@ def cdf2nc_parser(
     description="Convert raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure",
     atmpres=True,
     height=True,
+    salwtemp=True,
 ):
     """generic parser for raw .cdf format to processed .nc files, optionally compensating for atmospheric pressure"""
     parser = argparse.ArgumentParser(description=description)
@@ -217,6 +225,8 @@ def cdf2nc_parser(
         atmarg(parser)
     if height:
         hgtarg(parser)
+    if salwtemp:
+        swtarg(parser)
 
     return parser
 

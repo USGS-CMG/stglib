@@ -13,7 +13,7 @@ from ..core import filter, qaqc, utils
 # import os
 
 
-def cdf_to_nc(cdf_filename, atmpres=False):
+def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     """
     Load a raw .cdf file and generate a processed .nc file
     """
@@ -39,7 +39,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = check_attrs_sig(ds, inst_type="SIG")
 
     # Add atmospheric pressure offset
-    if atmpres is not False:
+    if atmpres is not None:
         ds = aqdutils.atmos_correct(ds, atmpres)
 
     # create Z depending on orientation
@@ -311,12 +311,14 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = utils.insert_history(ds, histtext)
 
         if "pressure_sensor_height" in ds.attrs:
-            ds = utils.create_water_depth_var(ds, psh="pressure_sensor_height")
+            ds = utils.create_water_depth_var(
+                ds, psh="pressure_sensor_height", salwtemp=salwtemp
+            )
         else:
-            ds = utils.create_water_depth_var(ds)
+            ds = utils.create_water_depth_var(ds, salwtemp=salwtemp)
 
         # add water_level variable if able
-        ds = add_water_level(ds)
+        ds = add_water_level(ds, salwtemp)
 
         # add brange variable to echosounder data type
         if ds.attrs["data_type"] == "EchoSounder":
@@ -1653,7 +1655,7 @@ def add_brange(ds, var):
     return ds
 
 
-def add_water_level(ds):
+def add_water_level(ds, salwtemp=None):
     """
     Add water_level variable
     """
@@ -1663,10 +1665,12 @@ def add_water_level(ds):
             and ds.attrs["water_level_var"] in ds.data_vars
         ):
             ds = utils.create_water_level_var(
-                ds, var=ds.attrs["water_level_var"], vdim="zsen"
+                ds, var=ds.attrs["water_level_var"], vdim="zsen", salwtemp=salwtemp
             )
         elif "P_1ac" in ds.data_vars:
-            ds = utils.create_water_level_var(ds, var="P_1ac", vdim="zsen")
+            ds = utils.create_water_level_var(
+                ds, var="P_1ac", vdim="zsen", salwtemp=salwtemp
+            )
         else:
             print(
                 "Cannot create water_level variable because P_1ac or brangeAST are not variable in data set"
