@@ -25,7 +25,7 @@ def read_hex(filnam):
             col = row.split()
             hexmeta["SGInstrumentType"] = col[0][1:] + " " + col[1]
             hexmeta["SGFirmwareVersion"] = col[3]
-            hexmeta["SGSerial_number"] = col[5]
+            hexmeta["serial_number"] = col[5]
         elif "quartz pressure sensor" in row:
             col = row.split()
             hexmeta["SGPressureSensorSerial"] = col[6][:-1]

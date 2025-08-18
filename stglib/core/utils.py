@@ -1056,6 +1056,7 @@ def create_water_depth_var(ds, psh="initial_instrument_height", salwtemp=None):
         ds["water_depth"].attrs["units"] = "m"
         ds["water_depth"].attrs["standard_name"] = "sea_floor_depth_below_sea_surface"
         ds["water_depth"].attrs["epic_code"] = 3
+        ds["water_depth"].attrs["note"] = histtext
 
         # histtext = f"Create water_depth variable using {press} and {psh} attribute"
         ds = insert_history(ds, histtext)
