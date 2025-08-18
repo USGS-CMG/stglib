@@ -125,6 +125,7 @@ Aquadopp-specific options include:
 - ``trim_method``: can be ``'water level'``, ``'water level sl'``, ``'bin range'``, ``None``, or ``'none'``. Or just omit the option entirely if you don't want to use it.
 - ``<VAR>_trim_single_bins``: trim data where only a single bin of data (after trimming via ``trim_method``) remains. Set this value to ``true`` to enable.
 - ``<VAR>_maxabs_diff_2d``: trim values in a 2D DataArray when the absolute value of the increase is greater than a specified amount.
+- ``AnalogInput1: "true"`` or ``AnalogInput2: "true"``: set these values if deployed with external analog sensors.
 - ``AnalogInput1_<ATTR>`` or ``AnalogInput2_<ATTR>``: if ``<ATTR>`` is "height", "standard_name", "long_name", "units", "institution", "comment", "source", or "references", this will create the appropriate attribute for the given variable.
 
 
