@@ -1,6 +1,5 @@
 import datetime as dt
 import glob
-import os
 import re
 import time
 
@@ -8,7 +7,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from dask.diagnostics import ProgressBar
-from joblib import Parallel, delayed
+from tqdm import tqdm
 
 from ..aqd import aqdutils
 from ..core import utils
@@ -433,103 +432,72 @@ def mat_to_cdf(metadata):
         prefix = ""
     basefile = prefix + basefile
 
-    if "outdir" in metadata:
-        outdir = metadata["outdir"]
-    else:
-        outdir = ""
-
     utils.check_valid_globalatts_metadata(metadata)
     aqdutils.check_valid_config_metadata(metadata)
 
     print("Loading from Matlab files; this may take a while for large datasets")
 
-    def loadpar(f):
-        dsd = load_mat_file(f)
-        filstub = os.path.normpath(f).split("\\")[-1]
-        bf = basefile.split("/")[-1]
-        num = filstub.split(f"{bf}_")[-1].split(".mat")[0]
-        for dsn in dsd:
-            ds = dsd[dsn]
-            ds = utils.write_metadata(ds, metadata)
-            ds = utils.ensure_cf(ds)
-            cdf_filename = (
-                prefix
-                + outdir
-                + ds.attrs["filename"]
-                + "-"
-                + ds.attrs["data_type"]
-                + "-"
-                + num
-                + "-raw.cdf"
-            )
-            ds.to_netcdf(cdf_filename)
-            print(f"Finished writing data to {cdf_filename}")
+    def make_sig_dsd(basefile):
+        matfiles = glob.glob(f"{basefile}_*.mat")
+        dsd = load_mat_file(matfiles[0])  # get minimal dsd file for below
+        ds_dict = {}
+        for k in dsd:
+            ds_dict[k] = []
 
-    matfiles = glob.glob(f"{basefile}_*.mat")
-    # print(matfiles)
-    if len(matfiles) > 1:
-        Parallel(n_jobs=-1, verbose=10)(delayed(loadpar)(f) for f in matfiles)
-    else:
-        loadpar(matfiles[0])
+        for f in tqdm(matfiles):
+            dsd = load_mat_file(f)
 
-    dsd = load_mat_file(matfiles[0])  # get minimal dsd file for below
-    cdffiles = glob.glob(f"{prefix}{outdir}*-raw.cdf")
-    ds = xr.open_dataset(cdffiles[0])  # get minimal ds for below
+            for dsn in dsd:
+                ds_dict[dsn].append(dsd[dsn].chunk({"time": 300000}))
 
-    # read in Burst -raw.cdf and make one combined per data_type
-    if "chunks" in ds.attrs:
-        chunksizes = dict(zip(ds.attrs["chunks"][::2], ds.attrs["chunks"][1::2]))
-        for key in chunksizes:
-            if isinstance(chunksizes[key], str):
-                chunksizes[key] = int(chunksizes[key])
-        print(f"Using user specified chunksizes = {chunksizes}")
-    else:
-        chunksizes = {"time": 200000, "bindist": 48}
-        print(f"Using default chunksizes = {chunksizes}")
+        return ds_dict
+
+    dsd = make_sig_dsd(basefile)
 
     for k in dsd:
         # dsb = dsd["dsb"]
-        fin = outdir + ds.attrs["filename"] + f"-{dsd[k].attrs['data_type']}-*.cdf"
-        print(k)
-        print(fin)
-        try:
-            ds = xr.open_mfdataset(fin, parallel=True, chunks=chunksizes)
+        ds = xr.concat(dsd[k], dim="time").chunk({"time": 300000})
+        ds = utils.write_metadata(ds, metadata)
+        ds = utils.ensure_cf(ds)
 
-            if "Beam2xyz" in ds:
-                if "time" in ds["Beam2xyz"].dims:
-                    ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
-            # write out all into single -raw.cdf files per data_type
-            if (
-                ds.attrs["data_type"].lower() == "burst"
-                or ds.attrs["data_type"].lower() == "bursthr"
-            ):
-                ftype = "burst"
-            elif (
-                ds.attrs["data_type"].lower() == "iburst"
-                or ds.attrs["data_type"].lower() == "ibursthr"
-            ):
-                ftype = "iburst"
-            elif ds.attrs["data_type"].lower() == "echosounder":
-                ftype = "echo1"
-            elif ds.attrs["data_type"].lower() == "burstrawaltimeter":
-                ftype = "burstrawalt"
-            elif ds.attrs["data_type"].lower() == "average":
-                ftype = "avgd"
-            elif ds.attrs["data_type"].lower() == "alt_average":
-                ftype = "altavgd"
+        ds = aqdutils.check_attrs(ds, inst_type="SIG")
 
-            cdf_filename = prefix + ds.attrs["filename"] + f"_{ftype}-raw.cdf"
-            print(f"writing {ftype} to netcdf")
-            delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
-            with ProgressBar():
-                delayed_obj.compute()
+        print(
+            f"sorting {k} dataset by time, this can take some time to complete for very large datasets"
+        )
+        ds = ds.sortby("time")
+        print(f"sorting by time completed for {k} dataset")
 
-            print(f"Finished writing data to {cdf_filename}")
+        if "Beam2xyz" in ds:
+            if "time" in ds["Beam2xyz"].dims:
+                ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
+        # write out all into single -raw.cdf files per data_type
+        if (
+            ds.attrs["data_type"].lower() == "burst"
+            or ds.attrs["data_type"].lower() == "bursthr"
+        ):
+            ftype = "burst"
+        elif (
+            ds.attrs["data_type"].lower() == "iburst"
+            or ds.attrs["data_type"].lower() == "ibursthr"
+        ):
+            ftype = "iburst"
+        elif ds.attrs["data_type"].lower() == "echosounder":
+            ftype = "echo1"
+        elif ds.attrs["data_type"].lower() == "burstrawaltimeter":
+            ftype = "burstrawalt"
+        elif ds.attrs["data_type"].lower() == "average":
+            ftype = "avgd"
+        elif ds.attrs["data_type"].lower() == "alt_average":
+            ftype = "altavgd"
 
-        except ValueError as ve:
-            print(
-                f"Failed to read or write netCDF file(s) for data_type {dsd[k].attrs['data_type']} to make composite -raw.cdf file, due to Value Error: '{ve}'"
-            )
+        cdf_filename = prefix + ds.attrs["filename"] + f"_{ftype}-raw.cdf"
+        print(f"writing {ftype} to netcdf")
+        delayed_obj = ds.to_netcdf(cdf_filename, compute=False)
+        with ProgressBar():
+            delayed_obj.compute()
+
+        print(f"Finished writing data to {cdf_filename}")
 
     toc = time.time()
     etime = round(toc - tic, 0)

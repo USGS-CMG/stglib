@@ -142,7 +142,6 @@ Signature
 
 Signature-specific options include (see Aquadopp for others):
 
-- ``outdir``: output directory (make sure it exists) to write individual ``cdf`` files before being compiled into a single ``cdf`` file per data type
 - ``orientation``: can be ``UP`` or ``DOWN`` use this to identify orientation of profiler
 - ``chunks``: list of key, value pairs for user specified chunking of data (e.g. ['time', 256000, 'bindist', 64])
 - ``wave_interval``: interval in seconds for calculating wave bursts from continuous data
