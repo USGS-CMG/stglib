@@ -34,7 +34,7 @@ Steps to generate an atmospheric pressure file
 
 The Jupyter notebooks ``aqd_make_press_ac.ipynb``, ``dw_make_press_ac.ipynb``, and ``exo_make_press_ac.ipynb`` may help you with this process; the outline is described below.
 
-1. Obtain timeseries of atmospheric pressure. Useful sources include `NWIS <https://nwis.waterdata.usgs.gov/nwis>`_ (parameter code 00025), `MesoWest <http://mesowest.utah.edu>`_, `NOAA Tides & Currents <https://tidesandcurrents.noaa.gov>`_, and `NERR sites <https://cdmo.baruch.sc.edu>`_.
+1. Obtain timeseries of atmospheric pressure. Useful sources include `NWIS <https://nwis.waterdata.usgs.gov/nwis>`_ (parameter code 00025), `MesoWest <http://mesowest.utah.edu>`_, `NOAA Tides & Currents <https://tidesandcurrents.noaa.gov>`_, `NOAA NCEI <https://www.ncei.noaa.gov/data/global-hourly/>`_, and `NERR sites <https://cdmo.baruch.sc.edu>`_.
 
 2. Get the atmospheric pressure onto the same time base, with the same number of samples, as the instrument pressure record. For burst data, the atmospheric pressure should have the same length as the number of bursts.
 
