@@ -20,8 +20,9 @@ def get_metadata(args):
                     f"attrs collision. Replacing '{k}={metadata[k]}' from global attributes file with '{k}={config[k]}' from YAML config file."
                 )
             metadata[k] = config[k]
-    except TypeError:
-        raise TypeError(f"Could not load metadata from {args.config}")
+    except TypeError as e:
+        e.add_note(f"Could not load metadata from {args.config}")
+        raise
 
     return metadata
 

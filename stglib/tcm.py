@@ -64,8 +64,11 @@ def csv_to_cdf(metadata):
 
     try:
         ds = read_tcm(basefile + "_CR.txt", **kwargs)
-    except OSError:
-        print(f"Could not read file {basefile}_CR.txt, check file encoding, use utf-8")
+    except OSError as e:
+        e.add_note(
+            f"Could not read file {basefile}_CR.txt, check file encoding, use utf-8"
+        )
+        raise
 
     metadata.pop("skiprows")
     metadata.pop("skipfooter")

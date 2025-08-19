@@ -171,14 +171,11 @@ def clip_ds(ds, wvs=False):
     try:
         print("first burst in trimmed file:", ds["time"].min().values)
         print("last burst in trimmed file:", ds["time"].max().values)
-    except ValueError:
-        raise (
-            ValueError(
-                "No valid time values in trimmed dataset. Are you "
-                "sure you sure you specified Deployment and Recovery "
-                "dates correctly?"
-            )
+    except ValueError as e:
+        e.add_note(
+            "No valid time values in trimmed dataset. Are you sure you sure you specified Deployment and Recovery dates correctly?"
         )
+        raise
 
     return ds
 

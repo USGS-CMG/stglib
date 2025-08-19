@@ -43,21 +43,16 @@ def read_exo(filnam, skiprows=25, encoding="utf-8"):
             encoding="mac-roman",
         )
     except NotImplementedError as e:
-        print(
-            (
-                " *** Could not decode file. Try saving the csv file using "
-                "UTF-8 encoding and retrying\n"
-            ),
-            e,
+        e.add_note(
+            " *** Could not decode file. Try saving the csv file using UTF-8 encoding and retrying"
         )
+        raise
     except ValueError as e:
-        print(
-            (
-                " *** Could not decode header. "
-                "Have you specified skiprows correctly?\n"
-            ),
-            e,
+        e.add_note(
+            " *** Could not decode header. Have you specified skiprows correctly?"
         )
+        raise
+
     # exo.rename(columns={'Date (MM/DD/YYYY)_Time (HH:MM:SS)': 'time'},
     #            inplace=True)
     exo.rename(

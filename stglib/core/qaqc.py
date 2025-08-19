@@ -367,10 +367,11 @@ def trim_maxabs_diff_2d(ds, var):
 
             notetxt = f"Values filled where data increases by more than {val1} units (absolute) along {dim1} dim, and {val2} units along {dim2} dim. "
             ds = utils.insert_note(ds, var, notetxt)
-        except ValueError:
-            raise TypeError(
+        except ValueError as e:
+            e.add_note(
                 f"Values for {var}_maxabs_diff_2d not in required format [dim1(str), val1(float), dim2(str), val2(float)]. No maxabs_diff_2d trimming was done!!"
             )
+            raise
 
     return ds
 
