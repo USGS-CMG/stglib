@@ -130,6 +130,22 @@ def trim_max_diff(ds, var):
 def trim_max_diff_pct(ds, var):
     if var + "_max_diff_pct" in ds.attrs:
         cond = (
+            100 * np.ediff1d(ds[var], to_begin=0) / ds[var]
+            > ds.attrs[var + "_max_diff_pct"]
+        )
+        affected = cond.sum()
+        ds[var][cond] = np.nan
+
+        notetxt = f"Values filled where data increases by more than {ds.attrs[var + '_max_diff_pct']} percent in a single time step; {affected} values affected. "
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
+def trim_max_diff_pct(ds, var):
+    if var + "_max_diff_pct" in ds.attrs:
+        cond = (
             100 * np.ediff1d(ds[var], to_begin=0) / np.roll(ds[var], 1)
             > ds.attrs[var + "_max_diff_pct"]
         )
@@ -185,10 +201,6 @@ def trim_bad_ens(ds, var):
     if var + "_bad_ens" in ds.attrs:
         inc = np.arange(0, len(ds.attrs[var + "_bad_ens"]), 2)
         for n in inc:
-            print(
-                "%s: Trimming using bad_ens %s"
-                % (var, str(ds.attrs[var + "_bad_ens"][n : n + 2]))
-            )
             if isinstance(ds.attrs[var + "_bad_ens"][n], str):
                 bads = (ds["time"] >= np.datetime64(ds.attrs[var + "_bad_ens"][n])) & (
                     ds["time"] <= np.datetime64(ds.attrs[var + "_bad_ens"][n + 1])
@@ -203,11 +215,11 @@ def trim_bad_ens(ds, var):
                 ] = True
                 ds[var][bads] = np.nan
 
-            notetxt = "Data clipped using bad_ens values of %s. " % (
-                str(ds.attrs[var + "_bad_ens"])
-            )
+        notetxt = "Data clipped using bad_ens values of %s. " % (
+            str(ds.attrs[var + "_bad_ens"])
+        )
 
-            ds = utils.insert_note(ds, var, notetxt)
+        ds = utils.insert_note(ds, var, notetxt)
 
     return ds
 
@@ -480,6 +492,23 @@ def trim_maxabs_diff(ds, var):
             ds[var][cond] = np.nan
 
         notetxt = f"Values filled where data increases or decreases by more than {val} units in a single time step; {affected} values affected. "
+
+        ds = utils.insert_note(ds, var, notetxt)
+
+    return ds
+
+
+def trim_maxabs_diff_pct(ds, var):
+    if var + "_maxabs_diff_pct" in ds.attrs:
+        val = ds.attrs[var + "_maxabs_diff_pct"]
+        cond = (
+            100 * np.abs(np.ediff1d(ds[var], to_begin=0)) / ds[var]
+            > ds.attrs[var + "_maxabs_diff_pct"]
+        )
+        affected = cond.sum()
+        ds[var][cond] = np.nan
+
+        notetxt = f"Values filled where data increases or decreases by more than {val} percent in a single time step; {affected.values} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
