@@ -18,17 +18,20 @@ w_1204_bandpass_filt: [50, 2] #cutoffs in seconds [long_period (low_freq), short
 P_1_med_filt: 9 #kernel_size/points
 wave_interval: 3600 #seconds 
 wave_start_time: "2021-03-10 16:00:00"
-diwasp: 'suv'
+diwasp: 'optimized'
 diwasp_names: 'epic'
 diwasp_method: 'IMLM'
 diwasp_iter: 100
 diwasp_smooth: 'ON'
 diwasp_ibin: 3
 diwasp_pow2: 'true'
-puv: 'true'
+puv: 'false'
 average_interval: 360
 average_duration: 120
 P_1ac_note: 'Corrected for variations in atmospheric pressure using MesoWest Station FW7612 Dennis.'
 trim_avg_vel_bins: 1
 pressure_sensor_height: 2.12
 water_level_var: 'brangeAST'
+trim_ast: 'true'
+ast_qual_sf: 0.93
+wavedat_tolerance: "2 s"

@@ -231,10 +231,12 @@ def cdf2nc_parser(
     return parser
 
 
-def nc2waves_parser(description="Generate wave-statistics file"):
+def nc2waves_parser(description="Generate wave-statistics file", salwtemp=True):
     """generic parser for processed .nc to wave statistics"""
     parser = argparse.ArgumentParser(description=description)
     ncarg(parser)
+    if salwtemp:
+        swtarg(parser)
 
     return parser
 
@@ -247,10 +249,12 @@ def nc2xy_parser(description="Convert polar to cartesian coordinates"):
     return parser
 
 
-def nc2diwasp_parser(description="Generate DIWASP wave-statistics file"):
+def nc2diwasp_parser(description="Generate DIWASP wave-statistics file", salwtemp=True):
     """generic parser for processed .nc to wave statistics"""
     parser = argparse.ArgumentParser(description=description)
     ncarg(parser)
+    if salwtemp:
+        swtarg(parser)
 
     return parser
 

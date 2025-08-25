@@ -62,6 +62,8 @@ Options common to most (all?) instrument config files:
 - ``good_ens``: a list of good indices (based on the raw file, zero-based) to clip the data by. Example: ``good_ens: [10, 500]``. To specify multiple good ranges, add additional pairs of indices: ``good_ens: [10, 500, 560, 600]`` will clip the data to samples 10-500 and 560-600 in the final file.
 - ``vert_dim``: user specified coordinate variable for vertical dimension for data variables with non-singular vertical dimension (default = 'z')
 - ``height_above_geopotential_datum`` and ``geopotential_datum_name`` to indicate the elevation of the sea bed. Any value can be used for ``geopotential_datum_name``; `typical ones within the U.S. include <https://www.ngs.noaa.gov/datums/vertical/index.shtml>`_: NAVD88, GUVD04, NMVD03, PRVD02, VIVD09.
+- ``horizontal_datum_name``; `typical ones within the U.S. include https://www.ngs.noaa.gov/datums/horizontal/index.shtml`_: NAD83(2011), WGS84, NAD83, NAD27.
+
 
 Multiple instruments
 --------------------
@@ -117,6 +119,7 @@ Options for wave processing using pyDIWASP:
 
 Refer to DIWASP original documentation for addition information: “DIWASP, a directional wave spectra toolbox for MATLAB®: User Manual. Research Report WP-1601-DJ (V1.4), Centre for Water Research, University of Western Australia.”
 
+
 Aquadopp
 --------
 
@@ -144,17 +147,24 @@ Signature-specific options include (see Aquadopp for others):
 
 - ``orientation``: can be ``UP`` or ``DOWN`` use this to identify orientation of profiler
 - ``chunks``: list of key, value pairs for user specified chunking of data (e.g. ['time', 256000, 'bindist', 64])
-- ``wave_interval``: interval in seconds for calculating wave bursts from continuous data
+- ``wave_interval``: interval in seconds for creating wave bursts from CONTINUOUS data
+- ``wave_duration``: duration in seconds for calculating wave statistics in each wave bursts, starting with first sample (optional: default = use all samples in the wave burst)
 - ``wave_start_time``: start datetime for first wave burst (e.g. "2021-03-10 16:00:00")
+- ``average_interval``: interval in seconds for calculating mean values from CONTINUOUS sample mode data (default = if sample mode is CONTINUOUS, no average file will be created from data set)
+- ``average_duration``: duration in seconds for calculating mean values, starting with first sample in each average interval or burst (default =  use all samples in the average interval or burst)
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
-- ``diwasp``: processing type for pyDIWASP wave processing; options available are: 'suv' and 'puv' for directional waves and 'pres' and 'elev' for non-directional waves
+- ``diwasp``: processing type for pyDIWASP wave processing; (options: 'suv', 'puv', or 'optimized' for directional waves, 'pres', 'elev', or 'optimized-nd' for non-directional waves) 
 - ``puv``: if 'true' and ``nc2waves`` processing is called directional wave processing using stglib ``puv_quick_vectorized`` method is run in addition to standard non-directional stglib wave processing
 - ``vel_filter_method``: velocity variable filter method [lowpass, highpass, and bandpass]
 - ``vel_filter_cut``: filter cutoff period in seconds for velocity variable filtering
 - ``pressure_sensor_height``: height of pressure port on instrument housing, also used for other sensors that are not profile data
 - ``water_level_var``: option for user to specify variable to use for water level (options: 'P_1ac' (default), 'brangeAST')
+- ``trim_ast``: option to enable trim/filling of brangeAST values using ast_quality variable
+- ``ast_qual_sf``: scale factor to determine minimum threshold value for the ast_quality parameter used to trim brangeAST (default = 0.85, typical values 0.8 () - 0.95)
+- ``wavedat_tolerance``: tolerance in seconds to fill gaps in wave data to be used for calculating wave statistics (default = '2 s'). 
+
 
 .. literalinclude:: ../examples/aqd_config.yaml
    :language: yaml
@@ -260,8 +270,8 @@ Vector
 - ``puv``: set to ``true`` to compute PUV wave statistics. **(EXPERIMENTAL)**
 - ``orientation``: ``UP`` means probe head is pointing up (sample volume above probe head). ``DOWN`` means probe head is pointing down (sample volume below probe head).
 - ``velocity_sample_volume_height``: height (m) to center of sample volume from bed (bed to center transducer - blanking distance (.157 m)).
-- ``average_interval`` to specify interval (in seconds) in which samples will be averaged. If sample mode is CONTINUOUS, no average file will be outputted without ``average_interval`` specified. If sample mode is BURST, the average interval will be defaulted to burst length if ``average_interval`` is not specified.
-- ``average_duration`` to specify duration of time (in seconds) within the averaging interval to take average. If ``average_duration`` is not specified, the duration will default to averaging over entire ``average_interval``.
+- ``average_interval``: interval in seconds for calculating mean values from CONTINUOUS sample mode data (default = if sample mode is CONTINUOUS, no average file will be created from data set)
+- ``average_duration``: duration in seconds for calculating mean values, starting with first sample in each average interval or burst (default =  use all samples in the average interval or burst)
 - ``chunks``: list of key, value pairs for user specified chunking of data (e.g. ['time', 256000, 'bindist', 64])
 - Many of the Aquadopp options apply to the Vector.
 
@@ -293,7 +303,7 @@ TruBlue
 
 - ``skiprows``: number of header lines to skip in the txt file before the real data begins
 - ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
-- ``wave_interval``: interval in seconds for calculating wave bursts from continuous pressure data
+- ``wave_interval``: interval in seconds for calculating wave bursts from CONTINUOUS pressure data
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
@@ -316,7 +326,7 @@ Geolux Wave Radar
 -----------------
 
 - ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass Butterworth filter with 6 min cutoff)
-- ``wave_interval``: interval in seconds for calculating wave bursts from continuous sea-surface elevation data
+- ``wave_interval``: interval in seconds for calculating wave bursts from CONTINUOUS sea-surface elevation data
 - ``wave_duration``: duration in seconds for calculating wave statistics
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters

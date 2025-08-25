@@ -130,6 +130,11 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
     ds = ds_add_attrs_sig(ds)  # for signature vars
 
+    # QA/QC brangeAST
+    if "trim_ast" in ds.attrs:
+        if ds.attrs["trim_ast"].lower() == "true":
+            ds = trim_brangeAST(ds)
+
     # add water level if using brangeAST to find water level
     if (
         "zsen" in ds.dims
@@ -318,7 +323,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
             ds = utils.create_water_depth_var(ds, salwtemp=salwtemp)
 
         # add water_level variable if able
-        ds = add_water_level(ds, salwtemp)
+        ds = add_water_level(ds, salwtemp=salwtemp)
 
         # add brange variable to echosounder data type
         if ds.attrs["data_type"] == "EchoSounder":
@@ -519,7 +524,8 @@ def drop_attrs(ds):
             att2del.append(k)
 
     for k in att2del:
-        del ds.attrs[k]
+        if k in ds.attrs:
+            del ds.attrs[k]
 
     # Get rid of some of the instrument header attributes for other data_types
     dtlist = [
@@ -1679,5 +1685,61 @@ def add_water_level(ds, salwtemp=None):
         print(
             "Cannot create water_level variable because zsen is not a dimension in data set, likely due to pressure_sensor_height not being specified in config file"
         )
+
+    return ds
+
+
+def find_ast_qual_min(ds, sf=0.85):
+    """Find default value minimum Acoustic Surface Tracking (AST) quality parameter to use for screening brangeAST"""
+
+    print(
+        f"Find ast quality minimum value using mean of highest 1/3 ast quailty values (dB) times scale factor {sf}"
+    )
+    ast_qual_sorted = np.sort(ds["ast_quality"].values)
+    # find highest 1/3 of values
+    ind13 = int(len(ast_qual_sorted) * (2 / 3))
+    val13 = ast_qual_sorted[ind13]
+
+    ast_qual_min = (
+        (
+            ds["ast_quality"]
+            .where((ds["ast_quality"] > val13).compute(), drop=True)
+            .mean(dim="time")
+            * sf
+        )
+        .round()
+        .values
+    )
+
+    return ast_qual_min
+
+
+def trim_brangeAST(ds):
+    """Trim brangeAST values when below minimum threshold for AST Quality parameter"""
+
+    if "brangeAST" in ds.data_vars:
+
+        var = "brangeAST"
+
+        if "ast_qual_sf" in ds.attrs:
+            ast_qual_min = find_ast_qual_min(ds, sf=ds.attrs["ast_qual_sf"])
+
+        else:
+            # No user provide ast_qual_msf, use default value
+            ast_qual_min = find_ast_qual_min(ds)
+
+        ds.attrs["ast_qual_min"] = ast_qual_min
+
+        notetxt = f"{var} trimmed where ast_quality < {ast_qual_min}"
+
+        ds[var] = ds[var].where(~(ds["ast_quality"] < ast_qual_min), np.nan)
+
+        print(
+            f"Trimmed {ds['brangeAST'].isnull().sum().values} values of {var} using minimum ast_quality threshold = {ast_qual_min} dB"
+        )
+
+        print(notetxt)
+        ds = utils.insert_note(ds, var, notetxt)
+        ds = utils.insert_history(ds, notetxt)
 
     return ds

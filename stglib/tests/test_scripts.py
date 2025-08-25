@@ -316,8 +316,8 @@ def test_sig():
 
 @pytest.mark.skip(reason="works locally but not on github built-in checks")
 def test_sig_wvs():
-    sig_wvs("11261sigb-cal.nc")
-    sig_diwasp("11261sigb-cal.nc")
+    sig_wvs("11261sigb.nc")
+    sig_diwasp("11261sigb.nc")
 
 
 def hobo_raw(glob_att, config_yaml):

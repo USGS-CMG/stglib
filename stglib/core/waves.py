@@ -89,7 +89,7 @@ def make_diwasp_inputs(
             "Required DIWASP input parameter <layout> has not been explicitly passed to make_diwasp_inputs def"
         )
 
-    nyfreq = float(ds.attrs["sample_rate"]) / 2
+    nyfreq = float(ID["fs"]) / 2
 
     if nsamps is None:
         nsamps = ds.attrs["wave_interval"] * ds.attrs["sample_rate"]
@@ -141,6 +141,7 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
 
     times = []
     s = []
+    spec = []
     Hs = []
     Tp = []
     DTp = []
@@ -148,16 +149,35 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
     # Dm = []
     Tm = []
 
+    dwspid = []
+
     for burst in tqdm(range(len(ds.time))):
         if "P_1ac" in ds:
-            p = ds["P_1ac"].isel(time=burst, sample=range(nsamps)).values
+            p = ds["P_1ac"].isel(time=burst, sample=range(nsamps))
+            if p.isnull().any():
+                # Fill NaNs in burst data if possible
+                p = var_wave_burst_fill_nans(ds, p)
+        else:
+            p = None
+
         if "brangeAST" in ds:
-            ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps)).values
+            ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps))
+            if ast.isnull().any():
+                # Fill NaNs in burst data if possible
+                ast = var_wave_burst_fill_nans(ds, ast)
+
         else:
             ast = None
 
-        u = ds["u_1205"].isel(time=burst, z=ibin, sample=range(nsamps)).values
-        v = ds["v_1206"].isel(time=burst, z=ibin, sample=range(nsamps)).values
+        u = ds["u_1205"].isel(time=burst, z=ibin, sample=range(nsamps))
+        if u.isnull().any():
+            # Fill NaNs in burst data if possible
+            u = var_wave_burst_fill_nans(ds, u)
+
+        v = ds["v_1206"].isel(time=burst, z=ibin, sample=range(nsamps))
+        if v.isnull().any():
+            # Fill NaNs in burst data if possible
+            v = var_wave_burst_fill_nans(ds, v)
 
         ID, SM, EP = make_diwasp_inputs(
             ds.isel(time=burst),
@@ -182,27 +202,98 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
                     f"Corrected pressure (P_1ac) variable not found cannot continue with {data_type} directional wave analysis"
                 )
 
+        elif data_type == "optimized":
+            """Optimized method uses suv when ast contains no NaNs and puv when it does"""
+            # make list of which method is used
+            if ast.isnull().any():
+                if p is not None:
+                    ID["datatypes"] = ["pres", "velx", "vely"]
+                    ID["data"] = np.array([p, u, v]).transpose()
+                    dwspid.append("puv")
+                else:
+                    raise ValueError(
+                        f"Corrected pressure (P_1ac) variable not found cannot continue with {data_type} directional wave analysis"
+                    )
+
+            else:
+                if ast is not None:
+                    ID["datatypes"] = ["elev", "velx", "vely"]
+                    ID["data"] = np.array([ast, u, v]).transpose()
+                    dwspid.append("suv")
+                else:
+                    raise ValueError(
+                        f"Acoustic surface tracking (ast) variable not found cannot continue with {data_type} directional wave analysis"
+                    )
+
         opts = ["MESSAGE", 0, "PLOTTYPE", 0]
 
-        [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
-        WVout = pyDIWASP.infospec.infospec(SMout)
+        # check to make sure no NaNs in input data
+        if np.any(np.isnan(ID["data"])):
 
-        # calculate mean period
-        Snn = np.trapz(np.real(SMout["S"]), axis=1, x=SMout["dirs"])
+            SMout = {}
+            SMout["S"] = np.full((len(SM["freqs"]), len(SM["dirs"])), np.nan)
+            SMout["freqs"] = SM["freqs"]
+            SMout["dirs"] = SM["dirs"]
+            WVout = np.full(4, np.nan)
+
+        else:
+
+            [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
+            WVout = pyDIWASP.infospec.infospec(SMout)
+
+        #  Extract real part of directional spectra and calculate frequency spectra
+        Dnn = np.real(SMout["S"])
+        Snn = np.trapz(Dnn, axis=1, x=SMout["dirs"])
+
+        # Make tail if using puv
+        if dwspid:
+            print(dwspid[-1])
+        if data_type == "puv" or (dwspid and dwspid[-1] == "puv"):
+            print(f"Apply cutofff and add tail for puv method {dwspid[-1]}")
+            if "pressure_sensor_height" in ds.attrs:
+                z = ds.attrs["pressure_sensor_height"]
+            else:
+                warnings.warn(
+                    "pressure_sensor_height not specified; using initial_instrument_height to compute wave statistics"
+                )
+                z = ds.attrs["initial_instrument_height"]
+
+            h = np.mean(p.values) + z
+            f = SMout["freqs"]
+            k = qkfs(2 * np.pi * f, h)
+            Kp = transfer_function(k, h, z)
+
+            # Find cutoff
+            tailind, noisecutind, fpeakcutind, Kpcutind = define_cutoff(
+                f, Snn * (Kp**2), Kp, noise=0.9
+            )
+
+            if ~np.isnan(tailind):
+                Snn = make_tail(f, Snn, tailind)
+
+                # Make tail for dspec
+                Dnn = make_dspec_tail(f, SMout["dirs"], Dnn, tailind)
+
         m0 = make_moment(SMout["freqs"], Snn, 0)
         m2 = make_moment(SMout["freqs"], Snn, 2)
         mwp = make_Tm(m0, m2)
+        hs = make_Hs(m0)
+        tp = make_Tp(
+            xr.DataArray(Snn, dims=["frequency"], coords={"frequency": SMout["freqs"]})
+        )
 
         # append outputs to list
         times.append(ds["time"][burst].values)
-        s.append(SMout["S"])
-        Hs.append(WVout[0])
-        Tp.append(WVout[1])
+        s.append(Dnn)
+        spec.append(Snn)
+        Hs.append(hs)
+        Tp.append(tp)
         DTp.append(WVout[2])
         Dp.append(WVout[3])
         Tm.append(mwp)
 
-    dspec = np.real(np.stack(s, axis=0))
+    dspec = np.stack(s, axis=0)
+    fspec = np.stack(spec, axis=0)
 
     dwv = xr.Dataset()
     dwv["time"] = xr.DataArray(np.array(times), dims="time")
@@ -213,8 +304,13 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
         dspec, dims=["time", "diwasp_frequency", "diwasp_direction"]
     )
 
+    # dwv["diwasp_fspec"] = xr.DataArray(
+    #    np.trapz(dspec, axis=2, x=SMout["dirs"]),
+    #    dims=["time", "diwasp_frequency"],
+    # )
+
     dwv["diwasp_fspec"] = xr.DataArray(
-        np.trapz(dspec, axis=2, x=SMout["dirs"]),
+        fspec,
         dims=["time", "diwasp_frequency"],
     )
 
@@ -233,12 +329,22 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
     dwv["diwasp_dp"] = xr.DataArray(np.array(Dp), dims="time")
     dwv["diwasp_dm"] = xr.DataArray(np.round(Dm.values, 0), dims="time")
 
+    # Add List of input data type for optimized method
+    print(np.array(dwspid))
+    if dwspid:
+        dwv["diwasp_type"] = xr.DataArray(np.array(dwspid), dims="time")
+
     # make some diwasp attrs
     if "diwasp_ibin" not in ds.attrs:
         dwv.attrs["diwasp_ibin"] = ibin
 
     # if "diwasp_inputs" not in ds.attrs:
-    dwv.attrs["diwasp_inputs"] = ID["datatypes"]
+    if data_type == "optimized":
+        dwv.attrs["diwasp_inputs"] = (
+            "optimized for ['elev', 'velx', 'vely'] or ['pres'. 'velx', 'vely']"
+        )
+    else:
+        dwv.attrs["diwasp_inputs"] = ID["datatypes"]
 
     if "diwasp_method" not in ds.attrs:
         dwv.attrs["diwasp_method"] = EP["method"]
@@ -274,20 +380,28 @@ def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
         nsamps = samples_per_burst
 
     times = []
-    s = []
+    spec = []
     Hs = []
     Tp = []
     Tm = []
 
+    dwspid = []
+
     for burst in tqdm(range(len(ds.time))):
 
         if "P_1ac" in ds:
-            p = ds["P_1ac"].isel(time=burst, sample=range(nsamps)).values
+            p = ds["P_1ac"].isel(time=burst, sample=range(nsamps))
+            if p.isnull().any():
+                # Fill NaNs in burst data if possible
+                p = var_wave_burst_fill_nans(ds, p)
         else:
             p = None
 
         if "brangeAST" in ds:
-            ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps)).values
+            ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps))
+            if ast.isnull().any():
+                # Fill NaNs in burst data if possible
+                ast = var_wave_burst_fill_nans(ds, ast)
         else:
             ast = None
 
@@ -314,31 +428,98 @@ def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
                     f"Correct pressure (P_1ac) variable not found cannot continue with {data_type} wave analysis"
                 )
 
+        elif data_type == "optimized-nd":
+            """Optimized-ND method uses elev when ast contains no NaNs and pres when it does"""
+            # make list of which method is used
+            if ast.isnull().any():
+                if p is not None:
+                    ID["datatypes"] = ["pres"]
+                    ID["data"] = np.atleast_2d(p).transpose()
+                    dwspid.append("pres")
+                else:
+                    raise ValueError(
+                        f"Corrected pressure (P_1ac) variable not found cannot continue with {data_type} wave analysis"
+                    )
+
+            else:
+                if ast is not None:
+                    ID["datatypes"] = ["elev"]
+                    ID["data"] = np.atleast_2d(ast).transpose()
+                    dwspid.append("elev")
+                else:
+                    raise ValueError(
+                        f"Acoustic surface tracking (ast) variable not found cannot continue with {data_type} wave analysis"
+                    )
+
         opts = ["MESSAGE", 0, "PLOTTYPE", 0]
 
-        [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
-        WVout = pyDIWASP.infospec.infospec(SMout)
+        # check to make sure no NaNs in input data
+        if np.any(np.isnan(ID["data"])):
+
+            SMout = {}
+            SMout["S"] = np.full((len(SM["freqs"]), len(SM["dirs"])), np.nan)
+            SMout["freqs"] = SM["freqs"]
+            SMout["dirs"] = SM["dirs"]
+            # WVout = np.full(4, np.nan)
+
+        else:
+
+            [SMout, EPout] = pyDIWASP.dirspec.dirspec(ID, SM, EP, opts)
+            # WVout = pyDIWASP.infospec.infospec(SMout)
+
+        #  Extract real part of directional spectra and calculate frequency spectra
+        Dnn = np.real(SMout["S"])
+        Snn = np.trapz(Dnn, axis=1, x=SMout["dirs"])
+
+        # Make tail if using pres
+        if data_type == "pres" or (dwspid and dwspid[-1] == "pres"):
+            print("Apply cutofff and add tail for pres method")
+            if "pressure_sensor_height" in ds.attrs:
+                z = ds.attrs["pressure_sensor_height"]
+            else:
+                warnings.warn(
+                    "pressure_sensor_height not specified; using initial_instrument_height to compute wave statistics"
+                )
+                z = ds.attrs["initial_instrument_height"]
+
+            h = np.mean(p.values) + z
+            f = SMout["freqs"]
+            k = qkfs(2 * np.pi * f, h)
+            Kp = transfer_function(k, h, z)
+
+            # Find cutoff
+            tailind, noisecutind, fpeakcutind, Kpcutind = define_cutoff(
+                f, Snn * (Kp**2), Kp, noise=0.9
+            )
+
+            if ~np.isnan(tailind):
+                Snn = make_tail(f, Snn, tailind)
 
         # calculate mean period
-        Snn = np.trapz(np.real(SMout["S"]), axis=1, x=SMout["dirs"])
         m0 = make_moment(SMout["freqs"], Snn, 0)
         m2 = make_moment(SMout["freqs"], Snn, 2)
         mwp = make_Tm(m0, m2)
 
+        hs = make_Hs(m0)
+        tp = make_Tp(
+            xr.DataArray(Snn, dims=["frequency"], coords={"frequency": SMout["freqs"]})
+        )
+
         # append outputs to list
         times.append(ds["time"][burst].values)
-        s.append(SMout["S"])
-        Hs.append(WVout[0])
-        Tp.append(WVout[1])
+        spec.append(Snn)
+        Hs.append(hs)
+        Tp.append(tp)
         Tm.append(mwp)
 
-    dspec = np.real(np.stack(s, axis=0))
+    fspec = np.stack(spec, axis=0)
+
     dwv = xr.Dataset()
     dwv["time"] = xr.DataArray(np.array(times), dims="time")
     dwv["time"] = pd.DatetimeIndex(dwv["time"])
     dwv["diwasp_frequency"] = xr.DataArray(SMout["freqs"], dims="diwasp_frequency")
     dwv["diwasp_fspec"] = xr.DataArray(
-        np.trapz(dspec, axis=2, x=SMout["dirs"]),
+        fspec,
         dims=["time", "diwasp_frequency"],
     )
 
@@ -346,10 +527,17 @@ def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
     dwv["diwasp_tp"] = xr.DataArray(np.array(Tp), dims="time")
     dwv["diwasp_tm"] = xr.DataArray(np.array(Tm), dims="time")
 
-    # make some diwasp attrs
+    # Add List of input data type for optimized-nd method
+    print(np.array(dwspid))
+    if dwspid:
+        dwv["diwasp_type"] = xr.DataArray(np.array(dwspid), dims="time")
 
     # if "diwasp_inputs" not in ds.attrs:
-    dwv.attrs["diwasp_inputs"] = ID["datatypes"]
+    if data_type == "optimized-nd":
+        dwv.attrs["diwasp_inputs"] = "optimized for ['elev'] or ['pres']"
+    else:
+        dwv.attrs["diwasp_inputs"] = ID["datatypes"]
+
     if "diwasp_method" not in ds.attrs:
         dwv.attrs["diwasp_method"] = EP["method"]
     if "diwasp_nsamps" not in ds.attrs:
@@ -644,6 +832,18 @@ def make_tail(f, Pnn, tailind):
     else:
         tail[ti:] = Pnn[ti] * (f[ti:] / f[ti]) ** -4
         return np.hstack((Pnn[:ti], tail[ti:]))
+
+
+def make_dspec_tail(f, dirs, dspec, tailind):
+    """Add tail to directional spectra"""
+
+    dspectail = []
+    for k in range(len(dirs)):
+        Pnn = dspec[:, k]
+        thetail = make_tail(f, Pnn, tailind)
+        dspectail.append(thetail)
+
+    return np.stack(dspectail, axis=1)
 
 
 def make_mwd(freqs, dirs, dspec, diwasp=False):
@@ -1720,3 +1920,43 @@ def call_puv_quick_vectorized(
     ds["puv_Hsu_tail"].attrs["units"] = "m"
 
     return ds
+
+
+def var_wave_burst_fill_nans(ds, var):
+    """Fill NaN values in wave burst data if within tolerance and less than 10% of values are NaN"""
+
+    # check for NaNs and fill if possible
+    if var.isnull().any():
+
+        nsamps = len(var)
+
+        # Check that number of samples to fill is less than 10% of samples in burst
+        if var.isnull().sum().values < nsamps * 0.1:
+            # set tolerance for filling gaps in wave burst data
+            if "wavedat_tolerance" not in ds.attrs:
+                ds.attrs["wavedat_tolerance"] = "2 s"
+
+            # convert tolerance to samples because filling across sample dimension
+            tolsamp = (
+                int(ds.attrs["wavedat_tolerance"].split()[0]) * ds.attrs["sample_rate"]
+            )
+
+            print(
+                f" Fill NaNs in {var.name} burst if within tolerance of {tolsamp} samples"
+            )
+
+            nnans = var.isnull().sum().values
+            var = var.where(~var.isnull().compute(), drop=True)
+
+            var = var.reindex(sample=range(nsamps), method="nearest", tolerance=tolsamp)
+            filled_nans = nnans - var.isnull().sum().values
+            print(
+                f"Filled {filled_nans} of {nnans} NaNs in {var.name} for wave burst at {pd.to_datetime(var.time.values):%Y-%m-%d %H:%M:%S}"
+            )
+
+        else:
+            print(
+                f" Not attempting to fill NaNs ({var.isnull().sum().values}), exceeds 10% of samples ({nsamps})"
+            )
+
+    return var

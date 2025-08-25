@@ -2,17 +2,18 @@ import re
 import warnings
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from ..core import utils, waves
 from .cdf2nc import add_water_level
 
 
-def nc_to_waves(nc_filename):
+def nc_to_waves(nc_filename, salwtemp=None):
     """
     Process burst data to wave statistics
     """
-    ds = xr.open_dataset(nc_filename)
+    ds = xr.open_dataset(nc_filename, chunks={"time": 200000, "z": 5})
 
     # check to see if need to make wave burst from continuous data
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
@@ -25,7 +26,7 @@ def nc_to_waves(nc_filename):
                 time=slice(np.datetime64(ds.attrs["wave_start_time"]), ds["time"][-1])
             )
         # make wave burst ncfile from continuous data if wave_interval is specified
-        ds = make_wave_bursts(ds)
+        ds = make_wave_bursts_mi(ds)
 
     if "BURST" in ds.attrs["sample_mode"]:
         if "wave_interval" not in ds.attrs:
@@ -64,11 +65,17 @@ def nc_to_waves(nc_filename):
         ds = do_puv(ds)
 
     if "pressure_sensor_height" in ds.attrs:
-        ds = utils.create_water_depth_var(ds, psh="pressure_sensor_height")
+        ds = utils.create_water_depth_var(
+            ds.mean(dim="sample", keep_attrs=True),
+            psh="pressure_sensor_height",
+            salwtemp=salwtemp,
+        )
     else:
-        ds = utils.create_water_depth_var(ds)
+        ds = utils.create_water_depth_var(
+            ds.mean(dim="sample", keep_attrs=True), salwtemp=salwtemp
+        )
 
-    ds = add_water_level(ds)
+    ds = add_water_level(ds, salwtemp=salwtemp)
 
     for k in [
         "burst",
@@ -86,10 +93,9 @@ def nc_to_waves(nc_filename):
         "cor",
         "brangeAST",
         "TransMatrix",
-        "bin_depth",
-        "amp_avg",
-        "cor_avg",
+        "ast_quality",
     ]:
+
         if k in ds:
             ds = ds.drop_vars(k)
 
@@ -137,12 +143,12 @@ def nc_to_waves(nc_filename):
     return ds
 
 
-def nc_to_diwasp(nc_filename):
+def nc_to_diwasp(nc_filename, salwtemp=None):
     """
     Process burst data to make DIWASP derived wave statistics and spectra
     """
 
-    ds = xr.open_dataset(nc_filename)
+    ds = xr.open_dataset(nc_filename, chunks={"time": 200000, "z": 5})
 
     # check to see if need to make wave burst from continuous data
     if (ds.attrs["sample_mode"] == "CONTINUOUS") and ("wave_interval" in ds.attrs):
@@ -155,7 +161,7 @@ def nc_to_diwasp(nc_filename):
                 time=slice(np.datetime64(ds.attrs["wave_start_time"]), ds["time"][-1])
             )
         # make wave burst ncfile from continuous data if wave_interval is specified
-        ds = make_wave_bursts(ds)
+        ds = make_wave_bursts_mi(ds)
 
     if "BURST" in ds.attrs["sample_mode"]:
         if "wave_interval" not in ds.attrs:
@@ -182,12 +188,13 @@ def nc_to_diwasp(nc_filename):
     if "diwasp" not in ds.attrs:
         # if not specified choose 'suv' method for signature
         ds.attrs["diwasp"] = "suv"
+        print("diwasp processing type was not specified, defaulting to 'suv' method")
 
     if "diwasp" in ds.attrs:
         data_type = ds.attrs["diwasp"]
-        if data_type not in ["suv", "puv", "elev", "pres"]:
+        if data_type not in ["suv", "puv", "elev", "pres", "optimized", "optimized-nd"]:
             raise ValueError(
-                f"data type {data_type} is not recognized current options are ['suv', 'puv', 'elev', 'pres']"
+                f"data type {data_type} is not recognized current options are ['suv', 'puv', 'elev', 'pres', 'optimized', 'optimized-nd']"
             )
 
     if "diwasp_ibin" in ds.attrs:
@@ -195,7 +202,7 @@ def nc_to_diwasp(nc_filename):
     else:
         ibin = 0
 
-    if data_type == "puv" or data_type == "suv":
+    if data_type == "puv" or data_type == "suv" or data_type == "optimized":
         print(f"Running DIWASP using {data_type} input data")
         layout = make_diwasp_layout(ds, data_type=data_type, ibin=ibin)
         diwasp = waves.make_diwasp_puv_suv(
@@ -203,7 +210,7 @@ def nc_to_diwasp(nc_filename):
         )
         ds = utils.ds_add_pydiwasp_history(ds)
 
-    elif data_type == "elev" or data_type == "pres":
+    elif data_type == "elev" or data_type == "pres" or data_type == "optimized-nd":
         print(f"Running DIWASP using {ds.attrs['diwasp']} input data")
         layout = make_diwasp_layout(ds, data_type=data_type)
         diwasp = waves.make_diwasp_elev_pres(ds, data_type=data_type, layout=layout)
@@ -224,6 +231,7 @@ def nc_to_diwasp(nc_filename):
         "diwasp_dm",
         "diwasp_dspec",
         "diwasp_fspec",
+        "diwasp_type",
     ]:
 
         if k in diwasp:
@@ -234,14 +242,21 @@ def nc_to_diwasp(nc_filename):
         ds.attrs[k] = diwasp.attrs[k]
 
     # rename Fspec based on input datatype
-    ds = utils.rename_diwasp_fspec(ds)
+    if "optimized" not in data_type:
+        ds = utils.rename_diwasp_fspec(ds)
 
     if "pressure_sensor_height" in ds.attrs:
-        ds = utils.create_water_depth_var(ds, psh="pressure_sensor_height")
+        ds = utils.create_water_depth_var(
+            ds.mean(dim="sample", keep_attrs=True),
+            psh="pressure_sensor_height",
+            salwtemp=salwtemp,
+        )
     else:
-        ds = utils.create_water_depth_var(ds)
+        ds = utils.create_water_depth_var(
+            ds.mean(dim="sample", keep_attrs=True), salwtemp=salwtemp
+        )
 
-    ds = add_water_level(ds)
+    ds = add_water_level(ds, salwtemp=salwtemp)
 
     for k in [
         "burst",
@@ -259,7 +274,9 @@ def nc_to_diwasp(nc_filename):
         "cor",
         "brangeAST",
         "TransMatrix",
+        "ast_quality",
     ]:
+
         if k in ds:
             ds = ds.drop_vars(k)
 
@@ -310,7 +327,7 @@ def make_diwasp_layout(ds, data_type=None, ibin=None):
     Make layout for DIWASP wave processing input
     """
 
-    if data_type == "suv" or data_type == "puv":
+    if data_type == "suv" or data_type == "puv" or data_type == "optimized":
         # datatypes = ["pres", "velx", "vely"]
         sxyz = [0, 0, ds.attrs["initial_instrument_height"]]
         if ds.attrs["orientation"].lower() == "up":
@@ -329,6 +346,63 @@ def make_diwasp_layout(ds, data_type=None, ibin=None):
         layout = sxyz
 
     return layout
+
+
+def make_wave_bursts_mi(
+    ds,
+    wave_vars=[
+        "sample",
+        "P_1",
+        "P_1ac",
+        "Tx_1211",
+        "brangeAST",
+        "ast_quality",
+        "u_1205",
+        "v_1206",
+        "w_1204",
+        "vel",
+        "cor",
+        "amp",
+    ],
+):
+    """
+    Reshape CONTINUOUS data set into burst shape using multi-indexing for purpose of wave analysis
+    """
+    for k in ds.data_vars:
+        if k not in wave_vars:
+            ds = ds.drop_vars(k)
+
+    # average_interval is [sec] interval for wave statistics for continuous data
+    ds.attrs["wave_samples_per_burst"] = int(
+        ds.attrs["wave_interval"] / ds.attrs["sample_interval"]
+    )
+    nsamps = ds.attrs["wave_samples_per_burst"]
+
+    if len(ds.time) % nsamps != 0:
+        ds = ds.isel(time=slice(0, -(int(len(ds.time) % (nsamps)))))
+
+    # create samples & new_time
+    x = np.arange(nsamps)
+    y = ds["time"][0:-1:nsamps]
+
+    # make new arrays for multi-index
+    samp, t = np.meshgrid(x, y)
+    s = samp.flatten()
+    t3 = t.flatten()
+
+    # create multi-index
+    ind = pd.MultiIndex.from_arrays((t3, s), names=("new_time", "new_sample"))
+    # unstack to make burst shape dataset
+    ds = ds.assign_coords(
+        xr.Coordinates.from_pandas_multiindex(ind, dim="time")
+    ).unstack("time")
+    # dsa = dsa.unstack()
+    if "sample" in ds.data_vars:
+        ds = ds.drop_vars("sample").rename({"new_time": "time", "new_sample": "sample"})
+    else:
+        ds = ds.rename({"new_time": "time", "new_sample": "sample"})
+
+    return ds
 
 
 def make_wave_bursts(ds):
@@ -355,7 +429,7 @@ def make_wave_bursts(ds):
         range(ds.attrs["wave_samples_per_burst"]), dims="samplenew"
     )
 
-    for v in ["P_1", "P_1ac", "Tx_1211", "brangeAST"]:
+    for v in ["P_1", "P_1ac", "Tx_1211", "brangeAST", "ast_quality"]:
         if v in ds:
             attrsbak = ds[v].attrs
             ds[v] = xr.DataArray(
@@ -383,6 +457,7 @@ def make_wave_bursts(ds):
                     f"{v} dimensions {ds[v].dims} are not as required ('time','z') to shape into wave burst"
                 )
 
+    """
     for v in ["vel", "cor", "amp"]:
         if v in ds:
             attrsbak = ds[v].attrs
@@ -405,7 +480,7 @@ def make_wave_bursts(ds):
                 raise ValueError(
                     f"{v} dimensions {ds[v].dims} are not as required ('beam','time','z') to shape into wave burst"
                 )
-
+    """
     ds = ds.rename({"time": "timeold"})
     ds = ds.rename({"timenew": "time"})
     ds = ds.drop_dims("timeold")
@@ -528,7 +603,7 @@ def make_waves_vdims(ds, wtype="nc2waves"):
     elif wtype == "nc2diwasp":
         data_type = ds.attrs["diwasp"]
 
-        if data_type in ["suv", "puv"]:
+        if data_type in ["suv", "puv", "optimized"]:
             if "diwasp_ibin" in ds.attrs:
                 ibin = ds.attrs["diwasp_ibin"]
             else:
@@ -538,7 +613,7 @@ def make_waves_vdims(ds, wtype="nc2waves"):
     attrsdep = ds["depth"].attrs
     notez = None
     notedep = None
-    if data_type in ["suv", "puv"]:
+    if data_type in ["suv", "puv", "optimized"]:
         # set vertical dimension for veloctiy measurement used in suv, puv calcs
         if "z" in ds.dims:
             ds["z"] = xr.DataArray([ds["z"][ibin].values], dims="z")
@@ -548,7 +623,7 @@ def make_waves_vdims(ds, wtype="nc2waves"):
             ds["depth"] = xr.DataArray([ds["depth"][ibin].values], dims="depth")
             notedep = "depth to wave velocity measurement"
 
-    elif data_type in ["pres", "elev"]:
+    elif data_type in ["pres", "elev", "optimized-nd"]:
         # swap vertical dimension to sensor location if not doing puv
         bin0dist = ds["bindist"][0].values
         if "zsen" in ds.dims:

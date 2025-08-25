@@ -215,6 +215,7 @@ def make_wave_bursts(ds):
 def drop_unused_dims(ds):
     """only keep dims that will be in the final files"""
     thedims = []
+
     for v in ds.data_vars:
         for x in ds[v].dims:
             thedims.append(x)

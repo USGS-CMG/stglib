@@ -188,7 +188,7 @@ def add_min_max(ds, exclude_vars=None):
 
     exclude = list(ds.dims)
     [exclude.append(k) for k in ds.variables if re.match("time*", k)]
-    exclude.extend(["TIM", "TransMatrix", "orientmat"])
+    exclude.extend(["TIM", "TransMatrix", "orientmat", "diwasp_type"])
     if exclude_vars:
         exclude.extend(exclude_vars)
 
@@ -471,6 +471,16 @@ def ds_add_wave_attrs(ds):
             }
         )
 
+    if "fspec" in ds.data_vars:
+        ds["fspec"].attrs.update(
+            {
+                "long_name": "Frequency (non-directional) wave energy spectrum from pyDIWASP",
+                "units": "m^2/Hz",
+                "note": "Use caution: all spectra are provisional",
+                "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
     if "frequency" in ds.coords:
         ds["frequency"].attrs.update(
             {
@@ -675,6 +685,13 @@ def ds_add_wave_attrs(ds):
                 "units": "m^2/Hz",
                 "note": "Use caution: all spectra are provisional",
                 "standard_name": "sea_surface_wave_variance_spectral_density",
+            }
+        )
+
+    if "diwasp_type" in ds.data_vars:
+        ds["diwasp_type"].attrs.update(
+            {
+                "long_name": "pyDIWASP input data type used in optimized method",
             }
         )
 
@@ -1054,6 +1071,15 @@ def create_water_depth_var(ds, psh="initial_instrument_height", salwtemp=None):
         ds["water_depth"].attrs["standard_name"] = "sea_floor_depth_below_sea_surface"
         ds["water_depth"].attrs["epic_code"] = 3
         ds["water_depth"].attrs["note"] = histtext
+
+        if calctext is not None:
+            ds["water_depth"].attrs["note"] = (
+                "Water depth calculated " + calctext + f"+ {psh}"
+            )
+        else:
+            ds["water_depth"].attrs[
+                "note"
+            ] = f"Water depth calculated as {press} + {psh}"
 
         # histtext = f"Create water_depth variable using {press} and {psh} attribute"
         ds = insert_history(ds, histtext)
@@ -1724,6 +1750,7 @@ def rename_diwasp_wave_vars(ds):
             "diwasp_astspec": "sspec",
             "diwasp_vspec": "vspec",
             "diwasp_dspec": "dspec",
+            "diwasp_fspec": "fspec",
         }
 
         # check to make sure they exist before trying to rename

@@ -20,8 +20,10 @@ and stglib pyDIWASP processing code (:py:func:`stglib.core.waves.make_diwasp_puv
 
 #. Make DIWASP input parameters ID, SM, and EP in :func:`stglib.core.waves.make_diwasp_inputs`.
 #. Compute the directional wave spectra using a user-specified method in :func:`stglib.lib.pyDIWASP.dirspec`.
-#. Compute significant wave height, peak period, direction of peak energy, and dominant wave direction in  :func:`stglib.lib.pyDIWASP.infospec`.
-#. Compute mean period and mean wave direction in :func:`stglib.core.waves.make_Tm` and :func:`stglib.core.waves.make_mwd`.
+#. Compute direction of peak energy, and dominant wave direction in  :func:`stglib.lib.pyDIWASP.infospec`.
+#. Add a tail following `Jones & Monismith (2007) <JM>`_ in :func:`stglib.core.waves.make_dspec_tail`.
+#. Compute the zeroth and second moments of the surface-elevation spectra using :func:`stglib.core.waves.make_moment`.
+#. Compute significant wave height, mean period, and peak period using :func:`stglib.core.waves.make_Hs`, :func:`stglib.core.waves.make_Tm`, and :func:`stglib.core.waves.make_Tp`.
 
 
 The above lists are for information only. The user does not need to apply these steps manually; they are all called by the run script.
