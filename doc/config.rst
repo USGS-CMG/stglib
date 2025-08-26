@@ -82,7 +82,7 @@ Options applicable to many instrument types include:
 - ``<VAR>_med_diff_pct``: fill values where percent difference between a 5-point (default) median filter and original values is greater than this number.
 - ``<VAR>_max_blip``: fill short-lived maximum "blips", values that increase greater than this number and then immediately decrease at the next time step.
 - ``<VAR>_max_blip_pct``: fill short-lived maximum "blips", values that increase more than this percent and then immediately decrease at the next time step.
-- ``<VAR>_trim_fliers``: fill flier values, which are data points surrounded by filled data. Set to the maximum size of flier clumps to remove.
+- ``<VAR>_fliers``: fill flier values, which are data points surrounded by filled data. Set to the maximum size of flier clumps to remove.
 - ``<VAR>_warmup_samples``: fill these many samples at the beginning of each burst.
 - ``<VAR>_mask``: a single variable or list of variables which should be used to fill the given variable. For example ``u_1205_mask: ["cor1_1285", "cor2_1286", "cor3_1287"]`` will set ``u_1205`` to ``_FillValue`` wherever the correlation variables are ``_FillValue``
 - ``<VAR>_mask_expr``: trim values based on an expression containing another variable. For example, ``Turb_mask_expr: "P_1ac < 0.1"`` will fill all ``Turb`` data where ``P_1ac`` is less than 0.1. Currently supported operators are ['>', '<', '>=', '<=', '==', '!=']. Usage is currently limited to simple expressions with the masking variable on the left-hand side.
