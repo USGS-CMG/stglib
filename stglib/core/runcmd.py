@@ -303,7 +303,10 @@ def runrsknc2waves(args=None):
     if not args:
         args = stglib.cmd.nc2waves_parser("Generate waves statistics file").parse_args()
 
-    stglib.rsk.nc2waves.nc_to_waves(args.ncname)
+    if hasattr(args, "salwtemp") and args.salwtemp:
+        stglib.rsk.nc2waves.nc_to_waves(args.ncname, salwtemp=args.salwtemp)
+    else:
+        stglib.rsk.nc2waves.nc_to_waves(args.ncname)
 
 
 def runrsknc2diwasp(args=None):
@@ -312,7 +315,10 @@ def runrsknc2diwasp(args=None):
             "Generate DIWASP waves statistics file"
         ).parse_args()
 
-    stglib.rsk.nc2waves.nc_to_diwasp(args.ncname)
+    if hasattr(args, "salwtemp") and args.salwtemp:
+        stglib.rsk.nc2waves.nc_to_diwasp(args.ncname, salwtemp=args.salwtemp)
+    else:
+        stglib.rsk.nc2waves.nc_to_diwasp(args.ncname)
 
 
 def runrskrsk2cdf(args=None):

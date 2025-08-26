@@ -249,7 +249,7 @@ def test_rbr_wvs():
         zip_ref.extractall("stglib/tests/data/")
     rbr_raw("gatts_CSF20SC2.txt", "csf20sc201_config.yaml")
     rbr_nc("CSF20SC201pt-raw.cdf")
-    rbr_wvs("CSF20SC201ptb-cal.nc")
+    rbr_wvs("CSF20SC201ptb.nc")
 
 
 def test_rbr():
@@ -257,7 +257,7 @@ def test_rbr():
         zip_ref.extractall("stglib/tests/data/")
     rbr_raw("gatts_055109_20220808_1605.txt", "055109_20220808_1605_config.yaml")
     rbr_nc("11512Cdw-raw.cdf")
-    rbr_wvs("11512Cdwcont-cal.nc")
+    rbr_wvs("11512Cdwb.nc")
     # rbr_diwasp("11512Cdwcont-cal.nc") #need P_1c variable for this test to work
 
 

@@ -1705,28 +1705,34 @@ def create_filtered_water_level_var(ds):
         ftype = "lowpass"
         ford = 4
 
-        if "sample_rate" in ds.attrs:
-            sr = ds.attrs["sample_rate"]
-        elif "sample_interval" in ds.attrs:
-            sr = 1 / ds.attrs["sample_interval"]
+        # check to make sure all values in var are finitie before filtering
+        if ~ds[var].isnull().any():
+
+            if "sample_rate" in ds.attrs:
+                sr = ds.attrs["sample_rate"]
+            elif "sample_interval" in ds.attrs:
+                sr = 1 / ds.attrs["sample_interval"]
+            else:
+                raise ValueError(
+                    "Cannot create filtered_water_level without sample_rate or sample _interval in global attributes"
+                )
+
+            filtered_wl = filter.butter_filt(ds[var].values, sr, cutfreq, ftype, ford)
+
+            ds["water_level_filt"] = xr.DataArray(filtered_wl, dims="time")
+
+            ds["water_level_filt"].attrs["long_name"] = "Filtered water level NAVD88"
+            ds["water_level_filt"].attrs["units"] = "m"
+            ds["water_level_filt"].attrs[
+                "standard_name"
+            ] = "sea_surface_height_above_geopotential_datum"
+            ds["water_level_filt"].attrs["geopotential_datum_name"] = "NAVD88"
+            ds["water_level_filt"].attrs[
+                "note"
+            ] = "4th order lowpass butterworth filter with 6 min cutoff"
+
         else:
-            raise ValueError(
-                "Cannot create filtered_water_level without sample_rate or sample _interval in global attributes"
-            )
-
-        filtered_wl = filter.butter_filt(ds[var].values, sr, cutfreq, ftype, ford)
-
-        ds["water_level_filt"] = xr.DataArray(filtered_wl, dims="time")
-
-        ds["water_level_filt"].attrs["long_name"] = "Filtered water level NAVD88"
-        ds["water_level_filt"].attrs["units"] = "m"
-        ds["water_level_filt"].attrs[
-            "standard_name"
-        ] = "sea_surface_height_above_geopotential_datum"
-        ds["water_level_filt"].attrs["geopotential_datum_name"] = "NAVD88"
-        ds["water_level_filt"].attrs[
-            "note"
-        ] = "4th order lowpass butterworth filter with 6 min cutoff"
+            print(f"Cannot create filtered_water_level because {var} contains NaNs")
 
     return ds
 

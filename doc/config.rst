@@ -103,8 +103,16 @@ Options for water level:
 - ``average_salinity``: average salinity value (PSU) for the water mass for the deployment site and time period.
 - ``average_salinity_note``: source of average salinity value.
 
-Options for wave processing using pyDIWASP:
+Option for general wave processing using built-in stglib internal code:
+- ``spec_nsegs``: specify number of segments to use for windowing of wave burst data 
+- ``wave_interval``: interval in seconds for calculating wave bursts from continuous data
+- ``wave_start_time``: start datetime for first wave burst (e.g. "2021-03-10 16:00:00")
+- ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
+- ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
+- ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
 
+
+Options for wave processing using pyDIWASP:
 - ``diwasp_method``: estimator method used by pyDIWASP (options (available now): 'IMLM' (default) or 'DFTM')
 - ``diwasp_nfft``: length of FFTs used to calculate spectra (default = 256)
 - ``diwasp_nsegs``: number of segments to use to window input data for spectral analysis (default = 16)
@@ -147,8 +155,9 @@ Signature-specific options include (see Aquadopp for others):
 
 - ``orientation``: can be ``UP`` or ``DOWN`` use this to identify orientation of profiler
 - ``chunks``: list of key, value pairs for user specified chunking of data (e.g. ['time', 256000, 'bindist', 64])
-- ``wave_interval``: interval in seconds for creating wave bursts from CONTINUOUS data
-- ``wave_duration``: duration in seconds for calculating wave statistics in each wave bursts, starting with first sample (optional: default = use all samples in the wave burst)
+- ``spec_nsegs``: specify number of segments to use for windowing of wave burst data for creating energy spectra
+- ``wave_duration`` : duration in seconds from start of wave burst to use for calculating wave statistic (optional, default = all samples in burst)
+- ``wave_interval``: interval in seconds for calculating wave bursts from continuous data
 - ``wave_start_time``: start datetime for first wave burst (e.g. "2021-03-10 16:00:00")
 - ``average_interval``: interval in seconds for calculating mean values from CONTINUOUS sample mode data (default = if sample mode is CONTINUOUS, no average file will be created from data set)
 - ``average_duration``: duration in seconds for calculating mean values, starting with first sample in each average interval or burst (default =  use all samples in the average interval or burst)
@@ -176,7 +185,11 @@ RBR instruments
 Options specific to RBR instruments exported from the Ruskin software include:
 
 - ``basefile``: the input filename without extension or data type. For example, if your exported text files are named ``055170_20190219_1547_burst.txt``, ``055170_20190219_1547_data.txt``, etc., ``basefile`` will be ``055170_20190219_1547``.
+- ``diwasp``: processing type for pyDIWASP wave processing; option(s) for RBR pressure loggers is 'pres'
 - ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
+- ``spec_nsegs``: specify number of segments to use for windowing of wave burst data for creating energy spectra
+- ``wave_interval``: interval in seconds for calculating wave bursts from continuous data
+- ``wave_start_time``: start datetime for first wave burst (e.g. "2021-03-10 16:00:00")
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).

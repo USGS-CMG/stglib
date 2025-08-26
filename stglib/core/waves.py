@@ -19,7 +19,7 @@ def make_diwasp_inputs(
     nsegs=16,
     iter=50,
     freqs=None,
-    nfft=256,
+    nfft=None,
     xdir=90,
     dunit="naut",
     nsamps=None,
@@ -566,8 +566,19 @@ def make_waves_ds(ds):
         )
         presvar = "P_1"
 
+    if "spec_nsegs" in ds.attrs:
+        nsegs = ds.attrs["spec_nsegs"]
+    else:
+        # set to default = 16
+        nsegs = 16
+
+    nsamps = len(ds["sample"].values)
+    nfft = next_power_of_2(int(nsamps / nsegs))
+
     f, Pxx = pressure_spectra(
-        ds[presvar].squeeze().values, fs=1 / ds.attrs["sample_interval"]
+        ds[presvar].squeeze().values,
+        fs=1 / ds.attrs["sample_interval"],
+        nperseg=nfft,
     )
 
     if "pressure_sensor_height" in ds.attrs:
@@ -589,6 +600,7 @@ def make_waves_ds(ds):
     spec["Pnn"] = xr.DataArray(Pnn, dims=("time", "frequency"), coords=(ds["time"], f))
     spec["Pxx"] = xr.DataArray(Pxx, dims=("time", "frequency"), coords=(ds["time"], f))
     spec["Kp"] = xr.DataArray(Kp, dims=("time", "frequency"), coords=(ds["time"], f))
+    spec["k"] = xr.DataArray(k, dims=("time", "frequency"), coords=(ds["time"], f))
 
     if "waves_fractional_noise" in ds.attrs:
         noise = ds.attrs["waves_fractional_noise"]
@@ -613,6 +625,11 @@ def make_waves_ds(ds):
         for time in spec["time"]
     ]
     spec["pspec"] = xr.DataArray(thetail, dims=("time", "frequency"))
+
+    # clip wave spectral frequencies if user enabled - must be done before taking any spectral moments
+    if "clip_f" in ds.attrs and ds.attrs["clip_f"].lower() == "true":
+        spec = clip_f(spec, nsamps=nsamps, fs=1 / ds.attrs["sample_interval"])
+
     spec["m0"] = xr.DataArray(
         make_moment(spec["frequency"], spec["pspec"], 0), dims="time"
     )
@@ -622,7 +639,6 @@ def make_waves_ds(ds):
     spec["wh_4061"] = xr.DataArray(make_Hs(spec["m0"]), dims="time")
     spec["wp_4060"] = xr.DataArray(make_Tm(spec["m0"], spec["m2"]), dims="time")
     spec["wp_peak"] = xr.DataArray(make_Tp(spec["pspec"]), dims="time")
-    spec["k"] = xr.DataArray(k, dims=("time", "frequency"))
 
     return spec
 
@@ -634,13 +650,22 @@ def make_waves_ds_elev(ds):
         var = "elev"
     elif "brange" in ds:
         var = "brange"
+    elif "brangeAST" in ds:
+        var = "brangeAST"
+
+    if "spec_nsegs" in ds.attrs:
+        nsegs = ds.attrs["spec_nsegs"]
+    else:
+        # set to default = 16
+        nsegs = 16
 
     nsamps = len(ds["sample"].values)
-    nsegs = 16  # hard code for now
-    nperseg = next_power_of_2(int(nsamps / nsegs))
+    nfft = next_power_of_2(int(nsamps / nsegs))
 
     f, Pxx = pressure_spectra(
-        ds[var].squeeze().values, fs=1 / ds.attrs["sample_interval"], nperseg=nperseg
+        ds[var].squeeze().values,
+        fs=1 / ds.attrs["sample_interval"],
+        nperseg=nfft,
     )
 
     # trim frequencies
@@ -1960,3 +1985,83 @@ def var_wave_burst_fill_nans(ds, var):
             )
 
     return var
+
+
+def make_wave_bursts_mi(
+    ds,
+    wave_vars=[
+        "sample",
+        "P_1",
+        "P_1ac",
+        "Tx_1211",
+        "brangeAST",
+        "ast_quality",
+        "u_1205",
+        "v_1206",
+        "w_1204",
+        "vel",
+        "cor",
+        "amp",
+    ],
+):
+    """
+    Reshape CONTINUOUS data set into burst shape using multi-indexing for purpose of wave analysis
+    """
+    for k in ds.data_vars:
+        if k not in wave_vars:
+            ds = ds.drop_vars(k)
+
+    # average_interval is [sec] interval for wave statistics for continuous data
+    ds.attrs["wave_samples_per_burst"] = int(
+        ds.attrs["wave_interval"] / ds.attrs["sample_interval"]
+    )
+    nsamps = ds.attrs["wave_samples_per_burst"]
+
+    if len(ds.time) % nsamps != 0:
+        ds = ds.isel(time=slice(0, -(int(len(ds.time) % (nsamps)))))
+
+    # create samples & new_time
+    x = np.arange(nsamps)
+    y = ds["time"][0:-1:nsamps]
+
+    # make new arrays for multi-index
+    samp, t = np.meshgrid(x, y)
+    s = samp.flatten()
+    t3 = t.flatten()
+
+    # create multi-index
+    ind = pd.MultiIndex.from_arrays((t3, s), names=("new_time", "new_sample"))
+    # unstack to make burst shape dataset
+    ds = ds.assign_coords(
+        xr.Coordinates.from_pandas_multiindex(ind, dim="time")
+    ).unstack("time")
+    # dsa = dsa.unstack()
+    if "sample" in ds.data_vars:
+        ds = ds.drop_vars("sample").rename({"new_time": "time", "new_sample": "sample"})
+    else:
+        ds = ds.rename({"new_time": "time", "new_sample": "sample"})
+
+    return ds
+
+
+def clip_f(spec, nsamps=None, fs=None):
+    """Clip frequencies in wave spectra data set"""
+
+    if nsamps and fs:
+        nyfreq = float(fs) / 2
+        flo = np.round(
+            1 / (nsamps / fs / 32.0), 3
+        )  # set minimum frequency to length of wave burst samples use divided by 32
+        if nyfreq > 2:
+            fhi = 2
+        else:
+            fhi = nyfreq
+
+        # apply buffer to each end of slice to include end points
+        spec = spec.sel(frequency=slice(flo - 0.005, fhi + 0.005))
+    else:
+        print(
+            "Cannot clip wave spectral frequency because inputs nsamps and/or fs are missing"
+        )
+
+    return spec

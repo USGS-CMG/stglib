@@ -39,6 +39,17 @@ def cdf_to_nc(
 
     ds = ds_add_attrs(ds, is_profile)
 
+    if not is_profile:
+        # add z coordinate dim
+        ds = utils.create_z(ds)
+
+        # check for filtered water level
+        if "filtered_wl" in ds.attrs and ds.attrs["filtered_wl"].lower() == "true":
+            ds = utils.create_water_level_var(ds, salwtemp=salwtemp)
+            if "water_level" in ds.data_vars:
+                ds = utils.create_filtered_water_level_var(ds)
+                ds = ds.drop_vars("water_level")
+
     # if "P_1" in ds:
     #    ds = ds_add_depth_dim(ds)
 
@@ -79,11 +90,17 @@ def cdf_to_nc(
         ds = qaqc.trim_mask_expr(ds, var)
 
     if not is_profile:
+        """
         # add z coordinate dim
         ds = utils.create_z(ds)
-        ds = utils.create_water_level_var(ds, salwtemp=salwtemp)
-        ds = utils.create_water_depth_var(ds, salwtemp=salwtemp)
-        ds = utils.create_filtered_water_level_var(ds)
+
+        # check for filtered water level
+        if "filtered_wl" in ds.attrs and ds.attrs["filtered_wl"].lower() == "true":
+            ds = utils.create_water_level_var(ds, salwtemp=salwtemp)
+            ds = utils.create_filtered_water_level_var(ds)
+            ds = ds.drop_vars("water_level")
+        """
+
         ds = utils.add_min_max(ds)
         ds = utils.ds_add_lat_lon(ds)
 
@@ -129,16 +146,15 @@ def cdf_to_nc(
     if writefile:
         # Write to .nc file
         print("Writing cleaned/trimmed data to .nc file")
-        if "burst" in ds or "sample" in ds:
-            nc_filename = ds.attrs["filename"] + "b-cal.nc"
+        if (
+            "burst" in ds
+            or "sample" in ds
+            or ds.attrs["sample_mode"].upper() == "CONTINUOUS"
+        ):
+            nc_filename = ds.attrs["filename"] + "b.nc"
 
         elif is_profile:
-            nc_filename = ds.attrs["filename"] + "prof-cal.nc"
-
-        elif (ds.attrs["sample_mode"].upper() == "CONTINUOUS") and (
-            "burst" not in ds or "sample" not in ds
-        ):
-            nc_filename = ds.attrs["filename"] + "cont-cal.nc"
+            nc_filename = ds.attrs["filename"] + "prof.nc"
 
         else:
             nc_filename = ds.attrs["filename"] + "-a.nc"

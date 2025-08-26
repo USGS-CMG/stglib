@@ -1,10 +1,12 @@
+import warnings
+
 import numpy as np
 import xarray as xr
 
 from ..core import qaqc, utils, waves
 
 
-def nc_to_waves(nc_filename):
+def nc_to_waves(nc_filename, salwtemp=None):
     """
     Process burst data to wave statistics
     """
@@ -14,7 +16,30 @@ def nc_to_waves(nc_filename):
     # check to see if need to make wave burst from continuous data
     if ds.attrs["sample_mode"].upper() == "CONTINUOUS" and "wave_interval" in ds.attrs:
         # make wave burst ncfile from continuous data if wave_interval is specified
-        ds = make_wave_bursts(ds)
+        # check for wave_start_time attrs
+        if "wave_start_time" in ds.attrs:
+            print(
+                f"trimming continuous data to start at users specified wave start time {ds.attrs['wave_start_time']}"
+            )
+            ds = ds.sel(
+                time=slice(np.datetime64(ds.attrs["wave_start_time"]), ds["time"][-1])
+            )
+        ds = waves.make_wave_bursts_mi(ds)
+
+    if "sample_rate" not in ds.attrs:
+        ds.attrs["sample_rate"] = (1 / ds.attrs["sample_interval"]).round(2)
+
+    # check to see if wave duration is specified and if so trim burst samples accordingly
+    if "wave_duration" in ds.attrs:
+        if ds.attrs["wave_duration"] <= ds.attrs["wave_interval"]:
+            nsamps = int(ds.attrs["wave_duration"] * ds.attrs["sample_rate"])
+            ds = ds.isel(sample=slice(0, nsamps))
+            ds.attrs["wave_samples_per_burst"] = nsamps
+
+        else:
+            warnings.warn(
+                f"wave_duration {ds.attrs.wave_duration} cannot be greater than wave_interval {ds.attrs.wave_interval}, this configuration setting will be ignored"
+            )
 
     spec = waves.make_waves_ds(ds)
 
@@ -23,8 +48,8 @@ def nc_to_waves(nc_filename):
 
     # ds = utils.create_water_depth(ds)
 
-    ds = utils.create_water_depth_var(ds)
-    ds = utils.create_water_level_var(ds)
+    ds = utils.create_water_depth_var(ds, salwtemp=salwtemp)
+    ds = utils.create_water_level_var(ds, salwtemp=salwtemp)
 
     for k in ["P_1", "P_1ac", "sample", "T_28", "water_level_filt"]:
         if k in ds:
@@ -56,7 +81,7 @@ def nc_to_waves(nc_filename):
     return ds
 
 
-def nc_to_diwasp(nc_filename):
+def nc_to_diwasp(nc_filename, salwtemp=None):
     """
     Process burst data to make DIWASP derived wave statistics and spectra
     """
@@ -74,10 +99,22 @@ def nc_to_diwasp(nc_filename):
                 time=slice(np.datetime64(ds.attrs["wave_start_time"]), ds["time"][-1])
             )
         # make wave burst ncfile from continuous data if wave_interval is specified
-        ds = make_wave_bursts(ds)
+        ds = waves.make_wave_bursts_mi(ds)
 
     if "sample_rate" not in ds.attrs:
-        ds.attrs["sample_rate"] = 1 / ds.attrs["sample_interval"]
+        ds.attrs["sample_rate"] = (1 / ds.attrs["sample_interval"]).round(2)
+
+    # check to see if wave duration is specified and if so trim burst samples accordingly
+    if "wave_duration" in ds.attrs:
+        if ds.attrs["wave_duration"] <= ds.attrs["wave_interval"]:
+            nsamps = int(ds.attrs["wave_duration"] * ds.attrs["sample_rate"])
+            ds = ds.isel(sample=slice(0, nsamps))
+            ds.attrs["wave_samples_per_burst"] = nsamps
+
+        else:
+            warnings.warn(
+                f"wave_duration {ds.attrs.wave_duration} cannot be greater than wave_interval {ds.attrs.wave_interval}, this configuration setting will be ignored"
+            )
 
     if "diwasp" not in ds.attrs:
         # 'pres' is only option for a single pressure logger
@@ -124,7 +161,8 @@ def nc_to_diwasp(nc_filename):
     # rename Fspec based on input datatype
     ds = utils.rename_diwasp_fspec(ds)
 
-    ds = utils.create_water_depth_var(ds)
+    ds = utils.create_water_level_var(ds, salwtemp=salwtemp)
+    ds = utils.create_water_depth_var(ds, salwtemp=salwtemp)
 
     for k in [
         "burst",
@@ -214,8 +252,13 @@ def make_wave_bursts(ds):
 
 def drop_unused_dims(ds):
     """only keep dims that will be in the final files"""
-    thedims = []
-
+    thedims = [
+        "frequency",
+        "latitude",
+        "longitude",
+        "z",
+        "depth",
+    ]
     for v in ds.data_vars:
         for x in ds[v].dims:
             thedims.append(x)
