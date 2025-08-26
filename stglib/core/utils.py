@@ -1938,3 +1938,7 @@ def pres2dep(ds, pvar="P_1ac", salwtemp=None):
         dep = ds[pvar] / (rho * g) * 1e4
 
     return dep, calctext
+
+
+def get_detailed_version():
+    return f"""stglib {stglib.__version__} installed at {stglib.__file__} with Python {platform.python_version()}, xarray {xr.__version__}, NumPy {np.__version__}, netCDF4 {netCDF4.__version__}"""

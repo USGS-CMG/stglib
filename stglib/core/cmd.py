@@ -1,5 +1,7 @@
 import argparse
 
+import stglib
+
 
 def yamlarg(parser):
     parser.add_argument(
@@ -79,6 +81,11 @@ def runots_parser():
     parser = argparse.ArgumentParser(
         description="Run USGS CMHRP ocean time-series data processing system."
     )
+
+    parser.add_argument(
+        "-v", "--version", action="version", version=stglib.utils.get_detailed_version()
+    )
+
     subparsers = parser.add_subparsers(
         title="Instruments",
         required=True,

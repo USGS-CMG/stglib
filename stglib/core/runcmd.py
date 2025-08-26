@@ -521,6 +521,8 @@ def runmcasc2cdf(args=None):
 def runots():
     args = stglib.cmd.runots_parser().parse_args()
 
+    print(f"stglib {stglib.__version__}")
+
     if "2cdf" in args.step:
         metadata = get_metadata(args)
 
