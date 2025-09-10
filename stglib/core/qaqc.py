@@ -83,8 +83,8 @@ def trim_max(ds, var):
 
 def trim_min_diff(ds, var):
     if var + "_min_diff" in ds.attrs:
-        cond = np.ediff1d(ds[var], to_begin=0) < ds.attrs[var + "_min_diff"]
-        affected = cond.sum()
+        cond = np.ediff1d(ds[var].squeeze(), to_begin=0) < ds.attrs[var + "_min_diff"]
+        affected = cond.sum().values
         ds[var][cond] = np.nan
 
         notetxt = f"Values filled where data decreases by more than {ds.attrs[var + '_min_diff']} units in a single time step; {affected} values affected. "
@@ -97,10 +97,12 @@ def trim_min_diff(ds, var):
 def trim_min_diff_pct(ds, var):
     if var + "_min_diff_pct" in ds.attrs:
         cond = (
-            100 * np.ediff1d(ds[var], to_begin=0) / np.roll(ds[var], 1)
+            100
+            * np.ediff1d(ds[var].squeeze(), to_begin=0)
+            / np.roll(ds[var].squeeze(), 1)
             < ds.attrs[var + "_min_diff_pct"]
         )
-        affected = cond.sum()
+        affected = cond.sum().values
         ds[var][cond] = np.nan
 
         notetxt = f"Values filled where data decreases by more than {ds.attrs[var + '_min_diff_pct']} percent in a single time step; {affected} values affected. "
@@ -112,8 +114,8 @@ def trim_min_diff_pct(ds, var):
 
 def trim_max_diff(ds, var):
     if var + "_max_diff" in ds.attrs:
-        cond = np.ediff1d(ds[var], to_begin=0) > ds.attrs[var + "_max_diff"]
-        affected = cond.sum()
+        cond = np.ediff1d(ds[var].squeeze(), to_begin=0) > ds.attrs[var + "_max_diff"]
+        affected = cond.sum().values
         ds[var][cond] = np.nan
 
         notetxt = f"Values filled where data increases by more than {ds.attrs[var + '_max_diff']} units in a single time step; {affected} values affected. "
@@ -126,10 +128,12 @@ def trim_max_diff(ds, var):
 def trim_max_diff_pct(ds, var):
     if var + "_max_diff_pct" in ds.attrs:
         cond = (
-            100 * np.ediff1d(ds[var], to_begin=0) / np.roll(ds[var], 1)
+            100
+            * np.ediff1d(ds[var].squeeze(), to_begin=0)
+            / np.roll(ds[var].squeeze(), 1)
             > ds.attrs[var + "_max_diff_pct"]
         )
-        affected = cond.sum()
+        affected = cond.sum().values
         ds[var][cond] = np.nan
 
         notetxt = f"Values filled where data increases by more than {ds.attrs[var + '_max_diff_pct']} percent in a single time step; {affected} values affected. "
@@ -199,9 +203,9 @@ def trim_bad_ens(ds, var):
                 ] = True
                 ds[var][bads] = np.nan
 
-            notetxt = "Data clipped using bad_ens values of %s. " % (
-                str(ds.attrs[var + "_bad_ens"])
-            )
+            affected = bads.sum()
+
+            notetxt = f"Data clipped using bad_ens values of {ds.attrs[var + '_bad_ens']}; {affected.values} values affected. "
 
             ds = utils.insert_note(ds, var, notetxt)
 
@@ -281,10 +285,10 @@ def trim_max_std(ds, var):
 def trim_max_blip(ds, var):
     """trim short-lived maximum "blips", values that increase and then immediately decrease at the next time step"""
     if var + "_max_blip" in ds.attrs:
-        cond = (np.ediff1d(ds[var], to_begin=0) > ds.attrs[var + "_max_blip"]) & (
-            np.ediff1d(ds[var], to_end=0) < -ds.attrs[var + "_max_blip"]
-        )
-        affected = cond.sum()
+        cond = (
+            np.ediff1d(ds[var].squeeze(), to_begin=0) > ds.attrs[var + "_max_blip"]
+        ) & (np.ediff1d(ds[var].squeeze(), to_end=0) < -ds.attrs[var + "_max_blip"])
+        affected = cond.sum().values
         ds[var][cond] = np.nan
 
         notetxt = f"Values filled where data blips by more than {ds.attrs[var + '_max_blip']} units in a single time step; {affected} values affected. "
@@ -298,13 +302,17 @@ def trim_max_blip_pct(ds, var):
     """trim short-lived maximum "blips", values that increase and then immediately decrease at the next time step"""
     if var + "_max_blip_pct" in ds.attrs:
         cond = (
-            100 * np.ediff1d(ds[var], to_begin=0) / np.roll(ds[var], 1)
+            100
+            * np.ediff1d(ds[var].squeeze(), to_begin=0)
+            / np.roll(ds[var].squeeze(), 1)
             > ds.attrs[var + "_max_blip_pct"]
         ) & (
-            100 * np.ediff1d(ds[var], to_end=0) / np.roll(ds[var], -1)
+            100
+            * np.ediff1d(ds[var].squeeze(), to_end=0)
+            / np.roll(ds[var].squeeze(), -1)
             < -ds.attrs[var + "_max_blip_pct"]
         )
-        affected = cond.sum()
+        affected = cond.sum().values
         ds[var][cond] = np.nan
 
         notetxt = f"Values filled where data blips by more than {ds.attrs[var + '_max_blip_pct']} percent in a single time step; {affected} values affected. "
@@ -471,9 +479,10 @@ def trim_maxabs_diff(ds, var):
         else:
             val = ds.attrs[var + "_maxabs_diff"]
             cond = (
-                np.abs(np.ediff1d(ds[var], to_begin=0)) > ds.attrs[var + "_maxabs_diff"]
+                np.abs(np.ediff1d(ds[var].squeeze(), to_begin=0))
+                > ds.attrs[var + "_maxabs_diff"]
             )
-            affected = cond.sum()
+            affected = cond.sum().values
             ds[var][cond] = np.nan
 
         notetxt = f"Values filled where data increases or decreases by more than {val} units in a single time step; {affected} values affected. "
