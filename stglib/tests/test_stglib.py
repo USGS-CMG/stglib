@@ -266,6 +266,7 @@ class TestAqd(unittest.TestCase):
         self.ds["Pressure_ac"] = xr.DataArray(depth, dims="time")
         self.ds["bindist"] = xr.DataArray(bindist, dims="bindist")
         self.ds.attrs["transducer_offset_from_bottom"] = 0.15
+        self.ds.attrs["initial_instrument_height"] = 0.15
 
         self.ds.attrs["orientation"] = "UP"
         result, T, T_orig = stglib.aqd.aqdutils.set_orientation(self.ds, self.T)

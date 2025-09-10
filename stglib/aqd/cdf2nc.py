@@ -109,6 +109,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         VEL = qaqc.trim_mask(VEL, var)
         VEL = qaqc.trim_mask_expr(VEL, var)
 
+    # Create water_level variable
+    VEL = utils.create_water_level_var(VEL, vdim="zpres")
+
     # Add min/max values
     VEL = utils.add_min_max(VEL)
 

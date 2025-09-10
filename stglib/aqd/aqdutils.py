@@ -239,6 +239,10 @@ def set_orientation(VEL, T=None, inst_type="AQD"):
             elev_ai1 = navd88_ref + VEL.attrs["AnalogInput1_height"]
         if "AnalogInput2_height" in VEL.attrs:
             elev_ai2 = navd88_ref + VEL.attrs["AnalogInput2_height"]
+        if "pressure_sensor_height" in VEL.attrs:
+            elev_pres = navd88_ref + VEL.attrs["pressure_sensor_height"]
+        else:
+            elev_pres = navd88_ref + VEL.attrs["initial_instrument_height"]
 
         long_name = "height relative to NAVD88"
         geopotential_datum_name = "NAVD88"
@@ -249,6 +253,10 @@ def set_orientation(VEL, T=None, inst_type="AQD"):
             elev_ai1 = hagd + VEL.attrs["AnalogInput1_height"]
         if "AnalogInput2_height" in VEL.attrs:
             elev_ai2 = hagd + VEL.attrs["AnalogInput2_height"]
+        if "pressure_sensor_height" in VEL.attrs:
+            elev_pres = hagd + VEL.attrs["pressure_sensor_height"]
+        else:
+            elev_pres = hagd + VEL.attrs["initial_instrument_height"]
 
         long_name = f"height relative to {VEL.attrs['geopotential_datum_name']}"
         geopotential_datum_name = VEL.attrs["geopotential_datum_name"]
@@ -259,6 +267,11 @@ def set_orientation(VEL, T=None, inst_type="AQD"):
             elev_ai1 = VEL.attrs["AnalogInput1_height"]
         if "AnalogInput2_height" in VEL.attrs:
             elev_ai2 = VEL.attrs["AnalogInput2_height"]
+        if "pressure_sensor_height" in VEL.attrs:
+            elev_pres = VEL.attrs["pressure_sensor_height"]
+        else:
+
+            elev_pres = VEL.attrs["initial_instrument_height"]
 
         long_name = "height relative to sea bed"
 
@@ -290,8 +303,15 @@ def set_orientation(VEL, T=None, inst_type="AQD"):
             VEL["zai1"] = xr.DataArray([elev_ai1], dims="zai1")
         if "AnalogInput2_height" in VEL.attrs:
             VEL["zai2"] = xr.DataArray([elev_ai2], dims="zai2")
+        if "pressure_sensor_height" in VEL.attrs:
+            VEL["zpres"] = xr.DataArray([elev_pres], dims="zpres")
+        else:
+            warnings.warn(
+                "pressure_sensor_height not specified; using initial_instrument_height to determine elevation of pressure sensor"
+            )
+            VEL["zpres"] = xr.DataArray([elev_pres], dims="zpres")
 
-    for z in ["z", "zai1", "zai2"]:
+    for z in ["z", "zai1", "zai2", "zpres"]:
         if z not in VEL:
             continue
         VEL[z].attrs["standard_name"] = "height"
