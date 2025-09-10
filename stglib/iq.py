@@ -1,6 +1,5 @@
 import warnings
 
-import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
@@ -156,16 +155,12 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     print("Writing cleaned/trimmed data to .nc file")
 
     nc_filename = dsflow.attrs["filename"] + "flow-a.nc"
-    dsflow.to_netcdf(
-        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
-    )
+    dsflow.to_netcdf(nc_filename, unlimited_dims=["time"])
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
     print("Done writing netCDF file", nc_filename)
 
     nc_filename = dsprof.attrs["filename"] + "prof-a.nc"
-    dsprof.to_netcdf(
-        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
-    )
+    dsprof.to_netcdf(nc_filename, unlimited_dims=["time"])
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
     print("Done writing netCDF file", nc_filename)
 

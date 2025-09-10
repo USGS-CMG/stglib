@@ -264,7 +264,6 @@ def ds_add_attrs(ds):
     ds["time"].attrs["standard_name"] = "time"
     ds["time"].attrs["axis"] = "T"
     ds["time"].attrs["long_name"] = "time (UTC)"
-    ds["time"].encoding = {"dtype": "int32"}
 
     ds["temperature"].attrs["units"] = "degree_C"
     ds["temperature"].attrs["standard_name"] = "sea_water_temperature"

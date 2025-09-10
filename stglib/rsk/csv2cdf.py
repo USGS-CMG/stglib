@@ -126,7 +126,6 @@ def csv_to_cdf(metadata):
 
         pr["profile"] = xr.DataArray(range(len(starts)), dims="profile")
         pr["profile"].attrs["cf_role"] = "profile_id"
-        pr["profile"].encoding["dtype"] = "i4"
 
         timeavg = []
         row_size = []
@@ -139,7 +138,6 @@ def csv_to_cdf(metadata):
         pr["row_size"] = xr.DataArray(row_size, dims="profile")
         pr["row_size"].attrs["long_name"] = "number of obs for this profile"
         pr["row_size"].attrs["sample_dimension"] = "obs"
-        pr["row_size"].encoding["dtype"] = "i4"
 
         # row_start (rowStart) defined at https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#_contiguous_ragged_array_representation_of_time_series
         row_start = np.zeros(pr.row_size.shape, dtype=int)
@@ -149,7 +147,6 @@ def csv_to_cdf(metadata):
         pr["row_start"] = xr.DataArray(row_start, dims="profile")
         pr["row_start"].attrs["long_name"] = "starting obs for this profile"
         pr["row_start"].attrs["sample_dimension"] = "obs"
-        pr["row_start"].encoding["dtype"] = "i4"
 
         if "latitude" in ds.attrs and "longitude" in ds.attrs:
             if len(ds.attrs["latitude"]) == len(row_size) and len(
@@ -186,8 +183,6 @@ def csv_to_cdf(metadata):
 
         # dscp = ds.copy(deep=True)
         ds["obs"] = xr.DataArray(range(len(ds["time"])), dims="obs")
-        if utils.check_fits_in_int32(ds, "obs"):
-            ds["obs"].encoding["dtype"] = "i4"
 
         obstime = ds["time"].values
 

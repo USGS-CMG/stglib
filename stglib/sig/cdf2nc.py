@@ -761,14 +761,6 @@ def fix_encoding(ds):
         # round time to seconds if time interval >= 1 minute
         ds["time"] = ds["time"].dt.round("s")
 
-        # check time to make sure it fits in int32, assume seconds for time units
-        utils.check_time_fits_in_int32(ds, "time")
-
-        ds["time"].encoding["dtype"] = "i4"
-
-    if "beam" in ds.dims:
-        ds["beam"].encoding["dtype"] = "i4"
-
     for var in ds.data_vars:
         if ds[var].dtype == "uint32" or ds[var].dtype == "uint8":
             if "dtype" in ds[var].encoding:

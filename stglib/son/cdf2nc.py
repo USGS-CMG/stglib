@@ -95,9 +95,7 @@ def cdf_to_nc(cdf_filename, height=None):
     print("Writing cleaned/trimmed data to .nc file")
     nc_filename = f"{ds.attrs['filename']}b_{str(ds.attrs['SONRange'])}m.nc"
 
-    ds.to_netcdf(
-        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
-    )
+    ds.to_netcdf(nc_filename, unlimited_dims=["time"])
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print(f"Done writing netCDF file {nc_filename}")
@@ -125,9 +123,7 @@ def cdf_to_nc(cdf_filename, height=None):
     print("Writing averaged data to .nc file")
     nc_avg_filename = f"{ds_avg.attrs['filename']}b_{str(ds.attrs['SONRange'])}m-a.nc"
 
-    ds_avg.to_netcdf(
-        nc_avg_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
-    )
+    ds_avg.to_netcdf(nc_avg_filename, unlimited_dims=["time"])
 
     utils.check_compliance(nc_avg_filename, conventions=ds_avg.attrs["Conventions"])
 

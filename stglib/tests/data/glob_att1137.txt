@@ -5,7 +5,7 @@
     DATA_SUBTYPE; POLE-MOUNTED
     DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.6
+    Conventions; CF-1.11
     MOORING; 1137
     WATER_DEPTH; 5.4
     WATER_DEPTH_NOTE; (meters), Mean water level from data

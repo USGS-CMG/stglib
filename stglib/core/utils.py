@@ -391,11 +391,7 @@ def ds_add_wave_attrs(ds):
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
-    ds["time"].encoding["dtype"] = "i4"
-
     if "burst" in ds:
-        check_fits_in_int32(ds, "burst")
-        ds["burst"].encoding["dtype"] = "i4"
         ds["burst"].attrs["units"] = "1"
         ds["burst"].attrs["long_name"] = "Burst number"
 
@@ -1539,9 +1535,6 @@ def check_time_encoding(ds):
 
     if "units" in ds["time"].encoding:
         ds["time"].encoding.pop("units")
-
-    if check_time_fits_in_int32(ds, "time"):
-        ds["time"].encoding["dtype"] = "i4"
 
     else:
         print("time variable will not fit in int32; casting to double")

@@ -6,7 +6,7 @@ title; "Time-series measurements of oceanographic and water quality data collect
 DATA_SUBTYPE; MOORED
 DATA_ORIGIN; "USGS WHCMSC Coastal and Estuarine Dynamics"
 COORD_SYSTEM; GEOGRAPHIC
-Conventions; CF-1.8
+Conventions; CF-1.11
 MOORING; 1126
 WATER_DEPTH; 8.7
 WATER_DEPTH_NOTE; "(meters), Mean water level from pressure data"

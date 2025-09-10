@@ -1,6 +1,6 @@
     title; test TruBlue
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.8
+    Conventions; CF-1.11
     WATER_DEPTH; 1.25
     height_above_geopotential_datum; -1.268
     geopotential_datum_name; NAVD88

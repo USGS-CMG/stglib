@@ -5,7 +5,7 @@
     DATA_SUBTYPE; MOORED
     DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.6
+    Conventions; CF-1.11
     MOORING; 1151B
     WATER_DEPTH; 1.3
     WATER_DEPTH_NOTE; (meters), mean water depth from data (1.011 avg + .29m from bed to exo sensors). 

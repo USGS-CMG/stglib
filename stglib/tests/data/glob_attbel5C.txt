@@ -4,4 +4,4 @@ longitude; -122.575145
 Deployment_date; 2021-01-22 19:17
 Recovery_date; 2021-04-13 21:38
 magnetic_variation; 15.95
-Conventions; CF-1.6
+Conventions; CF-1.11

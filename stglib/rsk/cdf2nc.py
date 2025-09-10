@@ -120,9 +120,6 @@ def cdf_to_nc(
         obs = np.arange(len(ds["obs"]))
         ds = ds.assign_coords(obs=obs)
         ds["obs"].attrs = attrsbak
-        # reset dtype since we changed the values and it got reset to int64
-        if utils.check_fits_in_int32(ds, "obs"):
-            ds["obs"].encoding["dtype"] = "i4"
 
         # TODO: this code is mostly redundant with the row_start code in csv2cdf.py. They should be calling the same function
         row_start = np.zeros(ds.row_size.shape, dtype=int)
@@ -135,13 +132,6 @@ def cdf_to_nc(
     if "sample" in ds:
         if len(ds["sample"]) == 1:
             ds = ds.squeeze(dim="sample")
-
-    if "obstime" in ds:
-        if utils.check_time_fits_in_int32(ds, "obstime"):
-            ds["obstime"].encoding["dtype"] = "i4"
-        else:
-            print("Could not set obstime to i4; setting to float64 instead")
-            ds["obstime"].encoding["dtype"] = "float64"
 
     if writefile:
         # Write to .nc file
@@ -322,20 +312,7 @@ def ds_add_attrs(ds, is_profile):
     if is_profile:
         ds["time"].attrs["long_name"] = "observation time (UTC)"
 
-    if (ds.attrs["sample_mode"].upper() == "CONTINUOUS") and ("sample" not in ds):
-        if utils.check_time_fits_in_int32(ds, "time"):
-            ds["time"].encoding["dtype"] = "i4"
-        else:
-            print("time variable will not fit in int32; casting to double")
-            ds["time"].encoding["dtype"] = "double"
-    else:
-        if utils.check_time_fits_in_int32(ds, "time"):
-            ds["time"].encoding["dtype"] = "i4"
-
     if "sample" in ds:
-        if not utils.check_fits_in_int32(ds, "sample"):
-            raise ValueError()
-        ds["sample"].encoding["dtype"] = "i4"
         ds["sample"].attrs["long_name"] = "sample number"
         ds["sample"].attrs["units"] = "1"
 
@@ -355,9 +332,6 @@ def ds_add_attrs(ds, is_profile):
             ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
 
     if "burst" in ds:
-        if not utils.check_fits_in_int32(ds, "burst"):
-            raise ValueError()
-        ds["burst"].encoding["dtype"] = "i4"
         ds["burst"].attrs["units"] = "1"
         ds["burst"].attrs["long_name"] = "Burst number"
 

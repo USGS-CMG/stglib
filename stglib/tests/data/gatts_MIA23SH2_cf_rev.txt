@@ -19,4 +19,4 @@ CollaboratingAgency; University of Miami
 DESCRIPTION; Seahive structure
 WATER_DEPTH_SOURCE; pressure data
 magnetic_variation; -7.25
-Conventions; CF-1.8
+Conventions; CF-1.11

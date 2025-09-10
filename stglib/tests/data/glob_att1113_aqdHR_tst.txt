@@ -6,7 +6,7 @@
     DATA_SUBTYPE; MOORED
     DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.8
+    Conventions; CF-1.11
     MOORING; 1113
     WATER_DEPTH; 12.5
     WATER_DEPTH_NOTE; (meters), from cave floor to water table above (estimated)
