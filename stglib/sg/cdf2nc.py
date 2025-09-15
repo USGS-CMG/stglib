@@ -146,21 +146,21 @@ def avg_tide_bursts(ds):
 
     # Calculate how many rows to subdivide each wave burst (round up)
     rows = math.ceil(
-        float(ds.attrs["SGBurstDuration"]) / float(ds.attrs["calculated_tide_interval"])
+        float(ds.attrs["SGBurstDuration"]) / float(ds.attrs["average_tide_interval"])
     )
 
     # Calculate how many columns to subdivide each wave burst
     cols = int(
-        float(ds.attrs["calculated_tide_interval"]) * float(ds.attrs["sample_rate"])
+        float(ds.attrs["average_tide_interval"]) * float(ds.attrs["sample_rate"])
     )
 
     # Calculate number of values to average based on tide duration
     values_avg = int(
-        float(ds.attrs["calculated_tide_duration"]) * float(ds.attrs["sample_rate"])
+        float(ds.attrs["average_tide_duration"]) * float(ds.attrs["sample_rate"])
     )
 
     # Define time interval
-    delta_t = int(ds.attrs["calculated_tide_interval"])
+    delta_t = int(ds.attrs["average_tide_interval"])
     delta_t = f"{delta_t}s"
 
     # Reshape P_1 and P_1ac pressure bursts and average

@@ -13,7 +13,7 @@ def nc_to_waves(nc_filename):
     ds = xr.open_dataset(nc_filename)
 
     # Check to see if need to make smaller wave bursts from really long wave bursts
-    if "calculated_wave_interval" in ds.attrs:
+    if "average_wave_interval" in ds.attrs:
         # Divide large burst into smaller bursts at specified calculated_wave_interval
         ds = make_wave_bursts(ds)
 
@@ -58,16 +58,14 @@ def nc_to_waves(nc_filename):
 
 def make_wave_bursts(ds):
     ds.attrs["samples_per_burst"] = int(
-        ds.attrs["calculated_wave_interval"] / ds.attrs["sample_interval"]
+        ds.attrs["average_wave_interval"] / ds.attrs["sample_interval"]
     )
 
     # Calculate how many rows to subdivide each burst
-    rows = float(ds.attrs["SGBurstDuration"]) / float(
-        ds.attrs["calculated_wave_interval"]
-    )
+    rows = float(ds.attrs["SGBurstDuration"]) / float(ds.attrs["average_wave_interval"])
 
     # Define time interval
-    delta_t = int(ds.attrs["calculated_wave_interval"])
+    delta_t = int(ds.attrs["average_wave_interval"])
     delta_t = f"{delta_t}s"
 
     timestamp = []

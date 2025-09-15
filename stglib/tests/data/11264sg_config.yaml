@@ -4,10 +4,10 @@ filename: 11264sg
 LatLonDatum: NAD83
 initial_instrument_height: 1.44
 initial_instrument_height_note: height above seabed in meters
-calculated_tide_interval: 720
-calculated_tide_interval_units: seconds
-calculated_tide_duration: 272
-calculated_tide_duration_units: seconds
-calculated_wave_interval: 1024
-calculated_wave_interval_units: seconds
+average_tide_interval: 720
+average_tide_interval_units: seconds
+average_tide_duration: 272
+average_tide_duration_units: seconds
+average_wave_interval: 1024
+average_wave_interval_units: seconds
 wh_min: 0.02

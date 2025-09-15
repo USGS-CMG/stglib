@@ -4,7 +4,7 @@ from ..core import qaqc, utils
 from . import sgutils
 
 
-def cdf_to_nc(cdf_filename, atmpres=None):
+def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     """
     Load a raw .cdf file and generate a processed .nc file
     """
