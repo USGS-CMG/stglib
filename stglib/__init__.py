@@ -1,3 +1,5 @@
+# ruff: noqa
+
 from . import (
     _version,
     abss,
