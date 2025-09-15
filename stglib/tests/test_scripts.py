@@ -48,14 +48,14 @@ def test_abss():
 
 
 def exo_raw(glob_att, config_yaml):
-    run_script("runexocsv2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "exo", "csv2cdf", glob_att, config_yaml)
 
 
 def exo_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        run_script("runexocdf2nc.py", nc_file, "--atmpres", atmpres)
+        run_script("runots.py", "exo", "cdf2nc", nc_file, "--atmpres", atmpres)
     else:
-        run_script("runexocdf2nc.py", nc_file)
+        run_script("runots.py", "exo", "cdf2nc", nc_file)
 
 
 def test_exo():
@@ -71,37 +71,37 @@ def test_exo():
 
 
 def aqd_raw(glob_att, config_yaml):
-    run_script("runaqdhdr2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "aqd", "hdr2cdf", glob_att, config_yaml)
 
 
 def aqd_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        run_script("runaqdcdf2nc.py", nc_file, "--atmpres", atmpres)
+        run_script("runots.py", "aqd", "cdf2nc", nc_file, "--atmpres", atmpres)
     else:
-        run_script("runaqdcdf2nc.py", nc_file)
+        run_script("runots.py", "aqd", "cdf2nc", nc_file)
 
 
 def aqdhr_raw(glob_att, config_yaml):
-    run_script("runaqdhrhdr2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "aqdhr", "hdr2cdf", glob_att, config_yaml)
 
 
 def aqdhr_nc(nc_file):
-    run_script("runaqdhrcdf2nc.py", nc_file)
+    run_script("runots.py", "aqdhr", "cdf2nc", nc_file)
 
 
 def aqd_wvs_raw(glob_att, config_yaml):
-    run_script("runwvswad2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "aqdwvs", "wad2cdf", glob_att, config_yaml)
 
 
 def aqd_wvs_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        run_script("runwvscdf2nc.py", nc_file, "--atmpres", atmpres)
+        run_script("runots.py", "aqdwvs", "cdf2nc", nc_file, "--atmpres", atmpres)
     else:
-        run_script("runwvscdf2nc.py", nc_file)
+        run_script("runots.py", "aqdwvs", "cdf2nc", nc_file)
 
 
 def aqd_wvs_wvs(nc_file):
-    run_script("runwvsnc2waves.py", nc_file)
+    run_script("runots.py", "aqdwvs", "nc2waves", nc_file)
 
 
 def test_aqd():
@@ -147,18 +147,18 @@ def test_aqdturnaround():
 
 
 def vec_raw(glob_att, config_yaml):
-    run_script("runvecdat2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "vec", "dat2cdf", glob_att, config_yaml)
 
 
 def vec_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        run_script("runveccdf2nc.py", nc_file, "--atmpres", atmpres)
+        run_script("runots.py", "vec", "cdf2nc", nc_file, "--atmpres", atmpres)
     else:
-        run_script("runveccdf2nc.py", nc_file)
+        run_script("runots.py", "vec", "cdf2nc", nc_file)
 
 
 def vec_wvs(nc_file):
-    run_script("runvecnc2waves.py", nc_file)
+    run_script("runots.py", "vec", "nc2waves", nc_file)
 
 
 # @pytest.mark.skip(reason="works locally but not on GitLab CI")
@@ -180,11 +180,11 @@ def test_vec_continuous():
 
 
 def wxt_raw(glob_att, config_yaml):
-    run_script("runwxtcsv2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "wxt", "csv2cdf", glob_att, config_yaml)
 
 
 def wxt_nc(nc_file):
-    run_script("runwxtcdf2nc.py", nc_file)
+    run_script("runots.py", "wxt", "cdf2nc", nc_file)
 
 
 def test_wxt():
@@ -193,11 +193,11 @@ def test_wxt():
 
 
 def iq_raw(glob_att, config_yaml):
-    run_script("runiqmat2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "iq", "mat2cdf", glob_att, config_yaml)
 
 
 def iq_nc(nc_file):
-    run_script("runiqcdf2nc.py", nc_file)
+    run_script("runots.py", "iq", "cdf2nc", nc_file)
 
 
 def test_iq():
@@ -206,11 +206,11 @@ def test_iq():
 
 
 def eco_raw(glob_att, config_yaml):
-    run_script("runecocsv2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "eco", "csv2cdf", glob_att, config_yaml)
 
 
 def eco_nc(nc_file):
-    run_script("runecocdf2nc.py", nc_file)
+    run_script("runots.py", "eco", "cdf2nc", nc_file)
 
 
 def test_eco():
@@ -219,18 +219,18 @@ def test_eco():
 
 
 def rbr_raw(glob_att, config_yaml):
-    run_script("runrskcsv2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "rbr", "csv2cdf", glob_att, config_yaml)
 
 
 def rbr_nc(nc_file, atmpres=None):
     if atmpres is not None:
-        run_script("runrskcdf2nc.py", nc_file, "--atmpres", atmpres)
+        run_script("runots.py", "rbr", "cdf2nc", nc_file, "--atmpres", atmpres)
     else:
-        run_script("runrskcdf2nc.py", nc_file)
+        run_script("runots.py", "rbr", "cdf2nc", nc_file)
 
 
 def rbr_wvs(nc_file):
-    run_script("runrsknc2waves.py", nc_file)
+    run_script("runots.py", "rbr", "nc2waves", nc_file)
 
 
 def rbr_diwasp(nc_file):
@@ -272,11 +272,11 @@ def test_rbr_profile():
 
 
 def eofe_raw(glob_att, config_yaml):
-    run_script("runeofelog2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "eofe", "log2cdf", glob_att, config_yaml)
 
 
 def eofe_nc(nc_file):
-    run_script("runeofecdf2nc.py", nc_file)
+    run_script("runots.py", "eofe", "cdf2nc", nc_file)
 
 
 def test_eofe():
@@ -321,11 +321,11 @@ def test_sig_wvs():
 
 
 def hobo_raw(glob_att, config_yaml):
-    run_script("runhobocsv2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "hobo", "csv2cdf", glob_att, config_yaml)
 
 
 def hobo_nc(nc_file):
-    run_script("runhobocdf2nc.py", nc_file)
+    run_script("runots.py", "hobo", "cdf2nc", nc_file)
 
 
 def test_hobo():
@@ -336,11 +336,11 @@ def test_hobo():
 
 
 def lisst_raw(glob_att, config_yaml):
-    run_script("runlisstcsv2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "lisst", "csv2cdf", glob_att, config_yaml)
 
 
 def lisst_nc(nc_file):
-    run_script("runlisstcdf2nc.py", nc_file)
+    run_script("runots.py", "lisst", "cdf2nc", nc_file)
 
 
 def test_lisst():
@@ -349,11 +349,11 @@ def test_lisst():
 
 
 def tcm_raw(glob_att, config_yaml):
-    run_script("runtcmcsv2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "tcm", "csv2cdf", glob_att, config_yaml)
 
 
 def tcm_nc(nc_file):
-    run_script("runtcmcdf2nc.py", nc_file)
+    run_script("runots.py", "tcm", "cdf2nc", nc_file)
 
 
 def test_tcm():
@@ -383,11 +383,11 @@ def test_ensure_cf():
 
 
 def mc_raw(glob_att, config_yaml):
-    run_script("runmcasc2cdf.py", glob_att, config_yaml)
+    run_script("runots.py", "mc", "asc2cdf", glob_att, config_yaml)
 
 
 def mc_nc(nc_file):
-    run_script("runmccdf2nc.py", nc_file)
+    run_script("runots.py", "mc", "cdf2nc", nc_file)
 
 
 def test_mc():
