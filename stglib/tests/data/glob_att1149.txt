@@ -5,7 +5,7 @@
     DATA_SUBTYPE; MOORED
     DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.11
+    Conventions; CF-1.6
     MOORING; 1149
     WATER_DEPTH; 0
     WATER_DEPTH_NOTE; Sensor is located above ground.

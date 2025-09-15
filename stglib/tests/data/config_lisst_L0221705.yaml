@@ -1,4 +1,4 @@
 basefile: L0221705_v2_rs
-Conventions: CF-1.11
+Conventions: CF-1.8
 filename: lisst_L0221705
 drop_vars: AnalogInput3

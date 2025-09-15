@@ -150,7 +150,9 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     print("Writing cleaned/trimmed data to .nc file")
     nc_filename = ds.attrs["filename"] + "-cont-cal.nc"
 
-    ds.to_netcdf(nc_filename, unlimited_dims=["time"])
+    ds.to_netcdf(
+        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+    )
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print(f"Done writing netCDF file {nc_filename}")

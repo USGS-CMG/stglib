@@ -21,7 +21,7 @@ magnetic_variation;	13.86
 DATA_SUBTYPE;	MOORED
 DATA_ORIGIN;	USGS WCMG Sed Trans Group
 COORD_SYSTEM;	GEOGRAPHIC
-Conventions;	CF-1.11
+Conventions;	CF-1.8
 WATER_MASS;	?
 POS_CONST;	0
 DEPTH_CONST;	0

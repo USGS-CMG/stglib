@@ -1,7 +1,7 @@
 basefile: 'bel3_13H102609_012221_120000_utf8'
 # filename: 'bel33Cexo'
 filename: 'BEL19B3C03exo'
-Conventions: 'CF-1.11'
+Conventions: 'CF-1.8'
 skiprows: 9
 initial_instrument_height: 0.15
 S_41_min_diff: -10

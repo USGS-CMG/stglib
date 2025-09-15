@@ -6,7 +6,7 @@
     DATA_SUBTYPE; MOORED
     DATA_ORIGIN; USGS
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.11
+    Conventions; CF-1.10
     MOORING; FRFx600_202403
     height_above_geopotential_datum; 8.64
     geopotential_datum_name; NAVD88

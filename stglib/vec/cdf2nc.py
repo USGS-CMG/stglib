@@ -646,6 +646,16 @@ def time_encoding(ds):
     if "units" in ds["time"].encoding:
         ds["time"].encoding.pop("units")
 
+    if ds.attrs["sample_mode"] == "CONTINUOUS":
+        if utils.check_time_fits_in_int32(ds, "time"):
+            ds["time"].encoding["dtype"] = "i4"
+        else:
+            print("time variable will not fit in int32; casting to double")
+            ds["time"].encoding["dtype"] = "double"
+    else:
+        if utils.check_time_fits_in_int32(ds, "time"):
+            ds["time"].encoding["dtype"] = "i4"
+
     ds["time"].attrs.update(
         {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )

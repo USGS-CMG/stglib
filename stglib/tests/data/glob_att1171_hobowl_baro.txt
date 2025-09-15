@@ -6,7 +6,7 @@
     DATA_SUBTYPE; MOORED
     DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.11
+    Conventions; CF-1.8
     MOORING; 1171
     sea_floor_depth_below_geoid; 0
     WATER_DEPTH; 0

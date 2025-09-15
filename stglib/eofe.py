@@ -121,7 +121,11 @@ def cdf_to_nc(cdf_filename):
     print("Writing cleaned/trimmed burst data and averaged burst data to .nc file")
     nc_filename = ds.attrs["filename"] + "b.nc"
 
-    ds.to_netcdf(nc_filename, unlimited_dims=["time"])
+    ds.to_netcdf(
+        nc_filename,
+        unlimited_dims=["time"],
+        encoding={"sample": {"dtype": "i4"}},
+    )
 
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 

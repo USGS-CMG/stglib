@@ -5,7 +5,7 @@
     DATA_SUBTYPE; MOORED
     DATA_ORIGIN; USGS WHCMSC Sed Trans Group
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.11
+    Conventions; CF-1.6
     MOORING; 1097
     WATER_DEPTH; 1.01
     WATER_DEPTH_NOTE; (meters), nominal depth

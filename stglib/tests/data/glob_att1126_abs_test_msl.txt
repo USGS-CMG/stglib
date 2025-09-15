@@ -6,7 +6,7 @@
     DATA_SUBTYPE; MOORED
     DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.11
+    Conventions; CF-1.8
     MOORING; 1126
     WATER_DEPTH; 8.95
     WATER_DEPTH_NOTE; (meters),  From average Nortek pressure + pressure port to bed distance

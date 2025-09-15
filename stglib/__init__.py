@@ -34,4 +34,4 @@ from .son import sonutils
 
 __version__ = _version.get_versions()["version"]
 
-__cfmax__ = "CF-1.11"
+__cfmax__ = "CF-1.10"

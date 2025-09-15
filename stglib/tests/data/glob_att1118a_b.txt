@@ -5,7 +5,7 @@
     DATA_SUBTYPE; MOORED
     DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
     COORD_SYSTEM; GEOGRAPHIC
-    Conventions; CF-1.11
+    Conventions; CF-1.6
     MOORING; 1118A and 1118B
     WATER_DEPTH; 2.4
     WATER_DEPTH_NOTE; (meters), nominal depth

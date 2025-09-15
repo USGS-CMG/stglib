@@ -1208,12 +1208,7 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
     ds = utils.ds_coord_no_fillvalue(ds)
 
     ds["time"].attrs.update(
-        {
-            "standard_name": "time",
-            "axis": "T",
-            "long_name": "time (UTC)",
-            "units_metadata": "leap_seconds: none",
-        }
+        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
     )
 
     # ds["depth"].attrs.update(
@@ -1276,10 +1271,12 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
         )
 
     if "sample" in ds:
+        ds["sample"].encoding["dtype"] = "i4"
         ds["sample"].attrs["long_name"] = "sample number"
         ds["sample"].attrs["units"] = "1"
 
     if "burst" in ds:
+        ds["burst"].encoding["dtype"] = "i4"
         ds["burst"].attrs["long_name"] = "burst number"
         ds["burst"].attrs["units"] = "1"
 
@@ -1765,6 +1762,9 @@ def average_burst(ds):
         ds[ivar] = ds[ivar].astype(
             dint[ivar]
         )  # need to retype to int bc np/xarray changes int to float when averaging
+
+    if "burst" in ds:
+        ds["burst"].encoding["dtype"] = "i4"
 
     return ds
 

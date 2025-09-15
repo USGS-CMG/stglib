@@ -39,7 +39,9 @@ def nc_to_xy(nc_filename):
     print("Writing xy data to .nc file")
     nc_filename = f"{ds.attrs['filename']}b_{str(ds.attrs['SONRange'])}m-xy.nc"
 
-    ds.to_netcdf(nc_filename, unlimited_dims=["time"])
+    ds.to_netcdf(
+        nc_filename, unlimited_dims=["time"], encoding={"time": {"dtype": "i4"}}
+    )
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print(f"Done writing netCDF file {nc_filename}")

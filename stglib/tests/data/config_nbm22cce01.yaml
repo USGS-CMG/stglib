@@ -2,9 +2,9 @@ basefile: 'NBMCCE02'
 filename: 'NBM22CCEaqd'
 initial_instrument_height: 0.095
 orientation: 'UP'
-Conventions: 'CF-1.11'
-Deployment_date: '2022-12-06 00:24'
-Recovery_date: '2023-02-01 22:40' # estimated
+Conventions: 'CF-1.8'
+Deployment_date: '2022-12-06 00:24' 
+Recovery_date: '2023-02-01 22:40' # estimated 
 trim_method: 'water level sl'
 AnalogInput1: 'true'
 AnalogInput1_long_name: 'turbidity'

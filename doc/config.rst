@@ -11,9 +11,8 @@ Time is always in Coordinated Universal Time (UTC).
 CF Conventions
 ==============
 
-The files produced by stglib strive to adhere to the latest version of the `CF Conventions <http://cfconventions.org>`_ supported by the `IOOS Compliance Checker <https://github.com/ioos/compliance-checker>`_.
+The files produced by stglib strive to adhere to `CF Conventions <http://cfconventions.org>`_.
 Specifying these conventions is required and is done via the ``Conventions`` (note capitalization) keyword in either the global attributes file or the instrument configuration file.
-Please ensure you are using the latest supported version (currently CF-1.11) when processing.
 As much as possible, we use the ``standard_name`` for variables as defined in the `CF Standard Name Table <https://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html>`_.
 
 Setting CF in global attributes
@@ -21,14 +20,14 @@ Setting CF in global attributes
 
 ::
 
-  Conventions; CF-1.11
+  Conventions; CF-1.10
 
 Setting CF in the instrument configuration file
 -----------------------------------------------
 
 ::
 
-  Conventions: 'CF-1.11'
+  Conventions: 'CF-1.10'
 
 Specifying CF Conventions as above will enable straight-to-CF processing.
 
@@ -50,7 +49,7 @@ This file is instrument-specific and is YAML formatted. A few examples are given
 
 Options common to most (all?) instrument config files:
 
-- ``Conventions``: version of the CF Conventions, ``'CF-1.11'`` presently
+- ``Conventions``: version of the CF Conventions, ``'CF-1.10'`` presently
 - ``basefile``: the input filename without extension
 - ``filename``: output filename, to which ``-raw.cdf``, ``-a.nc``, etc. will be appended
 - ``ClockError``: number, in seconds, negative is slow. Applies a simple offset for times. Useful if the instrument was deployed in an incorrect time zone.
