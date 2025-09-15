@@ -101,6 +101,7 @@ def cdf2nc(cdf_filename, atmpres=False):
     ds = ds_add_var_attrs(ds)
     ds = var_encoding(ds)
     ds = time_encoding(ds)
+    ds = utils.ds_coord_no_fillvalue(ds)
 
     create_nc(ds)
 
@@ -121,10 +122,11 @@ def cdf2nc(cdf_filename, atmpres=False):
 
     ds = utils.insert_history(ds, histtext)
 
-    ds = add_brange_abss(ds, "abs")
+    if "brange" in ds.attrs and ds.attrs["brange"].lower() == "true":
+        ds = add_brange_abss(ds, "abs")
 
     # drop brange matrix var and battery vor average file
-    ds = ds.drop_vars({"brange", "Bat_106"})
+    ds = ds.drop_vars({"Bat_106"})
     ds = ds_remove_inst_attrs(ds, "ABS")
 
     print("Applying QAQC to average file variables")
@@ -133,6 +135,8 @@ def cdf2nc(cdf_filename, atmpres=False):
     ds = utils.ds_add_lat_lon(ds)
     ds = utils.add_min_max(ds)
     ds = time_encoding(ds)
+
+    ds = utils.ds_coord_no_fillvalue(ds)
 
     create_average_nc(ds)
 
@@ -370,7 +374,12 @@ def abs_drop_vars(ds):
 def remove_attributes(ds):
     """remove unnecessary global attributes from raw instrument file"""
 
-    names = ["ABSSessionTitle", "ABSAbsTransducerName"]
+    names = [
+        "ABSSessionTitle",
+        "ABSAbsTransducerName",
+        "ABSAuxChannelName",
+        "ABSAuxChannelUnit",
+    ]
 
     for att in names:
         del ds.attrs[att]
@@ -506,7 +515,14 @@ def reorder_dims(ds):
 def add_brange_abss(ds, var):
     """use highest abs backscatter strength to find distance to boundary, omit bins in blanking distance"""
 
-    print("Adding distance to boundary variables (brange)")
+    print("Adding distance to boundary variable (brange)")
+
+    # Use specified frequency to derive brange; if not specified use lowest frequency
+    if "brange_freq" in ds.attrs:
+        brange_freq = ds.attrs["brange_freq"]
+
+    else:
+        brange_freq = float(min(ds["xdcr_freq"]))
 
     if var in ds.data_vars:
 
@@ -521,28 +537,26 @@ def add_brange_abss(ds, var):
 
             brange = (
                 ds[var]
+                .sel(xdcr_freq=brange_freq)
                 .swap_dims({vdim: "bindist"})
                 .where(ds.bindist > 0.2)
                 .idxmax(dim="bindist")
             )
 
-            ds["brange"] = xr.DataArray(brange, dims=["xdcr_freq", "time"])
+            ds["brange"] = xr.DataArray(brange, dims=["time"])
 
-            for i in range(len(ds.xdcr_freq)):
-                brange_name = f"brange_{i + 1}"
-                freq = str(ds.xdcr_freq[i].values)
-                brange = ds["brange"].sel(xdcr_freq=ds.xdcr_freq[i]).values
-                ds[brange_name] = xr.DataArray(brange, dims=["time"])
+            ds["brange"].attrs.update(
+                {
+                    "units": "m",
+                    "long_name": "Altimeter range to boundary",
+                    "standard_name": "altimeter_range",
+                    "xdcr_freq": float(brange.xdcr_freq),
+                    "note": f"Calculated from {brange_freq} MHz abs values. ",
+                }
+            )
 
-                ds[brange_name].attrs.update(
-                    {
-                        "units": "m",
-                        "long_name": "Altimeter range to boundary",
-                        "standard_name": "altimeter_range",
-                        "xdcr_freq": freq,
-                        "note": "Calculated from abs values. ",
-                    }
-                )
+            txt = f"Brange calculated from {brange_freq} MHz abs values. "
+            ds = utils.insert_history(ds, txt)
 
     return ds
 

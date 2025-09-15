@@ -335,6 +335,8 @@ AQUAscat1000R
 - ``orientation``: orientation of transducer(s)
 - ``initial_instrument_height``: height of acoustic transducer
 - ``pressure_sensor_height``: height of pressure port on canister, likely different than transducer height
+- ``brange``: True or False (optional). If True, brange will be calculated from abs data. Use ``brange_freq`` to specify transducer frequency of abs data used for calculating brange.
+- ``brange_freq``: the transducer frequency of abs data used for calculating brange (optional). If not specified, brange calculation will default to using abs data from lowest transdcuer frequency. 
 
 Geolux Wave Radar
 -----------------
