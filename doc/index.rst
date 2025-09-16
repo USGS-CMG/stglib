@@ -71,6 +71,7 @@ We have plans to support:
    turnaround
    code
    contributing
+   insttbl
 
 
 Indices and tables
