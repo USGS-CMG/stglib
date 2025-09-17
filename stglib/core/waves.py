@@ -249,7 +249,7 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
         if dwspid:
             print(dwspid[-1])
         if data_type == "puv" or (dwspid and dwspid[-1] == "puv"):
-            print(f"Apply cutofff and add tail for puv method {dwspid[-1]}")
+            print("Apply cutoff and add tail for puv method")
             if "pressure_sensor_height" in ds.attrs:
                 z = ds.attrs["pressure_sensor_height"]
             else:

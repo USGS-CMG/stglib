@@ -1721,6 +1721,11 @@ def trim_brangeAST(ds):
 
         var = "brangeAST"
 
+        # Create untrimmed var to save original signal since trimming for optimized wave processing can be aggressive to get best results
+        attrsbak = ds[var].attrs
+        ds[var + "_untrimmed"] = ds[var].copy()
+        ds[var + "_untrimmed"].attrs = attrsbak
+
         if "ast_qual_sf" in ds.attrs:
             ast_qual_min = find_ast_qual_min(ds, sf=ds.attrs["ast_qual_sf"])
 
