@@ -62,8 +62,8 @@ Options common to most (all?) instrument config files:
 - ``good_dates``: a list of dates to clip data by instead of the default ``Deployment_date`` and ``Recovery_date``. Example: ``good_dates: ['2021-01-22 18:32', '2021-04-13 19:27'] # first burst looked suspect``. Multiple date ranges can also be used. Example: ``good_dates: ['2021-01-22 18:32', '2021-02-28 23:59', '2021-04-01 00:00', '2021-04-13 19:27'] # the month of March was bad``
 - ``good_ens``: a list of good indices (based on the raw file, zero-based) to clip the data by. Example: ``good_ens: [10, 500]``. To specify multiple good ranges, add additional pairs of indices: ``good_ens: [10, 500, 560, 600]`` will clip the data to samples 10-500 and 560-600 in the final file.
 - ``vert_dim``: user specified coordinate variable for vertical dimension for data variables with non-singular vertical dimension (default = 'z')
-- ``height_above_geopotential_datum`` and ``geopotential_datum_name`` to indicate the elevation of the sea bed. Any value can be used for ``geopotential_datum_name``; `typical ones within the U.S. include <https://www.ngs.noaa.gov/datums/vertical/index.shtml>`_: NAVD88, GUVD04, NMVD03, PRVD02, VIVD09.
-- ``horizontal_datum_name``; `typical ones within the U.S. include https://www.ngs.noaa.gov/datums/horizontal/index.shtml`_: NAD83(2011), WGS84, NAD83, NAD27.
+- ``height_above_geopotential_datum`` and ``geopotential_datum_name`` to indicate the elevation of the sea bed. Any value can be used for ``geopotential_datum_name``; `typical vertical datums within the U.S. include <https://www.ngs.noaa.gov/datums/vertical/index.shtml>`_: NAVD88, GUVD04, NMVD03, PRVD02, VIVD09.
+- ``horizontal_datum_name``; `typical horizontal datums within the U.S. include <https://www.ngs.noaa.gov/datums/horizontal/index.shtml>`_: NAD83(2011), WGS84, NAD83, NAD27.
 
 
 Multiple instruments
@@ -105,7 +105,7 @@ Options for water level:
 - ``average_salinity_note``: source of average salinity value.
 
 Option for general wave processing using built-in stglib internal code:
-- ``spec_nsegs``: specify number of segments to use for windowing of wave burst data 
+- ``spec_nsegs``: specify number of segments to use for windowing of wave burst data
 - ``wave_interval``: interval in seconds for calculating wave bursts from continuous data
 - ``wave_start_time``: start datetime for first wave burst (e.g. "2021-03-10 16:00:00")
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
@@ -165,7 +165,7 @@ Signature-specific options include (see Aquadopp for others):
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
-- ``diwasp``: processing type for pyDIWASP wave processing; (options: 'suv', 'puv', or 'optimized' for directional waves, 'pres', 'elev', or 'optimized-nd' for non-directional waves) 
+- ``diwasp``: processing type for pyDIWASP wave processing; (options: 'suv', 'puv', or 'optimized' for directional waves, 'pres', 'elev', or 'optimized-nd' for non-directional waves)
 - ``puv``: if 'true' and ``nc2waves`` processing is called directional wave processing using stglib ``puv_quick_vectorized`` method is run in addition to standard non-directional stglib wave processing
 - ``vel_filter_method``: velocity variable filter method [lowpass, highpass, and bandpass]
 - ``vel_filter_cut``: filter cutoff period in seconds for velocity variable filtering
@@ -173,7 +173,7 @@ Signature-specific options include (see Aquadopp for others):
 - ``water_level_var``: option for user to specify variable to use for water level (options: 'P_1ac' (default), 'brangeAST')
 - ``trim_ast``: option to enable trim/filling of brangeAST values using ast_quality variable
 - ``ast_qual_sf``: scale factor to determine minimum threshold value for the ast_quality parameter used to trim brangeAST (default = 0.85, typical values 0.8 () - 0.95)
-- ``wavedat_tolerance``: tolerance in seconds to fill gaps in wave data to be used for calculating wave statistics (default = '2 s'). 
+- ``wavedat_tolerance``: tolerance in seconds to fill gaps in wave data to be used for calculating wave statistics (default = '2 s').
 
 
 .. literalinclude:: ../examples/aqd_config.yaml
@@ -336,7 +336,7 @@ AQUAscat1000R
 - ``initial_instrument_height``: height of acoustic transducer
 - ``pressure_sensor_height``: height of pressure port on canister, likely different than transducer height
 - ``brange``: True or False (optional). If True, brange will be calculated from abs data. Use ``brange_freq`` to specify transducer frequency of abs data used for calculating brange.
-- ``brange_freq``: the transducer frequency of abs data used for calculating brange (optional). If not specified, brange calculation will default to using abs data from lowest transdcuer frequency. 
+- ``brange_freq``: the transducer frequency of abs data used for calculating brange (optional). If not specified, brange calculation will default to using abs data from lowest transdcuer frequency.
 
 Geolux Wave Radar
 -----------------

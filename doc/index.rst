@@ -43,7 +43,8 @@ We have plans to support:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Overview
+   :hidden:
 
    install
    overview
@@ -51,6 +52,12 @@ We have plans to support:
    Processing data with runots.py (use this!) <runots>
    atmos
    waves
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Instruments
+   :hidden:
+
    abss
    eofe
    glx
@@ -68,6 +75,12 @@ We have plans to support:
    wet
    exo
    son
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Miscellaneous
+   :hidden:
+
    turnaround
    code
    contributing
