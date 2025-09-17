@@ -56,7 +56,8 @@ Options common to most (all?) instrument config files:
 - ``ClockDrift``: number, in seconds, negative is slow. Linearly interpolates times for when the instrument clock has drifted.
 - ``initial_instrument_height``: elevation of instrument in meters (all except Geolux wave radar - glx)
 - ``initial_instrument_height_note``
-- ``P_1ac_note``: a note on the atmospheric pressure source used
+- ``P_1ac_note``: a note on the atmospheric pressure source used.
+- ``<VAR>_comment``: an additional comment about the variable that may be useful.
 - ``zeroed_pressure``: a note detailing whether the pressure sensor was zeroed before deployment, and other pertinent details such as date and time of zeroing.
 - ``good_dates``: a list of dates to clip data by instead of the default ``Deployment_date`` and ``Recovery_date``. Example: ``good_dates: ['2021-01-22 18:32', '2021-04-13 19:27'] # first burst looked suspect``. Multiple date ranges can also be used. Example: ``good_dates: ['2021-01-22 18:32', '2021-02-28 23:59', '2021-04-01 00:00', '2021-04-13 19:27'] # the month of March was bad``
 - ``good_ens``: a list of good indices (based on the raw file, zero-based) to clip the data by. Example: ``good_ens: [10, 500]``. To specify multiple good ranges, add additional pairs of indices: ``good_ens: [10, 500, 560, 600]`` will clip the data to samples 10-500 and 560-600 in the final file.

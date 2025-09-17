@@ -65,6 +65,9 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     ds = ds_add_attrs_vec(ds)
 
     for var in ds.data_vars:
+
+        ds = utils.var_comment(ds, var)
+
         # need to do this or else a "coordinates" attribute with value of "burst" hangs around
         ds[var].encoding["coordinates"] = None
 

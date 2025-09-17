@@ -13,6 +13,8 @@ def call_qaqc(ds):
 
     for var in ds.data_vars:
 
+        ds = utils.var_comment(ds, var)
+
         ds = filter.apply_butter_filt(ds, var)
         ds = filter.apply_med_filt(ds, var)
 
