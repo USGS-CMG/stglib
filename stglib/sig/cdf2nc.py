@@ -848,7 +848,7 @@ def ds_add_attrs_sig(ds):
             {
                 "units": "1",
                 "long_name": "Rotation Matrix from AHRS",
-                "comments": "Nortek Attitude and Heading Reference System (AHRS)",
+                "comment": "Nortek Attitude and Heading Reference System (AHRS)",
             }
         )
 
@@ -857,7 +857,7 @@ def ds_add_attrs_sig(ds):
             {
                 "units": "rad s-1",
                 "long_name": "Angular Velocity from AHRS",
-                "comments": "Nortek Attitude and Heading Reference System (AHRS)",
+                "comment": "Nortek Attitude and Heading Reference System (AHRS)",
             }
         )
 

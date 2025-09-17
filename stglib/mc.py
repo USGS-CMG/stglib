@@ -171,7 +171,7 @@ def ds_add_attrs(ds):
             {
                 "units": "1",
                 "long_name": "Salinity, PSU",
-                "comments": "Practical salinity units (PSU)",
+                "comment": "Practical salinity units (PSU)",
                 "standard_name": "sea_water_practical_salinity",
             }
         )

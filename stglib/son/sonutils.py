@@ -284,7 +284,7 @@ def ds_add_attrs(ds):
             {
                 "units": "1",
                 "long_name": "sonar image data",
-                "comments": "Units are integer values from 0-127",
+                "comment": "Units are integer values from 0-127",
                 "standard_name": "acoustic_area_backscattering_strength_in_sea_water",
             }
         )
@@ -322,7 +322,7 @@ def ds_add_attrs(ds):
             {
                 "units": "1",
                 "long_name": "Transducer head position",
-                "comments": "Integer values 0-1200 (-180 to +180 degrees) in 0.3 degree steps",
+                "comment": "Integer values 0-1200 (-180 to +180 degrees) in 0.3 degree steps",
             }
         )
 
@@ -331,7 +331,7 @@ def ds_add_attrs(ds):
             {
                 "units": "degrees",
                 "long_name": "Transducer head angle",
-                "comments": "Angle = 0.3 x (Head Position - 600)",
+                "comment": "Angle = 0.3 x (Head Position - 600)",
             }
         )
 
@@ -340,7 +340,7 @@ def ds_add_attrs(ds):
             {
                 "units": "1",
                 "long_name": "Transducer head step direction",
-                "comments": "0 = counter-clockwise, 1 = clockwise",
+                "comment": "0 = counter-clockwise, 1 = clockwise",
             }
         )
 
@@ -349,7 +349,7 @@ def ds_add_attrs(ds):
             {
                 "units": "sample unit",
                 "long_name": "First digitized range value above threshold in sample units",
-                "comments": "Sample units are based on a sound velocity of 1500 m/s. For ranges <5m, one sample unit = 2 mm. For ranges >=5 m, one sampe unit = 10 mm.",
+                "comment": "Sample units are based on a sound velocity of 1500 m/s. For ranges <5m, one sample unit = 2 mm. For ranges >=5 m, one sampe unit = 10 mm.",
             }
         )
 
@@ -358,7 +358,7 @@ def ds_add_attrs(ds):
             {
                 "units": "1",
                 "long_name": "Instrument position",
-                "comments": "Integer values 0-1200 (-180 to +180 degrees) in 0.3 degree steps",
+                "comment": "Integer values 0-1200 (-180 to +180 degrees) in 0.3 degree steps",
             }
         )
 
@@ -367,7 +367,7 @@ def ds_add_attrs(ds):
             {
                 "units": "degrees",
                 "long_name": "Instrument angle",
-                "comments": "Angle = 0.3 x (Sonar Position - 600)",
+                "comment": "Angle = 0.3 x (Sonar Position - 600)",
             }
         )
 
@@ -392,7 +392,7 @@ def ds_add_attrs(ds):
             {
                 "units": "radians",
                 "long_name": "Head angle relative to true north corrected for heading offset in north up convention",
-                "comments": "Use theta and horizontal range to plot image data in polar convention",
+                "comment": "Use theta and horizontal range to plot image data in polar convention",
             }
         )
 

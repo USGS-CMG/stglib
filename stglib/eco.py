@@ -173,7 +173,7 @@ def cdf_to_nc(cdf_filename):
             ds["Turb"].attrs["units"] = "1"
             ds["Turb"].attrs["long_name"] = "Turbidity (NTU)"
             ds["Turb"].attrs["standard_name"] = "sea_water_turbidity"
-            ds["Turb"].attrs["comments"] = "Nephelometric turbidity units (NTU)"
+            ds["Turb"].attrs["comment"] = "Nephelometric turbidity units (NTU)"
             ds["Turb_std"] = xr.DataArray(turb_data, dims=["time", "sample"]).std(
                 dim="sample"
             )
@@ -182,7 +182,7 @@ def cdf_to_nc(cdf_filename):
                 "long_name"
             ] = "Turbidity burst standard deviation (NTU)"
             ds["Turb_std"].attrs["standard_name"] = "sea_water_turbidity"
-            ds["Turb_std"].attrs["comments"] = "Nephelometric turbidity units (NTU)"
+            ds["Turb_std"].attrs["comment"] = "Nephelometric turbidity units (NTU)"
             ds["Turb_std"].attrs["cell_methods"] = "time: standard_deviation"
 
     ds = ds.drop(["counts", "sample"])
