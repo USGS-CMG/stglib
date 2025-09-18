@@ -319,6 +319,7 @@ def ds_coord_no_fillvalue(ds):
         "sweep",
         "scan",
         "points",
+        "xdcr_freq",
     ]:
         if var in ds:
             ds[var].encoding["_FillValue"] = None

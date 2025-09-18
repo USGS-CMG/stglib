@@ -71,6 +71,7 @@ def cdf2nc(cdf_filename, atmpres=False):
     ds["bindist"] = ds["bindist"].sel(transducer_number=1, time=ds["time"][0])
 
     ds = ds.swap_dims({"bin_number": "bindist"})
+    ds = add_ds_attrs(ds)
     ds = remove_attributes(ds)
     ds = remove_aux_snum(ds)
     ds = abs_rename(ds)
@@ -116,9 +117,9 @@ def cdf2nc(cdf_filename, atmpres=False):
     ds = ds.mean(dim="sample", keep_attrs=True)
 
     if "average_duration" in ds.attrs:
-        histtext = f"Create burst averaged data product using user specified duration for avergage {ds.attrs['average_duration']} seconds"
+        histtext = f"Created burst averaged data product using user specified duration for avergage {ds.attrs['average_duration']} seconds"
     else:
-        histtext = "Create burst averaged data product"
+        histtext = "Created burst averaged data product"
 
     ds = utils.insert_history(ds, histtext)
 
@@ -367,6 +368,16 @@ def abs_drop_vars(ds):
 
     if ds["Analogue2"].all() == 0:
         ds = ds.drop_vars("Analogue2")
+
+    return ds
+
+
+def add_ds_attrs(ds):
+    """add to global/instrument attrs"""
+
+    ds.attrs["samples_per_burst"] = ds.attrs["ABSAbsNumProfiles"][0]
+
+    ds.attrs["sample_interval"] = 1 / ds.attrs["ABSAbsProfileRate"][0]
 
     return ds
 
