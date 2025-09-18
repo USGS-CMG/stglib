@@ -341,7 +341,7 @@ def ds_add_attrs(ds):
             {
                 "units": "percent",
                 "long_name": "Fluorescent dissolved organic matter, RFU",
-                "comments": "Relative fluorescence units (RFU)",
+                "comment": "Relative fluorescence units (RFU)",
             }
         )
 
@@ -350,7 +350,7 @@ def ds_add_attrs(ds):
             {
                 "units": "1e-9",
                 "long_name": "Fluorescent dissolved organic matter, QSU",
-                "comments": "Quinine sulfate units (QSU)",
+                "comment": "Quinine sulfate units (QSU)",
             }
         )
 
@@ -359,7 +359,7 @@ def ds_add_attrs(ds):
             {
                 "units": "percent",
                 "long_name": "Chlorophyll A, RFU",
-                "comments": "Relative fluorescence units (RFU)",
+                "comment": "Relative fluorescence units (RFU)",
             }
         )
 
@@ -370,7 +370,7 @@ def ds_add_attrs(ds):
                 "long_name": "Chlorophyll A",
                 "epic_code": 906,
                 "standard_name": "mass_concentration_of_chlorophyll_in_sea_water",
-                "comments": "from calibration of sensor with rhodamine W/T in lab",
+                "comment": "from calibration of sensor with rhodamine W/T in lab",
             }
         )
 
@@ -379,7 +379,7 @@ def ds_add_attrs(ds):
             {
                 "units": "percent",
                 "long_name": "Total algae phycoerythrin, RFU",
-                "comments": "Relative fluorescence units (RFU); formerly called BGAPErfu (Blue green algae phycoerythrin, RFU)",
+                "comment": "Relative fluorescence units (RFU); formerly called BGAPErfu (Blue green algae phycoerythrin, RFU)",
             }
         )
 
@@ -388,7 +388,7 @@ def ds_add_attrs(ds):
             {
                 "units": "ug/L",
                 "long_name": "Total algae phycoerythrin",
-                "comments": "Formerly called BGAPE (Blue green algae phycoerythrin)",
+                "comment": "Formerly called BGAPE (Blue green algae phycoerythrin)",
             }
         )
 
@@ -424,7 +424,7 @@ def ds_add_attrs(ds):
         {
             "units": "1",
             "long_name": "Salinity, PSU",
-            "comments": "Practical salinity units (PSU)",
+            "comment": "Practical salinity units (PSU)",
             "epic_code": 41,
             "standard_name": "sea_water_practical_salinity",
         }
@@ -454,7 +454,7 @@ def ds_add_attrs(ds):
             {
                 "units": "1",
                 "long_name": "Turbidity, NTU",
-                "comments": "Nephelometric turbidity units (NTU)",
+                "comment": "Nephelometric turbidity units (NTU)",
                 "standard_name": "sea_water_turbidity",
             }
         )
@@ -464,7 +464,7 @@ def ds_add_attrs(ds):
             {
                 "units": "1",
                 "long_name": "Turbidity, FNU",
-                "comments": "Formazin nephelometric units (FNU)",
+                "comment": "Formazin nephelometric units (FNU)",
                 "standard_name": "sea_water_turbidity",
             }
         )
