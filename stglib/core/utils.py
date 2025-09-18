@@ -1021,7 +1021,7 @@ def shift_time(ds, timeshift, apply_clock_error=True, apply_clock_drift=True):
             # back up attrs as these are lost in the process
             attrsbak = ds["time"].attrs
             # note negative on ds.attrs['ClockDrift']
-            ds["time"] = ds["time"] + pd.TimedeltaIndex(
+            ds["time"] = ds["time"] + pd.to_timedelta(
                 np.linspace(0, -ds.attrs["ClockDrift"], len(ds["time"])), "s"
             )
 
