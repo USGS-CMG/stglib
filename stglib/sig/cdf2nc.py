@@ -286,8 +286,8 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
         # get vector averages
         dsVA = utils.make_vector_average_vars(ds, data_vars=va_vars, dim="sample")
 
-        # take mean of data set across sample dimension
-        ds = ds.mean(dim="sample", keep_attrs=True)
+        # take mean of data set across sample dimension and remove chunking
+        ds = ds.mean(dim="sample", keep_attrs=True).compute()
 
         # replace vector average vars with the vector averages in averaged dataset
         for var in dsVA.data_vars:
