@@ -1,3 +1,4 @@
+import fnmatch
 import math
 
 import numpy as np
@@ -18,111 +19,81 @@ def read_hex(filnam):
 
     while "S>DD" not in row:
         row = f.readline().rstrip()
+        col = row.split()
         if "Software Version" in row:
-            col = row.split()
             hexmeta["SGSoftwareVersion"] = col[2]
-        elif "SBE 26plus-quartz V" in row:
-            col = row.split()
+        elif fnmatch.fnmatch(row, "*SBE 26plus* V*"):
+            # Need to use wildcard to find pattern here because SBE 26 plus also occurs in another row
             hexmeta["SGInstrumentType"] = col[0][1:] + " " + col[1]
-            hexmeta["SGFirmwareVersion"] = col[3]
+            hexmeta["SGFirmwareVersion"] = col[2] + " " + col[3]
             hexmeta["serial_number"] = col[5]
         elif "quartz pressure sensor" in row:
-            col = row.split()
             hexmeta["SGPressureSensorSerial"] = col[6][:-1]
         elif "tide measurement: interval" in row:
-            col = row.split()
             hexmeta["SGTideInterval"] = col[4]
             hexmeta["SGTideIntervalUnits"] = col[5][:-1]
             hexmeta["SGTideDuration"] = col[8]
             hexmeta["SGTideDurationUnits"] = col[9]
         elif "measure waves every" in row:
-            col = row.split()
             hexmeta["SGWaveInterval"] = col[3]
             hexmeta["SGWaveIntervalUnits"] = col[4] + " " + col[5]
         elif "wave samples/burst" in row:
-            col = row.split()
             hexmeta["SGWaveSamples"] = col[0][1:]
             hexmeta["SGSample_rate"] = col[4]
             # hexmeta["SGsample_rate_units"] = col[5][:-1]
             hexmeta["SGBurstDuration"] = col[8]
             hexmeta["SGBurstDurationUnits"] = col[9]
         elif "tide samples/day" in row:
-            col = row.split()
             hexmeta["SGTideSamplesPerDay"] = col[3]
         elif "wave bursts/day" in row:
-            col = row.split()
             hexmeta["SGWaveBurstsPerDay"] = col[3]
         elif "total recorded tide measurements" in row:
-            col = row.split()
             hexmeta["SGNumberOfTideMeasurements"] = col[5]
         elif "total recorded wave bursts" in row:
-            col = row.split()
             hexmeta["SGNumberOfWaveBursts"] = col[5]
         elif "Pressure coefficients" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationDate"] = col[2]
         elif "U0 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationU0"] = float(col[3])
         elif "Y1 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationY1"] = float(col[3])
         elif "Y2 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationY2"] = float(col[3])
         elif "Y3 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationY3"] = float(col[3])
         elif "C1 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationC1"] = float(col[3])
         elif "C2 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationC2"] = float(col[3])
         elif "C3 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationC3"] = float(col[3])
         elif "D1 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationD1"] = float(col[3])
         elif "D2 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationD2"] = float(col[3])
         elif "T1 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationT1"] = float(col[3])
         elif "T2 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationT2"] = float(col[3])
         elif "T3 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationT3"] = float(col[3])
         elif "T4 =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationT4"] = float(col[3])
         elif "M =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationM"] = float(col[3])
         elif "B =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationB"] = float(col[3])
         elif "OFFSET =" in row:
-            col = row.split()
             hexmeta["SGPressureCalibrationOFFSET"] = float(col[3])
         elif "Temperature coefficients" in row:
-            col = row.split()
             hexmeta["SGTemperatureCalibrationDate"] = col[2]
         elif "TA0 =" in row:
-            col = row.split()
             hexmeta["SGTemperatureCalibrationTA0"] = float(col[3])
         elif "TA1 =" in row:
-            col = row.split()
             hexmeta["SGTemperatureCalibrationTA1"] = float(col[3])
         elif "TA2 =" in row:
-            col = row.split()
             hexmeta["SGTemperatureCalibrationTA2"] = float(col[3])
         elif "TA3 =" in row:
-            col = row.split()
             hexmeta["SGTemperatureCalibrationTA3"] = float(col[3])
     f.close()
     return hexmeta
