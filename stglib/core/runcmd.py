@@ -662,3 +662,8 @@ def runots():
             run_cdf_to_nc(stglib.son.cdf2nc.cdf_to_nc, args)
         elif args.step == "nc2xy":
             stglib.son.nc2xy.nc_to_xy(args.ncname)
+    elif args.instrument == "mar":
+        if args.step == "csv2cdf":
+            stglib.mar.csv_to_cdf(metadata)
+        elif args.step == "cdf2nc":
+            run_cdf_to_nc(stglib.mar.cdf_to_nc, args)

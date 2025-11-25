@@ -1860,6 +1860,32 @@ def pol2cart(rho, phi):
     return (x, y)
 
 
+def spd2uv(speed, heading):
+    """
+    Convert speed and heading in compass convention to eastward (u) and northward (v) components
+    inputs:
+    speed - speed in meters per second
+    heading - heading in degrees clockwise from North (to direction)
+    """
+    u = speed * np.sin(heading * np.pi / 180)
+    v = speed * np.cos(heading * np.pi / 180)
+    return (u, v)
+
+
+def uv2spd(u, v):
+    """
+    Convert u and v components to speed and compass convention heading in degrees clockwise from North (to direction)
+    inputs:
+    u - eastward component
+    v - northward component
+    """
+
+    speed = np.sqrt(u**2 + v**2)
+    heading = np.rad2deg(np.arctan2(u, v)) % 360
+
+    return (speed, heading)
+
+
 def make_vector_average_vars(ds, data_vars=None, dim=None):
     """
     Find vector averages for specified variables, along specified dimension

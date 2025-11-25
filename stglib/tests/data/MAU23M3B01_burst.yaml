@@ -1,0 +1,11 @@
+basefile: 'MAU23M3B_burst_sample'
+filename: 'mar_burst_ex' # name of output file, -raw.cdf or .nc will be appended to this
+instrument_type: 'Marotte HS Current Meter'
+serial_number: B1233
+burst_interval: 3600
+burst_duration: 1024
+average_duration: 120
+sample_mode: 'BURST'
+initial_instrument_height: 0.5  # meters
+initial_instrument_height_note: 'Above grate'
+correct_mag_var: 'true'

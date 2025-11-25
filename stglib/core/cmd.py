@@ -206,6 +206,10 @@ def runots_parser():
     addcdf2nc(instsp)
     addnc2xy(instsp)
 
+    instsp = add_instrument(subparsers, "mar", "Marotte Tilt Current Meter")
+    addinst2cdf(instsp, "csv2cdf")
+    addcdf2nc(instsp)
+
     return parser
 
 

@@ -34,6 +34,7 @@ Currently, this package has at least partial support for:
 - TruBlue pressure sensors
 - AQUAscat1000R
 - Imagenex Sonar
+- Marotte Tilt Current Meter
 
 .. _QRev: https://hydroacoustics.usgs.gov/movingboat/QRev.shtml
 
@@ -75,6 +76,7 @@ We have plans to support:
    wet
    exo
    son
+   mar
 
 .. toctree::
    :maxdepth: 2

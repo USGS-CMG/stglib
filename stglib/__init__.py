@@ -14,6 +14,7 @@ from . import (
     indexvel,
     iq,
     lisst,
+    mar,
     mc,
     rdi,
     rsk,

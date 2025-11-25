@@ -363,3 +363,11 @@ Imagenex Sonar
 - ``brange_file``: the name of the height input file
 - ``height_var``: the variable in the height input file containing height above seabed data
 - ``dxy``: distance in meters between adjacent pixels in resulting image (e.g. 0.01 is 1 cm)
+
+Marotte Tilt Current Meter
+--------------------------
+- ``average_interval``: interval in seconds for calculating mean values from CONTINUOUS sample mode data
+- ``average_duration``: duration in seconds for calculating mean values from CONTINUOUS or BURST sample mode data
+- ``burst_interval``: programmed burst interval in seconds for BURST sample mode data
+- ``burst_duration``: programmed burst duration in seconds for BURST sample mode data. Data will be averaged over the full burst by default unless an average_duration is provided to take the mean over a smaller subsample.
+- ``correct_mag_var``: "true" to apply a magnetic variation correction. If the magnetic variation correction was already applied in the sensor software, set to "false".

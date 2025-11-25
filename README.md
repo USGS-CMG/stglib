@@ -24,6 +24,7 @@ Currently, this package has at least partial support for:
 - TruBlue pressure sensors
 - AQUAscat1000R
 - Imagenex Sonar
+- Marotte Tilt Current Meter
 
 We have plans to support:
 

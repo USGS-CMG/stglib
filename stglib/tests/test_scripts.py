@@ -495,3 +495,29 @@ def test_son():
     son_raw("glob_att1126son.txt", "11265son_config.yaml")
     son_nc("11265son_5m-raw.cdf", "1126abs910s-cal.nc")
     son_xy("11265sonb_5m-a.nc")
+
+
+def mar_raw_cont(glob_att, config_yaml):
+    run_script("runots.py", "mar", "csv2cdf", glob_att, config_yaml)
+
+
+def mar_nc_cont(nc_file):
+    run_script("runots.py", "mar", "cdf2nc", nc_file)
+
+
+def test_mar_cont():
+    mar_raw_cont("gatts_MAU23M3A_cont.txt", "MAU23M3A01_cont.yaml")
+    mar_nc_cont("mar_cont_ex-raw.cdf")
+
+
+def mar_raw_burst(glob_att, config_yaml):
+    run_script("runots.py", "mar", "csv2cdf", glob_att, config_yaml)
+
+
+def mar_nc_burst(nc_file):
+    run_script("runots.py", "mar", "cdf2nc", nc_file)
+
+
+def test_mar_burst():
+    mar_raw_burst("gatts_MAU23M3B_burst.txt", "MAU23M3B01_burst.yaml")
+    mar_nc_burst("mar_burst_ex-raw.cdf")

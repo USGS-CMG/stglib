@@ -103,3 +103,5 @@ NOPP_FRF_361101075444401_FastHzData_20240327_190006.dat filter=lfs diff=lfs merg
 5m_sonar_test_data/** filter=lfs diff=lfs merge=lfs -text
 1126abs910s-cal.nc filter=lfs diff=lfs merge=lfs -text
 FISH0104green.zip filter=lfs diff=lfs merge=lfs -text
+MAU23M3A_cont_sample.csv filter=lfs diff=lfs merge=lfs -text
+MAU23M3B_burst_sample.csv filter=lfs diff=lfs merge=lfs -text

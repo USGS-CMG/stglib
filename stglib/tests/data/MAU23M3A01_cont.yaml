@@ -1,0 +1,10 @@
+basefile: 'MAU23M3A_cont_sample'
+filename: 'mar_cont_ex' # name of output file, -raw.cdf or .nc will be appended to this
+instrument_type: 'Marotte HS Current Meter'
+serial_number: B1233
+average_interval: 1200
+average_duration: 120
+sample_mode: 'CONTINUOUS'
+initial_instrument_height: 0.5  # meters
+initial_instrument_height_note: 'Above grate'
+correct_mag_var: 'true'

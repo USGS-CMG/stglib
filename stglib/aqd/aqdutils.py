@@ -395,9 +395,10 @@ def magvar_correct(ds):
             headvar = "Hdg"
         elif "heading" in ds:
             headvar = "heading"
+        elif "CD_310" in ds:
+            headvar = "CD_310"
 
-        ds[headvar] = ds[headvar] + magvardeg
-        ds[headvar] = ds[headvar] % 360
+        ds[headvar] = (ds[headvar] + magvardeg) % 360
 
         uvar = None
         vvar = None

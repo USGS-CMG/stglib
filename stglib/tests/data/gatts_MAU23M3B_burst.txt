@@ -1,0 +1,22 @@
+MOORING;	MAU23M3A
+PROGRAM;	Coastal and Marine Hazards and Resources Program
+PROJECT;	Coral Reefs
+EXPERIMENT;	Lahaina Fires Restoration
+title; Lahaina Fires Restoration
+Region;	Hawaii
+CruiseID;	N/A
+SciPi;	Curt Storlazzi, Olivia Cheriton, Kurt Rosenberger
+Year;	2023
+Site;	M3A
+platform_type;	Miniprobe
+Conventions; CF-1.10
+latitude;	20.8576
+longitude;	-156.6709667
+WATER_DEPTH;	4.7
+Deployment_date; 21-Dec-2023 18:00
+Recovery_date;	31-Dec-2023 22:00
+OFAFunding;	FEMA
+CollaboratingAgency;	Maui DAR
+DESCRIPTION;	Lahaina South Miniprobe, deployment 1
+WATER_DEPTH_SOURCE;	pressure data
+magnetic_variation;	9.53
