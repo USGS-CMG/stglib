@@ -518,7 +518,12 @@ def drop_attrs(ds):
     """
     Drop some global attribuutes
     """
-    att2del = ["outdir"]
+    att2del = [
+        "outdir",
+        "transducer_offset_from_bottom",
+        "nominal_sensor_depth",
+        "nominal_sensor_depth_note",
+    ]
     for k in ds.attrs:
         if re.search("_Beam2xyz$", k):
             att2del.append(k)
@@ -1252,7 +1257,7 @@ def ds_add_attrs_sig(ds):
         ds["w_1204_unfiltered"].attrs.update(
             {
                 "units": "m s-1",
-                "long_name": "Vertical Velocity (unfiltered)",
+                "long_name": "Vertical Velocity calculated from beams 1 and 3 (unfiltered)",
                 "standard_name": "upward_sea_water_velocity",
                 "epic_code": 1204,
             }
@@ -1262,7 +1267,7 @@ def ds_add_attrs_sig(ds):
         ds["w2_1204_unfiltered"].attrs.update(
             {
                 "units": "m s-1",
-                "long_name": "Vertical Velocity (2nd - unfiltered)",
+                "long_name": "Vertical Velocity calculated from beams 2 and 4 (unfiltered)",
                 "standard_name": "upward_sea_water_velocity",
             }
         )
@@ -1527,7 +1532,9 @@ def ds_make_burst_shape(ds):
     return ds
 
 
-def trim_avg_vel_bins(ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204"]):
+def trim_avg_vel_bins(
+    ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204", "vel_b5"]
+):
     """
     Trim top bin(s) after average if specified by user
     """
