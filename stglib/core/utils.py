@@ -1156,6 +1156,10 @@ def create_nominal_instrument_depth(ds):
             ds.attrs["WATER_DEPTH"] - ds.attrs["initial_instrument_height"]
         )
 
+        ds.attrs["nominal_instrument_depth_note"] = (
+            "WATER_DEPTH - " "initial_instrument_height"
+        )
+
     return ds
 
 
