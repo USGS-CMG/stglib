@@ -656,6 +656,9 @@ def read_aa_instmet(basefile):
             dat = row.split()
             if " Device" in row:
                 instmeta["serial_number"] = dat[2]
+            elif "-" and "sampling" in row:
+                instmeta["sample_rate"] = int(dat[3])
+                instmeta["sample_interval"] = 1 / instmeta["sample_rate"]
             elif "- range" in row:
                 instmeta["AARange_m"] = float(dat[3]) / 1000
             elif "- interval" in row:
@@ -672,8 +675,6 @@ def read_aa_instmet(basefile):
                 instmeta["AAPulseLength_microsec"] = int(dat[3])
             elif "- amplitude" in row:
                 instmeta["AAAmplitude_Threshold_percent"] = int(dat[3])
-            elif "-" and "sampling" in row:
-                instmeta["AASampling_rate_Hz"] = int(dat[3])
             elif "Total Number of Series" in row:
                 instmeta["AANSeries"] = int(dat[5])
             elif "Total Number of Records" in row:
