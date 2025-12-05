@@ -1532,9 +1532,7 @@ def ds_make_burst_shape(ds):
     return ds
 
 
-def trim_avg_vel_bins(
-    ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204", "vel_b5"]
-):
+def trim_avg_vel_bins(ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204"]):
     """
     Trim top bin(s) after average if specified by user
     """
