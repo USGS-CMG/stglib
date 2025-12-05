@@ -108,12 +108,12 @@ def cdf_to_nc(cdf_filename):
     ds = utils.add_start_stop_time(ds)
     ds = utils.add_min_max(ds)
     ds = utils.ds_coord_no_fillvalue(ds)
+    ds = utils.check_time_encoding(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
     nc_filename = ds.attrs["filename"] + "b.nc"
 
-    ds["time"].encoding["dtype"] = "i4"
     ds.to_netcdf(nc_filename, unlimited_dims=["time"])
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
@@ -173,12 +173,12 @@ def cdf_to_nc(cdf_filename):
         ds_avg = utils.add_min_max(ds_avg)
         ds_avg = utils.add_delta_t(ds_avg)
         ds_avg = utils.ds_coord_no_fillvalue(ds_avg)
+        ds_avg = utils.check_time_encoding(ds_avg)
 
         # Write to .nc file
         print("Writing averaged data to .nc file")
         nc_filename = ds_avg.attrs["filename"] + "b-a.nc"
 
-        ds_avg["time"].encoding["dtype"] = "i4"
         ds_avg.to_netcdf(nc_filename, unlimited_dims=["time"])
         utils.check_compliance(nc_filename, conventions=ds_avg.attrs["Conventions"])
 
