@@ -74,6 +74,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         # check if any filtering before other qaqc
         ds = filter.apply_butter_filt(ds, var)
         ds = filter.apply_med_filt(ds, var)
+        ds = qaqc.trim_med_diff(ds, var)
+        ds = qaqc.trim_med_diff_pct(ds, var)
 
         ds = qaqc.trim_min(ds, var)
         ds = qaqc.trim_max(ds, var)
@@ -82,8 +84,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = qaqc.trim_min_diff_pct(ds, var)
         ds = qaqc.trim_max_diff(ds, var)
         ds = qaqc.trim_max_diff_pct(ds, var)
-        ds = qaqc.trim_med_diff(ds, var)
-        ds = qaqc.trim_med_diff_pct(ds, var)
         ds = qaqc.trim_max_blip(ds, var)
         ds = qaqc.trim_max_blip_pct(ds, var)
         ds = qaqc.trim_bad_ens(ds, var)

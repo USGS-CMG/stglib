@@ -18,14 +18,14 @@ def call_qaqc(ds):
         ds = filter.apply_butter_filt(ds, var)
         ds = filter.apply_med_filt(ds, var)
 
+        ds = trim_med_diff(ds, var)
+        ds = trim_med_diff_pct(ds, var)
+
         ds = trim_min_diff(ds, var)
         ds = trim_min_diff_pct(ds, var)
 
         ds = trim_max_diff(ds, var)
         ds = trim_max_diff_pct(ds, var)
-
-        ds = trim_med_diff(ds, var)
-        ds = trim_med_diff_pct(ds, var)
 
         ds = trim_maxabs_diff(ds, var)
         ds = trim_maxabs_diff_2d(ds, var)
@@ -146,17 +146,86 @@ def trim_max_diff_pct(ds, var):
 
 
 def trim_med_diff(ds, var):
+
     if var + "_med_diff" in ds.attrs:
+        # list all dims for the variable to determine which dim is best to apply the medfilt
+        dim_list = list(ds[var].dims)
+
         if "kernel_size" in ds.attrs:
-            kernel_size = ds.attrs["kernel_size"]
+            # check that the kernel_size is correct length, has correct inputs, and is a list
+            # start by checking if it is only one int. Ex: ds.attrs["kernel_size"] = 7
+            if isinstance(ds.attrs["kernel_size"], int):
+                # make into list if it is only one value so we can add a dimension to the list next
+                ds.attrs["kernel_size"] = [ds.attrs["kernel_size"]]
+
+            if len(ds.attrs["kernel_size"]) == 1:
+                # now add dimension to kernel_size
+                if "sample" in dim_list:
+                    # make dimension "sample" if that is in dim list (burst data)
+                    kernel_size = ["sample"] + ds.attrs["kernel_size"]
+                else:
+                    # make dimension "time" if sample is not in dim list (continuous data)
+                    kernel_size = ["time"] + ds.attrs["kernel_size"]
+
+            # next check if user specified a dim and a size for kernel_size. Ex: ds.attrs["kernel_size"] = ['time', 7]
+            elif len(ds.attrs["kernel_size"]) == 2:
+                # check that inputted dim is actually a dim
+                # check if kernel_size is an integer
+                if ds.attrs["kernel_size"][0] in dim_list and isinstance(
+                    ds.attrs["kernel_size"][1], int
+                ):
+                    kernel_size = ds.attrs["kernel_size"]
+
+                # check if kernel_size is a string
+                elif ds.attrs["kernel_size"][0] in dim_list and isinstance(
+                    ds.attrs["kernel_size"][1], str
+                ):
+                    # convert kernel size to integer if it is a string
+                    kernel_size = ds.attrs["kernel_size"]
+                    kernel_size[1] = int(kernel_size[1])
+                else:
+                    # if not correct size and inputs, warn user and skip tim_med_diff
+                    warnings.warn(
+                        "kernel_size not inputted correctly in yaml, cannot apply med_diff. Make sure kernel_size = ['dim', kernel size]. Example kernel_size: ['time', 5]."
+                    )
+
+            else:
+                # if not correct size and inputs, warn user and skip trim_med_diff
+                warnings.warn(
+                    "kernel_size not inputted correctly in yaml, cannot apply med_diff. Make sure kernel_size = ['dim', kernel size]. Example kernel_size: ['time', 5]."
+                )
+
         else:
-            kernel_size = 5
-        filtered = scipy.signal.medfilt(ds[var], kernel_size=kernel_size)
+            # if no kernel_size specified, default to using 5 point window over "sample" or "time" dim, depending if burst or continuous data
+            if "sample" in dim_list:
+                # make dimension "sample" if that is in dim list (burst data)
+                kernel_size = ["sample", 5]
+            else:
+                # make dimension "time" if sample is not in dim list (continuous data)
+                kernel_size = ["time", 5]
+
+        # apply the specified kernel_size over the chosen dim in ds.attrs["kernel_size"]
+        # all other dims will have a kernel size of 1 so the med_filt is not applied across those dims
+        kernel_size = [1 if i != kernel_size[0] else kernel_size[1] for i in dim_list]
+
+        # apply medfilt to variable
+        filtered = scipy.signal.medfilt(ds[var], kernel_size)
+
+        # Check for NaNs in variable; raise NaN warning if present
+        if ds[var].isnull().any():
+            nnans = ds[var].isnull().sum().item()
+            nan_note = f"{var} contains {nnans} NaNs and may affect quality of despiking using med_diff tool. Check frequency and locations of NaNs."
+            print(nan_note)
+            # Verify NaNs in ds[var] are transferred to filtered. Signal.medfilt can convert trailing NaNs at end of burst to zeros or other values. This wouldn't affect the difference calculation, but we should still fill any converted nans to zero, back to nans.
+            filtered = np.where(~np.isnan(ds[var].values), filtered, np.nan)
+
+        # compare var to filtered and see if it satisfies the threshold
         bads = np.abs(ds[var] - filtered) > ds.attrs[var + "_med_diff"]
         affected = bads.sum()
-        ds[var][bads] = np.nan
+        # use .where() instead of boolean indexing so it works with burst shaped data; tilde used so .where() keeps data when not indexed by "bads" and replaces "bads" with nan
+        ds[var] = ds[var].where(~(bads), np.nan)
 
-        notetxt = f"Values filled where difference between {kernel_size}-point median filter and original values is greater than {ds.attrs[var + '_med_diff']}; {affected.values} values affected. "
+        notetxt = f"Values filled where difference between {max(kernel_size)}-point median filter (over '{dim_list[np.argmax(kernel_size)]}' dimension) and original values is greater than {ds.attrs[var + '_med_diff']}; signal.medfilt 'kernel_size' parameter input = {kernel_size}; {affected.values} values affected. "
 
         ds = utils.insert_note(ds, var, notetxt)
 
