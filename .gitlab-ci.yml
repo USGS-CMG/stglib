@@ -1,4 +1,4 @@
-image: condaforge/miniforge3:latest
+image: condaforge/miniforge3:25.9.1-0
 
 stages:          # List of stages for jobs, and their order of execution
   - deploy
