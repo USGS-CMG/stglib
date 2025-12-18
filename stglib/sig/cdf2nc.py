@@ -1,6 +1,7 @@
 import re
 import time
 
+import dask
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -265,6 +266,34 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
         print(
             "Create average data products from Burst, IBurst, or EchoSounder data types from BURST sample mode and if specified for CONTINUOUS"
         )
+
+        # First reset chunking
+        # Find vdim
+        vdim = None
+        for k in ds.coords:
+            if "axis" in ds[k].attrs:
+                if ds[k].attrs["axis"] == "Z":
+                    vdim = k
+
+        # check for user specified chunks then close and re-read nc_out file
+        if "chunks" in ds.attrs:
+            chunksizes = dict(zip(ds.attrs["chunks"][::2], ds.attrs["chunks"][1::2]))
+            ds.close()
+            # make sure values are type int, needed because they are written out to global attribute in -raw.cdf file they are str
+            chunksizes2 = {}
+            for key in chunksizes:
+                if "bindist" in key:
+                    chunksizes2[vdim] = int(chunksizes[key])
+                else:
+                    chunksizes2[key] = int(chunksizes[key])
+
+            print(f"Using user specified chunksizes = {chunksizes2}")
+
+            ds = xr.open_dataset(nc_out, chunks=chunksizes2)
+
+        else:
+            ds.close()
+            ds = xr.open_dataset(nc_out, chunks={"time": 200000, vdim: 48})
 
         # if sample_mode = Burst then make burst averages, while checking for user specified average_duration attribute
         if ds.attrs["sample_mode"].upper() == "CONTINUOUS":
@@ -1399,10 +1428,11 @@ def ds_make_average_shape_mi(ds):
     # create multi-index
     ind = pd.MultiIndex.from_arrays((t3, s), names=("new_time", "new_sample"))
     # unstack to make burst shape dataset
-    ds = ds.assign_coords(
-        xr.Coordinates.from_pandas_multiindex(ind, dim="time")
-    ).unstack("time")
-    # dsa = dsa.unstack()
+    with dask.config.set({"array.slicing.split_large_chunks": True}):
+        ds = ds.assign_coords(
+            xr.Coordinates.from_pandas_multiindex(ind, dim="time")
+        ).unstack("time")
+
     ds = ds.drop_vars("sample").rename({"new_time": "time", "new_sample": "sample"})
 
     return ds
