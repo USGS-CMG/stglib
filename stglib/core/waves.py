@@ -243,7 +243,7 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
 
         #  Extract real part of directional spectra and calculate frequency spectra
         Dnn = np.real(SMout["S"])
-        Snn = np.trapz(Dnn, axis=1, x=SMout["dirs"])
+        Snn = np.trapezoid(Dnn, axis=1, x=SMout["dirs"])
 
         # Make tail if using puv
         if dwspid:
@@ -305,7 +305,7 @@ def make_diwasp_puv_suv(ds, layout=None, data_type=None, freqs=None, ibin=0):
     )
 
     # dwv["diwasp_fspec"] = xr.DataArray(
-    #    np.trapz(dspec, axis=2, x=SMout["dirs"]),
+    #    np.trapezoid(dspec, axis=2, x=SMout["dirs"]),
     #    dims=["time", "diwasp_frequency"],
     # )
 
@@ -469,7 +469,7 @@ def make_diwasp_elev_pres(ds, layout=None, data_type=None, freqs=None):
 
         #  Extract real part of directional spectra and calculate frequency spectra
         Dnn = np.real(SMout["S"])
-        Snn = np.trapz(Dnn, axis=1, x=SMout["dirs"])
+        Snn = np.trapezoid(Dnn, axis=1, x=SMout["dirs"])
 
         # Make tail if using pres
         if data_type == "pres" or (dwspid and dwspid[-1] == "pres"):
@@ -897,7 +897,7 @@ def make_mwd(freqs, dirs, dspec, diwasp=False):
 
 def make_moment(f, Pnn, n):
     """Compute nth moment (m0, m1, m2, etc.) of power spectra"""
-    return np.trapz(Pnn * f**n, x=f)
+    return np.trapezoid(Pnn * f**n, x=f)
 
 
 def make_Hs(m0):

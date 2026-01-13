@@ -30,7 +30,7 @@ def nc_to_diwasp(nc_filename):
         mat["dspec"][:, idx, :], dims=("time", "direction", "frequency")
     )
 
-    pspec = np.trapz(ds["dspec"].values, x=ds["direction"], axis=1)
+    pspec = np.trapezoid(ds["dspec"].values, x=ds["direction"], axis=1)
 
     m0 = waves.make_moment(ds["frequency"].values, pspec, 0)
     m2 = waves.make_moment(ds["frequency"].values, pspec, 2)
