@@ -66,22 +66,27 @@ def cdf_to_nc(cdf_filename):
     """
 
     # Load raw .cdf data
-    ds = xr.open_dataset(cdf_filename)
+    ds = xr.open_dataset(cdf_filename, chunks={"time": 300000})
 
     # Remove units in case we change and we can use larger time steps
     ds.time.encoding.pop("units")
 
+    # Drop variables needs to occur here to improve memory with large continuous file
+    ds = ds.drop_vars(["speed_upper", "speed_lower", "direction", "tilt", "batt"])
+
     # Calculate sample interval/rate from most frequent time difference between samples in case there are any time skips
-    ds.attrs["sample_interval"] = stats.mode(np.diff(ds.time.values))[
-        0
-    ] / np.timedelta64(1, "s")
+    ds.attrs["sample_interval"] = stats.mode(
+        np.diff(ds.time) / np.timedelta64(1, "s")
+    ).mode
+
     ds.attrs["sample_rate"] = 1 / ds.attrs["sample_interval"]  # Hz
+
+    # Check for time gaps and fill before averaging
+    if ds.attrs["sample_mode"].upper() == "CONTINUOUS":
+        ds = fill_time_gaps(ds)
 
     # Calculate u and v velocities
     ds["u"], ds["v"] = utils.spd2uv(ds["speed"], ds["heading"])
-
-    # Drop variables
-    ds = ds.drop_vars(["speed_upper", "speed_lower", "direction", "tilt", "batt"])
 
     # Rename variables to CF compliant names
     ds = ds_rename_vars(ds)
@@ -126,11 +131,8 @@ def cdf_to_nc(cdf_filename):
         ds.attrs["sample_mode"].upper() == "CONTINUOUS"
     ) and "average_interval" in ds.attrs:
 
-        # Check for time gaps and fill before averaging
-        ds_fill = fill_time_gaps(ds)
-
         # Average continuous data
-        ds_avg = avg_cont(ds_fill)
+        ds_avg = avg_cont(ds)
 
     elif (
         ds.attrs["sample_mode"].upper() == "BURST"
@@ -186,27 +188,23 @@ def cdf_to_nc(cdf_filename):
 
 
 def fill_time_gaps(ds):
+    """Fill any gaps in time-series using to make time even"""
 
-    # Get time difference between each row
-    time_diffs = np.diff(ds.time.values)
-
-    # Check for more than one unique value
-    all_same = np.unique(time_diffs).size == 1
-
-    # If more than one unique value, fill gaps in time
-    if not all_same:
-
-        delta_t = int(time_diffs[0])
-
-        # Make new timestamp
-        timestamp = np.array(
-            pd.date_range(
-                start=ds.time[0].values, end=ds.time[-1].values, freq=f"{delta_t}ns"
-            )
+    sr = ds.attrs["sample_rate"]
+    sims = 1 / sr * 1000
+    pds = (
+        int(
+            (ds["time"][-1].values - ds["time"][0].values)
+            / (sims * np.timedelta64(1, "ms"))
         )
+        + 1
+    )
+    idx = pd.date_range(str(ds["time"][0].values), periods=pds, freq=f"{sims}ms")
 
-        # Reindex onto continuous time
-        ds = ds.reindex(time=timestamp, method="nearest")
+    # make sure time index is unique
+    ds = ds.drop_duplicates(dim="time")
+
+    ds = ds.reindex(time=idx)
 
     return ds
 
