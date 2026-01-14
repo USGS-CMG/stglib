@@ -37,6 +37,8 @@ def nc_to_waves(nc_filename, salwtemp=None):
                     (ds["time"][1] - ds["time"][0]).dt.round("s").values
                     / np.timedelta64(1, "s")
                 )
+        # make data set for wave analysis
+        ds = make_wave_vars(ds)
 
     # check to see if wave duration is specified and if so trim burst samples accordingly
     if "wave_duration" in ds.attrs:
@@ -172,6 +174,8 @@ def nc_to_diwasp(nc_filename, salwtemp=None):
                     (ds["time"][1] - ds["time"][0]).dt.round("s").values
                     / np.timedelta64(1, "s")
                 )
+        # make data set for wave analysis
+        ds = make_wave_vars(ds)
 
     # check to see if wave duration is specified and if so trim burst samples accordingly
     if "wave_duration" in ds.attrs:
@@ -658,5 +662,32 @@ def make_waves_vdims(ds, wtype="nc2waves"):
         ds["z"].attrs["note"] = notez
     if notedep:
         ds["depth"].attrs["note"] = notedep
+
+    return ds
+
+
+def make_wave_vars(
+    ds,
+    wave_vars=[
+        "sample",
+        "P_1",
+        "P_1ac",
+        "Tx_1211",
+        "brangeAST",
+        "ast_quality",
+        "u_1205",
+        "v_1206",
+        "w_1204",
+        "vel",
+        "cor",
+        "amp",
+    ],
+):
+    """
+    Make BURST data set into data set for purpose of wave analysis
+    """
+    for k in ds.data_vars:
+        if k not in wave_vars:
+            ds = ds.drop_vars(k)
 
     return ds
