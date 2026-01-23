@@ -65,6 +65,8 @@ def test_exo():
     exo_nc("1119Aexo-raw.cdf")
     exo_raw("glob_att1151b.txt", "1151Bexo_config.yaml")
     exo_nc("1151Bexo-raw.cdf")
+    exo_raw("glob_att1164f_msl.txt", "1164Fexo_config.yaml")
+    exo_nc("1164F_exo-raw.cdf")
     # test for atmospheric correction
     exo_raw("glob_attbel3C.txt", "config_bel3C.yaml")
     exo_nc("BEL19B3C03exo-raw.cdf", "atmpres_BEL19B3C03exo.cdf")

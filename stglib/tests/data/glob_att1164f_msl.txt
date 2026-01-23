@@ -1,0 +1,30 @@
+    title; Time-series measurements of oceanographic and water quality data collected in Fairhaven, MA
+    SciPi; N. Ganju
+    PROJECT; USGS Coastal and Marine Hazards and Resources Program
+    EXPERIMENT; Marsh Island Sediment Flux
+    DESCRIPTION; Marsh Island, Fairhaven, MA
+    DATA_SUBTYPE; MOORED
+    DATA_ORIGIN; USGS WHCMSC Coastal and Estuarine Dynamics Group
+    COORD_SYSTEM; GEOGRAPHIC
+    Conventions; CF-1.11
+    MOORING; 1164F
+    WATER_DEPTH; 0.603
+    WATER_DEPTH_NOTE; (meters), From average Exo pressure + instrument height + 0.02m to pressure port
+    height_above_geopotential_datum; -0.645
+    geopotential_datum_name; NAVD88
+    geopotential_datum_note; Seabed elevation from RTK measurement
+    latitude; 41.6514380000
+    longitude; -70.9177460000
+    magnetic_variation; -14.47
+    Deployment_date; 2024-12-17 18:45
+    Recovery_date; 2025-02-26 16:15
+    DATA_CMNT; 
+    platform_type; Quadpod
+    DRIFTER; 0
+    POS_CONST; 0
+    DEPTH_CONST; 0
+    WATER_MASS; New Bedford Harbor
+    VAR_FILL; nan
+    Field_Activity_Number; 
+    institution; United States Geological Survey, Woods Hole Coastal and Marine Science Center
+    institution_url; https://woodshole.er.usgs.gov

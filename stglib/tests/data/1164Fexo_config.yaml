@@ -1,0 +1,29 @@
+basefile: '1164F_kor_1_4_0_206'
+filename: '1164F_exo'   # name of output file, -raw.cdf or .nc will be appended to this
+LatLonDatum: 'NAD83'
+ClockError: 0 # sec, negative is slow
+ClockDrift: 0 # sec
+initial_instrument_height: 0.12
+initial_instrument_height_note: 'From seabed to center of sensors (meters)'
+pressure_sensor_height: 0.14 #initial instrument height + .02m (meters)
+zeroed_pressure: 'No' # was pressure zeroed before deployment
+P_1ac_note: 'Corrected for variations in atmospheric pressure using Farihaven, MA NOAA met station (ID: 8447627, located ~3 km from site). Missing atmospheric pressure data at Fairhaven, MA NOAA met station was filled by data from Woods Hole, MA NOAA station (ID: 8447930, located ~25 km from site)'
+skiprows: 8
+S_41_min_diff: -20.00 #Salinity psu
+s_41_max_diff: 20.00
+SpC_48_max_diff: 3.75
+SpC_48_min_diff: -3.75
+C_51_max_diff: 1.75
+C_51_min_diff: -1.75
+Turb_max_diff: 250.0
+Turb_med_diff: 80.0
+fDOMRFU_max_diff: 11.5
+fDOMRFU_min_diff: -11.5
+fDOMRFU_med_diff: 8.5
+fDOMQSU_med_diff: 27.0
+fDOMRFU_min: -0.05
+fDOMQSU_min: -0.1
+fDOMQSU_max_diff: 40.0
+fDOMQSU_min_diff: -40.0
+#---------------------------
+# No fouling or drift corrections needed.
