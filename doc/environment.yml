@@ -11,7 +11,7 @@ dependencies:
   - matplotlib-base
   - netcdf4
   - numpy
-  - pandas
+  - pandas=2
   - pre-commit
   - pyarrow
   - pytest
