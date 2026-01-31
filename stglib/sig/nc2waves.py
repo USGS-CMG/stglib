@@ -1,4 +1,5 @@
 import re
+import time
 import warnings
 
 import numpy as np
@@ -150,6 +151,7 @@ def nc_to_diwasp(nc_filename, salwtemp=None):
     Process burst data to make DIWASP derived wave statistics and spectra
     """
 
+    start_time = time.time()
     ds = xr.open_dataset(nc_filename, chunks={"time": 200000, "z": 5})
 
     # check to see if need to make wave burst from continuous data
@@ -209,16 +211,15 @@ def nc_to_diwasp(nc_filename, salwtemp=None):
     if data_type == "puv" or data_type == "suv" or data_type == "optimized":
         print(f"Running DIWASP using {data_type} input data")
         layout = make_diwasp_layout(ds, data_type=data_type, ibin=ibin)
-        diwasp = waves.make_diwasp_puv_suv(
-            ds, data_type=data_type, layout=layout, ibin=ibin
-        )
+        diwasp = waves.make_diwasp_ds(ds, data_type=data_type, layout=layout, ibin=ibin)
         ds = utils.ds_add_pydiwasp_history(ds)
 
     elif data_type == "elev" or data_type == "pres" or data_type == "optimized-nd":
         print(f"Running DIWASP using {ds.attrs['diwasp']} input data")
         layout = make_diwasp_layout(ds, data_type=data_type)
-        diwasp = waves.make_diwasp_elev_pres(ds, data_type=data_type, layout=layout)
+        diwasp = waves.make_diwasp_ds(ds, data_type=data_type, layout=layout)
         ds = utils.ds_add_pydiwasp_history(ds)
+
     else:
         raise ValueError(
             f"DIWASP input type {ds.attrs['diwasp']} is not currently supported for {ds.attrs['instument_type']} in stglib"
@@ -322,6 +323,12 @@ def nc_to_diwasp(nc_filename, salwtemp=None):
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done writing netCDF file", nc_filename)
+
+    end_time = time.time()
+    print(
+        f"Processing nc2diwasp for Signature data type {ds.attrs['data_type']} in deployment {ds.attrs['filename']} completed"
+    )
+    print(f"elapsed time = {end_time-start_time:.0f} seconds")
 
     return ds
 

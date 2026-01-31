@@ -1,7 +1,9 @@
 import numpy as np
+
 from .private.hsig import hsig
 
-def infospec(SM):
+
+def infospec(SM, displ=1):
     """
     DIWASP V1.4 function
     infospec: calculates and displays information about a directional spectrum
@@ -28,24 +30,30 @@ def infospec(SM):
 
     H = hsig(SM)
 
-    S = np.sum(np.real(SM['S']), 1)
+    S = np.sum(np.real(SM["S"]), 1)
 
     I = np.argmax(S)
-    Tp = 1 / (SM['freqs'][I])
-    I = np.argmax(np.real(SM['S'][I, :]))
-    DTp = SM['dirs'][I]
-    I = np.argmax(np.real(np.sum(SM['S'], 0)))
-    Dp = SM['dirs'][I]
+    Tp = 1 / (SM["freqs"][I])
+    I = np.argmax(np.real(SM["S"][I, :]))
+    DTp = SM["dirs"][I]
+    I = np.argmax(np.real(np.sum(SM["S"], 0)))
+    Dp = SM["dirs"][I]
 
-    print('Infospec::')
-    print('Significant wave height: {}'.format(H))
-    print('Peak period: {}'.format(Tp))
-    print('Direction of peak period: {} axis angle / {} '
-        'compass bearing'.format(DTp, compangle(DTp, SM['xaxisdir'])))
-    print('Dominant direction: {} axis angle / {} '
-        'compass bearing'.format(Dp, compangle(Dp, SM['xaxisdir'])))
+    if displ > 0:
+        print("Infospec::")
+        print("Significant wave height: {}".format(H))
+        print("Peak period: {}".format(Tp))
+        print(
+            "Direction of peak period: {} axis angle / {} "
+            "compass bearing".format(DTp, compangle(DTp, SM["xaxisdir"]))
+        )
+        print(
+            "Dominant direction: {} axis angle / {} "
+            "compass bearing".format(Dp, compangle(Dp, SM["xaxisdir"]))
+        )
 
     return H, Tp, DTp, Dp
+
 
 def compangle(dirs, xaxisdir):
     return (180 + xaxisdir * np.ones(np.shape(dirs)) - dirs) % 360

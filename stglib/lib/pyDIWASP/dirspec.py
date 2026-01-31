@@ -86,7 +86,8 @@ def dirspec(ID, SM, EP, Options_=None):
     ptype = Options["PLOTTYPE"]
     displ = Options["MESSAGE"]
 
-    print("\ncalculating.....\n\ncross power spectra")
+    if displ > 0:
+        print("\ncalculating.....\n\ncross power spectra")
 
     data = detrend(ID["data"], axis=0)
     ndat, szd = np.shape(ID["data"])
@@ -142,7 +143,8 @@ def dirspec(ID, SM, EP, Options_=None):
     SM1["dunit"] = "rad"
 
     # call appropriate estimation function
-    print("directional spectra using {} method".format(EP["method"]))
+    if displ > 0:
+        print("directional spectra using {} method".format(EP["method"]))
     SM1["S"] = eval(EP["method"])(
         xps[:, :, ffs],
         trm[:, ffs, :],
@@ -155,25 +157,30 @@ def dirspec(ID, SM, EP, Options_=None):
     SM1["S"][np.logical_or(np.isnan(SM1["S"]), SM1["S"] < 0)] = 0
 
     # Interpolate onto user specified matrix
-    print("\ninterpolating onto specified matrix...\n")
+    if displ > 0:
+        print("\ninterpolating onto specified matrix...\n")
     SMout = interpspec(SM1, SM)
 
     # smooth spectrum
     if EP["smooth"].upper() == "ON":
-        print("\nsmoothing spectrum...\n")
+        if displ > 0:
+            print("\nsmoothing spectrum...\n")
         SMout = smoothspec(SMout, [[1, 0.5, 0.25], [1, 0.5, 0.25]])
 
-    infospec(SMout)
+    if displ > 0:
+        infospec(SMout)
 
     # write out spectrum matrix in DIWASP format
     filename = Options["FILEOUT"]
     if len(filename) > 0:
-        print("writing out spectrum matrix to file")
+        if displ > 0:
+            print("writing out spectrum matrix to file")
         writespec(SMout, filename)
 
     # plot spectrum
     if ptype > 0:
-        print("finished...plotting spectrum")
+        if displ > 0:
+            print("finished...plotting spectrum")
         plotspec(SMout, ptype)
         T = "Directional spectrum estimate using {} method".format(EP["method"])
         plt.title(T)
