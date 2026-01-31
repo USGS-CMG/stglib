@@ -1,8 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from ..core import qaqc, utils
-from . import sonutils
+from ..core import attrs, qaqc, utils
 
 
 def cdf_to_nc(cdf_filename, height=None):
@@ -76,7 +75,7 @@ def cdf_to_nc(cdf_filename, height=None):
     ds["theta"] = correct_theta(ds)
 
     # Add attributes
-    ds = sonutils.ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     # QAQC
     ds = qaqc.call_qaqc(ds)
@@ -119,7 +118,7 @@ def cdf_to_nc(cdf_filename, height=None):
     ds_avg["theta"] = correct_theta(ds_avg)
 
     # Add attrs and recalculate min/max
-    ds_avg = sonutils.ds_add_attrs(ds_avg)
+    ds_avg = attrs.ds_add_attrs(ds_avg)
     ds_avg = utils.add_min_max(ds_avg)
 
     print("Writing averaged data to .nc file")

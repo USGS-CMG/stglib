@@ -6,8 +6,7 @@ import pandas as pd
 import xarray as xr
 from tqdm import tqdm
 
-# from .aqd import aqdutils
-from .core import qaqc, utils, waves
+from .core import attrs, qaqc, utils, waves
 
 
 def dat_to_cdf(metadata):
@@ -128,10 +127,9 @@ def cdf_to_nc(cdf_filename):
     if "filtered_wl" in ds.attrs and ds.attrs["filtered_wl"].lower() == "true":
         ds = create_filtered_water_level(ds)
 
-    ds = ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
     ds = utils.add_min_max(ds)
     ds = utils.add_start_stop_time(ds)
-    # ds = utils.add_delta_t(ds)
     ds = utils.ds_add_lat_lon(ds)
 
     # Write to .nc file
@@ -168,7 +166,7 @@ def nc_to_waves(nc_filename):
 
     # make elevation variable
     #  geolux will always be downward looking and height is positive up convention
-    elev = ds["z"] - ds["brange"]  
+    elev = ds["z"] - ds["brange"]
 
     # set tolerance for filling gaps in wave burst data
     if "wavedat_tolerance" not in ds.attrs:
@@ -203,28 +201,7 @@ def nc_to_waves(nc_filename):
     for k in ["wp_peak", "wh_4061", "wp_4060", "sspec"]:
         ds[k] = spec[k]
 
-    """
-    # ds = utils.create_water_depth_var(ds)
-    ds["water_depth"] = xr.DataArray(ds["elev"].squeeze().mean(dim="sample"))
-    ds["water_depth"].attrs.update(
-        {
-            "long_name": "Total water depth",
-            "units": "m",
-            "standard_name": "sea_floor_depth_below_sea_surface",
-            "epic_code": 3,
-        }
-    )
-    """
-
     ds["water_level"] = ds["water_level"].mean(dim="sample")
-    ds["water_level"].attrs.update(
-        {
-            "units": "m",
-            "long_name": "Water level NAVD88",
-            "standard_name": "sea_surface_height_above_geopotential_datum",
-            "geopotential_datum_name": "NAVD88",
-        }
-    )
 
     for k in [
         "water_level_filt",
@@ -235,9 +212,7 @@ def nc_to_waves(nc_filename):
         if k in ds:
             ds = ds.drop_vars(k)
 
-    # ds = qaqc.drop_vars(ds)
-
-    # ds = drop_unused_dims(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     ds = utils.trim_max_wp(ds)
 
@@ -249,9 +224,6 @@ def nc_to_waves(nc_filename):
 
     # Add attrs
     ds = utils.ds_add_wave_attrs(ds)
-
-    # clean-up attrs
-    # ds = drop_attrs(ds)
 
     # assign min/max (need to do this after trimming):
     ds = utils.add_min_max(ds)
@@ -334,37 +306,6 @@ def ds_rename_vars(ds):
             newvars[k] = varnames[k]
 
     return ds.rename(newvars)
-
-
-def ds_add_attrs(ds):
-    """Add variable attribute to some Geolux specific variables"""
-    # modified from exo.ds_add_attrs
-    ds = utils.ds_coord_no_fillvalue(ds)
-
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-
-    # ds["sample"].attrs.update({"units": "1", "long_name": "Sample in burst"})
-
-    ds["water_level"].attrs.update(
-        {
-            "units": "m",
-            "long_name": "Water level NAVD88",
-            "standard_name": "sea_surface_height_above_geopotential_datum",
-            "geopotential_datum_name": "NAVD88",
-        }
-    )
-
-    ds["brange"].attrs.update(
-        {
-            "units": "m",
-            "long_name": "sensor range to boundary",
-            "standard_name": "altimeter_range",
-        }
-    )
-
-    return ds
 
 
 def fill_time_gaps(ds):

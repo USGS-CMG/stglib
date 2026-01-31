@@ -3,7 +3,7 @@ from datetime import timedelta
 import pandas as pd
 import xarray as xr
 
-from .core import qaqc, utils
+from .core import attrs, qaqc, utils
 
 
 def read_header(filnam):
@@ -129,7 +129,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
         ds = utils.atmos_correct(ds, atmpres)
 
     # Add attributes
-    ds = ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     # Run utilities
     ds = utils.clip_ds(ds)
@@ -156,45 +156,3 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print(f"Done writing netCDF file {nc_filename}")
-
-
-def ds_add_attrs(ds):
-    """
-    Add attributes: units, standard name from CF website, long names
-    """
-    ds = utils.ds_coord_no_fillvalue(ds)
-
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-
-    if "T_28" in ds:
-        ds["T_28"].attrs.update(
-            {
-                "units": "degree_C",
-                "standard_name": "sea_water_temperature",
-                "long_name": "Temperature",
-            }
-        )
-
-    if "P_1" in ds:
-        ds["P_1"].attrs.update(
-            {
-                "units": "dbar",
-                "long_name": "Uncorrected pressure",
-                "standard_name": "sea_water_pressure",
-            }
-        )
-
-    if "P_1ac" in ds:
-        ds["P_1ac"].attrs.update(
-            {
-                "units": "dbar",
-                "long_name": "Corrected pressure",
-                "standard_name": "sea_water_pressure_due_to_sea_water",
-            }
-        )
-        if "P_1ac_note" in ds.attrs:
-            ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
-
-    return ds

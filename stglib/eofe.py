@@ -4,7 +4,7 @@ import pandas as pd
 import xarray as xr
 
 from .aqd import aqdutils
-from .core import qaqc, utils
+from .core import attrs, qaqc, utils
 
 
 def log_to_cdf(metadata):
@@ -106,7 +106,7 @@ def cdf_to_nc(cdf_filename):
             ds = ds.drop_vars(k)
 
     # add attributes to each variable
-    ds = ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     # Call utils
     ds = utils.clip_ds(ds)
@@ -157,6 +157,7 @@ def cdf_to_nc(cdf_filename):
 def read_ea_instmet(basefile):
     with open(basefile) as f:
         instmeta = {}
+        # instmeta["instrument_type"] = "EofE ECHOLOGGER EA400"
         row = ""
         while "##DataStart" not in row:
             row = f.readline().rstrip()
@@ -300,67 +301,6 @@ def ds_rename_vars(ds):
     return ds.rename(newvars)
 
 
-def ds_add_attrs(ds):
-
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-
-    ds["sample"].attrs.update({"units": "1", "long_name": "Sample in burst"})
-
-    ds["Tx_1211"].attrs.update(
-        {
-            "units": "degree_C",
-            "long_name": "Instrument Internal Temperature",
-            # "standard_name": "sea_water_temperature",
-            "epic_code": "1211",
-        }
-    )
-
-    if "ea" in ds.attrs["instrument_type"]:
-        ds.attrs["instrument_type"] = "EofE ECHOLOGGER EA400 profiling altimeter"
-
-        ds["AGC_1202"].attrs.update(
-            {
-                "units": "counts",
-                "long_name": "Average Echo Intensity",
-                # "generic_name": "AGC",
-                "epic_code": "1202",
-            }
-        )
-
-        ds["Ptch_1216"].attrs.update(
-            {
-                "units": "degrees",
-                "long_name": "Instrument Pitch",
-                "standard_name": "platform_pitch",
-                "epic_code": "1216",
-            }
-        )
-
-        ds["Roll_1217"].attrs.update(
-            {
-                "units": "degrees",
-                "long_name": "Instrument Roll",
-                "standard_name": "platform_roll",
-                "epic_code": "1217",
-            }
-        )
-
-    if "aa" in ds.attrs["instrument_type"]:
-        ds.attrs["instrument_type"] = "EofE ECHOLOGGER AA400 altimeter"
-
-        ds["AMP_723"].attrs.update(
-            {
-                "units": "percent",
-                "long_name": "Acoustic Signal Amplitude Strength",
-                "epic_code": "723",
-            }
-        )
-
-    return ds
-
-
 def calc_bin_height(ds):
     # modified from qaqc.check_orientation
 
@@ -468,9 +408,6 @@ def calc_cor_brange(ds):
 
     ds["brange"].attrs.update(
         {
-            "units": "m",
-            "long_name": "Altimeter range to boundary",
-            "standard_name": "altimeter_range",
             "note": "Calculated using adjusted speed of sound",
         }
     )
@@ -650,6 +587,7 @@ def average_burst(ds):
 def read_aa_instmet(basefile):
     with open(basefile) as f:
         instmeta = {}
+        # instmeta["instrument_type"] = "EofE ECHOLOGGER AA400"
         row = ""
         while "   Date       Time" not in row:
             row = f.readline().rstrip()

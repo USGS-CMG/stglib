@@ -8,12 +8,14 @@ from dask.diagnostics import ProgressBar
 from tqdm import tqdm
 
 from stglib.aqd import aqdutils
-from stglib.core import qaqc, utils
+from stglib.core import attrs, qaqc, utils
 
 
 def mat2cdf(metadata):
 
     raw_dir = metadata["basefile"]
+
+    metadata["instrument_type"] = "AQUAscat1000R"
 
     # finding all files that end with .mat
     matfiles = list(Path(raw_dir).glob("*.mat"))
@@ -99,7 +101,7 @@ def cdf2nc(cdf_filename, atmpres=False):
     ds = abs_drop_vars(ds)
     ds = utils.ds_add_lat_lon(ds)
     ds = utils.add_min_max(ds)
-    ds = ds_add_var_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
     ds = var_encoding(ds)
     ds = time_encoding(ds)
     ds = utils.ds_coord_no_fillvalue(ds)
@@ -408,93 +410,6 @@ def remove_aux_snum(ds):
             ds[var] = ds[var].swap_dims({"aux_sample_number": "sample_number"})
 
     ds = ds.drop_dims("aux_sample_number")
-
-    return ds
-
-
-def ds_add_var_attrs(ds):
-    """add necessary attributes to variables"""
-
-    print("Adding necessary attributes")
-
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-
-    if "P_1ac" in ds:
-        ds["P_1ac"].attrs.update(
-            {
-                "units": "dbar",
-                "long_name": "Corrected pressure",
-                "standard_name": "sea_water_pressure_due_to_sea_water",
-            }
-        )
-        if "P_1ac_note" in ds.attrs:
-            ds["P_1ac"].attrs.update({"note": ds.attrs["P_1ac_note"]})
-
-    ds["bindist"].attrs.update(
-        {
-            "units": "m",
-            "long_name": "distance from transducer head",
-            "bin_size": ds.attrs["ABSAbsBinLengthMM"][0] * 0.001,
-            "bin_count": ds.attrs["ABSAbsNumBins"][0],
-        }
-    )
-
-    ds["bin_depth"].attrs.update(
-        {
-            "units": "m",
-            "long_name": "bin depth",
-            "bin_size": ds.attrs["ABSAbsBinLengthMM"][0] * 0.001,
-            "bin_count": ds.attrs["ABSAbsNumBins"][0],
-        }
-    )
-
-    ds["sample"].attrs.update(
-        {
-            "long_name": "sample number",
-            "units": "1",
-        }
-    )
-
-    ds["Tx_1211"].attrs.update(
-        {
-            "units": "degree_C",
-            "long_name": "Instrument Internal Temperature",
-            "epic_code": 1211,
-        }
-    )
-
-    ds["P_1"].attrs.update(
-        {
-            "units": "dbar",
-            "long_name": "Uncorrected pressure",
-            "standard_name": "sea_water_pressure",
-            "epic_code": 1,
-        }
-    )
-
-    ds["Bat_106"].attrs.update(
-        {"units": "V", "long_name": "Battery voltage", "epic_code": 106}
-    )
-
-    ds["abs"].attrs.update(
-        {
-            "units": "normalized counts",
-            "long_name": "Acoustic backscatter strength",
-            "transducer_offset_from_bottom": ds.attrs["initial_instrument_height"],
-        }
-    )
-
-    ds["amp"].attrs.update(
-        {
-            "units": "decibels",
-            "long_name": "Acoustic signal amplitude",
-            "standard_name": "sound_intensity_level_in_water",
-            "transducer_offset_from_bottom": ds.attrs["initial_instrument_height"],
-            "note": "abs data converted from counts to decibels using equation: decibels = 20*log10(counts).",
-        }
-    )
 
     return ds
 

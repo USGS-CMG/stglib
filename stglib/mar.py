@@ -6,7 +6,7 @@ import xarray as xr
 from scipy import stats
 
 from .aqd import aqdutils
-from .core import qaqc, utils
+from .core import attrs, qaqc, utils
 
 
 def read_mar(filnam, encoding="utf-8"):
@@ -100,7 +100,7 @@ def cdf_to_nc(cdf_filename):
         ds = reshape_burst(ds)
 
     # Add attributes after magnetic variation correction
-    ds = ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     # QAQC
     ds = qaqc.call_qaqc(ds)
@@ -167,7 +167,7 @@ def cdf_to_nc(cdf_filename):
         )
 
         # Re-run utils
-        ds_avg = ds_add_attrs(ds_avg)
+        ds_avg = attrs.ds_add_attrs(ds_avg)
         ds_avg = utils.create_z(ds_avg)
         ds_avg = utils.ds_add_lat_lon(ds_avg)
         ds_avg = utils.create_nominal_instrument_depth(ds_avg)
@@ -349,84 +349,3 @@ def ds_rename_vars(ds):
         if k in ds:
             newvars[k] = varnames[k]
     return ds.rename(newvars)
-
-
-def ds_add_attrs(ds):
-    """
-    Add attributes: units, standard name from CF website, long names
-    """
-
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"},
-    )
-
-    if "T_28" in ds:
-        ds["T_28"].attrs.update(
-            {
-                "units": "degree_C",
-                "standard_name": "sea_water_temperature",
-                "long_name": "Temperature",
-            }
-        )
-
-    if "C_51" in ds:
-        ds["C_51"].attrs.update(
-            {
-                "units": "S/m",
-                "long_name": "Conductivity",
-                "standard_name": "sea_water_electrical_conductivity",
-            }
-        )
-
-    if "S_41" in ds:
-        ds["S_41"].attrs.update(
-            {
-                "units": "1",
-                "long_name": "Salinity, PSU",
-                "comments": "Practical salinity units (PSU)",
-                "standard_name": "sea_water_practical_salinity",
-            }
-        )
-
-    if "u_1205" in ds:
-        ds["u_1205"].attrs.update(
-            {
-                "units": "m s^-1",
-                "long_name": "Eastward Velocity",
-            }
-        )
-
-    if "v_1206" in ds:
-        ds["v_1206"].attrs.update(
-            {
-                "units": "m s^-1",
-                "long_name": "Northward Velocity",
-            }
-        )
-
-    if "CS_300" in ds:
-        ds["CS_300"].attrs.update(
-            {
-                "units": "m s^-1",
-                "long_name": "Current Speed",
-                "standard_name": "sea_water_speed",
-            }
-        )
-
-    if "CD_310" in ds:
-        ds["CD_310"].attrs.update(
-            {
-                "units": "degree",
-                "long_name": "Current Direction (True)",
-                "standard_name": "sea_water_velocity_to_direction",
-            }
-        )
-
-    if "sample" in ds:
-        ds["sample"].attrs.update(
-            {
-                "units": "1",
-                "long_name": "sample number",
-            }
-        )
-    return ds

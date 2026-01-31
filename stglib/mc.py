@@ -1,7 +1,7 @@
 import pandas as pd
 import xarray as xr
 
-from .core import qaqc, utils
+from .core import attrs, qaqc, utils
 
 
 def read_asc(filnam, skiprows=51, encoding="utf-8"):
@@ -98,7 +98,7 @@ def cdf_to_nc(cdf_filename):
     ds = ds_rename_vars(ds)
 
     # Add attributes
-    ds = ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     # QAQC
     ds = qaqc.call_qaqc(ds)
@@ -137,43 +137,3 @@ def ds_rename_vars(ds):
         if k in ds:
             newvars[k] = varnames[k]
     return ds.rename(newvars)
-
-
-def ds_add_attrs(ds):
-    """
-    Add attributes: units, standard name from CF website, long names
-    """
-
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-
-    if "T_28" in ds:
-        ds["T_28"].attrs.update(
-            {
-                "units": "degree_C",
-                "standard_name": "sea_water_temperature",
-                "long_name": "Temperature",
-            }
-        )
-
-    if "C_51" in ds:
-        ds["C_51"].attrs.update(
-            {
-                "units": "S/m",
-                "long_name": "Conductivity",
-                "standard_name": "sea_water_electrical_conductivity",
-            }
-        )
-
-    if "S_41" in ds:
-        ds["S_41"].attrs.update(
-            {
-                "units": "1",
-                "long_name": "Salinity, PSU",
-                "comment": "Practical salinity units (PSU)",
-                "standard_name": "sea_water_practical_salinity",
-            }
-        )
-
-    return ds

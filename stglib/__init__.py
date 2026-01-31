@@ -28,7 +28,7 @@ from . import (
     wxt,
 )
 from .aqd import aqdutils
-from .core import cmd, filter, qaqc, utils, waves
+from .core import attrs, cmd, filter, qaqc, utils, waves
 from .core.utils import read_globalatts
 from .sg import sgutils
 from .son import sonutils

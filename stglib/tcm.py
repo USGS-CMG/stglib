@@ -7,7 +7,7 @@ import pandas as pd
 import xarray as xr
 
 from .aqd import aqdutils
-from .core import qaqc, utils
+from .core import attrs, qaqc, utils
 
 
 def read_tcm(
@@ -130,65 +130,6 @@ def ds_rename_vars(ds):
     # drop unneeded vars
     todrop = [""]
     ds = ds.drop([x for x in todrop if x in ds])
-
-    return ds
-
-
-def ds_add_attrs(ds):
-    # Update attributes for EPIC and STG compliance
-    ds = utils.ds_coord_no_fillvalue(ds)
-
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-
-    if "u_1205" in ds:
-        ds["u_1205"].attrs.update(
-            {
-                "units": "m s^-1",
-                "long_name": "Eastward Velocity",
-                "epic_code": 1205,
-            }
-        )
-
-    if "v_1206" in ds:
-        ds["v_1206"].attrs.update(
-            {
-                "units": "m s^-1",
-                "long_name": "Northward Velocity",
-                "epic_code": 1206,
-            }
-        )
-
-    if "T_28" in ds:
-        ds["T_28"].attrs.update(
-            {
-                "units": "degree_C",
-                "long_name": "Temperature",
-                "epic_code": 28,
-                "standard_name": "sea_water_temperature",
-            }
-        )
-
-    if "CS_300" in ds:
-        ds["CS_300"].attrs.update(
-            {
-                "units": "m s^-1",
-                "long_name": "Current Speed",
-                "epic_code": 300,
-                "standard_name": "sea_water_speed",
-            }
-        )
-
-    if "CD_310" in ds:
-        ds["CD_310"].attrs.update(
-            {
-                "units": "degree",
-                "long_name": "Current Direction (True)",
-                "epic_code": 310,
-                "standard_name": "sea_water_velocity_to_direction",
-            }
-        )
 
     return ds
 
@@ -337,7 +278,7 @@ def cdf_to_nc(cdf_filename):
 
     ds = utils.create_z(ds)  # added 7/31/2023
 
-    ds = ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     ds = utils.add_standard_names(ds)
 

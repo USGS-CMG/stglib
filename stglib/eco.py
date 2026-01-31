@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .core import qaqc, utils
+from .core import attrs, qaqc, utils
 
 
 def read_par(filnam, spb=False, skiprows=None, skipfooter=0):
@@ -161,8 +161,6 @@ def cdf_to_nc(cdf_filename):
         ds["PAR_905"] = ds.attrs["Im"] * 10 ** (
             (ds["counts"].mean(dim="sample") - ds.attrs["a0"]) / ds.attrs["a1"]
         )
-        ds["PAR_905"].attrs["units"] = "umol m-2 s-1"
-        ds["PAR_905"].attrs["long_name"] = "Photosynthetically active " "radiation"
 
     if "ntu" in ds.attrs["instrument_type"].lower():
         if "user_ntucal_coeffs" in ds.attrs:
@@ -170,20 +168,10 @@ def cdf_to_nc(cdf_filename):
             ds["Turb"] = xr.DataArray(turb_data, dims=["time", "sample"]).mean(
                 dim="sample"
             )
-            ds["Turb"].attrs["units"] = "1"
-            ds["Turb"].attrs["long_name"] = "Turbidity (NTU)"
-            ds["Turb"].attrs["standard_name"] = "sea_water_turbidity"
-            ds["Turb"].attrs["comment"] = "Nephelometric turbidity units (NTU)"
+
             ds["Turb_std"] = xr.DataArray(turb_data, dims=["time", "sample"]).std(
                 dim="sample"
             )
-            ds["Turb_std"].attrs["units"] = "1"
-            ds["Turb_std"].attrs[
-                "long_name"
-            ] = "Turbidity burst standard deviation (NTU)"
-            ds["Turb_std"].attrs["standard_name"] = "sea_water_turbidity"
-            ds["Turb_std"].attrs["comment"] = "Nephelometric turbidity units (NTU)"
-            ds["Turb_std"].attrs["cell_methods"] = "time: standard_deviation"
 
     ds = ds.drop(["counts", "sample"])
 
@@ -202,20 +190,9 @@ def cdf_to_nc(cdf_filename):
     # add lat/lon coordinates
     ds = utils.ds_add_lat_lon(ds)
 
-    ds = ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     ds = utils.create_z(ds)
-
-    ds = utils.ds_coord_no_fillvalue(ds)
-
-    # add lat/lon coordinates to each variable
-    # for var in ds.variables:
-    #     if (var not in ds.coords) and ("time" not in var):
-    #         # ds = utils.add_lat_lon(ds, var)
-    #         # ds = utils.no_p_add_depth(ds, var)
-    #         ds = utils.add_z_if_no_pressure(ds, var)
-    #         # cast as float32
-    #         # ds = utils.set_var_dtype(ds, var)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
@@ -226,31 +203,6 @@ def cdf_to_nc(cdf_filename):
     )
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
     print("Done writing netCDF file", nc_filename)
-
-
-def ds_add_attrs(ds):
-    # Update attributes for EPIC and STG compliance
-    ds = utils.ds_coord_no_fillvalue(ds)
-
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-
-    """
-    def add_attributes(var, dsattrs):
-        var.attrs.update(
-            {
-                "initial_instrument_height": dsattrs["initial_instrument_height"],
-                # 'nominal_instrument_depth': dsattrs['nominal_instrument_depth'],
-                "height_depth_units": "m",
-            }
-        )
-
-    #for var in ds.variables:
-    #    if (var not in ds.coords) and ("time" not in var):
-    #        add_attributes(ds[var], ds.attrs)
-    """
-    return ds
 
 
 def eco_qaqc(ds):

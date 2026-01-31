@@ -3,8 +3,7 @@ import xarray as xr
 from scipy.interpolate import RegularGridInterpolator as RGI
 from tqdm import tqdm
 
-from ..core import qaqc, utils
-from . import sonutils
+from ..core import attrs, qaqc, utils
 
 
 def nc_to_xy(nc_filename):
@@ -26,7 +25,7 @@ def nc_to_xy(nc_filename):
     ds["sonar_image"] = final_images
 
     # Add attributes
-    ds = sonutils.ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     # QAQC
     ds = qaqc.call_qaqc(ds)

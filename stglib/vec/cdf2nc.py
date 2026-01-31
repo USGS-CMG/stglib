@@ -8,7 +8,7 @@ from dask.diagnostics import ProgressBar
 from tqdm import tqdm
 
 from ..aqd import aqdutils
-from ..core import filter, qaqc, transform, utils
+from ..core import attrs, filter, qaqc, transform, utils
 
 
 def cdf_to_nc(cdf_filename, atmpres=False):
@@ -62,7 +62,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Add EPIC and CMG attributes
     ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
 
-    ds = ds_add_attrs_vec(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     for var in ds.data_vars:
 
@@ -515,29 +515,6 @@ def reshape(ds):
     ds = ds.sel(time=slice(t[0], ds["time"][-1])).assign(time=ind).unstack("time")
 
     ds = ds.drop("sample").rename({"new_time": "time", "new_sample": "sample"})
-
-    return ds
-
-
-def ds_add_attrs_vec(ds):
-
-    if "amp" in ds:
-        ds["amp"].attrs.update(
-            {
-                "units": "Counts",
-                "standard_name": "signal_intensity_from_multibeam_acoustic_doppler_velocity_sensor_in_sea_water",
-                "long_name": "Acoustic Signal Amplitude",
-            }
-        )
-
-    if "amp_avg" in ds:
-        ds["amp_avg"].attrs.update(
-            {
-                "units": "Counts",
-                "standard_name": "signal_intensity_from_multibeam_acoustic_doppler_velocity_sensor_in_sea_water",
-                "long_name": "Average Acoustic Signal Amplitude",
-            }
-        )
 
     return ds
 

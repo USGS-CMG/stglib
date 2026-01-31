@@ -3,7 +3,7 @@ import warnings
 import pandas as pd
 import xarray as xr
 
-from .core import qaqc, utils
+from .core import attrs, qaqc, utils
 
 
 def read_exo(filnam, skiprows=8, encoding="utf-8"):
@@ -234,7 +234,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.create_z(ds)
 
-    ds = ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     # No longer report depth
     if "Depth_m" in ds:
@@ -307,192 +307,6 @@ def ds_rename_vars(ds):
             newvars[k] = varnames[k]
 
     return ds.rename(newvars)
-
-
-def ds_add_attrs(ds):
-    # Update attributes for EPIC and STG compliance
-    ds = utils.ds_coord_no_fillvalue(ds)
-
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
-
-    ds["Bat_106"].attrs.update(
-        {"units": "V", "long_name": "Battery voltage", "epic_code": 106}
-    )
-
-    if "fDOMRFU" in ds:
-        ds["fDOMRFU"].attrs.update(
-            {
-                "units": "percent",
-                "long_name": "Fluorescent dissolved organic matter, RFU",
-                "comment": "Relative fluorescence units (RFU)",
-            }
-        )
-
-    if "fDOMQSU" in ds:
-        ds["fDOMQSU"].attrs.update(
-            {
-                "units": "1e-9",
-                "long_name": "Fluorescent dissolved organic matter, QSU",
-                "comment": "Quinine sulfate units (QSU)",
-            }
-        )
-
-    if "CHLrfu" in ds:
-        ds["CHLrfu"].attrs.update(
-            {
-                "units": "percent",
-                "long_name": "Chlorophyll A, RFU",
-                "comment": "Relative fluorescence units (RFU)",
-            }
-        )
-
-    if "Fch_906" in ds:
-        ds["Fch_906"].attrs.update(
-            {
-                "units": "ug/L",
-                "long_name": "Chlorophyll A",
-                "epic_code": 906,
-                "standard_name": "mass_concentration_of_chlorophyll_in_sea_water",
-                "comment": "from calibration of sensor with rhodamine W/T in lab",
-            }
-        )
-
-    if "TALPErfu" in ds:
-        ds["TALPErfu"].attrs.update(
-            {
-                "units": "percent",
-                "long_name": "Total algae phycoerythrin, RFU",
-                "comment": "Relative fluorescence units (RFU); formerly called BGAPErfu (Blue green algae phycoerythrin, RFU)",
-            }
-        )
-
-    if "TALPE" in ds:
-        ds["TALPE"].attrs.update(
-            {
-                "units": "ug/L",
-                "long_name": "Total algae phycoerythrin",
-                "comment": "Formerly called BGAPE (Blue green algae phycoerythrin)",
-            }
-        )
-
-    ds["T_28"].attrs.update(
-        {
-            "units": "degree_C",
-            "long_name": "Temperature",
-            "epic_code": 28,
-            "standard_name": "sea_water_temperature",
-        }
-    )
-
-    ds["C_51"].attrs.update(
-        {
-            "units": "S/m",
-            "long_name": "Conductivity",
-            "epic_code": 51,
-            "standard_name": "sea_water_electrical_conductivity",
-        }
-    )
-
-    ds["SpC_48"].attrs.update(
-        {
-            "units": "S/m",
-            "long_name": "Specific Conductivity",
-            "comment": "Temperature compensated to 25 °C",
-            "epic_code": 48,
-            "standard_name": "sea_water_electrical_conductivity_at_reference_temperature",
-        }
-    )
-
-    ds["S_41"].attrs.update(
-        {
-            "units": "1",
-            "long_name": "Salinity, PSU",
-            "comment": "Practical salinity units (PSU)",
-            "epic_code": 41,
-            "standard_name": "sea_water_practical_salinity",
-        }
-    )
-
-    if "OST_62" in ds:
-        ds["OST_62"].attrs.update(
-            {
-                "units": "percent",
-                "long_name": "Oxygen percent saturation",
-                "epic_code": 62,
-                "standard_name": "fractional_saturation_of_oxygen_in_sea_water",
-            }
-        )
-
-    if "DO" in ds:
-        ds["DO"].attrs.update(
-            {
-                "units": "mg/L",
-                "long_name": "Dissolved oxygen",
-                "standard_name": "mass_concentration_of_oxygen_in_sea_water",
-            }
-        )
-
-    if "Turb" in ds:
-        ds["Turb"].attrs.update(
-            {
-                "units": "1",
-                "long_name": "Turbidity, NTU",
-                "comment": "Nephelometric turbidity units (NTU)",
-                "standard_name": "sea_water_turbidity",
-            }
-        )
-
-    if "Turb_FNU" in ds:
-        ds["Turb_FNU"].attrs.update(
-            {
-                "units": "1",
-                "long_name": "Turbidity, FNU",
-                "comment": "Formazin nephelometric units (FNU)",
-                "standard_name": "sea_water_turbidity",
-            }
-        )
-
-    if "pH_159" in ds.variables:
-        ds["pH_159"].attrs.update(
-            {
-                "units": "1",
-                "standard_name": "sea_water_ph_reported_on_total_scale",
-                "epic_code": 159,
-            }
-        )
-
-    if "P_1" in ds:
-        ds["P_1"].attrs.update(
-            {
-                "units": "dbar",
-                "long_name": "Uncorrected pressure",
-                "epic_code": 1,
-                "standard_name": "sea_water_pressure",
-            }
-        )
-
-    if "P_1ac" in ds:
-        ds["P_1ac"].attrs.update(
-            {
-                "units": "dbar",
-                "long_name": "Corrected pressure",
-                "standard_name": "sea_water_pressure_due_to_sea_water",
-            }
-        )
-        if "P_1ac_note" in ds.attrs:
-            ds = utils.insert_note(ds, "P_1ac", ds.attrs["P_1ac_note"] + " ")
-
-    def add_attributes(var, dsattrs):
-        var.attrs.update(
-            {
-                "initial_instrument_height": dsattrs["initial_instrument_height"],
-                "height_depth_units": "m",
-            }
-        )
-
-    return ds
 
 
 def read_exo_header(filnam, skiprows=8, encoding="utf-8"):

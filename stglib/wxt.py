@@ -1,7 +1,7 @@
 import pandas as pd
 import xarray as xr
 
-from .core import qaqc, utils
+from .core import attrs, qaqc, utils
 
 
 def read_wxt(filnam, skiprows=7, encoding="utf-8"):
@@ -145,7 +145,8 @@ def cdf_to_nc(cdf_filename):
     ds = utils.add_delta_t(ds)
 
     # Add attributes
-    ds = ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
+    ds = ds_add_var_attrs(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
@@ -181,106 +182,25 @@ def ds_rename_vars(ds):
     return ds.rename(newvars)
 
 
-# Add attributes: units, standard name from CF website, epic code
-def ds_add_attrs(ds):
-    ds = utils.ds_coord_no_fillvalue(ds)
+def ds_add_var_attrs(ds):
+    #     add initial height information
 
-    ds["time"].attrs.update(
-        {"standard_name": "time", "axis": "T", "long_name": "time (UTC)"}
-    )
+    for name in ds.variables:
 
-    if "WD_min" in ds:
-        ds["WD_min"].attrs.update(
-            {
-                "units": "degrees",
-                "long_name": "minimum wind from direction relative to true north",
-            }
-        )
+        if (name not in ds.coords) and ("time" not in name):
+            # don't include all attributes for coordinates that are also variables
 
-    if "WD_410" in ds:
-        ds["WD_410"].attrs.update(
-            {
-                "units": "degrees",
-                "long_name": "mean wind from direction relative to true north",
-                "standard_name": "wind_from_direction",
-                "epic_code": "410",
-            }
-        )
+            var = ds[name]
 
-    if "WD_gust" in ds:
-        ds["WD_gust"].attrs.update(
-            {
-                "units": "degrees",
-                "long_name": "maximum wind from direction relative to true north",
-                "standard_name": "wind_gust_from_direction",
-            }
-        )
-
-    if "WS_min" in ds:
-        ds["WS_min"].attrs.update({"units": "m/s", "long_name": "minimum wind speed"})
-
-    if "WS_401" in ds:
-        ds["WS_401"].attrs.update(
-            {
-                "units": "m/s",
-                "long_name": "mean wind speed",
-                "standard_name": "wind_speed",
-                "epic_code": "401",
-            }
-        )
-
-    if "WG_402" in ds:
-        ds["WG_402"].attrs.update(
-            {
-                "units": "m/s",
-                "long_name": "maximum wind speed",
-                "standard_name": "wind_speed_of_gust",
-                "epic_code": "402",
-            }
-        )
-
-    if "T_21" in ds:
-        ds["T_21"].attrs.update(
-            {"units": "degree_C", "standard_name": "air_temperature", "epic_code": "21"}
-        )
-
-    if "RH_910" in ds:
-        ds["RH_910"].attrs.update(
-            {
-                "units": "percent",
-                "standard_name": "relative_humidity",
-                "epic_code": "910",
-            }
-        )
-
-    if "BPR_915" in ds:
-        ds["BPR_915"].attrs.update(
-            {"units": "pascals", "standard_name": "air_pressure", "epic_code": "915"}
-        )
-
-    if "Rn_963" in ds:
-        ds["Rn_963"].attrs.update(
-            {
-                "units": "mm",
-                "standard_name": "thickness_of_rainfall_amount",
-                "epic_code": "963",
-            }
-        )
-
-    #     add initial height information and fill values to variables
-    def add_attributes(var, dsattrs):
-        var.attrs["initial_instrument_height"] = dsattrs["initial_instrument_height"]
-        var.attrs["height_depth_units"] = "m"
-        if "initial_instrument_height_note" in dsattrs:
-            var.attrs["initial_instrument_height_note"] = dsattrs[
-                "initial_instrument_height_note"
+            var.attrs["initial_instrument_height"] = ds.attrs[
+                "initial_instrument_height"
             ]
-        if "sensor_type" not in dsattrs:
-            var.attrs["sensor_type"] = "Vaisala WXT536"
-
-    # don't include all attributes for coordinates that are also variables
-    for var in ds.variables:
-        if (var not in ds.coords) and ("time" not in var):
-            add_attributes(ds[var], ds.attrs)
+            var.attrs["height_depth_units"] = "m"
+            if "initial_instrument_height_note" in ds.attrs:
+                var.attrs["initial_instrument_height_note"] = ds.attrs[
+                    "initial_instrument_height_note"
+                ]
+            if "sensor_type" not in ds.attrs:
+                var.attrs["sensor_type"] = "Vaisala WXT536"
 
     return ds

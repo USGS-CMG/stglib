@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from ..core import qaqc, utils
+from ..core import attrs, qaqc, utils
 from . import sgutils
 
 
@@ -42,7 +42,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     ds = ds_rename_vars(ds)
 
     # Add attributes
-    ds = sgutils.ds_add_attrs(ds)
+    ds = attrs.ds_add_attrs(ds)
 
     # Edit metadata depending on file type
     if ds.attrs["file_type"] == ".tid":
