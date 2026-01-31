@@ -93,7 +93,9 @@ def cdf_to_nc(cdf_filename, atmpres=None):
     if "prefix" in ds.attrs:
         nc_filename = ds.attrs["prefix"] / nc_filename
 
-    ds.to_netcdf(nc_filename, encoding={"time": {"dtype": "i4"}})
+    ds = utils.check_time_encoding(ds)
+
+    ds.to_netcdf(nc_filename)
     utils.check_compliance(nc_filename, conventions=ds.attrs["Conventions"])
 
     print("Done writing netCDF file", nc_filename)
