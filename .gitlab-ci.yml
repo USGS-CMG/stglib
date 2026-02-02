@@ -6,8 +6,8 @@ stages:          # List of stages for jobs, and their order of execution
 pages:
   stage: deploy
   before_script:
-    - conda install make -y
-    - conda env create -n stglib-docs --file doc/environment.yml
+    - conda install conda-lock make -y
+    - conda-lock install --name stglib-docs doc/environment.yml
     - conda init
     - source ~/.bashrc
     - source activate base
@@ -27,10 +27,10 @@ pages:
 build-job:
   stage: deploy
   before_script:
-    - conda install git-lfs -y
+    - conda install conda-lock git-lfs -y
     - git lfs install
     - git lfs checkout
-    - conda env create -n stglib --file requirements.yml
+    - conda-lock install --name stglib conda-lock.yml
     - conda init
     - source ~/.bashrc
     - source activate base

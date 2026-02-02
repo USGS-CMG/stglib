@@ -517,4 +517,4 @@ MR checklist
 - **Push your code and** `create a MR on GitLab <https://code.usgs.gov/cmgp/stglib/-/merge_requests>`_.
 - **Use a helpful title for your merge request** by summarizing the main contributions rather
   than using the latest commit message. If this addresses an `issue <https://code.usgs.gov/cmgp/stglib/-/issues>`_,
-  please `reference it <https://help.github.com/en/articles/autolinked-references-and-urls>`_.
+  please `reference it <https://docs.gitlab.com/user/project/issues/crosslinking_issues/>`_.
