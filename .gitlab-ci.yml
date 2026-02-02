@@ -7,7 +7,7 @@ pages:
   stage: deploy
   before_script:
     - conda install conda-lock make -y
-    - conda-lock install --name stglib-docs doc/environment.yml
+    - conda-lock install --name stglib-docs doc/conda-lock.yml
     - conda init
     - source ~/.bashrc
     - source activate base
