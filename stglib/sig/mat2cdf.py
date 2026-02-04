@@ -68,6 +68,34 @@ def load_mat_file(filnam):
                 * np.arange(mat["Config"]["Alt_Average_NCells"])
             )
 
+    if "Alt_Plan_BurstEnabled" in mat["Config"]:
+        if mat["Config"]["Alt_Plan_BurstEnabled"] == "True":
+            bindistAltBurst = (
+                mat["Config"]["Alt_Burst_BlankingDistance"]
+                + mat["Config"]["Alt_Burst_CellSize"] / 2
+                + mat["Config"]["Alt_Burst_CellSize"]
+                * np.arange(mat["Config"]["Alt_Burst_NCells"])
+            )
+
+        if (
+            mat["Config"]["Alt_Burst_HighResolution"] == "True"
+            or mat["Config"]["Alt_Burst_HighResolution5"] == "True"
+        ):
+            bindistAltBurstHR = (
+                mat["Config"]["Alt_BurstHR_BlankingDistance"]
+                + mat["Config"]["Alt_BurstHR_CellSize"] / 2
+                + mat["Config"]["Alt_BurstHR_CellSize"]
+                * np.arange(mat["Config"]["Alt_BurstHR_NCells"])
+            )
+
+        if mat["Config"]["Alt_Burst_EchoSounder"] == "True":
+            bindistAltECHO = (
+                mat["Config"]["Alt_EchoSounder_BlankingDistance"]
+                + mat["Config"]["Alt_EchoSounder_CellSize"] / 2
+                + mat["Config"]["Alt_EchoSounder_CellSize"]
+                * np.arange(mat["Config"]["Alt_EchoSounder_NCells"])
+            )
+
     ds_dict = {}  # initialize dictionary for xarray datasets
     if (
         mat["Config"]["Plan_BurstEnabled"] == "True"
@@ -189,6 +217,7 @@ def load_mat_file(filnam):
             dsa.attrs["data_type"] = "Average"
             ds_dict["dsa"] = dsa
 
+    # Alt Average
     if "Alt_Plan_AverageEnabled" in mat["Config"]:
         if mat["Config"]["Alt_Plan_AverageEnabled"] == "True":
             if "Alt_Average_Time" in mat["Data"]:
@@ -205,15 +234,127 @@ def load_mat_file(filnam):
                 dsalt.attrs["data_type"] = "Alt_Average"
                 ds_dict["dsalt"] = dsalt
 
+    # Alt Burst
+    if "Alt_Plan_BurstEnabled" in mat["Config"]:
+        if (
+            mat["Config"]["Alt_Plan_BurstEnabled"] == "True"
+            and mat["Config"]["Alt_Burst_RawAltimeter"] == 1
+            and mat["Config"]["Alt_Burst_Altimeter"] == "True"
+        ):
+            # Alt BurstRawAltimeter
+            if "Alt_BurstRawAltimeter_Time" in mat["Data"]:
+                dsaltbra = xr.Dataset()
+                dsaltbra["time"] = xr.DataArray(
+                    [
+                        matlab2datetime(x)
+                        for x in mat["Data"]["Alt_BurstRawAltimeter_Time"]
+                    ],
+                    dims="time",
+                )
+                dsaltbra["time"] = pd.DatetimeIndex(dsaltbra["time"])
+                dsaltbra["time"] = pd.DatetimeIndex(dsaltbra["time"])
+                dsaltbra.attrs["data_type"] = "Alt_BurstRawAltimeter"
+                ds_dict["dsaltbra"] = dsaltbra
+
+        if (
+            mat["Config"]["Alt_Plan_BurstEnabled"] == "True"
+            and mat["Config"]["Alt_Burst_NBeams"] == 5
+        ):
+            # Alt IBurst
+            if (
+                mat["Config"]["Alt_Burst_HighResolution5"] == "True"
+                and "Alt_IBurstHR_Time" in mat["Data"]
+            ):
+                dsaltbi = xr.Dataset()
+                dsaltbi["time"] = pd.DatetimeIndex(
+                    xr.DataArray(
+                        [matlab2datetime(x) for x in mat["Data"]["Alt_IBurstHR_Time"]],
+                        dims="time",
+                    )
+                )
+                dsaltbi["time"] = pd.DatetimeIndex(dsaltbi["time"])
+                dsaltbi["bindist"] = xr.DataArray(bindistAltBurstHR, dims="bindist")
+                dsaltbi.attrs["data_type"] = "Alt_IBurstHR"
+                ds_dict["dsaltbi"] = dsaltbi
+
+            elif "Alt_IBurst_Time" in mat["Data"]:
+                dsaltbi = xr.Dataset()
+                dsaltbi["time"] = pd.DatetimeIndex(
+                    xr.DataArray(
+                        [matlab2datetime(x) for x in mat["Data"]["Alt_IBurst_Time"]],
+                        dims="time",
+                    )
+                )
+                dsaltbi["time"] = pd.DatetimeIndex(dsaltbi["time"])
+                dsaltbi["bindist"] = xr.DataArray(bindistAltBurst, dims="bindist")
+                dsaltbi.attrs["data_type"] = "Alt_IBurst"
+                ds_dict["dsaltbi"] = dsaltbi
+
+        if mat["Config"]["Alt_Plan_BurstEnabled"] == "True":
+
+            # Alt Burst
+            if (
+                mat["Config"]["Alt_Burst_HighResolution"] == "True"
+                and "Alt_BurstHR_Time" in mat["Data"]
+            ):
+                dsaltb = xr.Dataset()
+                dsaltb["time"] = pd.DatetimeIndex(
+                    xr.DataArray(
+                        [matlab2datetime(x) for x in mat["Data"]["Alt_BurstHR_Time"]],
+                        dims="time",
+                    )
+                )
+                dsaltb["time"] = pd.DatetimeIndex(dsaltb["time"])
+                dsaltb["bindist"] = xr.DataArray(bindistAltBurstHR, dims="bindist")
+                dsaltb.attrs["data_type"] = "Alt_BurstHR"
+                ds_dict["dsaltb"] = dsaltb
+
+            elif "Alt_Burst_Time" in mat["Data"]:
+                dsaltb = xr.Dataset()
+                dsaltb["time"] = pd.DatetimeIndex(
+                    xr.DataArray(
+                        [matlab2datetime(x) for x in mat["Data"]["Alt_Burst_Time"]],
+                        dims="time",
+                    )
+                )
+                dsaltb["time"] = pd.DatetimeIndex(dsaltb["time"])
+                dsaltb["bindist"] = xr.DataArray(bindistAltBurst, dims="bindist")
+                dsaltb.attrs["data_type"] = "Alt_Burst"
+                ds_dict["dsaltb"] = dsaltb
+
+        if (
+            mat["Config"]["Alt_Plan_BurstEnabled"] == "True"
+            and mat["Config"]["Alt_Burst_EchoSounder"] == "True"
+        ):
+            # echo1 data - only handling echo1 data to start
+            if "Alt_EchoSounder_Frequency1" in mat["Config"]:
+                freq1 = mat["Config"]["Alt_EchoSounder_Frequency1"]
+                if f"Alt_Echo1Bin1_{freq1}kHz_Time" in mat["Data"]:
+                    dsalte1 = xr.Dataset()
+                    dsalte1["time"] = pd.DatetimeIndex(
+                        xr.DataArray(
+                            [
+                                matlab2datetime(x)
+                                for x in mat["Data"][f"Alt_Echo1Bin1_{freq1}kHz_Time"]
+                            ],
+                            dims="time",
+                        )
+                    )
+                    dsalte1["time"] = pd.DatetimeIndex(dsalte1["time"])
+                    dsalte1["bindist"] = xr.DataArray(bindistAltECHO, dims="bindist")
+                    dsalte1.attrs["data_type"] = "Alt_EchoSounder"
+                    ds_dict["dsalte1"] = dsalte1
+
+    # add data to data sets
     for k in mat["Data"]:
-        if "BurstRawAltimeter" in k:
+        if re.match("^BurstRawAltimeter_", k):
             if "_Time" not in k:
                 if mat["Data"][k].ndim == 1:
                     dsbra[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
                 elif mat["Data"][k].ndim == 2:
                     # print("still need to process", k, mat["Data"][k].shape)
                     pass
-        elif "IBurst" in k or "IBurstHR" in k:
+        elif re.match("^IBurst_", k) or re.match("^IBurstHR_", k):
             if "_Time" not in k:
                 if mat["Data"][k].ndim == 1:
                     dsi[k.split("_")[1]] = xr.DataArray(mat["Data"][k], dims="time")
@@ -350,13 +491,141 @@ def load_mat_file(filnam):
                         )
                     # only checks to see if cells match on first sample
                     elif dsalt.attrs["data_type"] == "Alt_Average":
-                        if mat["Data"][k].shape[1] == mat["Data"]["Average_NCells"][0]:
+                        if (
+                            mat["Data"][k].shape[1]
+                            == mat["Data"]["Alt_Average_NCells"][0]
+                        ):
                             dsalt[k.split("_")[2]] = xr.DataArray(
                                 mat["Data"][k], dims=["time", "bindist"]
                             )
 
                     else:
                         print("still need to process", k, mat["Data"][k].shape)
+
+        elif re.match("^Alt_BurstRawAltimeter_", k):
+            if "_Time" not in k:
+                if mat["Data"][k].ndim == 1:
+                    dsaltbra[k.split("_")[2]] = xr.DataArray(
+                        mat["Data"][k], dims="time"
+                    )
+                elif mat["Data"][k].ndim == 2:
+                    if "AHRSRotationMatrix" in k:
+                        dsaltbra["AHRSRotationMatrix"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimRM"]
+                        )
+                    if "Magnetometer" in k:
+                        dsaltbra["Magnetometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimM"]
+                        )
+                    if "Accelerometer" in k:
+                        dsaltbra["Accelerometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimA"]
+                        )
+                    # print("still need to process", k, mat["Data"][k].shape)
+                    # pass
+        elif re.match("^Alt_IBurst_", k) or re.match("^Alt_IBurstHR_", k):
+            if "_Time" not in k:
+                if mat["Data"][k].ndim == 1:
+                    dsaltbi[k.split("_")[2]] = xr.DataArray(mat["Data"][k], dims="time")
+                elif mat["Data"][k].ndim == 2:
+                    if "AHRSRotationMatrix" in k:
+                        dsaltbi["AHRSRotationMatrix"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimRM"]
+                        )
+                    if "Magnetometer" in k:
+                        dsaltbi["Magnetometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimM"]
+                        )
+                    if "Accelerometer" in k:
+                        dsaltbi["Accelerometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimA"]
+                        )
+                    # only checks to see if cells match on first sample
+                    elif dsaltbi.attrs["data_type"] == "Alt_IBurst":
+                        if (
+                            mat["Data"][k].shape[1]
+                            == mat["Data"]["Alt_IBurst_NCells"][0]
+                        ):
+                            dsaltbi[k.split("_")[2]] = xr.DataArray(
+                                mat["Data"][k], dims=["time", "bindist"]
+                            )
+                    elif dsaltbi.attrs["data_type"] == "Alt_IBurstHR":
+                        if (
+                            mat["Data"][k].shape[1]
+                            == mat["Data"]["Alt_IBurstHR_NCells"][0]
+                        ):
+                            dsaltbi[k.split("_")[2]] = xr.DataArray(
+                                mat["Data"][k], dims=["time", "bindist"]
+                            )
+                else:
+                    print("still need to process", k, mat["Data"][k].shape)
+
+        elif re.match("^Alt_Burst_", k) or re.match("^Alt_BurstHR_", k):
+            if "_Time" not in k:
+                if mat["Data"][k].ndim == 1:
+                    dsaltb[k.split("_")[2]] = xr.DataArray(mat["Data"][k], dims="time")
+                elif mat["Data"][k].ndim == 2:
+                    if "AHRSRotationMatrix" in k:
+                        dsaltb["AHRSRotationMatrix"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimRM"]
+                        )
+                    if "Magnetometer" in k:
+                        dsaltb["Magnetometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimM"]
+                        )
+                    if "Accelerometer" in k:
+                        dsaltb["Accelerometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimA"]
+                        )
+                    # only checks to see if cells match on first sample
+                    elif dsaltb.attrs["data_type"] == "Alt_Burst":
+                        if (
+                            mat["Data"][k].shape[1]
+                            == mat["Data"]["Alt_Burst_NCells"][0]
+                        ):
+                            dsaltb[k.split("_")[2]] = xr.DataArray(
+                                mat["Data"][k], dims=["time", "bindist"]
+                            )
+                    elif dsaltb.attrs["data_type"] == "Alt_BurstHR":
+                        if (
+                            mat["Data"][k].shape[1]
+                            == mat["Data"]["Alt_BurstHR_NCells"][0]
+                        ):
+                            dsaltb[k.split("_")[2]] = xr.DataArray(
+                                mat["Data"][k], dims=["time", "bindist"]
+                            )
+                else:
+                    print("still need to process", k, mat["Data"][k].shape)
+
+        elif re.match("^Alt_Echo1Bin1_", k):
+            if "_Time" not in k:
+                if mat["Data"][k].ndim == 1:
+                    dsalte1[k.split("_")[2]] = xr.DataArray(mat["Data"][k], dims="time")
+                elif mat["Data"][k].ndim == 2:
+                    if "AHRSRotationMatrix" in k:
+                        dsalte1["AHRSRotationMatrix"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimRM"]
+                        )
+                    if "Magnetometer" in k:
+                        dsalte1["Magnetometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimM"]
+                        )
+                    if "Accelerometer" in k:
+                        dsalte1["Accelerometer"] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "dimA"]
+                        )
+                    # only checks to see if cells match on first sample
+                    elif (
+                        mat["Data"][k].shape[1]
+                        == mat["Data"][f"Alt_Echo1Bin1_{freq1}kHz_NCells"][0]
+                    ):
+                        dsalte1[k.split("_")[2]] = xr.DataArray(
+                            mat["Data"][k], dims=["time", "bindist"]
+                        )
+
+                else:
+                    print("still need to process", k, mat["Data"][k].shape)
+
         else:
             print("missing variable:", k)
 
@@ -374,6 +643,16 @@ def load_mat_file(filnam):
 
         elif ds == "dsa" or ds == "dsalt":
             ds_dict[ds].attrs["sample_mode"] = "AVERAGE"
+
+        elif ds == "dsaltbi" or ds == "dsaltb" or ds == "dsalte1":
+            if (
+                mat["Config"]["Alt_Plan_BurstInterval"]
+                * mat["Config"]["Alt_Burst_SamplingRate"]
+                == mat["Config"]["Alt_Burst_NSample"]
+            ):
+                ds_dict[ds].attrs["sample_mode"] = "CONTINUOUS"
+            else:
+                ds_dict[ds].attrs["sample_mode"] = "BURST"
 
         read_config_mat(mat, ds_dict[ds])
 
@@ -472,24 +751,27 @@ def mat_to_cdf(metadata):
             if "time" in ds["Beam2xyz"].dims:
                 ds["Beam2xyz"] = ds["Beam2xyz"].isel(time=0, drop=True)
         # write out all into single -raw.cdf files per data_type
-        if (
-            ds.attrs["data_type"].lower() == "burst"
-            or ds.attrs["data_type"].lower() == "bursthr"
-        ):
+        if ds.attrs["data_type"] in ["Burst", "BurstHR"]:
             ftype = "burst"
-        elif (
-            ds.attrs["data_type"].lower() == "iburst"
-            or ds.attrs["data_type"].lower() == "ibursthr"
-        ):
+        elif ds.attrs["data_type"] in ["IBurst", "IBurstHR"]:
             ftype = "iburst"
-        elif ds.attrs["data_type"].lower() == "echosounder":
+        elif ds.attrs["data_type"] == "EchoSounder":
             ftype = "echo1"
-        elif ds.attrs["data_type"].lower() == "burstrawaltimeter":
+        elif ds.attrs["data_type"] == "BurstRawAltimeter":
             ftype = "burstrawalt"
-        elif ds.attrs["data_type"].lower() == "average":
+        elif ds.attrs["data_type"] == "Average":
             ftype = "avgd"
-        elif ds.attrs["data_type"].lower() == "alt_average":
+        elif ds.attrs["data_type"] == "Alt_Average":
             ftype = "altavgd"
+        elif ds.attrs["data_type"] in ["Alt_Burst", "Alt_BurstHR"]:
+            ftype = "altburst"
+        elif ds.attrs["data_type"] in ["Alt_IBurst", "Alt_IBurstHR"]:
+            ftype = "altiburst"
+        elif ds.attrs["data_type"] == "Alt_EchoSounder":
+            ftype = "altecho1"
+
+        elif ds.attrs["data_type"] == "Alt_BurstRawAltimeter":
+            ftype = "altburstrawalt"
 
         cdf_filename = prefix + ds.attrs["filename"] + f"_{ftype}-raw.cdf"
         print(f"writing {ftype} to netcdf")

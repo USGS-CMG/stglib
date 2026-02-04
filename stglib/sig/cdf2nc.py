@@ -52,12 +52,14 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     # Clip profile data if specified by user
     ds = utils.clip_ds_prf(ds)
 
-    if (
-        ds.attrs["data_type"] == "Burst"
-        or ds.attrs["data_type"] == "BurstHR"
-        or ds.attrs["data_type"] == "Average"
-        or ds.attrs["data_type"] == "Alt_Average"
-    ):
+    if ds.attrs["data_type"] in [
+        "Burst",
+        "BurstHR",
+        "Average",
+        "Alt_Average",
+        "Alt_Burst",
+        "Alt_BurstHR",
+    ]:
         # Create separate vel variables first
         ds["U"] = ds["VelEast"]
         ds["V"] = ds["VelNorth"]
@@ -86,7 +88,8 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
                 [ds[f"AmpBeam{i}"] for i in range(1, ds["NBeams"][0].values + 1)],
                 dim="beam",
             )
-    elif ds.attrs["data_type"] == "IBurst" or ds.attrs["data_type"] == "IBurstHR":
+    elif ds.attrs["data_type"] in ["IBurst", "IBurstHR", "Alt_IBurst", "Alt_IBurstHR"]:
+
         # Create separate vel variables first
         ds["vel_b5"] = ds["VelBeam5"]
 
@@ -95,7 +98,8 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
         ds = filter.filter_vel(ds, data_vars=["vel_b5"])
         ds = aqdutils.trim_vel(ds, data_vars=["vel_b5"])
 
-    ds = aqdutils.make_bin_depth(ds)
+    if "bindist" in ds.data_vars:
+        ds = aqdutils.make_bin_depth(ds)
 
     ds = ds_make_tmat(ds)
 
@@ -242,8 +246,20 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
         print("writing Average (avg) data to netCDF nc file")
 
     elif ds.attrs["data_type"] == "Alt_Average":
-        nc_out = nc_filename + "alt.nc"
-        print("writing Alt_Average (avg) data to netCDF nc file")
+        nc_out = nc_filename + "altavg.nc"
+        print("writing Alt_Average (altavg) data to netCDF nc file")
+
+    elif ds.attrs["data_type"] in ["Alt_Burst", "Alt_BurstHR"]:
+        nc_out = nc_filename + "altb.nc"
+        print("writing Alt_Burst(altb) data to netCDF nc file")
+
+    elif ds.attrs["data_type"] in ["Alt_IBurst", "Alt_IBurstHR"]:
+        nc_out = nc_filename + "altb5.nc"
+        print("writing Alt_IBurst (altb5) data to netCDF nc file")
+
+    elif ds.attrs["data_type"] == "Alt_EchoSounder":
+        nc_out = nc_filename + "alte1.nc"
+        print("writing Alt Echo1 (alte1) data to netCDF nc file")
 
     else:
         raise KeyError("data_type not recognized")
@@ -255,16 +271,21 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
 
     utils.check_compliance(nc_out, conventions=ds.attrs["Conventions"])
 
-    # Make average data products for Burst, BurstHR, IBurst, IBurstHR, and Echo data_type(s)
-    if ds.attrs["data_type"].lower() in [
-        "burst",
-        "bursthr",
-        "iburst",
-        "ibursthr",
-        "echosounder",
+    # Make average data products for Burst, BurstHR, IBurst, IBurstHR, and Echo data_type(s) + alternating plan burst data
+    if ds.attrs["data_type"] in [
+        "Burst",
+        "BurstHR",
+        "IBurst",
+        "IBurstHR",
+        "EchoSounder",
+        "Alt_Burst",
+        "Alt_BurstHR",
+        "Alt_IBurst",
+        "Alt_IBurstHR",
+        "Alt_EchoSounder",
     ]:
         print(
-            "Create average data products from Burst, IBurst, or EchoSounder data types from BURST sample mode and if specified for CONTINUOUS"
+            "Create average data products from Burst, IBurst, or EchoSounder data types from BURST sample mode and if specified for CONTINUOUS (also for burst alternating plan data)"
         )
 
         # First reset chunking
@@ -296,7 +317,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
             ds = xr.open_dataset(nc_out, chunks={"time": 200000, vdim: 48})
 
         # if sample_mode = Burst then make burst averages, while checking for user specified average_duration attribute
-        if ds.attrs["sample_mode"].upper() == "CONTINUOUS":
+        if ds.attrs["sample_mode"] == "CONTINUOUS":
             if "average_interval" in ds.attrs:
                 ds = fill_time_gaps(ds)
                 ds = ds_make_average_shape_mi(ds)
@@ -325,13 +346,13 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
         # Convert any heading values to 0-360 using modulus - need to check again after taking vector averages
         ds["Hdg_1215"] = ds["Hdg_1215"] % 360
 
-        if ds.attrs["sample_mode"].upper() == "BURST":
+        if ds.attrs["sample_mode"] == "BURST":
             if "average_duration" in ds.attrs:
                 histtext = f"Create averaged data product from burst sampled {ds.attrs['data_type']} data type using user specified duration for avergage {ds.attrs['average_duration']} seconds."
             else:
                 histtext = f"Create burst averaged data product from {ds.attrs['data_type']} data type."
 
-        elif ds.attrs["sample_mode"].upper() == "CONTINUOUS":
+        elif ds.attrs["sample_mode"] == "CONTINUOUS":
             if "average_duration" in ds.attrs:
                 histtext = f"Create averaged data product from continously sampled {ds.attrs['data_type']} data type using user specified interval {ds.attrs['average_interval']} seconds and duration {ds.attrs['average_duration']} seconds."
             else:
@@ -361,8 +382,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
 
         # trim near surface bins of average data if user specified- this is often needed when strong wave velocities are present and time averaging is biased at the wave peaks
         if (
-            ds.attrs["data_type"] == "Burst"
-            or ds.attrs["data_type"] == "BurstHR"
+            ds.attrs["data_type"] in ["Burst", "BurstHR", "Alt_Burst", "Alt_BurstHR"]
             and "trim_avg_vel_bins" in ds.attrs
         ):
             ds = trim_avg_vel_bins(
@@ -430,17 +450,35 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
 
         ds = utils.add_delta_t(ds)
 
-        if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "BurstHR":
+        if ds.attrs["data_type"] in ["Burst", "BurstHR"]:
             nc_out = nc_filename + "b-a.nc"
             print("writing Burst (b) data to netCDF nc file")
 
-        elif ds.attrs["data_type"] == "IBurst" or ds.attrs["data_type"] == "IBurstHR":
+        elif ds.attrs["data_type"] in ["IBurst", "IBurstHR"]:
             nc_out = nc_filename + "b5-a.nc"
             print("writing IBurst (b5) data to netCDF nc file")
 
         elif ds.attrs["data_type"] == "EchoSounder":
             nc_out = nc_filename + "e1-a.nc"
             print("writing Echo1 (echo1) data to netCDF nc file")
+
+        elif (
+            ds.attrs["data_type"] == "Alt_Burst"
+            or ds.attrs["data_type"] == "Alt_BurstHR"
+        ):
+            nc_out = nc_filename + "altb-a.nc"
+            print("writing Alt Burst (altb) data to netCDF nc file")
+
+        elif (
+            ds.attrs["data_type"] == "Alt_IBurst"
+            or ds.attrs["data_type"] == "Alt_IBurstHR"
+        ):
+            nc_out = nc_filename + "altb5-a.nc"
+            print("writing Alt IBurst (altb5) data to netCDF nc file")
+
+        elif ds.attrs["data_type"] == "Alt_EchoSounder":
+            nc_out = nc_filename + "alte1-a.nc"
+            print("writing Alt Echo1 (alte1) data to netCDF nc file")
 
         else:
             raise KeyError("data_type not recognized")
@@ -471,31 +509,49 @@ def check_attrs_sig(ds, inst_type="SIG"):
         ds.attrs["instrument_type"] = ds.attrs["SIGInstrumentName"]
 
         # find bin_size and sample_rate attributes
-        if (
-            ds.attrs["data_type"].upper() == "BURST"
-            or ds.attrs["data_type"].upper() == "IBURST"
-        ):
+        if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "IBurst":
             ds.attrs["bin_size"] = ds.attrs["SIGBurst_CellSize"]
             ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
-        elif (
-            ds.attrs["data_type"].upper() == "BURSTHR"
-            or ds.attrs["data_type"].upper() == "IBURSTHR"
-        ):
+
+        elif ds.attrs["data_type"] == "BurstHR" or ds.attrs["data_type"] == "IBurstHR":
             ds.attrs["bin_size"] = ds.attrs["SIGBurstHR_CellSize"]
             ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
-        elif ds.attrs["data_type"].upper() == "ECHOSOUNDER":
+        elif ds.attrs["data_type"] == "EchoSounder":
             ds.attrs["bin_size"] = ds.attrs["SIGEchoSounder_CellSize"]
             ds.attrs["sample_rate"] = ds.attrs["SIGBurst_SamplingRate"]
-        elif ds.attrs["data_type"].upper() == "AVERAGE":
+
+        elif (
+            ds.attrs["data_type"] == "Alt_Burst"
+            or ds.attrs["data_type"] == "Alt_IBurst"
+        ):
+            ds.attrs["bin_size"] = ds.attrs["SIGAlt_Burst_CellSize"]
+            ds.attrs["sample_rate"] = ds.attrs["SIGAlt_Burst_SamplingRate"]
+
+        elif (
+            ds.attrs["data_type"] == "Alt_BurstHR"
+            or ds.attrs["data_type"] == "Alt_IBurstHR"
+        ):
+            ds.attrs["bin_size"] = ds.attrs["SIGAlt_BurstHR_CellSize"]
+            ds.attrs["sample_rate"] = ds.attrs["SIGALt_Burst_SamplingRate"]
+
+        elif ds.attrs["data_type"] == "Alt_EchoSounder":
+            ds.attrs["bin_size"] = ds.attrs["SIGAlt_EchoSounder_CellSize"]
+            ds.attrs["sample_rate"] = ds.attrs["SIGAlt_Burst_SamplingRate"]
+
+        elif ds.attrs["data_type"] == "Average":
             ds.attrs["bin_size"] = ds.attrs["SIGAverage_CellSize"]
-        elif ds.attrs["data_type"].upper() == "ALT_AVERAGE":
+
+        elif ds.attrs["data_type"] == "Alt_Average":
             ds.attrs["bin_size"] = ds.attrs["SIGAlt_Average_CellSize"]
 
-        if (
-            ds.attrs["data_type"].upper() == "IBURST"
-            or ds.attrs["data_type"].upper() == "IBURSTHR"
-            or ds.attrs["data_type"] == "ECHOSOUNDER"
-        ):
+        if ds.attrs["data_type"] in [
+            "IBurst",
+            "IBurstHR",
+            "EchoSounder",
+            "Alt_IBurst",
+            "Alt_IBurstHR",
+            "Alt_EchoSounder",
+        ]:
             ds.attrs["beam_angle"] = 0
             beam_type = "beam 5"
         else:
@@ -571,9 +627,9 @@ def drop_attrs(ds):
         "Alt_Burst",
     ]
 
-    if ds.attrs["data_type"] == "Burst" or ds.attrs["data_type"] == "IBurst":
+    if ds.attrs["data_type"] in ["Burst", "IBurst"]:
         dtlist.remove("Burst")
-    elif ds.attrs["data_type"] == "BurstHR" or ds.attrs["data_type"] == "IBurstHR":
+    elif ds.attrs["data_type"] in ["BurstHR", "IBurstHR"]:
         dtlist.remove("Burst")
         dtlist.remove("BurstHR")
     elif ds.attrs["data_type"] == "EchoSounder":
@@ -1446,14 +1502,22 @@ def reorder_dims(ds):
     for var in ds.data_vars:
         if "z" in ds[var].dims and len(ds[var].dims) == 2:
             ds[var] = ds[var].transpose("time", "z")
+        if "sample" in ds[var].dims and len(ds[var].dims) == 2:
+            ds[var] = ds[var].transpose("sample", "time")
         elif "z" in ds[var].dims and "beam" in ds[var].dims and len(ds[var].dims) == 3:
             ds[var] = ds[var].transpose("beam", "time", "z")
         elif (
             "z" in ds[var].dims and "sample" in ds[var].dims and len(ds[var].dims) == 3
         ):
-            ds[var] = ds[var].transpose("time", "z", "sample")
+            ds[var] = ds[var].transpose("sample", "time", "z")
+        elif (
+            "inst" in ds[var].dims
+            and "sample" in ds[var].dims
+            and len(ds[var].dims) == 3
+        ):
+            ds[var] = ds[var].transpose("inst", "sample", "time")
         elif "z" in ds[var].dims and len(ds[var].dims) == 4:
-            ds[var] = ds[var].transpose("beam", "time", "z", "sample")
+            ds[var] = ds[var].transpose("beam", "sample", "time", "z")
     return ds
 
 
@@ -1476,7 +1540,7 @@ def fill_time_gaps(ds):
 
     if "sample_mode" in ds.attrs:
 
-        if ds.attrs["sample_mode"].upper() == "CONTINUOUS":
+        if ds.attrs["sample_mode"] == "CONTINUOUS":
 
             print("Checking for time gaps in CONTINUOUS sampled data")
             sr = ds.attrs["sample_rate"]
