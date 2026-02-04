@@ -1525,26 +1525,6 @@ def ds_add_attrs(ds, waves=False, hr=False, inst_type="AQD"):
             {"units": "V", "long_name": "Battery voltage", "epic_code": 106}
         )
 
-    if "brange" in ds:
-        ds["brange"].attrs.update(
-            {
-                "units": "mm",
-                "long_name": "Distance from probe to boundary",
-                "standard_name": "height_above_sea_floor",
-                "note": "Calculated from average of start and end values for burst",
-            }
-        )
-
-    if "vrange" in ds:
-        ds["vrange"].attrs.update(
-            {
-                "units": "mm",
-                "long_name": "Distance from sample volume to boundary",
-                "standard_name": "height_above_sea_floor",
-                "note": "Calculated from average of start and end values for burst",
-            }
-        )
-
     # can apply this to all instruments if needed, but keeping just for vec now
     if inst_type == "VEC":
         ds["orientation"].attrs.update(

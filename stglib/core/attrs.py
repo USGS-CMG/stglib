@@ -1,3 +1,5 @@
+import warnings
+
 from . import utils
 
 
@@ -30,7 +32,7 @@ def ds_add_attrs(ds):
         )
 
     # Instrument type abss
-    if "amp" in ds:
+    if "amp" in ds and ds.attrs.get("instrument_type", "").lower() == "aquascat1000r":
         ds["amp"].attrs.update(
             {
                 "units": "decibels",
@@ -42,7 +44,7 @@ def ds_add_attrs(ds):
         )
 
     # Instrument type vec
-    if "amp" in ds:
+    if "amp" in ds and ds.attrs.get("instrument_type", "").lower() == "nortek vector":
         ds["amp"].attrs.update(
             {
                 "units": "Counts",
@@ -72,7 +74,10 @@ def ds_add_attrs(ds):
     if "Bat_106" in ds:
         ds["Bat_106"].attrs.update({"units": "V", "long_name": "Battery voltage"})
 
-    if "bin_depth" in ds and ds.get("instrument_type", "").lower() == "aquascat1000r":
+    if (
+        "bin_depth" in ds
+        and ds.attrs.get("instrument_type", "").lower() == "aquascat1000r"
+    ):
         ds["bin_depth"].attrs.update(
             {
                 "units": "m",
@@ -82,7 +87,10 @@ def ds_add_attrs(ds):
             }
         )
 
-    if "bindist" in ds and ds.get("instrument_type", "").lower() == "aquascat1000r":
+    if (
+        "bindist" in ds
+        and ds.attrs.get("instrument_type", "").lower() == "aquascat1000r"
+    ):
         ds["bindist"].attrs.update(
             {
                 "units": "m",
@@ -98,11 +106,23 @@ def ds_add_attrs(ds):
         )
 
     if "brange" in ds:
+        name = " "
+        if ds.attrs.get("orientation", "").lower() == "up":
+            # Altimeter range is defined as distance to surface
+            name = "altimeter_range"
+        elif ds.attrs.get("orientation", "").lower() == "down":
+            name = "height_above_sea_floor"
+        else:
+            warnings.warn(
+                "Add orientation to yaml file to get correct standard name for brange variable",
+                UserWarning,
+            )
+
         ds["brange"].attrs.update(
             {
                 "units": "m",
                 "long_name": "sensor range to boundary",
-                "standard_name": "altimeter_range",
+                "standard_name": name,
             }
         )
 
@@ -514,6 +534,15 @@ def ds_add_attrs(ds):
             {
                 "units": "m s^-1",
                 "long_name": "Northward Velocity",
+            }
+        )
+
+    if "vrange" in ds:
+        ds["vrange"].attrs.update(
+            {
+                "units": "m",
+                "long_name": "Distance from sample volume to boundary",
+                "standard_name": "height_above_sea_floor",
             }
         )
 
