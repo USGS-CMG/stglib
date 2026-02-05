@@ -42,9 +42,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = combine_vars(ds)
 
-    if ds.attrs["sample_mode"] == "BURST":
-        ds = dist_to_boundary(ds)
-
     ds = scale_analoginput(ds)
 
     # Drop unused variables
@@ -56,14 +53,16 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Shape into burst if not continuous mode
     if ds.attrs["sample_mode"] == "BURST":
         ds = reshape(ds)
+        ds = dist_to_boundary(ds)
 
     ds = qaqc.drop_vars(ds)
 
     # Add EPIC and CMG attributes
 
-    ds = attrs.ds_add_attrs(ds)
-
+    # need to call aqdutils.ds_add_attrs first; vector specific attributes have now been moved to attrs.ds_add_attrs and we want those after more general attributes from aqdutils
     ds = aqdutils.ds_add_attrs(ds, inst_type="VEC")
+
+    ds = attrs.ds_add_attrs(ds)
 
     for var in ds.data_vars:
 
@@ -274,6 +273,14 @@ def check_orientation(ds):
             "Incorrect vector orientation will cause erroneous velocity transformations. Check deployment orientation details and vector manual to verify vector was oriented correctly"
         )
 
+    ds["orientation"].attrs.update(
+        {
+            "units": "1",
+            "long_name": "instrument orientation",
+            "note": "0 = UP; 1 = DOWN; in reference to vector battery canister orientaion",
+        }
+    )
+
     return ds
 
 
@@ -466,22 +473,6 @@ def associate_z_coord(ds):
     return ds
 
 
-def dist_to_boundary(ds):
-    """Create range to boundary variable from start/end values"""
-    ds["brange"] = (ds["DistProbeStartAvg"] + ds["DistProbeEndAvg"]) / 2
-    ds["vrange"] = (ds["DistSVolStartAvg"] + ds["DistSVolEndAvg"]) / 2
-
-    for v in [
-        "DistProbeStartAvg",
-        "DistProbeEndAvg",
-        "DistSVolStartAvg",
-        "DistSVolEndAvg",
-    ]:
-        ds = ds.drop(v)
-
-    return ds
-
-
 def reshape(ds):
 
     # find times of first sample in each burst
@@ -516,6 +507,89 @@ def reshape(ds):
     ds = ds.sel(time=slice(t[0], ds["time"][-1])).assign(time=ind).unstack("time")
 
     ds = ds.drop("sample").rename({"new_time": "time", "new_sample": "sample"})
+
+    return ds
+
+
+def dist_to_boundary(ds):
+    """Create brange and vrange from burst start and burst end values"""
+
+    range_vars = [
+        "DistProbeStartAvg",
+        "DistSVolStartAvg",
+        "DistProbeEndAvg",
+        "DistSVolEndAvg",
+    ]
+    ds = drop_rangevar_sample(ds, range_vars)
+
+    # vectors can produce a lot of zeros for the brange and varnge vars. This seems to happen when the boundary is out of range or if the probe is burried.
+    # measurement range for brange is from 40 mm - 450 mm.
+    # don't want to keep any brange values outside of this range becuase they are likely not valid.
+
+    # take average between start and end brange within measurement range; don't use values outside range
+    ds["DistProbeStartEndAvg"] = xr.concat(
+        [ds["DistProbeStartAvg"], ds["DistProbeEndAvg"]], dim="avg_dim"
+    )
+    ds["brange"] = (
+        ds["DistProbeStartEndAvg"]
+        .where((ds["DistProbeStartEndAvg"] >= 40) & (ds["DistProbeStartEndAvg"] <= 450))
+        .mean(dim="avg_dim")
+    )
+    # convert to meters
+    if ds["DistProbeStartEndAvg"].attrs["units"] == "mm":
+        ds["brange"] = ds["brange"] / 1000
+        ds["brange"].attrs.update({"units": "m"})
+
+    ds["brange"].attrs.update(
+        {
+            "note": "Calculated from the average of start of burst and end of burst brange. Values outside the instrument's measurement range were excluded."
+        }
+    )
+
+    # velocity sample volume is 157 mm away from the center tranducer, so need to subtract this from brange measurement range
+    # measurment range for vrange is roughly -117 mm to 293 mm
+    # can't acutally go below 0, so making 0 the lower limit
+
+    # take average between start and end brange within measurement range; don't use values outside range
+    ds["DistSVolStartEndAvg"] = xr.concat(
+        [ds["DistSVolStartAvg"], ds["DistSVolEndAvg"]], dim="avg_dim"
+    )
+    ds["vrange"] = (
+        ds["DistSVolStartEndAvg"]
+        .where((ds["DistSVolStartEndAvg"] > 0) & (ds["DistSVolStartEndAvg"] <= 293))
+        .mean(dim="avg_dim")
+    )
+    # convert to meters
+    if ds["DistSVolStartEndAvg"].attrs["units"] == "mm":
+        ds["vrange"] = ds["vrange"] / 1000
+        ds["vrange"].attrs.update({"units": "m"})
+
+    ds["vrange"].attrs.update(
+        {
+            "note": "Calculated from the average of start of burst and end of burst vrange. Values outside the instrument's measurement range were excluded."
+        }
+    )
+
+    for v in [
+        "DistProbeStartAvg",
+        "DistProbeEndAvg",
+        "DistSVolStartAvg",
+        "DistSVolEndAvg",
+        "DistProbeStartEndAvg",
+        "DistSVolStartEndAvg",
+    ]:
+
+        ds = ds.drop(v)
+
+    return ds
+
+
+def drop_rangevar_sample(ds, range_vars=None):
+
+    if range_vars is not None:
+        for var in range_vars:
+            if var in ds.data_vars:
+                ds[var] = ds[var].sel(sample=1)
 
     return ds
 

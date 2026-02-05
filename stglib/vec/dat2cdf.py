@@ -18,7 +18,7 @@ def dat_to_cdf(metadata):
     aqdutils.check_valid_config_metadata(metadata, inst_type="VEC")
 
     # get instrument metadata from the HDR file
-    instmeta = read_vec_hdr(basefile)
+    instmeta, var_units = read_vec_hdr(basefile)
 
     metadata["instmeta"] = instmeta
 
@@ -36,35 +36,7 @@ def dat_to_cdf(metadata):
 
     dssen = load_sen(basefile)
 
-    # r = np.shape(dssen.Heading)[0]
-    # senburstlen = int(ds.attrs["VECSamplesPerBurst"] / ds.attrs["VECSamplingRate"] + 1)
     ds.attrs["sample_interval"] = 1 / ds.attrs["VECSamplingRate"]
-
-    # mod = r % senburstlen
-    # if mod:
-    # print(f"{ds.attrs['VECSamplesPerBurst']=}")
-    # print(f"{ds.attrs['VECSamplingRate']=}")
-    # histtext = "Number of rows in .sen file is not a multiple of ds.attrs['VECSamplesPerBurst']/ds.attrs['VECSamplingRate'] + 1; truncating to last full burst"
-    # ds = utils.insert_history(ds, histtext)
-    # dssen = dssen.sel(time=dssen.time[0:-mod])
-
-    # dssen["timenew"] = xr.DataArray(dssen["time"].values[::senburstlen], dims="timenew")
-    # dssen["sensample"] = xr.DataArray(range(senburstlen), dims="sensample")
-    # for var in ["Heading", "Pitch", "Roll", "Battery", "Temperature", "Soundspeed", "ErrorCode", "StatusCode"]:
-    #     dssen[var + "new"] = xr.DataArray(
-    #         dssen[var].values.reshape((-1, senburstlen)),
-    #         dims=["timenew", "sensample"],
-    #     ).mean(dim="sensample")
-    # for var in dssen.data_vars:
-    #     if "new" not in var:
-    #         dssen = dssen.drop(var)
-    # for var in dssen.data_vars:
-    #     dssen = dssen.rename({var: var.replace("new", "")})
-    # dssen = dssen.drop(["time", "sensample"])
-    # dssen = dssen.rename({"timenew": "time"})
-
-    # Apply time from VHD file to DAT data
-    # ds["time"] = dsvhd["time"]
 
     ds = ds.rename({"Ensemble": "sample"})
 
@@ -76,7 +48,9 @@ def dat_to_cdf(metadata):
             "DistProbeEndAvg",
             "DistSVolEndAvg",
         ]:
-            ds[var] = dsvhd[var].reindex_like(ds, method="nearest")
+            # Need to reindex because brange/vrange are only 1 sample per burst
+            # Setting 'method = None' because there is only one value per burst for brange/vrange; don't need to repeat it throughout burst
+            ds[var] = dsvhd[var].reindex_like(ds, method=None)
 
     # ds = ds.swap_dims({"Burst": "time"})
 
@@ -85,6 +59,8 @@ def dat_to_cdf(metadata):
     )
 
     for var in dssen:
+        # Need to reindex because tilt data is only 1 hz
+        # Setting 'method = "nearest"' for tilt data so that there is tilt data for every point in time when applying velocity transformations in cdf2nc
         ds[var] = dssen[var].reindex_like(ds, method="nearest")
 
     ds["TransMatrix"] = xr.DataArray(ds.attrs["VECTransMatrix"], dims=["inst", "beam"])
@@ -107,6 +83,10 @@ def dat_to_cdf(metadata):
         ds[v].encoding["coordinates"] = None
     ds.encoding["coordinates"] = None
 
+    for v in ds.data_vars:
+        if v in var_units:
+            ds[v].attrs["units"] = var_units[v]
+
     # Compute time stamps. Only apply clock error or clock drift at this step since we still have time, sample dims
     ds = utils.shift_time(ds, 0)
 
@@ -115,7 +95,7 @@ def dat_to_cdf(metadata):
     else:
         cdf_filename = ds.attrs["filename"] + "-raw.cdf"
 
-    ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
+    ds.to_netcdf(cdf_filename)
 
     print(f"Finished writing data to {cdf_filename}")
 
@@ -278,6 +258,7 @@ def read_vec_hdr(basefile):
     with open(hdrFile) as f:
         row = ""
         Instmeta = {}
+        var_units = {}
 
         while "Hardware configuration" not in row:
             row = f.readline().rstrip()
@@ -402,7 +383,62 @@ def read_vec_hdr(basefile):
             elif "Pressure sensor calibration" in row:
                 Instmeta["VECPressureCal"] = row[38:]
 
-    return Instmeta
+        while ".dat" not in row:
+            row = f.readline().rstrip()
+            if "Dist from probe - start (Avg)" in row:
+                var_units["DistProbeStartAvg"] = str(row[-3:-1])
+            elif "Dist from probe - end (Avg)" in row:
+                var_units["DistProbeEndAvg"] = str(row[-3:-1])
+            elif "Dist from s.vol - start (Avg)" in row:
+                var_units["DistSVolStartAvg"] = str(row[-3:-1])
+            elif "Dist from s.vol - end (Avg)" in row:
+                var_units["DistSVolEndAvg"] = str(row[-3:-1])
+
+        while ".sen" not in row:
+            row = f.readline().rstrip()
+            if "Velocity (Beam1|X|East)" in row:
+                var_units["VEL1"] = str(row[-4:-1])
+            elif "Velocity (Beam2|Y|North)" in row:
+                var_units["VEL2"] = str(row[-4:-1])
+            elif "Velocity (Beam3|Z|Up)" in row:
+                var_units["VEL3"] = str(row[-4:-1])
+            elif "Amplitude (Beam1)" in row:
+                var_units["AMP1"] = str(row[-7:-1])
+            elif "Amplitude (Beam2)" in row:
+                var_units["AMP2"] = str(row[-7:-1])
+            elif "Amplitude (Beam3)" in row:
+                var_units["AMP3"] = str(row[-7:-1])
+            elif "SNR (Beam1)" in row:
+                var_units["SNR1"] = str(row[-3:-1])
+            elif "SNR (Beam2)" in row:
+                var_units["SNR2"] = str(row[-3:-1])
+            elif "SNR (Beam3)" in row:
+                var_units["SNR3"] = str(row[-3:-1])
+            elif "Correlation (Beam1)" in row:
+                var_units["COR1"] = str(row[-2:-1])
+            elif "Correlation (Beam2)" in row:
+                var_units["COR2"] = str(row[-2:-1])
+            elif "Correlation (Beam3)" in row:
+                var_units["COR3"] = str(row[-2:-1])
+            elif "Pressure" in row:
+                var_units["Pressure"] = str(row[-5:-1])
+
+        while ".pck" not in row:
+            row = f.readline().rstrip()
+            if "Battery" in row:
+                var_units["Battery"] = str(row[-2:-1])
+            elif "Soundspeed" in row:
+                var_units["Soundspeed"] = str(row[-4:-1])
+            elif "Heading" in row:
+                var_units["Heading"] = str(row[-8:-1])
+            elif "Pitch" in row:
+                var_units["Pitch"] = str(row[-8:-1])
+            elif "Roll" in row:
+                var_units["Roll"] = str(row[-8:-1])
+            elif "Temperature" in row:
+                var_units["Temperature"] = str(row[-10:-1])
+
+    return Instmeta, var_units
 
 
 def ds_checksum_check(ds):
