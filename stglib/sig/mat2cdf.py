@@ -717,7 +717,10 @@ def mat_to_cdf(metadata):
     print("Loading from Matlab files; this may take a while for large datasets")
 
     def make_sig_dsd(basefile):
-        matfiles = glob.glob(f"{basefile}_*.mat")
+        # Because the Signature .mat files are numbered like _1, _2, ..., _10, _11, we add a key to sorted()
+        # by length to properly sort these files and read them in order. This results in a roughly 2x speedup in the
+        # runtime of mat2cdf
+        matfiles = sorted(glob.glob(f"{basefile}_*.mat"), key=len)
         dsd = load_mat_file(matfiles[0])  # get minimal dsd file for below
         ds_dict = {}
         for k in dsd:
