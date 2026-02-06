@@ -837,7 +837,7 @@ def fix_encoding(ds):
 
     if tstep < np.timedelta64(1, "m"):
 
-        histtext = f"make time encoding to dtype double because tstep {tstep} seconds is < 1 minute"
+        histtext = f"make time encoding to dtype double because tstep {tstep.values/pd.Timedelta('1s')} seconds is < 1 minute"
         ds = utils.insert_history(ds, histtext)
 
         # round time to milliseconds firstm --> Try without rounding
@@ -845,7 +845,7 @@ def fix_encoding(ds):
         ds["time"].encoding["dtype"] = "double"
 
     else:
-        histtext = f"make time encoding int because tstep {tstep} seconds is >= 1 minute, round time to seconds first"
+        histtext = f"make time encoding int because tstep {tstep.values/pd.Timedelta('1s')} seconds is >= 1 minute, round time to seconds first"
         ds = utils.insert_history(ds, histtext)
 
         # round time to seconds if time interval >= 1 minute
@@ -1496,9 +1496,9 @@ def ds_make_average_shape_mi(ds):
 
 def reorder_dims(ds):
     """
-    Reorder dimension for CF complinace
+    Reorder dimension for CF compliance
     """
-    print("Reordering data variable dimensions for CF complinace")
+    print("Reordering data variable dimensions for CF compliance")
     for var in ds.data_vars:
         if "z" in ds[var].dims and len(ds[var].dims) == 2:
             ds[var] = ds[var].transpose("time", "z")

@@ -787,5 +787,5 @@ def mat_to_cdf(metadata):
         print(f"Finished writing data to {cdf_filename}")
 
     toc = time.time()
-    etime = round(toc - tic, 0)
-    print(f"elapsed time = {etime}")
+
+    print(f"elapsed time = {toc - tic:.1f} seconds")
