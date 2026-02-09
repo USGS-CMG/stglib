@@ -228,6 +228,7 @@ def atmos_correct_profile(ds, atmpres):
 
 
 def do_split_profiles(ds):
+    # how many zeros to pad for the filenames
     max_profile_len = len(str(ds.profile.max().values))
     for profile in ds.profile.values:
         dss = ds.sel(obs=get_slice(ds, profile), profile=profile).copy(deep=True)
@@ -236,8 +237,8 @@ def do_split_profiles(ds):
             if "obs" not in dss[v].coords:
                 dss[v] = dss[v].expand_dims("profile")  # for CF compliance
 
+        allnan = True
         for v in dss.data_vars:
-            allnan = True
             if "obs" in dss[v].coords:
                 if not np.all(dss[v].isnull()):
                     allnan = False
