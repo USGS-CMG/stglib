@@ -742,6 +742,8 @@ def mat_to_cdf(metadata):
         ds = utils.write_metadata(ds, metadata)
         ds = utils.ensure_cf(ds)
 
+        ds = utils.shift_time(ds, 0)
+
         ds = aqdutils.check_attrs(ds, inst_type="SIG")
 
         print(
