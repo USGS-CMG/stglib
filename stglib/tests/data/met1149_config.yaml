@@ -1,5 +1,7 @@
 basefile: 'Dunex_2021-09-13'
 filename: '1149wxt'
+instrument_type: 'WXT'
+datalogger: 'Mayfly'
 LatLonDatum: NAD83
 skiprows: 7
 RTK_elevation_NAVD88: 9.2241

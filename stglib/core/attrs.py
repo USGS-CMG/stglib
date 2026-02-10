@@ -31,6 +31,11 @@ def ds_add_attrs(ds):
             }
         )
 
+    if "air_temp" in ds:
+        ds["air_temp"].attrs.update(
+            {"units": "degree_C", "standard_name": "air_temperature"}
+        )
+
     # Instrument type abss
     if "amp" in ds and ds.attrs.get("instrument_type", "").lower() == "aquascat1000r":
         ds["amp"].attrs.update(
@@ -98,6 +103,11 @@ def ds_add_attrs(ds):
                 "bin_size": ds.attrs["ABSAbsBinLengthMM"][0] * 0.001,
                 "bin_count": ds.attrs["ABSAbsNumBins"][0],
             }
+        )
+
+    if "baro_pressure" in ds:
+        ds["baro_pressure"].attrs.update(
+            {"units": "mbar", "standard_name": "air_pressure"}
         )
 
     if "BPR_915" in ds:
@@ -208,6 +218,30 @@ def ds_add_attrs(ds):
             }
         )
 
+    if "hail_amount" in ds:
+        ds["hail_amount"].attrs.update(
+            {
+                "units": "hits/cm^2",
+                "long_name": "hail amount",
+            }
+        )
+
+    if "hail_duration" in ds:
+        ds["hail_duration"].attrs.update(
+            {
+                "units": "s",
+                "long_name": "hail duration",
+            }
+        )
+
+    if "hail_rate" in ds:
+        ds["hail_rate"].attrs.update(
+            {
+                "units": "hits/cm^2/hr",
+                "long_name": "hail rate",
+            }
+        )
+
     if "Hdg_1215" in ds:
         ds["Hdg_1215"].attrs.update(
             {
@@ -241,6 +275,30 @@ def ds_add_attrs(ds):
             {
                 "units": "m",
                 "long_name": "horizontal distance along seabed from sonar to measurement point",
+            }
+        )
+
+    if "humidity_sensor_temp" in ds:
+        ds["humidity_sensor_temp"].attrs.update(
+            {
+                "units": "degree_C",
+                "long_name": "Humidity sensor internal temperature",
+            }
+        )
+
+    if "internal_temp" in ds:
+        ds["internal_temp"].attrs.update(
+            {
+                "units": "degree_C",
+                "long_name": "Instrument Internal Temperature",
+            }
+        )
+
+    if "light_strikes" in ds:
+        ds["light_strikes"].attrs.update(
+            {
+                "units": "counts",
+                "long_name": "number of lightning strikes",
             }
         )
 
@@ -316,6 +374,38 @@ def ds_add_attrs(ds):
             }
         )
 
+    if "rain_amount" in ds:
+        ds["rain_amount"].attrs.update(
+            {
+                "units": "mm",
+                "standard_name": "thickness_of_rainfall_amount",
+            }
+        )
+
+    if "rain_duration" in ds:
+        ds["rain_duration"].attrs.update(
+            {
+                "units": "s",
+                "long_name": "rain duration",
+            }
+        )
+
+    if "rain_rate" in ds:
+        ds["rain_rate"].attrs.update(
+            {
+                "units": "mm/hr",
+                "standard_name": "rainfall_rate",
+            }
+        )
+
+    if "relative_humidity" in ds:
+        ds["relative_humidity"].attrs.update(
+            {
+                "units": "percent",
+                "standard_name": "relative_humidity",
+            }
+        )
+
     if "RH_910" in ds:
         ds["RH_910"].attrs.update(
             {
@@ -372,6 +462,22 @@ def ds_add_attrs(ds):
             {
                 "units": "m",
                 "long_name": "slant distance from sonar to seabed",
+            }
+        )
+
+    if "solar_flux_density" in ds:
+        ds["solar_flux_density"].attrs.update(
+            {
+                "units": "W/m^2",
+                "long_name": "solar flux density",
+            }
+        )
+
+    if "solar_total_flux" in ds:
+        ds["solar_total_flux"].attrs.update(
+            {
+                "units": "MJ/m^2",
+                "long_name": "solar total flux",
             }
         )
 
@@ -434,6 +540,14 @@ def ds_add_attrs(ds):
             }
         )
 
+    if "strike_distance" in ds:
+        ds["strike_distance"].attrs.update(
+            {
+                "units": "km",
+                "long_name": "lightning strike distance",
+            }
+        )
+
     if "sweep" in ds:
         ds["sweep"].attrs.update(
             {
@@ -480,6 +594,22 @@ def ds_add_attrs(ds):
                 "units": "radians",
                 "long_name": "Head angle relative to true north corrected for heading offset in north up convention",
                 "comment": "Use theta and horizontal range to plot image data in polar convention",
+            }
+        )
+
+    if "tilt_NS" in ds:
+        ds["tilt_NS"].attrs.update(
+            {
+                "units": "degrees",
+                "long_name": "instrument North-South tilt",
+            }
+        )
+
+    if "tilt_WE" in ds:
+        ds["tilt_WE"].attrs.update(
+            {
+                "units": "degrees",
+                "long_name": "instrument West-East tilt",
             }
         )
 
@@ -537,6 +667,11 @@ def ds_add_attrs(ds):
             }
         )
 
+    if "vapor_pressure" in ds:
+        ds["vapor_pressure"].attrs.update(
+            {"units": "mbar", "long_name": "water vapor pressure"}
+        )
+
     if "vrange" in ds:
         ds["vrange"].attrs.update(
             {
@@ -588,6 +723,42 @@ def ds_add_attrs(ds):
                 "units": "m/s",
                 "long_name": "maximum wind speed",
                 "standard_name": "wind_speed_of_gust",
+            }
+        )
+
+    if "wind_dir" in ds:
+        ds["wind_dir"].attrs.update(
+            {
+                "units": "degrees",
+                "long_name": "mean wind from direction relative to true north",
+                "standard_name": "wind_from_direction",
+            }
+        )
+
+    if "wind_error" in ds:
+        ds["wind_error"].attrs.update(
+            {
+                "units": "1",
+                "long_name": "invalid wind measurement",
+                "comment": "0 = good data, 1 = invalid data",
+            }
+        )
+
+    if "wind_gust" in ds:
+        ds["wind_gust"].attrs.update(
+            {
+                "units": "m/s",
+                "long_name": "maximum wind speed",
+                "standard_name": "wind_speed_of_gust",
+            }
+        )
+
+    if "wind_speed" in ds:
+        ds["wind_speed"].attrs.update(
+            {
+                "units": "m/s",
+                "long_name": "mean wind speed",
+                "standard_name": "wind_speed",
             }
         )
 

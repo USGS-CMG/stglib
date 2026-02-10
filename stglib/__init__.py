@@ -16,6 +16,7 @@ from . import (
     lisst,
     mar,
     mc,
+    met,
     rdi,
     rsk,
     sg,
@@ -25,7 +26,6 @@ from . import (
     tcm,
     troll,
     vec,
-    wxt,
 )
 from .aqd import aqdutils
 from .core import attrs, cmd, filter, qaqc, utils, waves

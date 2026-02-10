@@ -181,17 +181,17 @@ def test_vec_continuous():
     vec_nc("1126vec14823-raw.cdf")
 
 
-def wxt_raw(glob_att, config_yaml):
-    run_script("runots.py", "wxt", "csv2cdf", glob_att, config_yaml)
+def met_raw(glob_att, config_yaml):
+    run_script("runots.py", "met", "csv2cdf", glob_att, config_yaml)
 
 
-def wxt_nc(nc_file):
-    run_script("runots.py", "wxt", "cdf2nc", nc_file)
+def met_nc(nc_file):
+    run_script("runots.py", "met", "cdf2nc", nc_file)
 
 
-def test_wxt():
-    wxt_raw("glob_att1149.txt", "wxt1149_config.yaml")
-    wxt_nc("1149wxt-raw.cdf")
+def test_met():
+    met_raw("glob_att1149.txt", "met1149_config.yaml")
+    met_nc("1149wxt-raw.cdf")
 
 
 def iq_raw(glob_att, config_yaml):

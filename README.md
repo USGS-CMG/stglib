@@ -14,7 +14,7 @@ Currently, this package has at least partial support for:
 - SonTek IQ flow monitors
 - WET labs sensors, including ECO NTUSB and ECO PAR
 - Onset HOBO pressure sensors
-- Vaisala Weather Transmitter WXT sensors
+- Met station with Mayfly or Campbell dataloggers
 - In-Situ Aqua TROLL sensors
 - RD Instruments WorkHorse ADCPs
 - Moving-boat ADCP data processed using [QRev](https://hydroacoustics.usgs.gov/movingboat/QRev.shtml), for use in index-velocity computation

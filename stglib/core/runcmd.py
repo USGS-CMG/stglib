@@ -457,24 +457,24 @@ def runwvswad2cdf(args=None):
     stglib.aqd.wvswad2cdf.wad_to_cdf(metadata)
 
 
-def runwxtcdf2nc(args=None):
+def runmetcdf2nc(args=None):
     if not args:
         args = stglib.cmd.cdf2nc_parser(
-            "Convert raw Vaisala WXT .cdf format to processed .nc files", atmpres=False
+            "Convert raw met station .cdf format to processed .nc files", atmpres=False
         ).parse_args()
 
-    run_cdf_to_nc(stglib.wxt.cdf_to_nc, args)
+    run_cdf_to_nc(stglib.met.cdf_to_nc, args)
 
 
-def runwxtcsv2cdf(args=None):
+def runmetcsv2cdf(args=None):
     if not args:
         args = stglib.cmd.inst2cdf_parser(
-            "Convert Vaisala WXT met .csv file to raw .cdf format. Run this script from the directory containing Vaisala .csv file."
+            "Convert met .csv file to raw .cdf format. Run this script from the directory containing .csv file."
         ).parse_args()
 
     metadata = get_metadata(args)
 
-    stglib.wxt.csv_to_cdf(metadata)
+    stglib.met.csv_to_cdf(metadata)
 
 
 def runtcmcdf2nc(args=None):
@@ -650,11 +650,11 @@ def runots():
             runtrollcsv2cdf(args)
         elif args.step == "cdf2nc":
             runtrollcdf2nc(args)
-    elif args.instrument == "wxt":
+    elif args.instrument == "met":
         if args.step == "csv2cdf":
-            runwxtcsv2cdf(args)
+            runmetcsv2cdf(args)
         elif args.step == "cdf2nc":
-            runwxtcdf2nc(args)
+            runmetcdf2nc(args)
     elif args.instrument == "son":
         if args.step == "raw2cdf":
             stglib.son.raw2cdf.file81R_to_cdf(metadata)

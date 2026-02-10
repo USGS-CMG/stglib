@@ -228,11 +228,13 @@ NTU-specific options include:
 - ``spb``: samples per burst
 - ``user_ntucal_coeffs``: polynomial coefficients, e.g., ``[9.078E-07, 5.883E-02, -2.899E+00]``.
 
-Vaisala WXT536
+Met station
 --------------
 
-WXT-specific options include:
+Met-specific options include:
 
+- ``instrument_type``: the type of weather station used, either ``WXT`` or ``ClimaVue``.
+- ``datalogger``: the type of datalogger used, either ``Mayfly`` or ``Campbell``.
 - ``RTK_elevation_NAVD88``: RTK elevation of the sensor referenced to NAVD88 in meters.
 - ``dir_offset``: a direction offset in degrees from magnetic north to be applied if the sensor was not pointing toward magnetic north.
 - ``dir_offset_note``: a note about the direction offset being used.
@@ -240,7 +242,7 @@ WXT-specific options include:
 EofE ECHOLOGGER
 ---------------
 
-- ``instrument_type``: types "ea" and "aa" are supported.
+- ``instrument_type``: types ``ea`` and ``aa`` are supported.
 - ``skiprows``: for type "aa", the number of lines to skip in the .log file before the real data begins
 - ``skipfooter``: for type "aa", the number of lines to skip in the .log file after the data end
 - ``orientation``: orientation of transducers types 'DOWN' or 'UP' are supported.

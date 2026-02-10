@@ -197,7 +197,7 @@ def runots_parser():
     addcdf2nc(instsp)
     addnc2waves(instsp)
 
-    instsp = add_instrument(subparsers, "wxt", "Vaisala WXT")
+    instsp = add_instrument(subparsers, "met", "Met station")
     addinst2cdf(instsp, "csv2cdf")
     addcdf2nc(instsp)
 
