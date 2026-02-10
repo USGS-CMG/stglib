@@ -197,6 +197,7 @@ def set_metadata(ds):
     ds["Depth"].attrs["positive"] = "down"
 
     ds["Temperature"].attrs["units"] = "degree_C"
+    ds["Temperature"].attrs["units_metadata"] = "temperature: on_scale"
     ds["Temperature"].attrs["standard_name"] = "sea_water_temperature"
 
     ds["AnalogInput2"].attrs["units"] = "V"

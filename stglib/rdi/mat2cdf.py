@@ -100,6 +100,7 @@ def mat_to_cdf(metadata):
         dsm["S"].attrs["epic_code"] = 40
 
         dsm["Temperature"].attrs["units"] = "degree_C"
+        dsm["Temperature"].attrs["units_metadata"] = "temperature: on_scale"
         dsm["Temperature"].attrs["long_name"] = "ADCP Transducer Temperature"
         dsm["Temperature"].attrs["epic_code"] = 1211
 

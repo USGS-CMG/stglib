@@ -267,6 +267,7 @@ def ds_add_attrs(ds):
     ds["time"].encoding = {"dtype": "int32"}
 
     ds["temperature"].attrs["units"] = "degree_C"
+    ds["temperature"].attrs["units_metadata"] = "temperature: on_scale"
     ds["temperature"].attrs["standard_name"] = "sea_water_temperature"
 
     ds["conductivity"].attrs["standard_name"] = "sea_water_electrical_conductivity"

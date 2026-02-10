@@ -352,6 +352,7 @@ def add_standard_names(ds):
     if "Tx_1211" in ds:
         if ds["Tx_1211"].attrs["units"] == "C":
             ds["Tx_1211"].attrs["units"] = "degree_C"
+            ds["Tx_1211"].attrs["units_metadata"] = "temperature: on_scale"
 
     for n in [1, 2]:
         if f"AnalogInput{n}" in ds:

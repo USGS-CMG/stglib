@@ -33,7 +33,11 @@ def ds_add_attrs(ds):
 
     if "air_temp" in ds:
         ds["air_temp"].attrs.update(
-            {"units": "degree_C", "standard_name": "air_temperature"}
+            {
+                "units": "degree_C",
+                "units_metadata": "temperature: on_scale",
+                "standard_name": "air_temperature",
+            }
         )
 
     # Instrument type abss
@@ -282,6 +286,7 @@ def ds_add_attrs(ds):
         ds["humidity_sensor_temp"].attrs.update(
             {
                 "units": "degree_C",
+                "units_metadata": "temperature: on_scale",
                 "long_name": "Humidity sensor internal temperature",
             }
         )
@@ -290,6 +295,7 @@ def ds_add_attrs(ds):
         ds["internal_temp"].attrs.update(
             {
                 "units": "degree_C",
+                "units_metadata": "temperature: on_scale",
                 "long_name": "Instrument Internal Temperature",
             }
         )
@@ -558,13 +564,18 @@ def ds_add_attrs(ds):
 
     if "T_21" in ds:
         ds["T_21"].attrs.update(
-            {"units": "degree_C", "standard_name": "air_temperature"}
+            {
+                "units": "degree_C",
+                "units_metadata": "temperature: on_scale",
+                "standard_name": "air_temperature",
+            }
         )
 
     if "T_28" in ds:
         ds["T_28"].attrs.update(
             {
                 "units": "degree_C",
+                "units_metadata": "temperature: on_scale",
                 "standard_name": "sea_water_temperature",
                 "long_name": "Temperature",
             }
@@ -647,6 +658,7 @@ def ds_add_attrs(ds):
         ds["Tx_1211"].attrs.update(
             {
                 "units": "degree_C",
+                "units_metadata": "temperature: on_scale",
                 "long_name": "Instrument Internal Temperature",
             }
         )

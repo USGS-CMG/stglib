@@ -216,6 +216,7 @@ def ds_add_attrs(ds):
         ds["T_28"].attrs.update(
             {
                 "units": "degree_C",
+                "units_metadata": "temperature: on_scale",
                 "long_name": "Temperature",
                 "epic_code": 28,
                 "standard_name": "sea_water_temperature",
@@ -342,6 +343,7 @@ def ds_add_attrs(ds):
         ds["T_21"].attrs.update(
             {
                 "units": "degree_C",
+                "units_metadata": "temperature: on_scale",
                 "long_name": "Air Temperature",
                 "epic_code": 21,
                 "standard_name": "air_temperature",

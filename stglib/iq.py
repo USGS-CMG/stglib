@@ -1,6 +1,5 @@
 import warnings
 
-import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
@@ -1029,6 +1028,7 @@ def ds_add_attrs(ds):
             "long_name": "Temperature",
             "epic_code": "28",
             "units": "degree_C",
+            "units_metadata": "temperature: on_scale",
             "standard_name": "sea_water_temperature",
         }
     )
