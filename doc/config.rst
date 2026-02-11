@@ -47,6 +47,9 @@ This file is instrument-specific and is YAML formatted. A few examples are given
 .. note::
    Although YAML supports boolean values, netCDF does not support them as attributes. Because stglib saves the values specified in the instrument configuration file as netCDF attributes, you must enclose values potentially interpreted as boolean (such as true or false) in quotation marks in the YAML file.
 
+.. note::
+   Note that negative numeric values in the YAML config file must be treated with care so as not to be interpreted as strings. If you want the minimum value to be, say, -0.2 units for a particular parameter, you must write this as ``-0.2`` and not ``-.2`` in the config file. The latter format will be interpreted as a string and will cause an error.
+
 Options common to most (all?) instrument config files:
 
 - ``Conventions``: version of the CF Conventions, ``'CF-1.10'`` presently
@@ -212,8 +215,6 @@ EXO
 EXO-specific options include:
 
 - ``skiprows``: number of lines to skip in the CSV before the real data begins
-
-Note that negative numeric values in the YAML config file must be treated with care so as not to be interpreted as strings. If you want the minimum value to be, say, -0.2 units for a particular parameter, you must write this as ``-0.2`` and not ``-.2`` in the config file. The latter format will be interpreted as a string and will cause an error.
 
 .. literalinclude:: ../examples/exo_config.yaml
    :language: yaml
