@@ -5,7 +5,7 @@ dependencies:
   - python<3.15
   - compliance-checker
   - dask
-  - git-lfs
+  # - git-lfs # don't need to check out lfs objects to build docs
   - gsw
   - joblib
   - matplotlib-base
