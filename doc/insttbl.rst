@@ -23,7 +23,7 @@ Instrument Abbreviation Table
    "Sequoia Scientific LISST", "lisst", "particle size distribution, light attenuation"
    "Teledyne RDI WorkHorse", "wh", "current and backscatter profiles, pressure, waves"
    "TruBlue", "tb", "pressure, waves"
-   "Vaisala WXT536", "wxt", "winds, air temperature, air pressure, relative humidity"
+   "Met Station", "met", "winds, air temperature, air pressure, relative humidity"
    "WET Labs ECO", "ecn", "optical turbidity"
    "WET Labs ECO", "ecp", "photosynthetically active radiation (PAR)"
    "YSI EXO Sonde", "exo", "temperature, conductivity, turbidity, oxygen, pH, ..."

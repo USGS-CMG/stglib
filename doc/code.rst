@@ -84,15 +84,14 @@ Signature
   stglib.sig.mat2cdf.mat_to_cdf
   stglib.sig.cdf2nc.cdf_to_nc
 
-Vaisala Weather Transmitter WXT
+Met Station
 ===============================
 
 .. autosummary::
   :toctree: generated/
 
-  stglib.wxt.read_wxt
-  stglib.wxt.csv_to_cdf
-  stglib.wxt.cdf_to_nc
+  stglib.met.csv_to_cdf
+  stglib.met.cdf_to_nc
 
 QRev
 ====
