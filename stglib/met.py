@@ -98,6 +98,9 @@ def cdf_to_nc(cdf_filename):
 
     ds = fill_time_gaps(ds)
 
+    # Remove bad rows. Needs to happen before direction corrections.
+    ds = qaqc.call_qaqc(ds)
+
     # Apply direction offset and magnetic declination correction
     wind_vars = [
         "WD_min",
@@ -126,9 +129,6 @@ def cdf_to_nc(cdf_filename):
                 ds,
                 f"Rotated directions from magnetic north to true north by applying magnetic_variation of {ds.attrs['magnetic_variation']}",
             )
-
-    # QAQC
-    ds = qaqc.call_qaqc(ds)
 
     # Run utilities
     ds = utils.create_z(ds)

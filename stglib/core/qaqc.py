@@ -36,7 +36,6 @@ def call_qaqc(ds):
         ds = trim_std_ratio(ds, var)
         ds = trim_max_std(ds, var)
 
-        ds = trim_fliers(ds, var)
         ds = trim_warmup(ds, var)
 
         ds = trim_min(ds, var)
@@ -46,11 +45,14 @@ def call_qaqc(ds):
         ds = trim_bad_ens_indiv(ds, var)
 
     for var in ds.data_vars:
+        ds = trim_mask_expr(ds, var)  # re-run and check for masking
+
+    for var in ds.data_vars:
         ds = trim_mask(ds, var)  # re-run and check for masking
-        ds = trim_mask_expr(ds, var)
 
     for var in ds.data_vars:
         ds = trim_by_any(ds, var)  # re-run and trim by other variables as necessary
+        ds = trim_fliers(ds, var)
 
     ds = drop_vars(ds)
 
@@ -399,7 +401,7 @@ def trim_fliers(ds, var):
     if var + "_fliers" in ds.attrs:
         num = ds.attrs[var + "_fliers"]
 
-        a = np.ma.masked_array(ds[var], fill_value=np.nan)
+        a = np.ma.masked_array(ds[var].values.copy(), fill_value=np.nan)
         a[np.isnan(a)] = np.ma.masked
         for b in np.ma.clump_unmasked(a):
             if b.stop - b.start <= num:
@@ -520,10 +522,17 @@ def trim_mask_expr(ds, var):
 
     if f"{var}_mask_expr" in ds.attrs:
         mask = ds.attrs[f"{var}_mask_expr"]
-        cond = evaluate_mask_expr(ds, mask)
+        if isinstance(mask, str):
+            mask = [mask]
+
+        cond = evaluate_mask_expr(ds, mask[0])
+        for n in np.arange(1, len(mask)):
+            new_cond = evaluate_mask_expr(ds, mask[n])
+            cond = np.logical_and(cond, new_cond)
+
         affected = cond.sum()
         ds[var] = ds[var].where(~cond)
-        # print(f"Evaluating '{mask}' with {v} = {ds[v]}: {result}")
+
         notetxt = (
             f"Values filled using mask of '{mask}'; {affected.values} values affected. "
         )
