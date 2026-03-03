@@ -1,4 +1,5 @@
 import operator
+import re
 import warnings
 
 import numpy as np
@@ -505,16 +506,26 @@ def trim_mask_expr(ds, var):
     }
 
     def evaluate_mask_expr(ds, expression):
+        # remove parentheses
+        expression = expression.replace("(", "").replace(")", "")
         parts = expression.split()
+
         if len(parts) != 3:
             raise ValueError("Invalid mask expression string format")
 
         left = ds[parts[0]]
         operator_str = parts[1]
-        right = float(parts[2])
 
-        if operator_str in operator_map:
+        # check for "nan"
+        if parts[2].lower() == "nan":
+            right = False
+        elif parts[2].lower() != "nan":
+            right = float(parts[2])
+
+        if operator_str in operator_map and right is not False:
             return operator_map[operator_str](left, right)
+        elif right is False:
+            return ds[parts[0]].isnull()
         else:
             raise ValueError(
                 f"Unsupported operator {operator_str}; supported operators are {[x for x in operator_map]}"
@@ -525,17 +536,32 @@ def trim_mask_expr(ds, var):
         if isinstance(mask, str):
             mask = [mask]
 
+        # add comma before conditional operators
+        mask[0] = mask[0].replace("|", ",|").replace("&", ",&")
+        # split at commas before '&' and before '|'
+        mask = re.split(",", mask[0])
+
         cond = evaluate_mask_expr(ds, mask[0])
-        for n in np.arange(1, len(mask)):
-            new_cond = evaluate_mask_expr(ds, mask[n])
-            cond = np.logical_and(cond, new_cond)
+        mask_note = mask[0]
+
+        # add to condition if "&" and "|" are present in var_mask_expr
+        if len(mask) > 0:
+            for n in np.arange(1, len(mask)):
+                if "&" in mask[n]:
+                    mask_note = mask_note + mask[n]
+                    mask[n] = mask[n].replace("&", "")
+                    new_cond = evaluate_mask_expr(ds, mask[n])
+                    cond = np.logical_and(cond, new_cond)
+                elif "|" in mask[n]:
+                    mask_note = mask_note + mask[n]
+                    mask[n] = mask[n].replace("|", "")
+                    new_cond = evaluate_mask_expr(ds, mask[n])
+                    cond = np.logical_or(cond, new_cond)
 
         affected = cond.sum()
         ds[var] = ds[var].where(~cond)
 
-        notetxt = (
-            f"Values filled using mask of '{mask}'; {affected.values} values affected. "
-        )
+        notetxt = f"Values filled using mask of '{mask_note}'; {affected.values} values affected. "
         ds = utils.insert_note(ds, var, notetxt)
 
     return ds

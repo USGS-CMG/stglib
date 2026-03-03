@@ -217,7 +217,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     if atmpres:
         ds = utils.atmos_correct(ds, atmpres)
 
-    ds = exo_qaqc(ds)
+    ds = qaqc.call_qaqc(ds)
 
     # assign min/max:
     ds = utils.add_min_max(ds)
