@@ -260,6 +260,11 @@ def test_rbr():
     rbr_raw("gatts_055109_20220808_1605.txt", "055109_20220808_1605_config.yaml")
     rbr_nc("11512Cdw-raw.cdf")
     rbr_wvs("11512Cdwb.nc")
+    rbr_raw("LP13_s3_d1_glob_atts.txt", "LP13_s3_d1_rbr_config.yaml")
+    # rbr_nc("LP13_s3d1_2025rbr-raw.cdf", atmpres="LP13_s3d1-atmpres.cdf")
+    rbr_nc("LP13_s3d1_2025rbr-raw.cdf")
+    rbr_wvs("LP13_s3d1_2025rbrb.nc")
+
     # rbr_diwasp("11512Cdwcont-cal.nc") #need P_1c variable for this test to work
 
 

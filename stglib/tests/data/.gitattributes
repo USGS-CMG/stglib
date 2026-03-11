@@ -106,3 +106,7 @@ FISH0104green.zip filter=lfs diff=lfs merge=lfs -text
 MAU23M3A_cont_sample.csv filter=lfs diff=lfs merge=lfs -text
 MAU23M3B_burst_sample.csv filter=lfs diff=lfs merge=lfs -text
 1164F_kor_1_4_0_206.csv filter=lfs diff=lfs merge=lfs -text
+Site3_Deploy1_06-30-2025/Site3_Deploy1_06-30-2025_data.txt filter=lfs diff=lfs merge=lfs -text
+Site3_Deploy1_06-30-2025/Site3_Deploy1_06-30-2025_events.txt filter=lfs diff=lfs merge=lfs -text
+Site3_Deploy1_06-30-2025/Site3_Deploy1_06-30-2025_metadata.txt filter=lfs diff=lfs merge=lfs -text
+

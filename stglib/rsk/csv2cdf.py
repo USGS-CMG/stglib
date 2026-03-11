@@ -102,6 +102,19 @@ def csv_to_cdf(metadata):
         ds = ds.drop("P_1")
         ds = xr.merge([ds, dsburst])
 
+    elif ds.attrs["sample_mode"].upper() == "BURST":
+        # if BURST sample mode create sample variable so that can reshape into burst shape later (cdf2nc)
+        samps = np.arange(1, ds.attrs["samples_per_burst"] + 1)
+        nburst = len(ds["time"]) // ds.attrs["samples_per_burst"]
+        samps = np.tile(samps, nburst)
+
+        mod = len(ds["time"]) % ds.attrs["samples_per_burst"]
+        if mod:
+            addsamps = np.arange(1, mod + 1)
+            samps = np.append(samps, addsamps)
+
+        ds["sample"] = xr.DataArray(samps, dims="time")
+
     elif is_profile:
         # work with profiles, e.g. CTD casts
 
@@ -339,6 +352,9 @@ def set_up_instrument_and_sampling_attrs(ds, meta):
     ds.attrs["sample_mode"] = meta["sampling"]["mode"]
 
     ds.attrs["sample_interval"] = int(meta["sampling"]["period"]) / 1000
+
+    # create sample_rate attribute in the code
+    ds.attrs["sample_rate"] = int(1 / ds.attrs["sample_interval"])
 
     if "burstinterval" in meta["sampling"]:
         ds.attrs["burst_interval"] = meta["sampling"]["burstinterval"] / 1000

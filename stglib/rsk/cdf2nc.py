@@ -2,6 +2,7 @@ import numpy as np
 import xarray as xr
 
 from ..core import filter, qaqc, utils
+from ..sig.cdf2nc import ds_make_burst_shape
 
 
 def cdf_to_nc(
@@ -49,6 +50,12 @@ def cdf_to_nc(
             if "water_level" in ds.data_vars:
                 ds = utils.create_filtered_water_level_var(ds)
                 ds = ds.drop_vars("water_level")
+
+        # if BURST sample mode shape data into burst shape
+        if "BURST" in ds.attrs["sample_mode"]:
+            print("Sample mode is Burst, reshape data set into burst")
+            ds = ds_make_burst_shape(ds)
+            ds = ds_add_attrs(ds, is_profile)
 
     # if "P_1" in ds:
     #    ds = ds_add_depth_dim(ds)

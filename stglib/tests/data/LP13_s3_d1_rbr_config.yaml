@@ -1,0 +1,24 @@
+Conventions: 'CF-1.10'
+basefile: 'Site3_Deploy1_06-30-2025/Site3_Deploy1_06-30-2025' 
+filename: 'LP13_s3d1_2025rbr' # name of output file, -raw.cdf or .nc will be appended to this
+ClockError: -21600 # internal clocks were behind local time by 1-hour since KB likely set deployments before the time change in March (UTC-6) BUT shifted clock back to UTC
+ClockError_note: internal clocks were behind by 1-hour since KB likely set deployments before the time change in March and converted back to UTC time to align with stglib long_name definitions
+initial_instrument_height: 0.22
+initial_instrument_height_note: 'approximate height of pressure sensor [m] above river bottom'
+#pressure_sensor_height: 0.22
+zeroed_pressure: 'No'
+P_1ac_note: 'Corrected for variations in atmospheric pressure using Rainbow Park (AN824) met station, ~3km south of Lock and Dam 13.'
+#P_1ac_lowpass_filt: 1
+#wp_min: 1
+wp_max: 5
+#good_dates: ['2025-04-04 20:15:00', '2025-05-07 16:50:00', '2025-05-07 20:45:00', '2025-05-16 22:50:00']
+geopotential_datum_name: NAVD88
+height_above_geopotential_datum: 176.5 # 177.7 meters - approx. 583 feet but need to correct for depth (1.17 m from old bathy)
+height_above_geopotential_datum_note: 'Estimated riverbed elevation based on water depth and surface pool elevation at downstream Lock and Dam 13'
+rho: 1000 # freshwater density (kg/m^3)
+wave_start_time: '2025-04-04 15:30:00'
+#sample_rate: 8
+#wave_interval: 512 # interval in seconds for calculating wave bursts from continuous data
+clip_f: 'true'
+Kp_min: 0.2
+#f_cut: 1

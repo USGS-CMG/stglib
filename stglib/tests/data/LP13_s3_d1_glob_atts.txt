@@ -1,0 +1,19 @@
+PROGRAM; Upper Mississippi River Restoration
+PROJECT; Lower Pool 13 HARP: Understanding wind dynamics and contributing factors of water clarity, aquatic vegetation, and native freshwater mussels
+Region; Impounded Reach of Lower Pool 13 of the Upper Mississippi River
+SciPi; Nicole Buckley, Kristen Bouska
+Year; 2025
+DESCRIPTION; Site 3, Lower Pool 13, Deployment 1
+DATA_ORIGIN; USGS Long Term Resource Monitoring
+DATA_TYPE; Time Series
+DATA_SUBTYPE; Mooring
+MOORING; cinder block
+latitude; 41.93347504
+longitude; -90.1735187
+Deployment_date; 2025-04-04
+Recovery_date; 2025-06-30
+WATER_DEPTH; 0.927
+WATER_DEPTH_source; mean water level from data
+WATER_DEPTH_note; (meters), nominal depth at deployment
+institution; United States Geological Survey Upper Midwest Environmental Science Center
+institution_url; https://www.usgs.gov/centers/upper-midwest-environmental-sciences-center
