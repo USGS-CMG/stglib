@@ -150,6 +150,18 @@ def make_diwasp_ds(ds, layout=None, data_type=None, freqs=None, ibin=0):
     # make list of directional wave types handled
     dir_wave_types = get_diwasp_dir_waves()
 
+    if (
+        data_type == "puv"
+        or data_type == "pres"
+        or data_type == "optimized"
+        or data_type == "optimized-nd"
+    ):
+        # add warning if pressure sensor not specified
+        if "pressure_sensor_height" not in ds.attrs:
+            warnings.warn(
+                "pressure_sensor_height not specified; using initial_instrument_height to compute wave statistics"
+            )
+
     # call multiprocessing
     dsd = call_diwasp_mp(
         ds, layout=layout, data_type=data_type, freqs=freqs, ibin=ibin, nsamps=nsamps
@@ -451,24 +463,41 @@ def make_diwasp_dict(
         or data_type == "pres"
         or (dwspid and dwspid[-1] == "pres")
     ):
-        # print("Apply cutoff and add tail for puv method")
+
         if "pressure_sensor_height" in ds.attrs:
             z = ds.attrs["pressure_sensor_height"]
         else:
-            warnings.warn(
-                "pressure_sensor_height not specified; using initial_instrument_height to compute wave statistics"
-            )
             z = ds.attrs["initial_instrument_height"]
 
+        # print("Apply cutoff and add tail for puv method")
         h = np.mean(p.values) + z
         f = SMout["freqs"]
         k = qkfs(2 * np.pi * f, h)
         Kp = transfer_function(k, h, z)
 
-        # Find cutoff
-        tailind, noisecutind, fpeakcutind, Kpcutind = define_cutoff(
-            f, Snn * (Kp**2), Kp, noise=0.9
-        )
+        # Check for user specified wave cutoff
+        if "wave_fcut" in ds.attrs or "wave_Kpmin" in ds.attrs:
+            if "wave_fcut" in ds.attrs:
+                tailind = np.asarray(
+                    make_user_cutoff(f, Kp, fcut=ds.attrs["wave_fcut"])
+                )
+
+            elif "wave_Kpmin" in ds.attrs:
+                tailind = np.asarray(
+                    make_user_cutoff(f, Kp, Kpmin=ds.attrs["wave_Kpmin"])
+                )
+
+        else:
+
+            if "wave_fractional_noise" in ds.attrs:
+                noise = ds.attrs["wave_fractional_noise"]
+            else:
+                noise = 0.9
+
+            # Find cutoff
+            tailind, noisecutind, fpeakcutind, Kpcutind = define_cutoff(
+                f, Snn * (Kp**2), Kp, noise=noise
+            )
 
         if ~np.isnan(tailind):
             Snn = make_tail(f, Snn, tailind)
@@ -551,6 +580,7 @@ def make_waves_ds(ds):
             "pressure_sensor_height not specified; using initial_instrument_height to compute wave statistics"
         )
         z = ds.attrs["initial_instrument_height"]
+
     h = ds[presvar].squeeze().mean(dim="sample") + z
 
     k = np.asarray([qkfs(2 * np.pi * f, x) for x in h.values])
@@ -565,20 +595,45 @@ def make_waves_ds(ds):
     spec["Kp"] = xr.DataArray(Kp, dims=("time", "frequency"), coords=(ds["time"], f))
     spec["k"] = xr.DataArray(k, dims=("time", "frequency"), coords=(ds["time"], f))
 
-    if "waves_fractional_noise" in ds.attrs:
-        noise = ds.attrs["waves_fractional_noise"]
+    # Check for user specified wave cutoff
+    if "wave_fcut" in ds.attrs or "wave_Kpmin" in ds.attrs:
+        if "wave_fcut" in ds.attrs:
+
+            tailind = np.asarray(
+                [
+                    make_user_cutoff(f, x, fcut=ds.attrs["wave_fcut"])
+                    for x in spec["Kp"].values
+                ]
+            )
+            spec["tailind"] = xr.DataArray(tailind, dims="time")
+
+        elif "wave_Kpmin" in ds.attrs:
+
+            tailind = np.asarray(
+                [
+                    make_user_cutoff(f, x, Kpmin=ds.attrs["wave_Kpmin"])
+                    for x in spec["Kp"].values
+                ]
+            )
+            spec["tailind"] = xr.DataArray(tailind, dims="time")
+
     else:
-        noise = 0.9
-    tailind, noisecutind, fpeakcutind, Kpcutind = zip(
-        *[
-            define_cutoff(f, x, y, noise=noise)
-            for x, y in zip(spec["Pxx"].values, spec["Kp"].values)
-        ]
-    )
-    spec["tailind"] = xr.DataArray(np.asarray(tailind), dims="time")
-    spec["noisecutind"] = xr.DataArray(np.asarray(noisecutind), dims="time")
-    spec["fpeakcutind"] = xr.DataArray(np.asarray(fpeakcutind), dims="time")
-    spec["Kpcutind"] = xr.DataArray(np.asarray(Kpcutind), dims="time")
+
+        if "wave_fractional_noise" in ds.attrs:
+            noise = ds.attrs["wave_fractional_noise"]
+        else:
+            noise = 0.9
+        tailind, noisecutind, fpeakcutind, Kpcutind = zip(
+            *[
+                define_cutoff(f, x, y, noise=noise)
+                for x, y in zip(spec["Pxx"].values, spec["Kp"].values)
+            ]
+        )
+        spec["tailind"] = xr.DataArray(np.asarray(tailind), dims="time")
+        spec["noisecutind"] = xr.DataArray(np.asarray(noisecutind), dims="time")
+        spec["fpeakcutind"] = xr.DataArray(np.asarray(fpeakcutind), dims="time")
+        spec["Kpcutind"] = xr.DataArray(np.asarray(Kpcutind), dims="time")
+
     thetail = [
         make_tail(
             spec["frequency"],
@@ -2033,3 +2088,41 @@ def clip_f(spec, nsamps=None, fs=None):
         )
 
     return spec
+
+
+def make_user_cutoff(f, Kp, Kpmin=None, fcut=None):
+    """Make user defined cutoff if specified - to be used with caution when default "define_cutoff" function does not provide good results"""
+
+    if Kpmin is not None:
+        # check Kpmin is valid
+        if Kpmin < 0.1 or Kpmin > 0.6:
+            raise ValueError(
+                f"User specified pressure transfer function cutoff wave_Kpmin = {Kpmin} is not within the allowed bounds of 0.1 to 0.6"
+            )
+
+        else:
+
+            Kpcutind = np.nonzero(Kp > Kpmin)[0][-1] + 1
+
+            # check make sure index is in bounds, if not make last valid
+            if Kpcutind > len(f) - 1:
+                Kpcutind = len(f) - 1
+
+            tailind = Kpcutind
+
+    elif fcut is not None:
+
+        fcutind = np.nonzero(f < fcut)[0][-1] + 1
+
+        # check make sure index is in bounds, if not make last valid
+        if fcutind > len(f) - 1:
+            fcutind = len(f) - 1
+
+        tailind = fcutind
+
+        # Need to check that f_cut is not greater than Kp < 0.1 cut, and if so make NaN there
+        kp1ind = np.nonzero(Kp > 0.1)[0][-1] + 1
+        if tailind > kp1ind:
+            tailind = np.nan
+
+    return tailind

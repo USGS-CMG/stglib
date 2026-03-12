@@ -35,3 +35,4 @@ water_level_var: 'brangeAST'
 trim_ast: 'true'
 ast_qual_sf: 0.93
 wavedat_tolerance: "2 s"
+waves_Kpmin: 0.2

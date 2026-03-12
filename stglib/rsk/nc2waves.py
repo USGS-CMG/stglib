@@ -42,6 +42,7 @@ def nc_to_waves(nc_filename, salwtemp=None):
             )
 
     spec = waves.make_waves_ds(ds)
+    ds = utils.ds_add_waves_history(ds)
 
     for k in ["wp_peak", "wh_4061", "wp_4060", "pspec"]:
         ds[k] = spec[k]
@@ -131,8 +132,9 @@ def nc_to_diwasp(nc_filename, salwtemp=None):
 
         pz = ds.attrs["initial_instrument_height"]
         layout = np.atleast_2d([0, 0, pz]).T
-        diwasp = waves.make_diwasp_elev_pres(ds, data_type=data_type, layout=layout)
+        diwasp = waves.make_diwasp_ds(ds, data_type=data_type, layout=layout)
         ds = utils.ds_add_pydiwasp_history(ds)
+
     else:
         raise ValueError(
             f"DIWASP input type {ds.attrs['diwasp']} is not currently supported for {ds.attrs['instument_type']} in stglib"

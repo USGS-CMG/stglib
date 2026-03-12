@@ -263,11 +263,21 @@ def add_history(ds):
 
 
 def ds_add_waves_history(ds):
-    histtext = (
-        "Wave statistics computed using scipy.signal.welch(), "
-        "assigning cutoff following Jones & Monismith (2007), and "
-        "applying f^-4 tail past cutoff."
-    )
+
+    # add history if user specified wave cutoff
+    if "wave_fcut" in ds.attrs or "wave_Kpmin" in ds.attrs:
+        if "wave_fcut" in ds.attrs:
+            histtext = f"Wave statistics computed using scipy.signal.welch(), assigning cutoff using user specified f < {ds.attrs['wave_fcut']}Hz (note: this is outside the Jones & Monismith (2007) method and should used with caution), and applying f^-4 tail past cutoff."
+
+        elif "wave_Kpmin" in ds.attrs:
+            histtext = f"Wave statistics computed using scipy.signal.welch(), assigning cutoff using user specified Kp > {ds.attrs['wave_Kpmin']} (note: this is outside the Jones & Monismith (2007) method and should used with caution), and applying f^-4 tail past cutoff."
+
+    else:
+        histtext = (
+            "Wave statistics computed using scipy.signal.welch(), "
+            "assigning cutoff following Jones & Monismith (2007), and "
+            "applying f^-4 tail past cutoff."
+        )
 
     return insert_history(ds, histtext)
 
@@ -286,8 +296,17 @@ def ds_add_pydiwasp_history(ds):
     """
     Add history indicating DIWASP has been applied
     """
+    # add history if user specified wave cutoff
+    if "wave_fcut" in ds.attrs or "wave_Kpmin" in ds.attrs:
+        if "wave_fcut" in ds.attrs:
+            histtext = f"Directional Wave statistics computed using pyDIWASP with {ds.attrs['diwasp']} input data, assigning cutoff using user specified f < {ds.attrs['wave_fcut']}Hz (note: this is outside the Jones & Monismith (2007) method and should used with caution), and applying f^-4 tail past cutoff."
 
-    histtext = f"Directional Wave statistics computed using pyDIWASP with {ds.attrs['diwasp']} input data"
+        elif "wave_Kpmin" in ds.attrs:
+            histtext = f"Directional Wave statistics computed using pyDIWASP with {ds.attrs['diwasp']} input data, assigning cutoff using user specified Kp > {ds.attrs['wave_Kpmin']} (note: this is outside the Jones & Monismith (2007) method and should used with caution), and applying f^-4 tail past cutoff."
+
+    else:
+
+        histtext = f"Directional Wave statistics computed using pyDIWASP with {ds.attrs['diwasp']} input data, assigning cutoff following Jones & Monismith (2007), and applying f^-4 tail past cutoff."
 
     return insert_history(ds, histtext)
 

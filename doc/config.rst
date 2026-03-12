@@ -113,8 +113,10 @@ Option for general wave processing using built-in stglib internal code:
 - ``wave_start_time``: start datetime for first wave burst (e.g. "2021-03-10 16:00:00")
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
-- ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``).
-
+- ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``)
+- ``wave_fractional_noise``: user selectable noise parameter for wave spectral cutoff (default = 0.9)
+- ``wave_Kpmin``: user selectable wave spectral cutoff using the minimum value for pressure transfer function Kp (0.1-0.6, default = 0.1)
+- ``wave_fcut``: user selectable wave spectral cutoff using using maximum value for frequency (hertz) with condition Kp >= 0.1
 
 Options for wave processing using pyDIWASP:
 - ``diwasp_method``: estimator method used by pyDIWASP (options (available now): 'IMLM' (default) or 'DFTM')
