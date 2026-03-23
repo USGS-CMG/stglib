@@ -56,7 +56,7 @@ def ds_add_attrs(ds):
     if "amp" in ds and ds.attrs.get("instrument_type", "").lower() == "nortek vector":
         ds["amp"].attrs.update(
             {
-                "units": "Counts",
+                "units": "counts",
                 "standard_name": "signal_intensity_from_multibeam_acoustic_doppler_velocity_sensor_in_sea_water",
                 "long_name": "Acoustic Signal Amplitude",
             }
@@ -66,7 +66,7 @@ def ds_add_attrs(ds):
     if "amp_avg" in ds:
         ds["amp_avg"].attrs.update(
             {
-                "units": "Counts",
+                "units": "counts",
                 "standard_name": "signal_intensity_from_multibeam_acoustic_doppler_velocity_sensor_in_sea_water",
                 "long_name": "Average Acoustic Signal Amplitude",
             }
@@ -143,7 +143,7 @@ def ds_add_attrs(ds):
     if "C_51" in ds:
         ds["C_51"].attrs.update(
             {
-                "units": "S/m",
+                "units": "S m-1",
                 "long_name": "Conductivity",
                 "standard_name": "sea_water_electrical_conductivity",
             }
@@ -170,7 +170,7 @@ def ds_add_attrs(ds):
     if "CS_300" in ds:
         ds["CS_300"].attrs.update(
             {
-                "units": "m s^-1",
+                "units": "m s-1",
                 "long_name": "Current Speed",
                 "standard_name": "sea_water_speed",
             }
@@ -179,7 +179,7 @@ def ds_add_attrs(ds):
     if "DO" in ds:
         ds["DO"].attrs.update(
             {
-                "units": "mg/L",
+                "units": "mg L-1",
                 "long_name": "Dissolved oxygen",
                 "standard_name": "mass_concentration_of_oxygen_in_sea_water",
             }
@@ -188,7 +188,7 @@ def ds_add_attrs(ds):
     if "Fch_906" in ds:
         ds["Fch_906"].attrs.update(
             {
-                "units": "ug/L",
+                "units": "ug L-1",
                 "long_name": "Chlorophyll A",
                 "standard_name": "mass_concentration_of_chlorophyll_in_sea_water",
                 "comment": "from calibration of sensor with rhodamine W/T in lab",
@@ -216,7 +216,7 @@ def ds_add_attrs(ds):
     if "GyroHeading" in ds:
         ds["GyroHeading"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "Gyro Heading",
                 "standard_name": "platform_orientation",
             }
@@ -225,7 +225,7 @@ def ds_add_attrs(ds):
     if "hail_amount" in ds:
         ds["hail_amount"].attrs.update(
             {
-                "units": "hits/cm^2",
+                "units": "hits cm-2",
                 "long_name": "hail amount",
             }
         )
@@ -241,7 +241,7 @@ def ds_add_attrs(ds):
     if "hail_rate" in ds:
         ds["hail_rate"].attrs.update(
             {
-                "units": "hits/cm^2/hr",
+                "units": "hits cm-2 hr-1",
                 "long_name": "hail rate",
             }
         )
@@ -249,9 +249,9 @@ def ds_add_attrs(ds):
     if "Hdg_1215" in ds:
         ds["Hdg_1215"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "Instrument Heading",
-                "note": "Heading is in degrees true. Converted from degrees magnetic using magnetic variation.",
+                "note": "Heading is in degree true. Converted from degree magnetic using magnetic variation.",
                 "standard_name": "platform_orientation",
             }
         )
@@ -259,7 +259,7 @@ def ds_add_attrs(ds):
     if "HeadAngle" in ds:
         ds["HeadAngle"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "Transducer head angle",
                 "comment": "Angle = 0.3 x (Head Position - 600)",
             }
@@ -270,7 +270,7 @@ def ds_add_attrs(ds):
             {
                 "units": "1",
                 "long_name": "Transducer head position",
-                "comment": "Integer values 0-1200 (-180 to +180 degrees) in 0.3 degree steps",
+                "comment": "Integer values 0-1200 (-180 to +180 degree) in 0.3 degree steps",
             }
         )
 
@@ -356,7 +356,7 @@ def ds_add_attrs(ds):
     if "Ptch_1216" in ds:
         ds["Ptch_1216"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "Instrument Pitch",
                 "standard_name": "platform_pitch",
             }
@@ -376,7 +376,7 @@ def ds_add_attrs(ds):
             {
                 "units": "sample unit",
                 "long_name": "First digitized range value above threshold in sample units",
-                "comment": "Sample units are based on a sound velocity of 1500 m/s. For ranges <5m, one sample unit = 2 mm. For ranges >=5 m, one sampe unit = 10 mm.",
+                "comment": "Sample units are based on a sound velocity of 1500 m s-1. For ranges <5m, one sample unit = 2 mm. For ranges >=5 m, one sampe unit = 10 mm.",
             }
         )
 
@@ -399,7 +399,7 @@ def ds_add_attrs(ds):
     if "rain_rate" in ds:
         ds["rain_rate"].attrs.update(
             {
-                "units": "mm/hr",
+                "units": "mm hr-1",
                 "standard_name": "rainfall_rate",
             }
         )
@@ -423,7 +423,7 @@ def ds_add_attrs(ds):
     if "Roll_1217" in ds:
         ds["Roll_1217"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "Instrument Roll",
                 "standard_name": "platform_roll",
             }
@@ -474,7 +474,7 @@ def ds_add_attrs(ds):
     if "solar_flux_density" in ds:
         ds["solar_flux_density"].attrs.update(
             {
-                "units": "W/m^2",
+                "units": "W m-2",
                 "long_name": "solar flux density",
             }
         )
@@ -482,7 +482,7 @@ def ds_add_attrs(ds):
     if "solar_total_flux" in ds:
         ds["solar_total_flux"].attrs.update(
             {
-                "units": "MJ/m^2",
+                "units": "MJ m-2",
                 "long_name": "solar total flux",
             }
         )
@@ -512,7 +512,7 @@ def ds_add_attrs(ds):
     if "SonarAngle" in ds:
         ds["SonarAngle"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "Instrument angle",
                 "comment": "Angle = 0.3 x (Sonar Position - 600)",
             }
@@ -523,14 +523,14 @@ def ds_add_attrs(ds):
             {
                 "units": "1",
                 "long_name": "Instrument position",
-                "comment": "Integer values 0-1200 (-180 to +180 degrees) in 0.3 degree steps",
+                "comment": "Integer values 0-1200 (-180 to +180 degree) in 0.3 degree steps",
             }
         )
 
     if "SpC_48" in ds:
         ds["SpC_48"].attrs.update(
             {
-                "units": "S/m",
+                "units": "S m-1",
                 "long_name": "Specific Conductivity",
                 "comment": "Temperature compensated to 25 °C",
                 "standard_name": "sea_water_electrical_conductivity_at_reference_temperature",
@@ -584,7 +584,7 @@ def ds_add_attrs(ds):
     if "TALPE" in ds:
         ds["TALPE"].attrs.update(
             {
-                "units": "ug/L",
+                "units": "ug L-1",
                 "long_name": "Total algae phycoerythrin",
                 "comment": "Formerly called BGAPE (Blue green algae phycoerythrin)",
             }
@@ -611,7 +611,7 @@ def ds_add_attrs(ds):
     if "tilt_NS" in ds:
         ds["tilt_NS"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "instrument North-South tilt",
             }
         )
@@ -619,7 +619,7 @@ def ds_add_attrs(ds):
     if "tilt_WE" in ds:
         ds["tilt_WE"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "instrument West-East tilt",
             }
         )
@@ -666,7 +666,7 @@ def ds_add_attrs(ds):
     if "u_1205" in ds:
         ds["u_1205"].attrs.update(
             {
-                "units": "m s^-1",
+                "units": "m s-1",
                 "long_name": "Eastward Velocity",
             }
         )
@@ -674,7 +674,7 @@ def ds_add_attrs(ds):
     if "v_1206" in ds:
         ds["v_1206"].attrs.update(
             {
-                "units": "m s^-1",
+                "units": "m s-1",
                 "long_name": "Northward Velocity",
             }
         )
@@ -706,7 +706,7 @@ def ds_add_attrs(ds):
     if "WD_410" in ds:
         ds["WD_410"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "mean wind from direction relative to true north",
                 "standard_name": "wind_from_direction",
             }
@@ -715,7 +715,7 @@ def ds_add_attrs(ds):
     if "WD_gust" in ds:
         ds["WD_gust"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "maximum wind from direction relative to true north",
                 "standard_name": "wind_gust_from_direction",
             }
@@ -724,7 +724,7 @@ def ds_add_attrs(ds):
     if "WD_min" in ds:
         ds["WD_min"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "minimum wind from direction relative to true north",
             }
         )
@@ -732,7 +732,7 @@ def ds_add_attrs(ds):
     if "WG_402" in ds:
         ds["WG_402"].attrs.update(
             {
-                "units": "m/s",
+                "units": "m s-1",
                 "long_name": "maximum wind speed",
                 "standard_name": "wind_speed_of_gust",
             }
@@ -741,7 +741,7 @@ def ds_add_attrs(ds):
     if "wind_dir" in ds:
         ds["wind_dir"].attrs.update(
             {
-                "units": "degrees",
+                "units": "degree",
                 "long_name": "mean wind from direction relative to true north",
                 "standard_name": "wind_from_direction",
             }
@@ -759,7 +759,7 @@ def ds_add_attrs(ds):
     if "wind_gust" in ds:
         ds["wind_gust"].attrs.update(
             {
-                "units": "m/s",
+                "units": "m s-1",
                 "long_name": "maximum wind speed",
                 "standard_name": "wind_speed_of_gust",
             }
@@ -768,7 +768,7 @@ def ds_add_attrs(ds):
     if "wind_speed" in ds:
         ds["wind_speed"].attrs.update(
             {
-                "units": "m/s",
+                "units": "m s-1",
                 "long_name": "mean wind speed",
                 "standard_name": "wind_speed",
             }
@@ -777,14 +777,14 @@ def ds_add_attrs(ds):
     if "WS_401" in ds:
         ds["WS_401"].attrs.update(
             {
-                "units": "m/s",
+                "units": "m s-1",
                 "long_name": "mean wind speed",
                 "standard_name": "wind_speed",
             }
         )
 
     if "WS_min" in ds:
-        ds["WS_min"].attrs.update({"units": "m/s", "long_name": "minimum wind speed"})
+        ds["WS_min"].attrs.update({"units": "m s-1", "long_name": "minimum wind speed"})
 
     if "x" in ds:
         ds["x"].attrs.update(
