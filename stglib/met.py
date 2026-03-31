@@ -113,22 +113,52 @@ def cdf_to_nc(cdf_filename):
         if var in ds:
 
             # If sensor wasn't pointing to magnetic north, apply offset to direction
-            if "dir_offset" in ds.attrs:
+            if "dir_offset" and "dir_offset_time" in ds.attrs:
 
-                ds[var] = ds[var] + ds.attrs["dir_offset"].astype(float)
-                ds = utils.insert_history(
-                    ds, f"Applied dir_offset of {ds.attrs['dir_offset']}"
+                # If there is a start date to the offset direction
+                start_date = np.datetime64(ds.attrs["dir_offset_time"])
+
+                ds[var] = ds[var].where(
+                    ds["time"] < start_date,
+                    ds[var] + ds.attrs["dir_offset"].astype(float),
                 )
 
+                time_txt = f"Applied {var} direction offset of {ds.attrs['dir_offset']} degrees beginning on {ds.attrs['dir_offset_time']}"
+                ds = utils.insert_note(
+                    ds,
+                    var,
+                    time_txt,
+                )
+                ds = utils.insert_history(ds, time_txt)
+
+            elif "dir_offset" in ds.attrs and "dir_offset_time" not in ds.attrs:
+
+                # else apply offset correction to whole time series
+                ds[var] = ds[var] + ds.attrs["dir_offset"].astype(float)
+
+                offset_txt = f"Applied {var} direction offset of {ds.attrs['dir_offset']} degrees"
+                ds = utils.insert_note(
+                    ds,
+                    var,
+                    offset_txt,
+                )
+                ds = utils.insert_history(ds, offset_txt)
+
             # Convert direction from magnetic to true with magnetic declination
+            atts = ds[var].attrs
             ds[var] = ds[var] + ds.attrs["magnetic_variation"].astype(float)
             ds[var] = ds[var].round(0)
             ds[var] = ds[var] % 360
+            # Preserve attributes
+            ds[var].attrs = atts
 
-            ds = utils.insert_history(
+            mag_txt = f"Rotated {var} direction from magnetic north to true north by applying magnetic_variation of {ds.attrs['magnetic_variation']}"
+            ds = utils.insert_note(
                 ds,
-                f"Rotated directions from magnetic north to true north by applying magnetic_variation of {ds.attrs['magnetic_variation']}",
+                var,
+                mag_txt,
             )
+            ds = utils.insert_history(ds, mag_txt)
 
     # Run utilities
     ds = utils.create_z(ds)
@@ -279,7 +309,6 @@ def ds_add_var_attrs(ds):
             var.attrs["initial_instrument_height"] = ds.attrs[
                 "initial_instrument_height"
             ]
-            var.attrs["height_depth_units"] = "m"
             if "initial_instrument_height_note" in ds.attrs:
                 var.attrs["initial_instrument_height_note"] = ds.attrs[
                     "initial_instrument_height_note"

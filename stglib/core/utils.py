@@ -1287,12 +1287,14 @@ def create_z(ds):
             if psh is not None:
                 depsenvar = [np.nanmean(ds[v])]
 
-    ds["depth"] = xr.DataArray(depvar, dims="depth")
+    # Met station will not have WATER_DEPTH since it is not in the water
+    if depvar is not None:
+        ds["depth"] = xr.DataArray(depvar, dims="depth")
 
-    ds["depth"].attrs["positive"] = "down"
-    ds["depth"].attrs["units"] = "m"
-    ds["depth"].attrs["standard_name"] = "depth"
-    ds["depth"].attrs["long_name"] = longname
+        ds["depth"].attrs["positive"] = "down"
+        ds["depth"].attrs["units"] = "m"
+        ds["depth"].attrs["standard_name"] = "depth"
+        ds["depth"].attrs["long_name"] = longname
 
     if psh is not None:
         # Create depthsen for sensor data

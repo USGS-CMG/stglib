@@ -240,6 +240,7 @@ Met-specific options include:
 - ``datalogger``: the type of datalogger used, either ``Mayfly`` or ``Campbell``.
 - ``RTK_elevation_NAVD88``: RTK elevation of the sensor referenced to NAVD88 in meters.
 - ``dir_offset``: a direction offset in degrees from magnetic north to be applied if the sensor was not pointing toward magnetic north.
+- ``dir_offset_time``: the start date/time (e.g. ['2021-03-10 16:00']) that the direction offset should be applied to. If no ``dir_offset_time``, offset will be applied to the entire time series.
 - ``dir_offset_note``: a note about the direction offset being used.
 
 EofE ECHOLOGGER
