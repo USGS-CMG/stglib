@@ -260,13 +260,9 @@ def nc2xy_parser(description="Convert polar to cartesian coordinates"):
 
 
 def nc2diwasp_parser(description="Generate DIWASP wave-statistics file", salwtemp=True):
-    """generic parser for processed .nc to wave statistics"""
-    parser = argparse.ArgumentParser(description=description)
-    ncarg(parser)
-    if salwtemp:
-        swtarg(parser)
+    """generic parser for processed .nc to DIWASP wave statistics"""
 
-    return parser
+    return nc2waves_parser(description=description, salwtemp=salwtemp)
 
 
 def aqdturnaround_parser():
