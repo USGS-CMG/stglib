@@ -216,7 +216,6 @@ def runots_parser():
 
 def inst2cdf_parser(description="Convert instrument files to raw .cdf format"):
     """generic parser for instrument data to raw .cdf; requires gatts and yaml"""
-    # description = "Convert Aquadopp text files to raw .cdf format. Run this script from the directory containing Aquadopp files."
     parser = argparse.ArgumentParser(description=description)
     gattsarg(parser)
     yamlarg(parser)
