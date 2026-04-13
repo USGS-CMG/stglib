@@ -32,22 +32,13 @@ def run_cdf_to_nc(f, args):
     if not isinstance(args.cdfname, list):
         args.cdfname = [args.cdfname]
 
+    kwargs = {
+        k: getattr(args, k)
+        for k in ("atmpres", "salwtemp", "height")
+        if getattr(args, k, None)
+    }
     for cdfname in args.cdfname:
-
-        if (hasattr(args, "salwtemp") and args.salwtemp) and (
-            hasattr(args, "atmpres") and args.atmpres
-        ):
-            ds = f(cdfname, atmpres=args.atmpres, salwtemp=args.salwtemp)
-        elif hasattr(args, "atmpres") and args.atmpres:
-            ds = f(cdfname, atmpres=args.atmpres)
-        elif hasattr(args, "height") and args.height:
-            ds = f(cdfname, height=args.height)
-        elif hasattr(args, "salwtemp") and args.salwtemp:
-            ds = f(cdfname, salwtemp=args.salwtemp)
-
-        else:
-            ds = f(cdfname)
-
+        ds = f(cdfname, **kwargs)
     return ds
 
 
@@ -518,152 +509,89 @@ def runmcasc2cdf(args=None):
     stglib.mc.asc_to_cdf(metadata)
 
 
+_REGISTRY = {
+    ("abss", "mat2cdf"): runabssmat2cdf,
+    ("abss", "cdf2nc"): runabsscdf2nc,
+    ("aqd", "hdr2cdf"): runaqdhdr2cdf,
+    ("aqd", "cdf2nc"): runaqdcdf2nc,
+    ("aqdhr", "hdr2cdf"): runaqdhrhdr2cdf,
+    ("aqdhr", "cdf2nc"): runaqdhrcdf2nc,
+    ("aqdwvs", "wad2cdf"): runwvswad2cdf,
+    ("aqdwvs", "cdf2nc"): runwvscdf2nc,
+    ("aqdwvs", "nc2waves"): runwvsnc2waves,
+    ("wvs", "wad2cdf"): runwvswad2cdf,
+    ("wvs", "cdf2nc"): runwvscdf2nc,
+    ("wvs", "nc2waves"): runwvsnc2waves,
+    ("rbr", "csv2cdf"): runrskcsv2cdf,
+    ("rbr", "cdf2nc"): runrskcdf2nc,
+    ("rbr", "nc2waves"): runrsknc2waves,
+    ("rbr", "nc2diwasp"): runrsknc2diwasp,
+    ("rsk", "csv2cdf"): runrskcsv2cdf,
+    ("rsk", "cdf2nc"): runrskcdf2nc,
+    ("rsk", "nc2waves"): runrsknc2waves,
+    ("rsk", "nc2diwasp"): runrsknc2diwasp,
+    ("sig", "mat2cdf"): runsigmat2cdf,
+    ("sig", "cdf2nc"): runsigcdf2nc,
+    ("sig", "nc2waves"): runsignc2waves,
+    ("sig", "nc2diwasp"): runsignc2diwasp,
+    ("vec", "dat2cdf"): runvecdat2cdf,
+    ("vec", "cdf2nc"): runveccdf2nc,
+    ("vec", "nc2waves"): runvecnc2waves,
+    ("eco", "csv2cdf"): runecocsv2cdf,
+    ("eco", "cdf2nc"): runecocdf2nc,
+    ("eofe", "log2cdf"): runeofelog2cdf,
+    ("eofe", "cdf2nc"): runeofecdf2nc,
+    ("exo", "csv2cdf"): runexocsv2cdf,
+    ("exo", "cdf2nc"): runexocdf2nc,
+    ("glx", "dat2cdf"): runglxdat2cdf,
+    ("glx", "cdf2nc"): runglxcdf2nc,
+    ("glx", "nc2waves"): runglxnc2waves,
+    ("hobo", "csv2cdf"): runhobocsv2cdf,
+    ("hobo", "cdf2nc"): runhobocdf2nc,
+    ("iq", "mat2cdf"): runiqmat2cdf,
+    ("iq", "cdf2nc"): runiqcdf2nc,
+    ("lisst", "csv2cdf"): runlisstcsv2cdf,
+    ("lisst", "cdf2nc"): runlisstcdf2nc,
+    ("mc", "asc2cdf"): runmcasc2cdf,
+    ("mc", "cdf2nc"): runmccdf2nc,
+    ("rdi", "mat2cdf"): lambda args: stglib.rdi.mat2cdf.mat_to_cdf(get_metadata(args)),
+    ("rdi", "cdf2nc"): runrdicdf2nc,
+    ("sgtid", "tid2cdf"): lambda args: stglib.sg.tid2cdf.tid_to_cdf(get_metadata(args)),
+    ("sgtid", "cdf2nc"): lambda args: run_cdf_to_nc(stglib.sg.cdf2nc.cdf_to_nc, args),
+    ("sgwvs", "wb2cdf"): lambda args: stglib.sg.wvswb2cdf.wb_to_cdf(get_metadata(args)),
+    ("sgwvs", "cdf2nc"): lambda args: run_cdf_to_nc(
+        stglib.sg.wvscdf2nc.cdf_to_nc, args
+    ),
+    ("sgwvs", "nc2waves"): lambda args: stglib.sg.wvsnc2waves.nc_to_waves(args.ncname),
+    ("tb", "csv2cdf"): lambda args: stglib.tb.txt_to_cdf(get_metadata(args)),
+    ("tb", "cdf2nc"): lambda args: run_cdf_to_nc(stglib.tb.cdf_to_nc, args),
+    # TruBlue uses RSK nc2waves
+    ("tb", "nc2waves"): lambda args: stglib.rsk.nc2waves.nc_to_waves(args.ncname),
+    ("tcm", "csv2cdf"): runtcmcsv2cdf,
+    ("tcm", "cdf2nc"): runtcmcdf2nc,
+    ("troll", "csv2cdf"): runtrollcsv2cdf,
+    ("troll", "cdf2nc"): runtrollcdf2nc,
+    ("met", "csv2cdf"): runmetcsv2cdf,
+    ("met", "cdf2nc"): runmetcdf2nc,
+    ("son", "raw2cdf"): lambda args: stglib.son.raw2cdf.file81R_to_cdf(
+        get_metadata(args)
+    ),
+    ("son", "cdf2nc"): lambda args: run_cdf_to_nc(stglib.son.cdf2nc.cdf_to_nc, args),
+    ("son", "nc2xy"): lambda args: stglib.son.nc2xy.nc_to_xy(args.ncname),
+    ("mar", "csv2cdf"): lambda args: stglib.mar.csv_to_cdf(get_metadata(args)),
+    ("mar", "cdf2nc"): lambda args: run_cdf_to_nc(stglib.mar.cdf_to_nc, args),
+}
+
+
 def runots():
     args = stglib.cmd.runots_parser().parse_args()
 
     print(f"stglib {stglib.__version__}")
 
-    if "2cdf" in args.step:
-        metadata = get_metadata(args)
-
-    if args.instrument == "abss":
-        if args.step == "mat2cdf":
-            runabssmat2cdf(args)
-        elif args.step == "cdf2nc":
-            runabsscdf2nc(args)
-    if args.instrument == "aqd":
-        if args.step == "hdr2cdf":
-            runaqdhdr2cdf(args)
-        elif args.step == "cdf2nc":
-            runaqdcdf2nc(args)
-    if args.instrument == "aqdhr":
-        if args.step == "hdr2cdf":
-            runaqdhrhdr2cdf(args)
-        elif args.step == "cdf2nc":
-            runaqdhrcdf2nc(args)
-    elif args.instrument in ["aqdwvs", "wvs"]:
-        if args.step == "wad2cdf":
-            runwvswad2cdf(args)
-        elif args.step == "cdf2nc":
-            runwvscdf2nc(args)
-        elif args.step == "nc2waves":
-            runwvsnc2waves(args)
-    elif args.instrument in ["rbr", "rsk"]:
-        if args.step == "csv2cdf":
-            runrskcsv2cdf(args)
-        elif args.step == "cdf2nc":
-            runrskcdf2nc(args)
-        elif args.step == "nc2waves":
-            runrsknc2waves(args)
-        elif args.step == "nc2diwasp":
-            runrsknc2diwasp(args)
-    elif args.instrument == "sig":
-        if args.step == "mat2cdf":
-            runsigmat2cdf(args)
-        elif args.step == "cdf2nc":
-            runsigcdf2nc(args)
-        elif args.step == "nc2waves":
-            runsignc2waves(args)
-        elif args.step == "nc2diwasp":
-            runsignc2diwasp(args)
-    elif args.instrument == "vec":
-        if args.step == "dat2cdf":
-            runvecdat2cdf(args)
-        elif args.step == "cdf2nc":
-            runveccdf2nc(args)
-        elif args.step == "nc2waves":
-            runvecnc2waves(args)
-    elif args.instrument == "eco":
-        if args.step == "csv2cdf":
-            runecocsv2cdf(args)
-        elif args.step == "cdf2nc":
-            runecocdf2nc(args)
-    elif args.instrument == "eofe":
-        if args.step == "log2cdf":
-            runeofelog2cdf(args)
-        elif args.step == "cdf2nc":
-            runeofecdf2nc(args)
-    elif args.instrument == "exo":
-        if args.step == "csv2cdf":
-            runexocsv2cdf(args)
-        elif args.step == "cdf2nc":
-            runexocdf2nc(args)
-    elif args.instrument == "glx":
-        if args.step == "dat2cdf":
-            runglxdat2cdf(args)
-        elif args.step == "cdf2nc":
-            runglxcdf2nc(args)
-        elif args.step == "nc2waves":
-            runglxnc2waves(args)
-    elif args.instrument == "hobo":
-        if args.step == "csv2cdf":
-            runhobocsv2cdf(args)
-        elif args.step == "cdf2nc":
-            runhobocdf2nc(args)
-    elif args.instrument == "iq":
-        if args.step == "mat2cdf":
-            runiqmat2cdf(args)
-        elif args.step == "cdf2nc":
-            runiqcdf2nc(args)
-    elif args.instrument == "lisst":
-        if args.step == "csv2cdf":
-            runlisstcsv2cdf(args)
-        elif args.step == "cdf2nc":
-            runlisstcdf2nc(args)
-    elif args.instrument == "mc":
-        if args.step == "asc2cdf":
-            runmcasc2cdf(args)
-        elif args.step == "cdf2nc":
-            runmccdf2nc(args)
-    elif args.instrument == "rdi":
-        if args.step == "mat2cdf":
-            stglib.rdi.mat2cdf.mat_to_cdf(metadata)
-        if args.step == "cdf2nc":
-            run_cdf_to_nc(stglib.rdi.cdf2nc.cdf_to_nc, args)
-    elif args.instrument == "sgtid":
-        if args.step == "tid2cdf":
-            stglib.sg.tid2cdf.tid_to_cdf(metadata)
-        elif args.step == "cdf2nc":
-            run_cdf_to_nc(stglib.sg.cdf2nc.cdf_to_nc, args)
-    elif args.instrument == "sgwvs":
-        if args.step == "wb2cdf":
-            stglib.sg.wvswb2cdf.wb_to_cdf(metadata)
-        elif args.step == "cdf2nc":
-            run_cdf_to_nc(stglib.sg.wvscdf2nc.cdf_to_nc, args)
-        elif args.step == "nc2waves":
-            stglib.sg.wvsnc2waves.nc_to_waves(args.ncname)
-    elif args.instrument == "tb":
-        if args.step == "csv2cdf":
-            stglib.tb.txt_to_cdf(metadata)
-        elif args.step == "cdf2nc":
-            run_cdf_to_nc(stglib.tb.cdf_to_nc, args)
-        elif args.step == "nc2waves":
-            # Using RSK nc2waves for TruBlue
-            stglib.rsk.nc2waves.nc_to_waves(args.ncname)
-    elif args.instrument == "tcm":
-        if args.step == "csv2cdf":
-            runtcmcsv2cdf(args)
-        elif args.step == "cdf2nc":
-            runtcmcdf2nc(args)
-    elif args.instrument == "troll":
-        if args.step == "csv2cdf":
-            runtrollcsv2cdf(args)
-        elif args.step == "cdf2nc":
-            runtrollcdf2nc(args)
-    elif args.instrument == "met":
-        if args.step == "csv2cdf":
-            runmetcsv2cdf(args)
-        elif args.step == "cdf2nc":
-            runmetcdf2nc(args)
-    elif args.instrument == "son":
-        if args.step == "raw2cdf":
-            stglib.son.raw2cdf.file81R_to_cdf(metadata)
-        elif args.step == "cdf2nc":
-            run_cdf_to_nc(stglib.son.cdf2nc.cdf_to_nc, args)
-        elif args.step == "nc2xy":
-            stglib.son.nc2xy.nc_to_xy(args.ncname)
-    elif args.instrument == "mar":
-        if args.step == "csv2cdf":
-            stglib.mar.csv_to_cdf(metadata)
-        elif args.step == "cdf2nc":
-            run_cdf_to_nc(stglib.mar.cdf_to_nc, args)
+    key = (args.instrument, args.step)
+    fn = _REGISTRY.get(key)
+    if fn is None:
+        raise ValueError(
+            f"Unknown instrument/step combination: instrument={args.instrument!r}, step={args.step!r}"
+        )
+    fn(args)
