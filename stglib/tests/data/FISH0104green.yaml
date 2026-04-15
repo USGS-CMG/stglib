@@ -14,4 +14,10 @@ u_1205_mask: ['cor']
 v_1206_mask: ['cor']
 w_1204_mask: ['cor']
 cor_min: 70
+diwasp: 'puv'
+wave_duration: 1024
+diwasp_names: 'diwasp'
+diwasp_method: 'IMLM'
+diwasp_iter: 100
+diwasp_smooth: 'ON'
 

@@ -162,6 +162,11 @@ def make_diwasp_ds(ds, layout=None, data_type=None, freqs=None, ibin=0):
                 "pressure_sensor_height not specified; using initial_instrument_height to compute wave statistics"
             )
 
+        if "P_1ac" not in ds.data_vars and "P_1" in ds.data_vars:
+            warnings.warn(
+                "atmospherically corrected pressure not available; using raw pressure to compute wave statistics"
+            )
+
     # call multiprocessing
     dsd = call_diwasp_mp(
         ds, layout=layout, data_type=data_type, freqs=freqs, ibin=ibin, nsamps=nsamps
@@ -238,19 +243,19 @@ def make_diwasp_ds(ds, layout=None, data_type=None, freqs=None, ibin=0):
     if "diwasp_method" not in ds.attrs:
         dwv.attrs["diwasp_method"] = dsd["method"]
     if "diwasp_nsamps" not in ds.attrs:
-        dwv.attrs["diwasp_nsamps"] = dsd["nsamps"]
+        dwv.attrs["diwasp_nsamps"] = dsd["nsamps"][0]
     if "diwasp_nfft" not in ds.attrs:
-        dwv.attrs["diwasp_nfft"] = dsd["nfft"]
+        dwv.attrs["diwasp_nfft"] = dsd["nfft"][0]
     if "diwasp_iter" not in ds.attrs:
-        dwv.attrs["diwasp_iter"] = dsd["iter"]
+        dwv.attrs["diwasp_iter"] = dsd["iter"][0]
 
     if data_type in dir_wave_types:
         if "diwasp_dres" not in ds.attrs:
-            dwv.attrs["diwasp_dres"] = dsd["dres"]
+            dwv.attrs["diwasp_dres"] = dsd["dres"][0]
         if "diwasp_xdir" not in ds.attrs:
-            dwv.attrs["diwasp_xdir"] = dsd["xaxisdir"]
+            dwv.attrs["diwasp_xdir"] = dsd["xdir"][0]
         if "diwasp_dunit" not in ds.attrs:
-            dwv.attrs["diwasp_dunit"] = dsd["dunit"]
+            dwv.attrs["diwasp_dunit"] = dsd["dunit"][0]
 
     return dwv
 
@@ -316,15 +321,22 @@ def make_diwasp_dict(
     # set up list for optimized processing
     dwspid = []
 
-    if "P_1ac" in ds:
+    if "P_1ac" in ds.data_vars:
         p = ds["P_1ac"].isel(time=burst, sample=range(nsamps))
         if p.isnull().any():
             # Fill NaNs in burst data if possible
             p = var_wave_burst_fill_nans(ds, p)
+
+    elif "P_1" in ds.data_vars:
+        p = ds["P_1"].isel(time=burst, sample=range(nsamps))
+        if p.isnull().any():
+            # Fill NaNs in burst data if possible
+            p = var_wave_burst_fill_nans(ds, p)
+
     else:
         p = None
 
-    if "brangeAST" in ds:
+    if "brangeAST" in ds.data_vars:
         ast = ds["brangeAST"].isel(time=burst, sample=range(nsamps))
         if ast.isnull().any():
             # Fill NaNs in burst data if possible
@@ -335,12 +347,20 @@ def make_diwasp_dict(
 
     if data_type in dir_wave_types:
 
-        u = ds["u_1205"].isel(time=burst, z=ibin, sample=range(nsamps))
+        if len(ds["u_1205"].dims) > 2:
+            u = ds["u_1205"].isel(time=burst, z=ibin, sample=range(nsamps))
+        else:
+            u = ds["u_1205"].isel(time=burst, sample=range(nsamps))
+
         if u.isnull().any():
             # Fill NaNs in burst data if possible
             u = var_wave_burst_fill_nans(ds, u)
 
-        v = ds["v_1206"].isel(time=burst, z=ibin, sample=range(nsamps))
+        if len(ds["v_1206"].dims) > 2:
+            v = ds["v_1206"].isel(time=burst, z=ibin, sample=range(nsamps))
+        else:
+            v = ds["v_1206"].isel(time=burst, sample=range(nsamps))
+
         if v.isnull().any():
             # Fill NaNs in burst data if possible
             v = var_wave_burst_fill_nans(ds, v)
@@ -365,7 +385,7 @@ def make_diwasp_dict(
             ID["data"] = np.array([p, u, v]).transpose()
         else:
             raise ValueError(
-                f"Corrected pressure (P_1ac) variable not found cannot continue with {data_type} directional wave analysis"
+                f"Corrected pressure (P_1ac) or raw pressure (P_1) variable not found cannot continue with {data_type} directional wave analysis"
             )
 
     elif data_type == "optimized":
@@ -379,7 +399,7 @@ def make_diwasp_dict(
 
             else:
                 raise ValueError(
-                    f"Corrected pressure (P_1ac) variable not found cannot continue with {data_type} directional wave analysis"
+                    f"Corrected pressure (P_1ac) or raw pressure (P_1) variable not found cannot continue with {data_type} directional wave analysis"
                 )
 
         else:
@@ -406,7 +426,7 @@ def make_diwasp_dict(
             ID["data"] = np.atleast_2d(p).transpose()
         else:
             raise ValueError(
-                f"Correct pressure (P_1ac) variable not found cannot continue with {data_type} wave analysis"
+                f"Correct pressure (P_1ac) or raw pressure (P_1) variable not found cannot continue with {data_type} wave analysis"
             )
 
     elif data_type == "optimized-nd":
@@ -419,7 +439,7 @@ def make_diwasp_dict(
                 dwspid.append("pres")
             else:
                 raise ValueError(
-                    f"Corrected pressure (P_1ac) variable not found cannot continue with {data_type} wave analysis"
+                    f"Corrected pressure (P_1ac) or raw pressure (P_1) variable not found cannot continue with {data_type} wave analysis"
                 )
 
         else:
@@ -568,7 +588,7 @@ def make_waves_ds(ds):
     nfft = next_power_of_2(int(nsamps / nsegs))
 
     f, Pxx = pressure_spectra(
-        ds[presvar].squeeze().values,
+        ds[presvar].squeeze().transpose("time", "sample").values,
         fs=1 / ds.attrs["sample_interval"],
         nperseg=nfft,
     )
@@ -1897,7 +1917,7 @@ def call_puv_quick_vectorized(
     # puvs = {k: [] for k in desc}
 
     puvs = puv_quick_vectorized(
-        ds[pvar].squeeze(),
+        ds[pvar].squeeze().transpose("time", "sample"),
         u,
         v,
         ds[pvar].squeeze().mean(dim="sample").values + psh,

@@ -576,8 +576,8 @@ def do_puv(ds):
     else:
         pvar = "P_1"
 
-    u = ds["u_1205"].isel(z=ibin).squeeze()
-    v = ds["v_1206"].isel(z=ibin).squeeze()
+    u = ds["u_1205"].isel(z=ibin).squeeze().transpose("time", "sample")
+    v = ds["v_1206"].isel(z=ibin).squeeze().transpose("time", "sammple")
 
     psh = ds.attrs["initial_instrument_height"]
     if ds.attrs["orientation"].lower() == "up":

@@ -63,6 +63,8 @@ First, export data from the Vector software to text format.
 
 Then use :doc:`runots.py </runots>` to process using the two :doc:`configuration files </config>`.
 
-Use stglib's built-in wave-statistics toolbox to compute a wave-statistics file (``runots.py vec nc2waves``).
+In nc2waves or nc2diwasp steps, you can optionally input a .nc file that contains salinity and water temperature to be used to improve the estimates of water_level and water_depth variables by including [--salwtemp SALWTEMP]. Note: SALWTEMP nc file needs to include time period of the deployment being processed.
+
+Use stglib's built-in wave-statistics toolbox and/or pyDIWASP to compute a wave-statistics file (``runots.py vec nc2waves`` , ``runots.py vec nc2diwasp``).
 
 **Experimental** PUV support is also present. Testing welcome!

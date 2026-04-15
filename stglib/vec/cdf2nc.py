@@ -118,6 +118,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = utils.ds_coord_no_fillvalue(ds)
 
+    ds = reorder_dims(ds)
+
     if "chunks" in ds.attrs:
         chunksizes = dict(zip(ds.attrs["chunks"][::2], ds.attrs["chunks"][1::2]))
         for key in chunksizes:
@@ -856,11 +858,59 @@ def drop_dims(ds):
 
 
 def reorder_dims(ds):
-    """reorder dimensions for CF compliance"""
+    """reorder dimensions for CF compliance according to section 2.4. Dimensions"""
 
+    print("Reordering data variable dimensions for CF compliance")
     for var in ds.data_vars:
-        if "beam" in ds[var].dims:
+
+        if "sample" in ds[var].dims and len(ds[var].dims) == 2:
+            ds[var] = ds[var].transpose("sample", "time")
+
+        elif (
+            "beam" in ds[var].dims and "time" in ds[var].dims and len(ds[var].dims) == 2
+        ):
             ds[var] = ds[var].transpose("beam", "time")
+
+        elif (
+            "inst" in ds[var].dims and "time" in ds[var].dims and len(ds[var].dims) == 2
+        ):
+            ds[var] = ds[var].transpose("inst", "time")
+
+        elif (
+            "inst" in ds[var].dims
+            and "sample" in ds[var].dims
+            and len(ds[var].dims) == 3
+        ):
+            ds[var] = ds[var].transpose("inst", "sample", "time")
+
+        elif (
+            "beam" in ds[var].dims
+            and "sample" in ds[var].dims
+            and len(ds[var].dims) == 3
+        ):
+            ds[var] = ds[var].transpose("beam", "sample", "time")
+
+        elif (
+            "earth" in ds[var].dims
+            and "sample" in ds[var].dims
+            and len(ds[var].dims) == 3
+        ):
+            ds[var] = ds[var].transpose("earth", "sample", "time")
+
+        elif (
+            "earth" in ds[var].dims
+            and "inst" in ds[var].dims
+            and len(ds[var].dims) == 3
+        ):
+            ds[var] = ds[var].transpose("earth", "inst", "time")
+
+        elif (
+            "earth" in ds[var].dims
+            and "inst" in ds[var].dims
+            and "sample" in ds[var].dims
+            and len(ds[var].dims) == 4
+        ):
+            ds[var] = ds[var].transpose("earth", "inst", "sample", "time")
 
     return ds
 
