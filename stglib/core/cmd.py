@@ -191,6 +191,7 @@ def runots_parser():
     addinst2cdf(instsp, "dat2cdf")
     addcdf2nc(instsp)
     addnc2waves(instsp)
+    addnc2diwasp(instsp)
 
     instsp = add_instrument(subparsers, "wvs", "Aquadopp Waves")
     addinst2cdf(instsp, "wad2cdf")

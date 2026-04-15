@@ -293,6 +293,9 @@ Vector
 - ``average_interval``: interval in seconds for calculating mean values from CONTINUOUS sample mode data (default = if sample mode is CONTINUOUS, no average file will be created from data set)
 - ``average_duration``: duration in seconds for calculating mean values, starting with first sample in each average interval or burst (default =  use all samples in the average interval or burst)
 - ``chunks``: list of key, value pairs for user specified chunking of data (e.g. ['time', 256000, 'bindist', 64])
+- ``diwasp``: processing type for pyDIWASP wave processing; (options: 'puv' for directional waves, 'pres' for non-directional waves)
+- ``px_offset``: offset in meters of the pressure port in relation to the velocity measurement in the X-axis direction as defined by instrument coordinates XYZ (optional, default = 0)
+- ``py_offset``: offset in meters of the pressure port in relation to the velocity measurement in the Y-axis direction as defined by instrument coordinates XYZ (optional, default = 0)
 - Many of the Aquadopp options apply to the Vector.
 
 SBE 37 MicroCAT

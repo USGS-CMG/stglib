@@ -161,6 +161,7 @@ def vec_nc(nc_file, atmpres=None):
 
 def vec_wvs(nc_file):
     run_script("runots.py", "vec", "nc2waves", nc_file)
+    run_script("runots.py", "vec", "nc2diwasp", nc_file)
 
 
 # @pytest.mark.skip(reason="works locally but not on GitLab CI")

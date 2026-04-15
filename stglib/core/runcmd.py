@@ -409,7 +409,22 @@ def runvecnc2waves(args=None):
             "Generate Vector waves statistics file"
         ).parse_args()
 
-    stglib.vec.nc2waves.nc_to_waves(args.ncname)
+    if hasattr(args, "salwtemp") and args.salwtemp:
+        stglib.vec.nc2waves.nc_to_waves(args.ncname, salwtemp=args.salwtemp)
+    else:
+        stglib.vec.nc2waves.nc_to_waves(args.ncname)
+
+
+def runvecnc2diwasp(args=None):
+    if not args:
+        args = stglib.cmd.nc2diwasp_parser(
+            "Generate DIWASP waves statistics file"
+        ).parse_args()
+
+    if hasattr(args, "salwtemp") and args.salwtemp:
+        stglib.vec.nc2waves.nc_to_diwasp(args.ncname, salwtemp=args.salwtemp)
+    else:
+        stglib.vec.nc2waves.nc_to_diwasp(args.ncname)
 
 
 def runwvscdf2nc(args=None):
@@ -537,6 +552,7 @@ _REGISTRY = {
     ("vec", "dat2cdf"): runvecdat2cdf,
     ("vec", "cdf2nc"): runveccdf2nc,
     ("vec", "nc2waves"): runvecnc2waves,
+    ("vec", "nc2diwasp"): runvecnc2diwasp,
     ("eco", "csv2cdf"): runecocsv2cdf,
     ("eco", "cdf2nc"): runecocdf2nc,
     ("eofe", "log2cdf"): runeofelog2cdf,
