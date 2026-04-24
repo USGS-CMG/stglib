@@ -3,10 +3,13 @@ Configuration files
 
 There are two required configuration files for processing data: the global attributes file, which describes attributes that apply to the mooring, and the instrument configuration file, which describes attributes that apply to an instrument on a mooring. Contents of both files will be included as attributes in both the xarray Dataset and the netCDF files.
 
-A note on time and time zones
-=============================
+Time and time zones
+===================
 
 Time is always in Coordinated Universal Time (UTC).
+
+.. note::
+To support data collected by an instrument set to a different time zone, use ``ClockError`` in the instrument configuration file as described below to adjust the time to UTC. 
 
 CF Conventions
 ==============
@@ -20,14 +23,14 @@ Setting CF in global attributes
 
 ::
 
-  Conventions; CF-1.10
+  Conventions; CF-1.11
 
 Setting CF in the instrument configuration file
 -----------------------------------------------
 
 ::
 
-  Conventions: 'CF-1.10'
+  Conventions: 'CF-1.11'
 
 Specifying CF Conventions as above will enable straight-to-CF processing.
 
@@ -48,11 +51,11 @@ This file is instrument-specific and is YAML formatted. A few examples are given
    Although YAML supports boolean values, netCDF does not support them as attributes. Because stglib saves the values specified in the instrument configuration file as netCDF attributes, you must enclose values potentially interpreted as boolean (such as true or false) in quotation marks in the YAML file.
 
 .. note::
-   Note that negative numeric values in the YAML config file must be treated with care so as not to be interpreted as strings. If you want the minimum value to be, say, -0.2 units for a particular parameter, you must write this as ``-0.2`` and not ``-.2`` in the config file. The latter format will be interpreted as a string and will cause an error.
+   Negative numeric values in the YAML config file must be treated with care so as not to be interpreted as strings. If you want the minimum value to be, say, -0.2 units for a particular parameter, you must write this as ``-0.2`` and not ``-.2`` in the config file. The latter format will be interpreted as a string and will cause an error.
 
 Options common to most (all?) instrument config files:
 
-- ``Conventions``: version of the CF Conventions, ``'CF-1.10'`` presently
+- ``Conventions``: version of the CF Conventions. The newest version presently supported by stglib is ``'CF-1.11'``.
 - ``basefile``: the input filename without extension
 - ``filename``: output filename, to which ``-raw.cdf``, ``-a.nc``, etc. will be appended
 - ``ClockError``: number, in seconds, negative is slow. Applies a simple offset for times. Useful if the instrument was deployed in an incorrect time zone.
