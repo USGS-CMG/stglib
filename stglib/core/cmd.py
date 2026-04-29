@@ -295,6 +295,16 @@ def exoturnaround_parser():
     return parser
 
 
+def rbrturnaround_parser():
+    description = "Create RBR turnaround plots. Run this script from the directory containing RBR files."
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument(
+        "basefile",
+        help="basename of RBR .txt file (filename portion not including _data.txt)",
+    )
+    return parser
+
+
 def sigcdf2nc_parser():
     description = "Convert raw Signature .cdf format to processed .nc files, optionally compensating for atmospheric pressure"
     parser = argparse.ArgumentParser(description=description)

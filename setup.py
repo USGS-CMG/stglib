@@ -1,4 +1,4 @@
-from setuptools import find_packages, setup
+from setuptools import setup
 
 import versioneer
 
@@ -10,6 +10,7 @@ setup(
     scripts=[
         "scripts/aqdturnaround.py",
         "scripts/exoturnaround.py",
+        "scripts/rbrturnaround.py",
     ],
     # include_package_data=True,
 )

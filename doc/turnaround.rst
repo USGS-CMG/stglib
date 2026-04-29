@@ -16,3 +16,10 @@ exoturnaround.py
 .. argparse::
   :ref: stglib.core.cmd.exoturnaround_parser
   :prog: exoturnaround.py
+
+rbrturnaround.py
+----------------
+
+.. argparse::
+  :ref: stglib.core.cmd.rbrturnaround_parser
+  :prog: rbrturnaround.py
