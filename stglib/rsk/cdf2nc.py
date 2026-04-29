@@ -153,15 +153,16 @@ def cdf_to_nc(
     if writefile:
         # Write to .nc file
         print("Writing cleaned/trimmed data to .nc file")
-        if (
+        # need to check if profile first since sample_mode is CONTINUOUS during profiles
+        if is_profile:
+            nc_filename = ds.attrs["filename"] + "prof.nc"
+
+        elif (
             "burst" in ds
             or "sample" in ds
             or ds.attrs["sample_mode"].upper() == "CONTINUOUS"
         ):
             nc_filename = ds.attrs["filename"] + "b.nc"
-
-        elif is_profile:
-            nc_filename = ds.attrs["filename"] + "prof.nc"
 
         else:
             nc_filename = ds.attrs["filename"] + "-a.nc"
@@ -375,7 +376,12 @@ def ds_add_attrs(ds, is_profile):
         )
 
     if "T_28" in ds:
-        ds["T_28"].attrs.update({"standard_name": "sea_water_temperature"})
+        ds["T_28"].attrs.update(
+            {
+                "standard_name": "sea_water_temperature",
+                "units_metadata": "temperature: on_scale",
+            }
+        )
 
     if "S_41" in ds:
         ds["S_41"].attrs.update({"standard_name": "sea_water_practical_salinity"})
