@@ -472,7 +472,7 @@ def check_and_reshape_burst(ds):
             ds["sample"].attrs["units"] = "1"
             ds["sample"].encoding["dtype"] = "i4"
 
-        ds = ds.drop("time")
+        ds = ds.drop_vars("time")
 
         ds = ds.rename({"newtime": "time"})
 

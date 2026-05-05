@@ -99,10 +99,10 @@ def make_wave_bursts(ds):
             ds[v].attrs = attrsbak
 
     ds = ds.rename({"time": "timeold"})
-    ds = ds.drop("timeold")
+    ds = ds.drop_vars("timeold")
 
     ds = ds.rename({"sample": "sampleold"})
-    ds = ds.drop("sampleold")
+    ds = ds.drop_vars("sampleold")
 
     ds = ds.rename({"new_sample": "sample"})
     ds = ds.rename({"date": "time"})

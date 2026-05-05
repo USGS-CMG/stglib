@@ -89,7 +89,7 @@ def csv_to_cdf(metadata):
 
 def drop_vars(ds):
     todrop = ["#", "DateTime"]
-    return ds.drop([x for x in todrop if x in ds])
+    return ds.drop_vars([x for x in todrop if x in ds])
 
 
 def ds_rename_vars(ds):
@@ -149,7 +149,7 @@ def ds_rename_vars(ds):
 
     # drop unneeded vars
     todrop = ["FullRange_uSpercm"]
-    ds = ds.drop([x for x in todrop if x in ds])
+    ds = ds.drop_vars([x for x in todrop if x in ds])
 
     return ds.rename(newvars)
 

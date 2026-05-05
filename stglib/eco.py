@@ -173,7 +173,7 @@ def cdf_to_nc(cdf_filename):
                 dim="sample"
             )
 
-    ds = ds.drop(["counts", "sample"])
+    ds = ds.drop_vars(["counts", "sample"])
 
     # Clip data to in/out water times or via good_ens
     ds = utils.clip_ds(ds)

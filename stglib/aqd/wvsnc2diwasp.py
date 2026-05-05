@@ -86,7 +86,7 @@ def nc_to_diwasp(nc_filename):
         "Depth",
     ]:
         if v in ds:
-            ds = ds.drop(v)
+            ds = ds.drop_vars(v)
 
     # remove depth from bin_depth
     ds["bin_depth"] = ds["bin_depth"].squeeze(dim="depth")

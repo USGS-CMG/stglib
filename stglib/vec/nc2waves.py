@@ -94,7 +94,7 @@ def nc_to_waves(nc_filename, salwtemp=None):
         "TransMatrix",
     ]:
         if k in ds:
-            ds = ds.drop(k)
+            ds = ds.drop_vars(k)
 
     ds = make_waves_vdims(ds, wtype="nc2waves")
 

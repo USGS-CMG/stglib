@@ -423,7 +423,7 @@ def ds_drop(ds):
         for var in keep:
             todrop.remove(var)
 
-    return ds.drop([t for t in todrop if t in ds.variables])
+    return ds.drop_vars([t for t in todrop if t in ds.variables])
 
 
 def scale_analoginput(ds):
@@ -508,7 +508,7 @@ def reshape(ds):
 
     ds = ds.sel(time=slice(t[0], ds["time"][-1])).assign(time=ind).unstack("time")
 
-    ds = ds.drop("sample").rename({"new_time": "time", "new_sample": "sample"})
+    ds = ds.drop_vars("sample").rename({"new_time": "time", "new_sample": "sample"})
 
     return ds
 
@@ -581,7 +581,7 @@ def dist_to_boundary(ds):
         "DistSVolStartEndAvg",
     ]:
 
-        ds = ds.drop(v)
+        ds = ds.drop_vars(v)
 
     return ds
 
@@ -841,7 +841,7 @@ def drop_more_vars(ds):
 
     todrop = ["TransMatrix", "orientmat", "burst", "orientation"]
 
-    return ds.drop([t for t in todrop if t in ds.variables])
+    return ds.drop_vars([t for t in todrop if t in ds.variables])
 
 
 def drop_dims(ds):
@@ -854,7 +854,7 @@ def drop_dims(ds):
         "earth",
     ]
 
-    return ds.drop([t for t in todrop if t in ds.variables])
+    return ds.drop_vars([t for t in todrop if t in ds.variables])
 
 
 def reorder_dims(ds):

@@ -56,7 +56,7 @@ def hdr_to_cdf(metadata):
     ds = aqdutils.update_attrs(ds)
 
     # need to drop datetime
-    ds = ds.drop("datetime")
+    ds = ds.drop_vars("datetime")
 
     ds.to_netcdf(cdf_filename, unlimited_dims=["time"])
 

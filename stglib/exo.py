@@ -210,7 +210,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         "odo_%_cb",
     ]:
         if k in ds:
-            ds = ds.drop(k)
+            ds = ds.drop_vars(k)
 
     ds = qaqc.drop_vars(ds)
 
@@ -238,7 +238,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     # No longer report depth
     if "Depth_m" in ds:
-        ds = ds.drop("Depth_m")
+        ds = ds.drop_vars("Depth_m")
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")

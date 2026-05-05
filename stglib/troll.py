@@ -178,7 +178,7 @@ def ds_drop_vars(ds):
         if k in ds:
             newvars.append(k)
 
-    return ds.drop(newvars)
+    return ds.drop_vars(newvars)
 
 
 def compute_depth(ds):
@@ -251,9 +251,9 @@ def df_to_ds(df):
 
     for k in ds:
         if "Unnamed" in k:
-            ds = ds.drop(k)
+            ds = ds.drop_vars(k)
         if "Seconds" in k:
-            ds = ds.drop(k)
+            ds = ds.drop_vars(k)
 
     return ds
 

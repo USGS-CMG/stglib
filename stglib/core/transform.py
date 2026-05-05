@@ -58,7 +58,7 @@ def coord_transform(ds, out="enu"):
         ds["W"] = xr.DataArray(w, dims=("time"))
 
         # do not need intermediate XYZ vels because we keep Beam and now have ENU vels
-        ds = ds.drop(["X", "Y", "Z"])
+        ds = ds.drop_vars(["X", "Y", "Z"])
 
     # reverse transformation enu to xyz
     elif cs.lower() == "enu" and out.lower() == "xyz":

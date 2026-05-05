@@ -66,7 +66,7 @@ def nc_to_waves(nc_filename):
 
     for k in keys:
         if k in ds:
-            ds = ds.drop(k)
+            ds = ds.drop_vars(k)
 
     ds = qaqc.drop_vars(ds)
 

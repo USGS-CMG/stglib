@@ -1621,7 +1621,7 @@ def ds_make_burst_shape(ds):
         .unstack("time")
     )
 
-    ds = ds.drop("sample").rename({"new_time": "time", "new_sample": "sample"})
+    ds = ds.drop_vars("sample").rename({"new_time": "time", "new_sample": "sample"})
 
     return ds
 

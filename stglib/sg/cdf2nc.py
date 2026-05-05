@@ -47,7 +47,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     # Edit metadata depending on file type
     if ds.attrs["file_type"] == ".tid":
         ds = ds_drop_tid(ds)
-        ds = ds.drop("sample")  # Drop sample variable
+        ds = ds.drop_vars("sample")  # Drop sample variable
     elif ds.attrs["file_type"] == ".wb":
         ds = ds_drop_wb(ds)
 

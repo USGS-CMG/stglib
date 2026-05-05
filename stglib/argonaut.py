@@ -88,7 +88,7 @@ def read_vel_snr_std(filbase):
     )
     for v in ds.data_vars:
         if "_Vx" in v or "_Vy" in v or "_Spd" in v or "_Dir" in v:
-            ds = ds.drop(v)
+            ds = ds.drop_vars(v)
 
     snr = pd.read_csv(
         filbase + ".snr",

@@ -1623,7 +1623,7 @@ def apply_wave_coord_output(ds, T, T_orig):
         ds["V"] = xr.DataArray(v, dims=("time", "sample"))
         ds["W"] = xr.DataArray(w, dims=("time", "sample"))
 
-        ds = ds.drop(["VEL1", "VEL2", "VEL3"])
+        ds = ds.drop_vars(["VEL1", "VEL2", "VEL3"])
 
     return ds
 

@@ -170,4 +170,4 @@ def ds_drop(ds):
     if ("AnalogInput2" in ds.attrs) and (ds.attrs["AnalogInput2"].lower() == "true"):
         todrop.remove("AnalogInput2")
 
-    return ds.drop([t for t in todrop if t in ds.variables])
+    return ds.drop_vars([t for t in todrop if t in ds.variables])

@@ -54,7 +54,7 @@ def dat_to_cdf(metadata):
 
     # ds = ds.swap_dims({"Burst": "time"})
 
-    dssen = dssen.drop(
+    dssen = dssen.drop_vars(
         ["Month", "Day", "Year", "Hour", "Minute", "Second", "AnalogInput"]
     )
 

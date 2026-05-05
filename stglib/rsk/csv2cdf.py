@@ -93,13 +93,12 @@ def csv_to_cdf(metadata):
             dsburst["burst"] = dsburst["burst"].astype("int")
 
         if "Wave" in dsburst:
-            dsburst = dsburst.drop("Wave")
+            dsburst = dsburst.drop_vars("Wave")
 
         ds = ds.sel(time=dsburst.sel(sample=0).time)
         # sample gets added with the .sel above
-        ds = ds.drop("sample")
-        # drop the burst average value to replae with burst data
-        ds = ds.drop("P_1")
+        # drop the burst average value to replace with burst data
+        ds = ds.drop_vars(["sample", "P_1"])
         ds = xr.merge([ds, dsburst])
 
     elif ds.attrs["sample_mode"].upper() == "BURST":
@@ -204,7 +203,7 @@ def csv_to_cdf(metadata):
 
         obstime = ds["time"].values
 
-        ds = ds.drop("time")
+        ds = ds.drop_vars("time")
 
         ds = ds.rename({"obs": "time"}).set_coords("time").rename({"time": "obs"})
         ds["obs"].attrs["long_name"] = "observation number"
@@ -307,7 +306,7 @@ def rename_vars(ds, meta):
         ds = ds.rename({"Pressure": "P_1"})
 
     if "Depth" in ds:
-        ds = ds.drop("Depth")
+        ds = ds.drop_vars("Depth")
 
     if "Conductivity" in ds:
         ds = get_metadata(ds, "Conductivity", meta)
@@ -337,7 +336,7 @@ def drop_unused_vars(ds):
         "Tidal_slope",
     ]:
         if var in ds:
-            ds = ds.drop(var)
+            ds = ds.drop_vars(var)
 
     return ds
 

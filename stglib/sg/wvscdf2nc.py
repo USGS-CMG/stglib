@@ -33,7 +33,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
     ds = sgutils.atmos_correct_burst(ds, atmpres)
 
     # Drop variables
-    ds = ds.drop("burst_number")
+    ds = ds.drop_vars("burst_number")
 
     # Edit metadata
     ds = ds_drop_meta(ds)

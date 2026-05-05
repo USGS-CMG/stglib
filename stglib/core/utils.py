@@ -893,7 +893,7 @@ def epic_to_cf_time(ds):
 
     for v in ["time_cf", "time2", "epic_time", "epic_time2"]:
         if v in ds:
-            ds = ds.drop(v)
+            ds = ds.drop_vars(v)
     return xr.decode_cf(ds, decode_times=True)
 
 

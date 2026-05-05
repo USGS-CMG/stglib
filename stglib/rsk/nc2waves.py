@@ -247,7 +247,7 @@ def make_wave_bursts(ds):
 
     ds = ds.rename({"time": "timeold"})
     ds = ds.rename({"timenew": "time"})
-    ds = ds.drop("timeold")
+    ds = ds.drop_vars("timeold")
 
     return ds
 
