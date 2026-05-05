@@ -37,4 +37,4 @@ build-job:
     - conda list
     - pip install -e . --no-deps
   script:
-    - pytest
+    - pytest -v
