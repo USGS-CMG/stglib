@@ -9,7 +9,7 @@ Time and time zones
 Time is always in Coordinated Universal Time (UTC).
 
 .. note::
-To support data collected by an instrument set to a different time zone, use ``ClockError`` in the instrument configuration file as described below to adjust the time to UTC. 
+   To support data collected by an instrument set to a different time zone, use ``ClockError`` in the instrument configuration file as described below to adjust the time to UTC. 
 
 CF Conventions
 ==============
