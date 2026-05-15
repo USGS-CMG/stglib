@@ -75,7 +75,7 @@ def cdf_to_nc(
         ds = qaqc.trim_min(ds, v)
         ds = qaqc.trim_bad_ens(ds, v)
 
-    for v in ["Turb", "C_51", "S_41", "T_28", "SpC_48"]:
+    for v in ["Turb", "C_51", "S_41", "T_28", "SpC_48", "water_level_filt"]:
         if v in ds:
             ds = qaqc.trim_min(ds, v)
             ds = qaqc.trim_max(ds, v)
