@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from ..core import filter, qaqc, utils
+from ..core import qaqc, utils
 from ..sig.cdf2nc import ds_make_burst_shape
 
 
@@ -66,35 +66,7 @@ def cdf_to_nc(
     #     if 'time' not in var:
     #         ds = utils.add_lat_lon(ds, var)
 
-    # trim by minimum pressure for instruments that go out of water_depth
-    for v in ["P_1", "P_1ac"]:
-        # check if any filtering before other qaqc
-        ds = filter.apply_butter_filt(ds, v)
-        ds = filter.apply_med_filt(ds, v)
-
-        ds = qaqc.trim_min(ds, v)
-        ds = qaqc.trim_bad_ens(ds, v)
-
-    for v in ["Turb", "C_51", "S_41", "T_28", "SpC_48", "water_level_filt"]:
-        if v in ds:
-            ds = qaqc.trim_min(ds, v)
-            ds = qaqc.trim_max(ds, v)
-            ds = qaqc.trim_min_diff(ds, v)
-            ds = qaqc.trim_min_diff_pct(ds, v)
-            ds = qaqc.trim_max_diff(ds, v)
-            ds = qaqc.trim_max_diff_pct(ds, v)
-            ds = qaqc.trim_med_diff(ds, v)
-            ds = qaqc.trim_med_diff_pct(ds, v)
-            ds = qaqc.trim_max_blip(ds, v)
-            ds = qaqc.trim_max_blip_pct(ds, v)
-            ds = qaqc.trim_bad_ens(ds, v)
-            ds = qaqc.trim_bad_ens_indiv(ds, v)
-            ds = qaqc.trim_fliers(ds, v)
-
-    # after check for masking vars by other vars
-    for var in ds.data_vars:
-        ds = qaqc.trim_mask(ds, var)
-        ds = qaqc.trim_mask_expr(ds, var)
+    ds = qaqc.call_qaqc(ds)
 
     if not is_profile:
         """
