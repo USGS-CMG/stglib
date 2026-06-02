@@ -952,7 +952,10 @@ def make_Tp(Pnn):
     """Compute peak period as 1 / fp,
     where fp is the frequency with greatest energy in the elevation spectra"""
     # ensure we don't return 0 frequency as a peak period
-    fp = Pnn["frequency"][Pnn.fillna(0).argmax(dim="frequency")].values
+    fp = Pnn["frequency"][Pnn.fillna(0).argmax(dim="frequency")].values.copy()
+    # on some Python versions fp created without .copy() in the line above is a read-only array.
+    # The following line can result in "ValueError: assignment destination is read-only"
+    # unless we specify .copy() above
     fp[fp == 0] = np.nan
     return 1 / fp
 
