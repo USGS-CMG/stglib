@@ -1997,7 +1997,7 @@ def pres2dep(ds, pvar="P_1ac", salwtemp=None):
 
 
 def get_detailed_version():
-    return f"""stglib {stglib.__version__} installed at {stglib.__file__} with Python {platform.python_version()}, xarray {xr.__version__}, NumPy {np.__version__}, netCDF4 {netCDF4.__version__}"""
+    return f"""stglib {stglib.__version__} installed at {stglib.__file__} with Python {platform.python_version()}, xarray {xr.__version__}, NumPy {np.__version__}, netCDF4 {netCDF4.__version__}, pandas {pd.__version__}"""
 
 
 def var_comment(ds, var):
