@@ -399,18 +399,53 @@ def trim_max_blip_pct(ds, var):
 def trim_fliers(ds, var):
     """trim "fliers", single (or more) presumably bad data points unconnected to other, good data points"""
 
+    def find_fliers(ds_ma):
+        ds_ma[np.isnan(ds_ma)] = np.ma.masked
+        for b in np.ma.clump_unmasked(ds_ma):
+            if b.stop - b.start <= num:
+                ds_ma[b] = np.nan
+        ds_ma = ds_ma.filled()
+
+        cond = np.isfinite(ds_ma)
+
+        return cond
+
     if var + "_fliers" in ds.attrs:
+
         num = ds.attrs[var + "_fliers"]
 
-        a = np.ma.masked_array(ds[var].values.copy(), fill_value=np.nan)
-        a[np.isnan(a)] = np.ma.masked
-        for b in np.ma.clump_unmasked(a):
-            if b.stop - b.start <= num:
-                a[b] = np.nan
-        a = a.filled()
+        if ds[var].ndim == 1 and "time" in ds[var].dims:
 
-        cond = np.isfinite(a)
+            ds_ma = np.ma.masked_array(ds[var].values.copy(), fill_value=np.nan)
+
+            cond = find_fliers(ds_ma)
+
+        elif ds[var].ndim == 2 and "time" in ds[var].dims and "sample" in ds[var].dims:
+            # need to create empty bool array of the same dims as ds[var]
+            cond = xr.full_like(ds[var], False, dtype="bool")
+            cond.attrs.clear()
+
+            # need to apply for individual bursts because ma.clump_unmasked only supports 1-d arrays
+            for k in ds["time"]:
+
+                ds_ma = np.ma.masked_array(
+                    ds[var].sel(time=k).values.copy(), fill_value=np.nan
+                )
+
+                cond_burst = find_fliers(ds_ma)
+
+                # insert bool array of each burst into full multidimensional bool array (cond)
+                cond.loc[dict(time=k)] = cond_burst
+
+        else:
+            warnings.warn(
+                f"Not able to apply trim_fliers  because only ('time') and ('sample','time') dimensions are handled. {var} dims are {ds[var].dims}"
+            )
+
+            return ds
+
         affected = cond.size - cond.sum() - ds[var].isnull().sum()
+
         ds[var] = ds[var].where(cond)
 
         notetxt = f"Fliers of {ds.attrs[var + '_fliers']} or fewer points removed; {affected.values} values affected. "

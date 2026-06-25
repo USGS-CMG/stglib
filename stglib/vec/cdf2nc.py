@@ -88,7 +88,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = qaqc.trim_max_blip_pct(ds, var)
         ds = qaqc.trim_bad_ens(ds, var)
         ds = qaqc.trim_bad_ens_indiv(ds, var)
-        ds = qaqc.trim_fliers(ds, var)
         ds = qaqc.trim_warmup(ds, var)
 
     ds = fill_snr(ds)
@@ -99,6 +98,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     for var in ds.data_vars:
         ds = qaqc.trim_mask(ds, var)
         ds = qaqc.trim_mask_expr(ds, var)
+        ds = qaqc.trim_fliers(ds, var)
 
     # Add start_time and stop_time attrs
     ds = utils.add_start_stop_time(ds)
@@ -672,7 +672,7 @@ def fill_cor(ds):
                 )
                 ds = utils.insert_note(ds, v, histtext)
 
-            ds = utils.insert_history(ds, histtext)
+        ds = utils.insert_history(ds, histtext)
 
     return ds
 
