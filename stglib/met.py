@@ -170,7 +170,6 @@ def cdf_to_nc(cdf_filename):
 
     # Add attributes
     ds = attrs.ds_add_attrs(ds)
-    ds = ds_add_var_attrs(ds)
 
     # Write to .nc file
     print("Writing cleaned/trimmed data to .nc file")
@@ -292,26 +291,5 @@ def met_drop_vars(ds):
 
     # Will ignore errors if variable is not in dataset
     ds = ds.drop_vars(var_list, errors="ignore")
-
-    return ds
-
-
-# Add initial height to specific variables
-def ds_add_var_attrs(ds):
-
-    for name in ds.variables:
-
-        if (name not in ds.coords) and ("time" not in name):
-            # don't include for coordinates that are also variables
-
-            var = ds[name]
-
-            var.attrs["initial_instrument_height"] = ds.attrs[
-                "initial_instrument_height"
-            ]
-            if "initial_instrument_height_note" in ds.attrs:
-                var.attrs["initial_instrument_height_note"] = ds.attrs[
-                    "initial_instrument_height_note"
-                ]
 
     return ds

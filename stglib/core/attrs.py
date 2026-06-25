@@ -115,9 +115,7 @@ def ds_add_attrs(ds):
         )
 
     if "BPR_915" in ds:
-        ds["BPR_915"].attrs.update(
-            {"units": "pascals", "standard_name": "air_pressure"}
-        )
+        ds["BPR_915"].attrs.update({"units": "mbar", "standard_name": "air_pressure"})
 
     if "brange" in ds:
         name = " "
@@ -226,7 +224,7 @@ def ds_add_attrs(ds):
         ds["hail_amount"].attrs.update(
             {
                 "units": "hits cm-2",
-                "long_name": "hail amount",
+                "long_name": "cumulative hail amount",
             }
         )
 
@@ -434,6 +432,7 @@ def ds_add_attrs(ds):
             {
                 "units": "mm",
                 "standard_name": "thickness_of_rainfall_amount",
+                "long_name": "Cumulative rainfall amount",
             }
         )
 

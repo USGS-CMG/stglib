@@ -513,7 +513,7 @@ def trim_mask(ds, var):
 
             else:
                 cond = ~ds[trimvar].isnull()
-                affected = cond.size - cond.sum() - ds[var].isnull().sum()
+                affected = ((~cond) & ds[var].notnull()).sum()
                 ds[var] = ds[var].where(cond)
 
                 notetxt = f"Values filled using {trimvar} mask; {affected.values} values affected. "
