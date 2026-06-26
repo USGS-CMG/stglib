@@ -13,3 +13,4 @@ AnalogInput1_min: 0.01
 AnalogInput1_height: 0.3
 height_above_geopotential_datum: 0.631 # grate elevation in m
 geopotential_datum_name: 'NAVD88'
+AnalogInput1_ssc_calibration: [100, 5]

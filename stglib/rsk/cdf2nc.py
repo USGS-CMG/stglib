@@ -88,6 +88,8 @@ def cdf_to_nc(
     ds = utils.ds_coord_no_fillvalue(ds)
     ds = utils.add_history(ds)
     ds = dw_add_delta_t(ds)
+    # create SSC variable if requested
+    utils.turbidity_to_ssc(ds, "Turb")
 
     if is_profile:
         # reset obs and row_start after we are done trimming

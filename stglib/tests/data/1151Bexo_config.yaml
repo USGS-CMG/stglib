@@ -24,3 +24,4 @@ SpC_48_max_diff: 9.50 #SpConducitivty m/s
 S_41_min_diff: -7.00 #Salinity psu
 S_41_max_diff: 7.00 #Salinity psu
 Turb_med_diff: 125.0
+Turb_ssc_calibration: [5, 10]

@@ -44,6 +44,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = scale_analoginput(ds)
 
+    # Create SSC variable
+    utils.turbidity_to_ssc(ds, "AnalogInput1")
+    utils.turbidity_to_ssc(ds, "AnalogInput2")
+
     # Drop unused variables
     ds = ds_drop(ds)
 

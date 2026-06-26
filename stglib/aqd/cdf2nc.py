@@ -83,6 +83,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
     # Add EPIC and CMG attributes
     VEL = aqdutils.ds_add_attrs(VEL)
 
+    # Create SSC variable
+    utils.turbidity_to_ssc(VEL, "AnalogInput1")
+    utils.turbidity_to_ssc(VEL, "AnalogInput2")
+
     # should function this
     for var in VEL.data_vars:
         VEL = qaqc.trim_min(VEL, var)

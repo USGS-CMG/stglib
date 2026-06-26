@@ -92,16 +92,17 @@ Options applicable to many instrument types include:
 - ``<VAR>_fliers``: fill flier values, which are data points surrounded by filled data. Set to the maximum size of flier clumps to remove.
 - ``<VAR>_warmup_samples``: fill these many samples at the beginning of each burst.
 - ``<VAR>_mask``: a single variable or list of variables which should be used to fill the given variable. For example ``u_1205_mask: ["cor1_1285", "cor2_1286", "cor3_1287"]`` will set ``u_1205`` to ``_FillValue`` wherever the correlation variables are ``_FillValue``
-- ``<VAR>_mask_expr``: trim values based on an expression containing another variable. For example, ``Turb_mask_expr: "P_1ac < 0.1"`` will fill all ``Turb`` data where ``P_1ac`` is less than 0.1. Multiple conditions are also supported using "&" and "|" between individual conditions defined within parentheses. For example, ``WG_402_mask_expr: "(WG_402 == 0)&(WD_410 == 0)"``. Usage is currently limited to simple expressions with the masking variable on the left-hand side. Threshold limits on the righ-hand side may be integers, floats, or "nan". Currently supported operators when right-hand side is an integer or float are ['>', '<', '>=', '<=', '==', '!=']. If "nan" is specified in right-hand side, use "==" as the operator. For example: ``Turb_mask_expr: "(P_1ac < 0.1)|(P_1ac == nan)"``.
+- ``<VAR>_mask_expr``: trim values based on an expression containing another variable. For example, ``Turb_mask_expr: "P_1ac < 0.1"`` will fill all ``Turb`` data where ``P_1ac`` is less than 0.1. Multiple conditions are also supported using "&" and "|" between individual conditions defined within parentheses. For example, ``WG_402_mask_expr: "(WG_402 == 0)&(WD_410 == 0)"``. Usage is currently limited to simple expressions with the masking variable on the left-hand side. Threshold limits on the right-hand side may be integers, floats, or "nan". Currently supported operators when right-hand side is an integer or float are ['>', '<', '>=', '<=', '==', '!=']. If "nan" is specified in right-hand side, use "==" as the operator. For example: ``Turb_mask_expr: "(P_1ac < 0.1)|(P_1ac == nan)"``.
 - ``drop_vars``: a list of variables to be removed from the final file. For example, ``drop_vars: ['nLF_Cond_µS_per_cm', 'Wiper_Position_volt', 'Cable_Pwr_V']``.
+- ``<VAR>_ssc_calibration``: a list of coefficients to apply to turbidity data to generate computed suspended-sediment concentration (SSC). For example, ``AnalogInput1_ssc_calibration: [0.55, -0.02]`` will generate a new variable ``ssc = 0.55 * AnalogInput1 - 0.02``. Coefficient values must return units of mg L-1. Currently supports linear fits. Supported instruments include Aquadopp, Vector, RBR, ECO NTU, and EXO. For data that will be published, details regarding the SSC calibration must be included in the data release (e.g., as a metadata process step) to comply with `FSP <https://www.usgs.gov/office-of-science-quality-and-integrity/fundamental-science-practices>`_.
 
 Options for signal filtering:
 
-- ``<VAR>_lowpass_filt``: apply butterworth lowpass filter with specified cutoff period in seconds.
-- ``<VAR>_highpass_filt``: apply butterworth highpass filter with specified cutoff period in seconds.
-- ``<VAR>_bandpass_filt``: apply butterworth bandpass filter with specified cutoff period in seconds as two element list [cut_long, cut_short].
+- ``<VAR>_lowpass_filt``: apply Butterworth lowpass filter with specified cutoff period in seconds.
+- ``<VAR>_highpass_filt``: apply Butterworth highpass filter with specified cutoff period in seconds.
+- ``<VAR>_bandpass_filt``: apply Butterworth bandpass filter with specified cutoff period in seconds as two element list [cut_long, cut_short].
 - ``<VAR>_med_filt``: apply n point median filter, where n is specified value (must be an odd number).
-- ``filter_order``: specify order of butterworth filter (default = 4 if not specified).
+- ``filter_order``: specify order of Butterworth filter (default = 4 if not specified).
 
 Options for water level:
 - ``water_level_var``: option for user to specify variable to use for water level (options: 'P_1ac' (default), 'brangeAST')
@@ -119,7 +120,7 @@ Option for general wave processing using built-in stglib internal code:
 - ``wp_ratio``: maximum allowable ratio between peak period (``wp_peak``) and mean period (``wp_4060``)
 - ``wave_fractional_noise``: user selectable noise parameter for wave spectral cutoff (default = 0.9)
 - ``wave_Kpmin``: user selectable wave spectral cutoff using the minimum value for pressure transfer function Kp (0.1-0.6, default = 0.1)
-- ``wave_fcut``: user selectable wave spectral cutoff using using maximum value for frequency (hertz) with condition Kp >= 0.1
+- ``wave_fcut``: user selectable wave spectral cutoff using maximum value for frequency (hertz) with condition Kp >= 0.1
 
 Options for wave processing using pyDIWASP:
 - ``diwasp_method``: estimator method used by pyDIWASP (options (available now): 'IMLM' (default) or 'DFTM')
@@ -134,7 +135,7 @@ Options for wave processing using pyDIWASP:
 - ``diwasp_nsamps``: user specified number of samples to use in processing for each wave burst (optional)
 - ``diwasp_pow2``: if set to 'true' use next lowest power of 2 of samples for processing each wave burst (default = 'false')
 
-Refer to DIWASP original documentation for addition information: “DIWASP, a directional wave spectra toolbox for MATLAB®: User Manual. Research Report WP-1601-DJ (V1.4), Centre for Water Research, University of Western Australia.”
+Refer to DIWASP original documentation for additional information: “DIWASP, a directional wave spectra toolbox for MATLAB®: User Manual. Research Report WP-1601-DJ (V1.4), Centre for Water Research, University of Western Australia.”
 
 
 Aquadopp
@@ -195,7 +196,7 @@ Options specific to RBR instruments exported from the Ruskin software include:
 
 - ``basefile``: the input filename without extension or data type. For example, if your exported text files are named ``055170_20190219_1547_burst.txt``, ``055170_20190219_1547_data.txt``, etc., ``basefile`` will be ``055170_20190219_1547``.
 - ``diwasp``: processing type for pyDIWASP wave processing; option(s) for RBR pressure loggers is 'pres'
-- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
+- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass Butterworth filter with 6 min cutoff)
 - ``spec_nsegs``: specify number of segments to use for windowing of wave burst data for creating energy spectra
 - ``wave_interval``: interval in seconds for calculating wave bursts from continuous data
 - ``wave_start_time``: start datetime for first wave burst (e.g. "2021-03-10 16:00:00")
@@ -212,7 +213,7 @@ When an RBR instrument is used in ``CONTINUOUS`` mode as a profiling instrument 
 
 - ``featureType: 'profile'``: this `CF-compliant <https://cfconventions.org/cf-conventions/cf-conventions.html#profile-data>`_ ``featureType`` instructs stglib to process these data as a profile dataset.
 - ``latitude: [36.959, 41.533, 27.764]``, ``longitude: [-122.056, -70.651, -82.638]``: these values can each be specified as a YAML list of latitudes and longitudes, each element in the lists corresponding to a profile.
-- ``split_profiles``: when set to `True`, split a multi-profile dataset into individual netCDF files for each profile
+- ``split_profiles``: when set to "true", split a multi-profile dataset into individual netCDF files for each profile
 
 EXO
 ---
@@ -273,7 +274,7 @@ Sontek IQ
 Onset Hobo
 ----------
 
-- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
+- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass Butterworth filter with 6 min cutoff)
 - ``instrument_type``: can be ``hwl`` (water level), ``hwlb`` (water level as barometer), ``hdo`` (dissolved oxygen) or ``hcnd`` (conductivity) use these based on parameter measured by hobo logger
 - ``skipfooter``: number of lines to skip in the CSV file at the end of the file
 - ``ncols``: number of columns of data to read, starting at first
@@ -290,7 +291,7 @@ Vector
 ------
 - ``initial_instrument_height`` to specify the height (m) of center transducer from bed (do not include blanking distance).
 - ``pressure_sensor_height`` to specify the height (m) of pressure port from bed.
-- ``puv``: set to ``true`` to compute PUV wave statistics. **(EXPERIMENTAL)**
+- ``puv``: set to ``'true'`` to compute PUV wave statistics. **(EXPERIMENTAL)**
 - ``orientation``: ``UP`` means probe head is pointing up (sample volume above probe head). ``DOWN`` means probe head is pointing down (sample volume below probe head).
 - ``velocity_sample_volume_height``: height (m) to center of sample volume from bed (bed to center transducer - blanking distance (.157 m)).
 - ``average_interval``: interval in seconds for calculating mean values from CONTINUOUS sample mode data (default = if sample mode is CONTINUOUS, no average file will be created from data set)
@@ -328,7 +329,7 @@ TruBlue
 -------
 
 - ``skiprows``: number of header lines to skip in the txt file before the real data begins
-- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass butterworth filter with 6 min cutoff)
+- ``filtered_wl``: "true" to turn on filtered water level variable (4th order lowpass Butterworth filter with 6 min cutoff)
 - ``wave_interval``: interval in seconds for calculating wave bursts from CONTINUOUS pressure data
 - ``wp_min``, ``wp_max``: min/max allowable wave period, in seconds
 - ``wh_min``, ``wh_max``: min/max allowable wave height, in meters
@@ -347,8 +348,8 @@ AQUAscat1000R
 - ``orientation``: orientation of transducer(s)
 - ``initial_instrument_height``: height of acoustic transducer
 - ``pressure_sensor_height``: height of pressure port on canister, likely different than transducer height
-- ``brange``: True or False (optional). If True, brange will be calculated from abs data. Use ``brange_freq`` to specify transducer frequency of abs data used for calculating brange.
-- ``brange_freq``: the transducer frequency of abs data used for calculating brange (optional). If not specified, brange calculation will default to using abs data from lowest transdcuer frequency.
+- ``brange``: 'true' or 'false' (optional). If true, brange will be calculated from abs data. Use ``brange_freq`` to specify transducer frequency of abs data used for calculating brange.
+- ``brange_freq``: the transducer frequency of abs data used for calculating brange (optional). If not specified, brange calculation will default to using abs data from lowest transducer frequency.
 
 Geolux Wave Radar
 -----------------

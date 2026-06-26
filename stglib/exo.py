@@ -219,6 +219,8 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = qaqc.call_qaqc(ds)
 
+    utils.turbidity_to_ssc(ds, "Turb")
+
     # assign min/max:
     ds = utils.add_min_max(ds)
 

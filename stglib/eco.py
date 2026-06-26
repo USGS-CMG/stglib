@@ -180,6 +180,8 @@ def cdf_to_nc(cdf_filename):
 
     ds = eco_qaqc(ds)
 
+    utils.turbidity_to_ssc(ds, "Turb")
+
     # assign min/max:
     ds = utils.add_min_max(ds)
 

@@ -54,6 +54,8 @@ We have plans to support:
    atmos
    waves
 
+.. when updating the Instruments toctree below, ensure they are in alphabetical order as viewed on the produced HTML pages
+
 .. toctree::
    :maxdepth: 2
    :caption: Instruments
@@ -62,7 +64,9 @@ We have plans to support:
    abss
    eofe
    glx
+   son
    tcm
+   mar
    nortek
    hobo
    indexvel
@@ -75,8 +79,6 @@ We have plans to support:
    met
    wet
    exo
-   son
-   mar
 
 .. toctree::
    :maxdepth: 2

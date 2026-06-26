@@ -2012,3 +2012,37 @@ def var_comment(ds, var):
             ds[var].attrs["comment"] = cmnttxt
 
     return ds
+
+
+def turbidity_to_ssc(ds, turbvar):
+    """
+    Generate suspended-sediment concentration (SSC) variable based on turbidity.
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        xarray Dataset
+    turbvar : str
+        Turbidity variable (typically "AnalogInput1" or "Turb")
+    """
+
+    if f"{turbvar}_ssc_calibration" in ds.attrs:
+        if turbvar not in ds:
+            raise KeyError(
+                "SSC generation requested for {turbvar} but {turbvar} does not exist in Dataset"
+            )
+
+        coef = ds.attrs[f"{turbvar}_ssc_calibration"]
+        # Do it this way in case the turbidity variable has a singleton dimension attached
+        ds["ssc"] = xr.full_like(ds[turbvar], np.nan)
+        # clear attrs since the QAQC diagnostics come over from the turbidity variable when using full_like
+        ds["ssc"].attrs = {}
+        ds["ssc"].values = np.polyval(coef, ds[turbvar])
+        ds["ssc"].attrs["units"] = "mg L-1"
+        ds["ssc"].attrs["long_name"] = "Suspended-sediment concentration"
+        ds["ssc"].attrs[
+            "standard_name"
+        ] = "mass_concentration_of_suspended_matter_in_sea_water"
+        ds["ssc"].attrs[
+            "comment"
+        ] = f"Suspended-sediment concentration estimated as SSC = {coef[0]} * {turbvar} + {coef[1]}. Estimated value; please use with caution. Quality of SSC estimation may be poor. See Data Release metadata, if available, for more information."
