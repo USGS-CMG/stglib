@@ -353,7 +353,7 @@ def set_up_instrument_and_sampling_attrs(ds, meta):
     ds.attrs["sample_interval"] = int(meta["sampling"]["period"]) / 1000
 
     # create sample_rate attribute in the code
-    ds.attrs["sample_rate"] = int(1 / ds.attrs["sample_interval"])
+    ds.attrs["sample_rate"] = round(1 / ds.attrs["sample_interval"], 1)
 
     if "burstinterval" in meta["sampling"]:
         ds.attrs["burst_interval"] = meta["sampling"]["burstinterval"] / 1000
