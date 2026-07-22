@@ -956,7 +956,8 @@ def make_Tp(Pnn):
     # on some Python versions fp created without .copy() in the line above is a read-only array.
     # The following line can result in "ValueError: assignment destination is read-only"
     # unless we specify .copy() above
-    fp[fp == 0] = np.nan
+    fp = np.where(fp == Pnn["frequency"][0].values, np.nan, fp)
+
     return 1 / fp
 
 
