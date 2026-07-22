@@ -183,6 +183,7 @@ Signature-specific options include (see Aquadopp for others):
 - ``trim_ast``: option to enable trim/filling of brangeAST values using ast_quality variable
 - ``ast_qual_sf``: scale factor to determine minimum threshold value for the ast_quality parameter used to trim brangeAST (default = 0.85, typical values 0.8 () - 0.95)
 - ``wavedat_tolerance``: tolerance in seconds to fill gaps in wave data to be used for calculating wave statistics (default = '2 s').
+- ``mean_minf``: fraction of valid values (non-fill value) required to calculate the mean of an xarray data set (default = 0.5, range 0-1).
 
 
 .. literalinclude:: ../examples/aqd_config.yaml

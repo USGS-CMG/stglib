@@ -180,13 +180,14 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
         print("Sample mode is Burst, reshape data set into burst")
         ds = ds_make_burst_shape(ds)
         ds = reorder_dims(ds)
-        # redo attriburtes
+        # redo attributes
         ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
         ds = ds_add_attrs_sig(ds)  # for signature vars
 
     ds = fix_encoding(ds)
 
     # qaqc
+    ds = qaqc.drop_vars(ds)
     for var in ds.data_vars:
         # need to do this or else a "coordinates" attribute with value of "burst" hangs around
         # ds[var].encoding["coordinates"] = None
@@ -337,7 +338,9 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
         dsVA = utils.make_vector_average_vars(ds, data_vars=va_vars, dim="sample")
 
         # take mean of data set across sample dimension and remove chunking
-        ds = ds.mean(dim="sample", keep_attrs=True).compute()
+        # ds = ds.mean(dim="sample", keep_attrs=True).compute()
+        nsamps = int(len(ds["sample"]))
+        ds = utils.ds_mean_count_minf(ds, dim="sample")
 
         # replace vector average vars with the vector averages in averaged dataset
         for var in dsVA.data_vars:
@@ -352,15 +355,25 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
             else:
                 histtext = f"Create burst averaged data product from {ds.attrs['data_type']} data type."
 
+            histtext = (
+                histtext
+                + f" Mean of data set computed where valid points >= {int(nsamps*ds.attrs['mean_minf'])} out of possible {nsamps} per avearge, otherwise set mean to fill value."
+            )
+
         elif ds.attrs["sample_mode"] == "CONTINUOUS":
             if "average_duration" in ds.attrs:
                 histtext = f"Create averaged data product from continously sampled {ds.attrs['data_type']} data type using user specified interval {ds.attrs['average_interval']} seconds and duration {ds.attrs['average_duration']} seconds."
             else:
                 histtext = f"Create averaged data product from continuous sampled {ds.attrs['data_type']} data type using user specified interval {ds.attrs['average_interval']} seconds."
 
+            histtext = (
+                histtext
+                + f" Mean of data set computed where valid points >= {int(nsamps*ds.attrs['mean_minf'])} out of possible {nsamps} per avearge, otherwise set mean to fill value."
+            )
+
         if len(dsVA.data_vars) > 0:
             histtext = (
-                histtext + f"Data variables {va_vars} averaged using vector averaging"
+                histtext + f" Data variables {va_vars} averaged using vector averaging"
             )
 
         ds = utils.insert_history(ds, histtext)
@@ -411,7 +424,10 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
 
         ds = utils.ds_coord_no_fillvalue(ds)
 
-        # qaqc - again on average data
+        ds = qaqc.drop_vars(ds)
+
+        """
+         # qaqc - again on average data
         for var in ds.data_vars:
             # need to do this or else a "coordinates" attribute with value of "burst" hangs around
             # ds[var].encoding["coordinates"] = None
@@ -444,6 +460,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
         # fill with AGC and Cor threshold
         ds = aqdutils.fill_agc(ds)
         ds = aqdutils.fill_cor(ds)
+        """
 
         # Add min/max values
         ds = utils.add_min_max(ds)
@@ -1638,13 +1655,13 @@ def trim_avg_vel_bins(ds, data_vars=["u_1205", "v_1206", "w_1204", "w2_1204"]):
         and "trim_avg_vel_bins" in ds.attrs
         and ds.attrs["trim_avg_vel_bins"] is not None
     ):
-        if "brangeAST" in ds:
-            P = ds["brangeAST"]
-        elif "P_1ac" in ds:
+
+        # Only use corrected pressure to trim bins, brangeAST is not reliable enough for this purpose
+        if "P_1ac" in ds:
             P = ds["P_1ac"]
         else:
             print(
-                "Acoustic surface tracking (brangeAST) or corrected pressure (P_1ac) variable not found. Cannot continue with average velocity bin trimming."
+                "Corrected pressure (P_1ac) variable not found. Cannot continue with average velocity bin trimming."
             )
             return ds
 

@@ -2046,3 +2046,48 @@ def turbidity_to_ssc(ds, turbvar):
         ds["ssc"].attrs[
             "comment"
         ] = f"Suspended-sediment concentration estimated as SSC = {coef[0]} * {turbvar} + {coef[1]}. Estimated value; please use with caution. Quality of SSC estimation may be poor. See Data Release metadata, if available, for more information."
+
+
+def ds_mean_count_minf(ds, dim="sample", minf=None):
+    """
+    Calculate mean of data set using threshold for minimum fraction of valid values in each variable
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        xarray Dataset
+    dim : dimension of data set to find mean
+    minf : minimum fraction of valid values in each variable to compute mean, otherwise fill
+    """
+
+    if dim in ds.dims:
+        # set minimum number of counts to calculate valid mean
+        if minf is None:
+            if "mean_minf" in ds.attrs:
+                minf = ds.attrs["mean_minf"]
+            else:
+                minf = (
+                    0.5  # if not specified use default minimum of half count of total
+                )
+                ds.attrs["mean_minf"] = minf
+
+        min_count = int(len(ds[dim]) * minf)
+        # create array of valid counts
+        valid_counts = ds.count(dim=dim)
+
+        # Mask rows that don't meet the requirement
+        ds = ds.where(valid_counts >= min_count)
+
+        print(
+            f"Compute mean of data set along {dim} dimension with minimum count threshold of {min_count} valid values out of {len(ds[dim])}, otherwise set mean to fill value."
+        )
+
+        # Compute mean along '', skipping NaNs
+        ds = ds.mean(dim=dim, keep_attrs=True).compute()
+
+    else:
+        raise KeyError(
+            f"{dim} must be a dimension in data set to compute mean of data set along {dim} dimension"
+        )
+
+    return ds
