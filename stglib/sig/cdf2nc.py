@@ -357,18 +357,18 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
 
             histtext = (
                 histtext
-                + f" Mean of data set computed where valid points >= {int(nsamps*ds.attrs['mean_minf'])} out of possible {nsamps} per avearge, otherwise set mean to fill value."
+                + f" Mean of data set computed where valid points >= {int(nsamps*ds.attrs['mean_minf'])} out of possible {nsamps} per average, otherwise set mean to fill value."
             )
 
         elif ds.attrs["sample_mode"] == "CONTINUOUS":
             if "average_duration" in ds.attrs:
-                histtext = f"Create averaged data product from continously sampled {ds.attrs['data_type']} data type using user specified interval {ds.attrs['average_interval']} seconds and duration {ds.attrs['average_duration']} seconds."
+                histtext = f"Create averaged data product from continuously sampled {ds.attrs['data_type']} data type using user specified interval {ds.attrs['average_interval']} seconds and duration {ds.attrs['average_duration']} seconds."
             else:
                 histtext = f"Create averaged data product from continuous sampled {ds.attrs['data_type']} data type using user specified interval {ds.attrs['average_interval']} seconds."
 
             histtext = (
                 histtext
-                + f" Mean of data set computed where valid points >= {int(nsamps*ds.attrs['mean_minf'])} out of possible {nsamps} per avearge, otherwise set mean to fill value."
+                + f" Mean of data set computed where valid points >= {int(nsamps*ds.attrs['mean_minf'])} out of possible {nsamps} per average, otherwise set mean to fill value."
             )
 
         if len(dsVA.data_vars) > 0:
@@ -409,7 +409,7 @@ def cdf_to_nc(cdf_filename, atmpres=None, salwtemp=None):
         # need to update time attributes after taking average of dataset
         # ds["time"].attrs.update({"standard_name": "time", "axis": "T", "long_name": "time (UTC)"})
 
-        # redo attriburtes
+        # redo attributes
         ds = aqdutils.ds_add_attrs(ds, inst_type="SIG")  # for common adcp vars
         ds = ds_add_attrs_sig(ds)  # for signature vars
         ds = utils.add_standard_names(ds)  # add common standard names

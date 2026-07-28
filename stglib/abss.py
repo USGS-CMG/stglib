@@ -128,7 +128,7 @@ def cdf2nc(cdf_filename, atmpres=False):
     if "brange" in ds.attrs and ds.attrs["brange"].lower() == "true":
         ds = add_brange_abss(ds, "abs")
 
-    # drop brange matrix var and battery vor average file
+    # drop brange matrix var and battery for average file
     ds = ds.drop_vars({"Bat_106"})
     ds = ds_remove_inst_attrs(ds, "ABS")
 

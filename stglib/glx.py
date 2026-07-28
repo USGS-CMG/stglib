@@ -382,7 +382,7 @@ def ds_add_waves_history(ds):
 
 
 def create_z_glx(ds):
-    # create z only for glx - height give to geolux sesnor
+    # create z only for glx - height give to geolux sensor
     notetxt = None
     if "NAVD88_ref" in ds.attrs:
         hagd = ds.attrs["NAVD88_ref"]

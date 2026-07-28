@@ -1,6 +1,4 @@
-import numpy as np
 import scipy.signal as spsig
-import xarray as xr
 
 from . import utils
 
@@ -232,7 +230,7 @@ def apply_med_filt(ds, var):
 
 
 def filter_vel(ds, data_vars=["U", "V", "W"]):
-    """Filter velocity variables if specified using Butterworth filter - save orignal unfiltered data also"""
+    """Filter velocity variables if specified using Butterworth filter - save original unfiltered data also"""
 
     if "vel_filter_method" in ds.attrs and "vel_filter_cut" in ds.attrs:
         # loop through data variables
@@ -266,7 +264,7 @@ def filter_vel(ds, data_vars=["U", "V", "W"]):
                         ds = make_butter_filt(ds, var, sr, cutfreq, ftype)
                     else:
                         raise ValueError(
-                            f"filter method specified {ftype} is not in avaiable list [lowpass, highpass, or bandpass]."
+                            f"filter method specified {ftype} is not in available list [lowpass, highpass, or bandpass]."
                         )
 
         else:

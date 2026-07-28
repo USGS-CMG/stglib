@@ -374,7 +374,7 @@ def ds_add_attrs(ds):
             {
                 "units": "sample unit",
                 "long_name": "First digitized range value above threshold in sample units",
-                "comment": "Sample units are based on a sound velocity of 1500 m s-1. For ranges <5m, one sample unit = 2 mm. For ranges >=5 m, one sampe unit = 10 mm.",
+                "comment": "Sample units are based on a sound velocity of 1500 m s-1. For ranges <5m, one sample unit = 2 mm. For ranges >=5 m, one sample unit = 10 mm.",
             }
         )
 

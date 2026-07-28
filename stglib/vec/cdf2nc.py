@@ -175,7 +175,7 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     elif ds.attrs["sample_mode"].upper() == "CONTINUOUS":
         if "average_duration" in ds.attrs:
-            histtext = f"Create averaged data product from continously sampled data using user specified interval {ds.attrs['average_interval']} seconds and duration {ds.attrs['average_duration']} seconds"
+            histtext = f"Create averaged data product from continuously sampled data using user specified interval {ds.attrs['average_interval']} seconds and duration {ds.attrs['average_duration']} seconds"
         else:
             histtext = f"Create averaged data product from continuous sampled data using user specified interval {ds.attrs['average_interval']} seconds"
 
@@ -283,7 +283,7 @@ def check_orientation(ds):
         {
             "units": "1",
             "long_name": "instrument orientation",
-            "note": "0 = UP; 1 = DOWN; in reference to vector battery canister orientaion",
+            "note": "0 = UP; 1 = DOWN; in reference to vector battery canister orientation",
         }
     )
 
@@ -528,9 +528,9 @@ def dist_to_boundary(ds):
     ]
     ds = drop_rangevar_sample(ds, range_vars)
 
-    # vectors can produce a lot of zeros for the brange and varnge vars. This seems to happen when the boundary is out of range or if the probe is burried.
+    # vectors can produce a lot of zeros for the brange and varnge vars. This seems to happen when the boundary is out of range or if the probe is buried.
     # measurement range for brange is from 40 mm - 450 mm.
-    # don't want to keep any brange values outside of this range becuase they are likely not valid.
+    # don't want to keep any brange values outside of this range because they are likely not valid.
 
     # take average between start and end brange within measurement range; don't use values outside range
     ds["DistProbeStartEndAvg"] = xr.concat(
@@ -552,9 +552,9 @@ def dist_to_boundary(ds):
         }
     )
 
-    # velocity sample volume is 157 mm away from the center tranducer, so need to subtract this from brange measurement range
-    # measurment range for vrange is roughly -117 mm to 293 mm
-    # can't acutally go below 0, so making 0 the lower limit
+    # velocity sample volume is 157 mm away from the center transducer, so need to subtract this from brange measurement range
+    # measurement range for vrange is roughly -117 mm to 293 mm
+    # can't actually go below 0, so making 0 the lower limit
 
     # take average between start and end brange within measurement range; don't use values outside range
     ds["DistSVolStartEndAvg"] = xr.concat(

@@ -1634,7 +1634,7 @@ def fill_agc(ds):
     Average AGC (AGC_1202) is used to fill transformed eastward, northward, and upward velocities (u_1205, v_1206, w_1204).
     """
 
-    # lsit velocities to fill by cor threshold(s)
+    # list velocities to fill by cor threshold(s)
     uvw = ["u_1205", "v_1206", "w_1204", "w2_1204", "vel_b5"]
 
     if "velocity_agc_min" in ds.attrs:

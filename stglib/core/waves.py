@@ -261,7 +261,7 @@ def make_diwasp_ds(ds, layout=None, data_type=None, freqs=None, ibin=0):
 
 
 def call_diwasp_mp(ds, layout=None, data_type=None, freqs=None, ibin=None, nsamps=None):
-    """Mutliprocessing Module for diwasp processing using dask distrubuted - returns a merged dictionary"""
+    """Mutliprocessing Module for diwasp processing using dask distributed - returns a merged dictionary"""
 
     futures = []
     client = Client()

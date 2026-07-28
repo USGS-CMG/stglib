@@ -126,7 +126,7 @@ def csv_to_cdf(metadata):
         en = ["paused" in x for x in events["Type"]]
         starts = events[st].index
         ends = events[en].index
-        # the first start event sometimes appears afer a "sampling paused" event from the initial setup
+        # the first start event sometimes appears after a "sampling paused" event from the initial setup
         if starts[0] > ends[0]:
             ends = np.delete(ends, 0)
         if starts.shape != ends.shape:

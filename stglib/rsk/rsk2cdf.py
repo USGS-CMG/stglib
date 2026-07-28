@@ -55,15 +55,15 @@ def rsk_to_xr(metadata):
 
     # Assume RBRvirtuoso in burst mode if no attrs
     if "instrument_type" not in ds.attrs:
-        (d, ds) = read_virtuoso_burst(rskfile, ds)
+        d, ds = read_virtuoso_burst(rskfile, ds)
     # Else, check for duo or virtuoso, duo, and recording mode
     elif ds.attrs["instrument_type"] == "rbr_duo":
         if ds.attrs["recording_type"] == "continuous":
             # Continuous
-            (d, d2, ds) = read_duo_continuous(rskfile, ds)
+            d, d2, ds = read_duo_continuous(rskfile, ds)
         elif ds.attrs["recording_type"] == "burst":
             # Burst
-            (d, d2, ds) = read_duo_burst(rskfile, ds)
+            d, d2, ds = read_duo_burst(rskfile, ds)
         else:
             raise ValueError(
                 "recording_type in config file, {:s}, is invalid".format(
@@ -73,10 +73,10 @@ def rsk_to_xr(metadata):
     elif ds.attrs["instrument_type"] == "rbr_virtuoso":
         if ds.attrs["recording_type"] == "continuous":
             # Continuous
-            (d, ds) = read_virtuoso_continuous(rskfile, ds)
+            d, ds = read_virtuoso_continuous(rskfile, ds)
         elif ds.attrs["recording_type"] == "burst":
             # Burst
-            (d, ds) = read_virtuoso_burst(rskfile, ds)
+            d, ds = read_virtuoso_burst(rskfile, ds)
         else:
             raise ValueError(
                 "recording_type in config file, {:s}, is invalid".format(
@@ -243,7 +243,7 @@ def read_duo_continuous(rskfile, ds):
     print("Done fetching pressure data")
     d = np.asarray(data)
 
-    # Second load in temprature
+    # Second load in temperature
     conn.execute("SELECT tstamp, channel01 FROM data")
     data = conn.fetchall()
     print("Done fetching temperature data")
@@ -272,7 +272,7 @@ def read_duo_burst(rskfile, ds):
     print("Done fetching pressure data")
     d = np.asarray(data)
 
-    # Second load in temprature
+    # Second load in temperature
     conn.execute("SELECT tstamp, channel01 FROM data")
     data = conn.fetchall()
     print("Done fetching temperature data")

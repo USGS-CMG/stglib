@@ -87,7 +87,7 @@ def read_exo(filnam, skiprows=8, encoding="utf-8"):
     )
     exo.set_index("time", inplace=True)
 
-    # specify axis = 1 so columns are droppped; don't need time and date separated
+    # specify axis = 1 so columns are dropped; don't need time and date separated
     exo = exo.drop([time_var, date_var], axis=1)
 
     exo.rename(columns=lambda x: x.replace(" ", "_"), inplace=True)
@@ -313,7 +313,7 @@ def ds_rename_vars(ds):
 
 def read_exo_header(filnam, skiprows=8, encoding="utf-8"):
     """
-    Use header lines initally skipped
+    Use header lines initially skipped
     """
 
     header = {}
