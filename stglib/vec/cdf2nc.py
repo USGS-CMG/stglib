@@ -44,10 +44,6 @@ def cdf_to_nc(cdf_filename, atmpres=False):
 
     ds = scale_analoginput(ds)
 
-    # Create SSC variable
-    utils.turbidity_to_ssc(ds, "AnalogInput1")
-    utils.turbidity_to_ssc(ds, "AnalogInput2")
-
     # Drop unused variables
     ds = ds_drop(ds)
 
@@ -103,6 +99,10 @@ def cdf_to_nc(cdf_filename, atmpres=False):
         ds = qaqc.trim_mask(ds, var)
         ds = qaqc.trim_mask_expr(ds, var)
         ds = qaqc.trim_fliers(ds, var)
+
+    # Create SSC variable
+    utils.turbidity_to_ssc(ds, "AnalogInput1")
+    utils.turbidity_to_ssc(ds, "AnalogInput2")
 
     # Add start_time and stop_time attrs
     ds = utils.add_start_stop_time(ds)
@@ -256,14 +256,10 @@ def check_orientation(ds):
 
     flag = False
     if headtype == "VEC":
-        if sc == "0" and userorient == "UP":
-            flag = True
-        elif sc == "1" and userorient == "DOWN":
+        if sc == "0" and userorient == "UP" or sc == "1" and userorient == "DOWN":
             flag = True
     elif headtype == "VCH":
-        if sc == "0" and userorient == "DOWN":
-            flag = True
-        elif sc == "1" and userorient == "UP":
+        if sc == "0" and userorient == "DOWN" or sc == "1" and userorient == "UP":
             flag = True
 
     if flag is False:
@@ -645,9 +641,7 @@ def fill_snr(ds):
                 for bm in ds["beam"].values:
                     ds[v] = ds[v].where(ds.snr.sel(beam=bm) > ds.attrs["snr_threshold"])
 
-                histtext = "Filled velocity data using snr threshold of {} for corresponding beam(s).".format(
-                    Ptxt
-                )
+                histtext = f"Filled velocity data using snr threshold of {Ptxt} for corresponding beam(s)."
                 ds = utils.insert_note(ds, v, histtext)
 
         ds = utils.insert_history(ds, histtext)
@@ -671,9 +665,7 @@ def fill_cor(ds):
                 for bm in ds["beam"].values:
                     ds[v] = ds[v].where(ds.cor.sel(beam=bm) > ds.attrs["cor_threshold"])
 
-                histtext = "Filled velocity data using cor threshold of {} for corresponding beam(s).".format(
-                    Ptxt
-                )
+                histtext = f"Filled velocity data using cor threshold of {Ptxt} for corresponding beam(s)."
                 ds = utils.insert_note(ds, v, histtext)
 
         ds = utils.insert_history(ds, histtext)

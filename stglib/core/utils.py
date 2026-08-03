@@ -104,7 +104,7 @@ def clip_ds(ds, wvs=False):
         goods = np.hstack(goods)
         ds = ds.isel(time=goods)
 
-        histtext = "Data clipped using good_ens values of {}.".format(str(good_ens))
+        histtext = f"Data clipped using good_ens values of {good_ens!s}."
 
         ds = insert_history(ds, histtext)
 
@@ -115,7 +115,7 @@ def clip_ds(ds, wvs=False):
 
         ds = ds.isel(time=goods)
 
-        histtext = "Data clipped using good_ens_wvs values of {}.".format(str(good_ens))
+        histtext = f"Data clipped using good_ens_wvs values of {good_ens!s}."
 
         ds = insert_history(ds, histtext)
 
@@ -236,8 +236,8 @@ def add_min_max(ds, exclude_vars=None):
 
 
 def insert_history(ds, histtext):
-    toinsert = "{}: {}\n".format(
-        datetime.datetime.now(datetime.timezone.utc).isoformat(), histtext
+    toinsert = (
+        f"{datetime.datetime.now(datetime.timezone.utc).isoformat()}: {histtext}\n"
     )
 
     print(toinsert.rstrip())
@@ -257,7 +257,7 @@ def add_history(ds):
             os.path.basename(sys.argv[0]),
         )
     else:
-        histtext = "Processed to EPIC using {}.".format(os.path.basename(sys.argv[0]))
+        histtext = f"Processed to EPIC using {os.path.basename(sys.argv[0])}."
 
     return insert_history(ds, histtext)
 
@@ -846,16 +846,7 @@ def write_metadata(ds, metadata):
 
     f = os.path.basename(inspect.stack()[1][1])
 
-    histtext = (
-        "Processed using {} with stglib {}, xarray {}, NumPy {}, netCDF4 {}, Python {}."
-    ).format(
-        f,
-        stglib.__version__,
-        xr.__version__,
-        np.__version__,
-        netCDF4.__version__,
-        platform.python_version(),
-    )
+    histtext = f"Processed using {f} with stglib {stglib.__version__}, xarray {xr.__version__}, NumPy {np.__version__}, netCDF4 {netCDF4.__version__}, Python {platform.python_version()}."
 
     ds = insert_history(ds, histtext)
 
@@ -1019,9 +1010,7 @@ def shift_time(ds, timeshift, apply_clock_error=True, apply_clock_drift=True):
                 % (timeshift, int(timeshift))
             )
 
-        histtext = "Time shifted to middle of burst by {} s.".format(
-            int(timeshift),
-        )
+        histtext = f"Time shifted to middle of burst by {int(timeshift)} s."
 
         insert_history(ds, histtext)
 
@@ -1370,8 +1359,8 @@ def create_z(ds):
 
 
 def insert_note(ds, var, notetxt):
-    toinsert = "{}: {}\n".format(
-        datetime.datetime.now(datetime.timezone.utc).isoformat(), notetxt
+    toinsert = (
+        f"{datetime.datetime.now(datetime.timezone.utc).isoformat()}: {notetxt}\n"
     )
 
     print(f"{var}: {toinsert.rstrip()}")
@@ -2046,6 +2035,10 @@ def turbidity_to_ssc(ds, turbvar):
         ds["ssc"].attrs[
             "comment"
         ] = f"Suspended-sediment concentration estimated as SSC = {coef[0]} * {turbvar} + {coef[1]}. Estimated value; please use with caution. Quality of SSC estimation may be poor. See Data Release metadata, if available, for more information."
+
+        histtext = f"SSC variable created: SSC = {coef[0]} * {turbvar} + {coef[1]}"
+
+        insert_history(ds, histtext)
 
 
 def ds_mean_count_minf(ds, dim="sample", minf=None):
